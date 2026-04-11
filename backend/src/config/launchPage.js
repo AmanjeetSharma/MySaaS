@@ -5,7 +5,7 @@ const launchPage = (name = 'Your') => `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${name.charAt(0).toUpperCase() + name.slice(1)}-Service Launched Successfully</title>
+    <title>${name.charAt(0).toUpperCase() + name.slice(1)}-Server Started Successfully</title>
     <style>
         * {
             margin: 0;
@@ -258,9 +258,9 @@ const launchPage = (name = 'Your') => `
             <div class="rocket-flame"></div>
         </div>
         <h1>
-            <span class="service-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>-Service is Live!
+            <span class="service-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>-Server is Up & Running!
         </h1>
-        <p>Your ${name.toLowerCase()} service is running successfully and ready to handle requests.</p>
+        <p>Your ${name.toLowerCase()} server is running successfully and ready to handle requests.</p>
 
         <div class="status">
             <div class="status-dot"></div>

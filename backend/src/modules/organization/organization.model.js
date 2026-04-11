@@ -1,33 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
 const memberSchema = new Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-
-    role: {
-        type: String,
-        enum: ["owner", "member"],
-        default: "member",
-    },
-
-    joinedAt: {
-        type: Date,
-        default: Date.now,
-    },
-
-    invitedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null,
-    },
-
-    isActive: {
-        type: Boolean,
-        default: true,
-    }
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    role: { type: String, enum: ["member"], default: "member" }, // no need of owner role here as owner is defined in organization schema
+    invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    joinedAt: { type: Date, default: Date.now },
 });
 
 const subscriptionSchema = new Schema({
@@ -39,7 +16,7 @@ const subscriptionSchema = new Schema({
 
     status: {
         type: String,
-        enum: ["active", "expired", "cancelled"],
+        enum: ["active", "past_due", "canceled", "trialing", "trial_expired"],
         default: "active",
     },
 
@@ -54,22 +31,6 @@ const subscriptionSchema = new Schema({
     }
 });
 
-const limitsSchema = new Schema({
-    maxUsers: {
-        type: Number,
-        default: 1,
-    },
-
-    aiCredits: {
-        type: Number,
-        default: 0,
-    },
-
-    maxCustomers: {
-        type: Number,
-        default: 100, // Default limit for free plan (list count)
-    }
-});
 
 const integrationsSchema = new Schema({
     googleCalendar: {
@@ -79,7 +40,7 @@ const integrationsSchema = new Schema({
     },
 
     whatsapp: {
-        isEnabled: { type: Boolean, default: false } // API later
+        isEnabled: { type: Boolean, default: false },
     }
 });
 
@@ -101,19 +62,15 @@ const organizationSchema = new Schema(
 
         subscription: subscriptionSchema,
 
-        limits: limitsSchema,
-
         integrations: integrationsSchema,
 
-        isActive: { // Soft delete flag
-            type: Boolean,
-            default: true,
-        },
-
-        isDeleted: { // Permanent delete flag
-            type: Boolean,
-            default: false,
+        usage: {
+            aiCreditsUsed: {
+                type: Number,
+                default: 0
+            },
         }
+
     },
     { timestamps: true }
 );

@@ -5,6 +5,8 @@ const env = {
     DB_NAME: process.env.DB_NAME,
     PORT: process.env.PORT || 3000,
 
+    CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+
 
 
 };

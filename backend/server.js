@@ -11,7 +11,11 @@ dotenv.config({
 });
 
 app.get("/", (req, res) => {
-    res.send(launchPage('MaahSaaS'));
+    res.send(launchPage('MySaaS'));
+});
+
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "Server is healthy!" });
 });
 
 connectDB()

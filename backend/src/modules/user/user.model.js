@@ -3,21 +3,11 @@ import mongoose, { Schema } from 'mongoose';
 const sessionSchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
     device: { type: String, default: 'Unknown Device' },
-    refreshToken: String,
+    refreshToken: { type: String, required: true, select: false },
     firstLogin: { type: Date, default: Date.now },
     latestLogin: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true }
 });
-
-
-const organizationSchema = new mongoose.Schema({
-    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
-    role: { type: String, enum: ['owner', 'member'], default: 'member' },
-    assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    joinedAt: { type: Date, default: Date.now },
-    lastActive: { type: Date, default: Date.now }
-});
-
 
 
 const settingsSchema = new mongoose.Schema({
@@ -36,7 +26,7 @@ const userSchema = new Schema({
         required: true,
         trim: true,
         minlength: [3, 'Name must be at least 3 characters long'],
-        maxlength: [30, 'Name cannot exceed 50 characters']
+        maxlength: [30, 'Name cannot exceed 30 characters']
     },
     email: {
         type: String,
@@ -49,6 +39,9 @@ const userSchema = new Schema({
         type: String,
         minlength: [8, 'Password must be at least 8 characters long'],
         select: false, //not required true for login with google
+        required: function () {
+            return this.provider === "local";
+        }
     },
 
     provider: {
@@ -58,11 +51,10 @@ const userSchema = new Schema({
     },
 
 
-    resetPasswordToken: { type: String, default: null },
-    resetPasswordExpiry: { type: Date, default: null },
+    resetPasswordToken: { type: String, default: null, select: false },
+    resetPasswordExpiry: { type: Date, default: null, select: false },
 
 
-    organizations: [organizationSchema],
     activeOrganization: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Organization',
@@ -73,15 +65,27 @@ const userSchema = new Schema({
     settings: settingsSchema,
     sessions: [sessionSchema],
 
-    isDeleted: { type: Boolean, default: false },
+    accountStatus: {
+        type: String,
+        enum: ["active", "suspended", "deleted"],// in suspended user cant login, deletedd is for soft delete (data deleted but entry is there for record purposes)
+        default: "active",
+    }
 
 }, {
     timestamps: true
 });
 
-userSchema.index({ email: 1 });// Index for email to ensure uniqueness and fast lookups
-userSchema.index({ "organizations.organization": 1 });// Index for organization references to optimize queries by organization
-userSchema.index({ "sessions.sessionId": 1 });// Index for sessionId to optimize session lookups
+// Acts as middleware to limit sessions to 6 per user
+userSchema.pre("save", function (next) {
+    if (this.sessions && this.sessions.length > 6) {
+        this.sessions.sort((a, b) => new Date(a.latestLogin) - new Date(b.latestLogin));
+
+        this.sessions = this.sessions.slice(-6);
+    }
+    next();
+});
+
+userSchema.index({ "sessions.sessionId": 1 });// index for sessionId to optimize session lookups
 
 export const User =
-    mongoose.model('User', userSchema) || mongoose.models.User;
+    mongoose.models.User || mongoose.model('User', userSchema);
