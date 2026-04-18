@@ -1,4 +1,3 @@
-// Load environment variables from .env file for better security and configuration management
 const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     MONGO_URI: process.env.MONGO_URI,

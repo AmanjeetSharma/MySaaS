@@ -1,4 +1,3 @@
-// launchPage.js
 const launchPage = (name = 'Your') => `
 <!DOCTYPE html>
 <html lang="en">
