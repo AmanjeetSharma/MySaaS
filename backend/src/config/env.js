@@ -5,8 +5,19 @@ const env = {
     PORT: process.env.PORT || 3000,
 
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
 
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
+
+    EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true', // Converting to boolean
+    ENABLE_CRON_JOBS: process.env.ENABLE_CRON_JOBS === 'true',
 
 };
 

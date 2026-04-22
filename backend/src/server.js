@@ -4,8 +4,8 @@ import { app } from "./app.js";
 import chalk from "chalk";
 import launchPage from "./config/launchPage.js"
 import env from "./config/env.js";
+import { startJobs } from "./jobs/index.js";
 
-// loading environment variables
 dotenv.config({
     path: "./.env"
 });
@@ -21,10 +21,14 @@ app.get("/health", (req, res) => {
 connectDB()
     .then(() => {
         app.listen(env.PORT, () => {
-            console.log(chalk.yellowBright(`Server is live! 🚀`));
+            console.log(chalk.yellowBright(`Server is live!`));
             console.log(chalk.magentaBright(`🌐 Server is running on port:`));
             console.log(chalk.cyanBright(`http://localhost:${env.PORT}`));
             console.log(chalk.gray(`-----------------------------------------`));
+
+            if (env.ENABLE_CRON_JOBS) {
+                startJobs(); // Starting background jobs only after server goes live
+            }
         });
     })
     .catch((error) => {

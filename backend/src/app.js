@@ -17,11 +17,11 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 // Import routes
-// import authRoutes from "./modules/auth/auth.routes.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 
 // Use routes
-// app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 
 // Error handling middleware

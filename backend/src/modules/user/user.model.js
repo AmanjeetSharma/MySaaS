@@ -20,13 +20,16 @@ const settingsSchema = new mongoose.Schema({
 });
 
 const userSchema = new Schema({
-    avatar: { type: String, required: false },
+    avatar: {
+        url: { type: String, default: null },
+        publicId: { type: String, default: null }
+    },
     name: {
         type: String,
         required: true,
         trim: true,
         minlength: [3, 'Name must be at least 3 characters long'],
-        maxlength: [30, 'Name cannot exceed 30 characters']
+        maxlength: [50, 'Name cannot exceed 50 characters']
     },
     email: {
         type: String,
@@ -38,16 +41,17 @@ const userSchema = new Schema({
     password: {
         type: String,
         minlength: [8, 'Password must be at least 8 characters long'],
-        select: false, //not required true for login with google
-        required: function () {
-            return this.provider === "local";
-        }
+        select: false,
     },
 
-    provider: {
-        type: String,
-        enum: ["local", "google"],
-        default: "local"
+    providers: {
+        local: {
+            enabled: { type: Boolean, default: true }
+        },
+        google: {
+            enabled: { type: Boolean, default: false },
+            googleId: { type: String, default: null }
+        }
     },
 
 
@@ -82,7 +86,6 @@ userSchema.pre("save", function (next) {
 
         this.sessions = this.sessions.slice(-6);
     }
-    next();
 });
 
 userSchema.index({ "sessions.sessionId": 1 });// index for sessionId to optimize session lookups

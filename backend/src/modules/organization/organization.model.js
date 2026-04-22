@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const memberSchema = new Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    role: { type: String, enum: ["member"], default: "member" }, // no need of owner role here as owner is defined in organization schema
+    role: { type: String, enum: ["member"], default: "member" },
     invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     joinedAt: { type: Date, default: Date.now },
 });
