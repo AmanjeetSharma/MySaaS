@@ -21,19 +21,22 @@ import { sendEmail } from "../../services/email.service.js";
 
 
 export const register = asyncHandler(async (req, res) => {
+    
     const { name, email, password, organizationName } = req.body;
     const avatarFile = req.file;
+
+    const cleanUp = (reason) => cleanupAvatar(avatarFile, reason);
 
     const normalizedEmail = email?.toLowerCase().trim();
 
     const requiredFields = { name, email: normalizedEmail, password };
     for (const [key, value] of Object.entries(requiredFields)) {
         if (!value?.trim()) {
+            cleanUp(`Missing required field: ${key}`); // cleaning up avatar from local storage at missing required fields to avoid orphan files
             throw new ApiError(400, `${key} is required`);
         }
     }
 
-    const cleanUp = (reason) => cleanupAvatar(avatarFile, reason);
 
     const nameError = nameValidator(name);
     if (!nameError.valid) {
@@ -52,10 +55,10 @@ export const register = asyncHandler(async (req, res) => {
         throw new ApiError(400, `Password is invalid: ${passwordError.errors.join(", ")}`);
     }
 
-    if (avatarFile && !avatarValidator(avatarFile)) {
-        cleanUp("File validation failed");
-        console.log(`Removed avatar image from localServer due to → invalid format or size: ${avatarFile.filename}`);
-        throw new ApiError(400, "Image must be a JPEG, PNG, or WebP file (≤ 2MB)");
+    const avatarError = avatarValidator(avatarFile);
+    if (!avatarError.valid) {
+        cleanUp("Avatar validation failed");
+        throw new ApiError(400, `${avatarError.errors.join(", ")}`);
     }
 
     const existingUser = await User.findOne({ email: normalizedEmail }); // this checks user 
@@ -108,7 +111,7 @@ export const register = asyncHandler(async (req, res) => {
         existingPendingUser.verificationTokenExpiry = expiry;
 
         await existingPendingUser.save();
-        console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
+        // console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
     } else {
         await PendingUser.create({
             avatar: {

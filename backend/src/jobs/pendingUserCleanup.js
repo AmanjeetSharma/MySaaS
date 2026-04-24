@@ -11,7 +11,10 @@ export const runPendingUserCleanup = async () => {
 
         for (const user of expiredUsers) {
             if (user.avatar?.publicId) {
-                await deleteFromCloudinary(user.avatar.publicId);
+                const result = await deleteFromCloudinary(user.avatar.publicId);
+                if (result) {
+                    console.log(`${chalk.green("[cron-job]")} Removed avatar from Cloudinary for expired pending user | email: ${user.email}`);
+                }
             }
         }
 
@@ -19,8 +22,8 @@ export const runPendingUserCleanup = async () => {
             verificationTokenExpiry: { $lt: new Date() }
         });
 
-        console.log(`Cleanup done | removed: ${deletedUsers.deletedCount} | Deleted user emails: ${deletedUsers.deletedCount > 0 ? expiredUsers.map(u => u.email).join(", ") : "None"}`);
+        console.log(`${chalk.green("[cron-job]")} Cleanup done | removed: ${deletedUsers.deletedCount} | Deleted user emails: ${deletedUsers.deletedCount > 0 ? expiredUsers.map(u => u.email).join(", ") : "None"}`);
     } catch (error) {
-        console.error("Cleanup job failed:", error.message);
+        console.error(`${chalk.red("[cron-job]")} Cleanup job failed:`, error.message);
     }
 };
