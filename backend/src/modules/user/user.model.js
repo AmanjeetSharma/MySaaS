@@ -23,7 +23,7 @@ const userSchema = new Schema({
     avatar: {
         url: { type: String, default: null },
         publicId: { type: String, default: null }
-    },
+    },  
     name: {
         type: String,
         required: true,

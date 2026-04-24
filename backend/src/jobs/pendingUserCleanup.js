@@ -3,7 +3,7 @@ import { deleteFromCloudinary } from "../services/cloudinary.service.js"
 
 export const runPendingUserCleanup = async () => {
     try {
-        console.log("Running pending user cleanup...");
+        // console.log("Running pending user cleanup...");
 
         const expiredUsers = await PendingUser.find({
             verificationTokenExpiry: { $lt: new Date() }
@@ -19,7 +19,7 @@ export const runPendingUserCleanup = async () => {
             verificationTokenExpiry: { $lt: new Date() }
         });
 
-        console.log(`Cleanup done | removed: ${deletedUsers.deletedCount}\nDeleted user emails: ${expiredUsers.map(u => u.email).join(", ")}`);
+        console.log(`Cleanup done | removed: ${deletedUsers.deletedCount} | Deleted user emails: ${deletedUsers.deletedCount > 0 ? expiredUsers.map(u => u.email).join(", ") : "None"}`);
     } catch (error) {
         console.error("Cleanup job failed:", error.message);
     }

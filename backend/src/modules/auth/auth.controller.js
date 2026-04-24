@@ -91,8 +91,13 @@ export const register = asyncHandler(async (req, res) => {
 
     if (existingPendingUser) {
 
-        if (existingPendingUser.avatar?.publicId) {
-            await deleteFromCloudinary(existingPendingUser.avatar.publicId);
+        try {
+            if (existingPendingUser.avatar?.publicId) {
+                await deleteFromCloudinary(existingPendingUser.avatar.publicId);
+                console.log(`Removed old avatar from Cloudinary for existing pending user | email: ${normalizedEmail}`);
+            }
+        } catch (err) {
+            console.error(`Failed to remove old avatar from Cloudinary for existing pending user | email: ${normalizedEmail} | error: ${err.message}`);
         }
 
         existingPendingUser.avatar.url = avatarUrl;
