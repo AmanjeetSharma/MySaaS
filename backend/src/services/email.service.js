@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import env from "../config/env.js";
+import { ApiError } from "../utils/ApiError.js";
 
 /**
  * Send Email Utility
@@ -37,8 +38,7 @@ export const sendEmail = async (to, subject, content, isHtml = false) => {
 
         return info;
     } catch (error) {
-        console.error("Email error:", error);
-        throw new Error("Email could not be sent");
+        throw new ApiError(500, "Email could not be sent", error.message);
     }
 };
 
