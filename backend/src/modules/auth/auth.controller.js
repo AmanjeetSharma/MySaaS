@@ -9,7 +9,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.service.js";
-import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "../../validations/auth.validators.js";
+import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "./auth.validators.js";
 import { cleanupAvatar } from "./auth.helper.js";
 import { generateEmailVerificationToken } from "../../utils/token.js";
 import env from "../../config/env.js";
@@ -61,7 +61,7 @@ export const register = asyncHandler(async (req, res) => {
         throw new ApiError(400, `${avatarError.errors.join(", ")}`);
     }
 
-    const existingUser = await User.findOne({ email: normalizedEmail }); // this checks user 
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
         if (avatarFile) {

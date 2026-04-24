@@ -26,8 +26,8 @@ connectDB()
             console.log(chalk.cyanBright(`http://localhost:${env.PORT}`));
             console.log(chalk.gray(`-----------------------------------------`));
 
-            if (env.ENABLE_CRON_JOBS) {
-                startJobs(); // Starting background jobs only after server goes live
+            if (env.ENABLE_JOBS) {
+                startJobs(); // Start background jobs only after server goes live
             }
         });
     })

@@ -7,7 +7,7 @@ export const startJobs = () => {
     console.log(chalk.gray(`-----------------------------------------`));
 
     // every hour
-    cron.schedule("*/5 * * * *", async () => { //runs every 5 minutes for testing (development phase)
+    cron.schedule("*/5 * * * *", async () => { //runs every 5 minutes (env: development)
         await runPendingUserCleanup();
     });
 };

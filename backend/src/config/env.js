@@ -17,7 +17,7 @@ const env = {
     SMTP_PASS: process.env.SMTP_PASS,
 
     EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true', // Converting to boolean
-    ENABLE_CRON_JOBS: process.env.ENABLE_CRON_JOBS === 'true',
+    ENABLE_JOBS: process.env.ENABLE_JOBS === 'true',
 
 };
 
