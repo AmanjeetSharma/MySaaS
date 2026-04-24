@@ -16,7 +16,7 @@ export const PLAN_CONFIG = {
         maxCustomers: 1000,
         aiCredits: 50,
         features: {
-            aiAssistance: false,
+            aiAssistance: false,    
             googleCalendar: true,
         },
     },

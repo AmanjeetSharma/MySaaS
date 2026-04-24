@@ -14,7 +14,7 @@ export const runPendingUserCleanup = async () => {
             if (user.avatar?.publicId) {
                 const result = await deleteFromCloudinary(user.avatar.publicId);
                 if (result) {
-                    console.log(`${new Date().toLocaleDateString()}${chalk.green("[cron-job]")} Removed avatar from Cloudinary for expired pending user | email: ${user.email}`);
+                    console.log(`${new Date().toLocaleString()} ${chalk.green("[PendingUserCleanup]")} Removed avatar from Cloudinary for expired pending user | email: ${user.email}`);
                 }
             }
         }
@@ -23,8 +23,8 @@ export const runPendingUserCleanup = async () => {
             verificationTokenExpiry: { $lt: new Date() }
         });
 
-        console.log(`${new Date().toLocaleDateString()}${chalk.green("[cron-job]")} Cleanup done | removed: ${deletedUsers.deletedCount} | Deleted user emails: ${deletedUsers.deletedCount > 0 ? expiredUsers.map(u => u.email).join(", ") : "None"}`);
+        console.log(`${new Date().toLocaleString()} ${chalk.green("[PendingUserCleanup]")} Cleanup done | removed: ${deletedUsers.deletedCount} | Deleted user emails: ${deletedUsers.deletedCount > 0 ? expiredUsers.map(u => u.email).join(", ") : "None"}`);
     } catch (error) {
-        console.error(`${new Date().toLocaleDateString()}${chalk.red("[cron-job]")} Cleanup job failed:`, error.message);
+        console.error(`${new Date().toLocaleString()} ${chalk.red("[PendingUserCleanup]")} Cleanup job failed:`, error.message);
     }
 };

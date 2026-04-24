@@ -1,13 +1,28 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
 import env from "../../config/env.js";
-import { findUserByEmail, findPendingUserByEmail, createPendingUser, savePendingUser } from "./auth.repository.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "./auth.validators.js";
-import { cleanupAvatar } from "./auth.helper.js";
+import { cleanupAvatar, getTimeDifference } from "./auth.helper.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.service.js";
 import { generateEmailVerificationToken } from "../../utils/token.js";
 import { registerEmailTemplate } from "../../utils/email/registerEmailTemplate.js";
+import { welcomeEmailTemplate } from "../../utils/email/welcomeEmailTemplate.js";
 import { sendEmail } from "../../services/email.service.js";
+import {
+    findUserByEmail,
+    findPendingUserByEmail,
+    createPendingUser,
+    savePendingUser,
+    findPendingUserByVerificationToken,
+    createNewUserFromPending,
+    deletePendingUser,
+    createDefaultOrganization,
+} from "./auth.repository.js";
+
+
+
+
 
 
 
@@ -151,19 +166,89 @@ export const registerService = async (body, avatarFile) => {
 
 
 
-// Default Org Creation
-// let org;
-// try {
-//     org = await Organization.create({
-//         name: organizationName?.trim() || `${name.trim()}'s Workspace`,
-//         owner: user._id,
-//     });
-// } catch (err) {
-//     const result = await User.findByIdAndDelete(user._id); // Rolling back user creation if organization creation fails
-//     if (result) {
-//         console.log(`Rolled back user creation due to organization creation failure | userId: ${user._id}`);
-//     }
-//     throw new ApiError(500, "User registration failed, please try again");// throwing generic message to avoid exposing internal errors on rollbacks
-// }
 
-// user.activeOrganization = org._id;// default active organization for the user
+
+
+export const verifyEmailService = async (token) => {
+    if (!token) {
+        throw new ApiError(400, "Verification token is required");
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const pendingUser = await findPendingUserByVerificationToken(hashedToken);
+
+    if (!pendingUser) {
+        throw new ApiError(400, "Invalid or expired token");
+    }
+
+    if (pendingUser.verificationTokenExpiry < Date.now()) {
+        const timeInfo = getTimeDifference(pendingUser.verificationTokenExpiry);
+        console.log(`Token expired ${timeInfo} ago | Email: ${pendingUser.email}`);
+
+        throw new ApiError(
+            400,
+            `Token expired ${timeInfo} ago. Please register again.`
+        );
+    }
+
+    // Prevent duplicate user (race condition(multiple clicks on link))
+    let user = await findUserByEmail(pendingUser.email);
+
+    if (!user) {
+        user = await createNewUserFromPending({
+            avatar: {
+                url: pendingUser.avatar.url,
+                publicId: pendingUser.avatar.publicId
+            },
+            name: pendingUser.name,
+            email: pendingUser.email,
+            password: pendingUser.password,
+        });
+    }
+
+    await deletePendingUser(pendingUser._id);
+
+    console.log(`Email verified | User: ${user.email} | ID: ${user._id}`);
+
+    // To prevent race condition
+    if (!user.activeOrganization) {
+        // Default Org assignment
+        let organizationName = `${user.name.trim()}'s Workspace`;
+        let org;
+        try {
+            org = await createDefaultOrganization({
+                name: organizationName,
+                owner: user._id,
+                members: [],
+                subscription: {
+                    plan: "free",
+                    status: "active",
+                    startDate: new Date(),
+                    endDate: null
+                },
+                usage: {
+                    aiCreditsUsed: 0
+                }
+            });
+            if (org) {
+                user.activeOrganization = org._id;
+                await user.save();
+                console.log(`Default organization created for user ${user.email} | orgId: ${org._id}`);
+            }
+        } catch (err) {
+            console.error(`Default organization creation failed for user ${user.email} after email verification | userId: ${user._id} | error: ${err.message}`);
+        }
+    }
+
+    try {
+        if (env.EMAIL_ENABLED) {
+            await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
+        }
+    } catch (err) { }
+
+    return {
+        name: user.name,
+        email: user.email
+    };
+};
