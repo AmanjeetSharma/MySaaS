@@ -5,7 +5,7 @@ import env from "../../config/env.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "./auth.validators.js";
 import { cleanupAvatar, getTimeDifference } from "./auth.helper.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.service.js";
-import { generateEmailVerificationToken } from "../../utils/token.js";
+import { generateToken } from "../../utils/token.js";
 import { registerEmailTemplate } from "../../utils/email/registerEmailTemplate.js";
 import { welcomeEmailTemplate } from "../../utils/email/welcomeEmailTemplate.js";
 import { sendEmail } from "../../services/email.service.js";
@@ -18,7 +18,11 @@ import {
     createNewUserFromPending,
     deletePendingUser,
     createDefaultOrganization,
+    findUserById,
 } from "./auth.repository.js";
+import { Organization } from "../organization/organization.model.js";
+import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
+import { ref } from "process";
 
 
 
@@ -73,7 +77,6 @@ export const registerService = async (body, avatarFile) => {
     if (existingUser) {
         if (avatarFile) {
             cleanUp("User already exists");
-            console.log(`Removed avatar: User already exists`);
         }
 
         if (existingUser.providers?.google?.enabled) {
@@ -85,7 +88,7 @@ export const registerService = async (body, avatarFile) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const { rawToken, hashedToken, expiry } = generateEmailVerificationToken();
+    const { rawToken, hashedToken, expiry } = generateToken();
 
     let avatarUrl = "";
     let avatarPublicId = "";
@@ -168,7 +171,6 @@ export const registerService = async (body, avatarFile) => {
 
 
 
-
 export const verifyEmailService = async (token) => {
     if (!token) {
         throw new ApiError(400, "Verification token is required");
@@ -176,7 +178,7 @@ export const verifyEmailService = async (token) => {
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-    const pendingUser = await findPendingUserByVerificationToken(hashedToken);
+    const pendingUser = await findPendingUserByVerificationToken(hashedToken, "+password");
 
     if (!pendingUser) {
         throw new ApiError(400, "Invalid or expired token");
@@ -245,10 +247,139 @@ export const verifyEmailService = async (token) => {
         if (env.EMAIL_ENABLED) {
             await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
         }
-    } catch (err) { }
+    } catch (err) {
+        console.log(`Welcome email failed for ${user.email} | userId: ${user._id} | error: ${err.message}`);
+    }
 
     return {
         name: user.name,
-        email: user.email
+        email: user.email,
+        organization: user.activeOrganization,
+        organizationName: user.name ? `${user.name.trim()}'s Workspace` : "Your Workspace"
     };
+};
+
+
+
+
+
+
+
+
+
+
+export const loginService = async (body) => {
+    const { email, password, device = "unknown device" } = body;
+
+    const normalizedEmail = email?.toLowerCase().trim();
+
+    const requiredFields = { email: normalizedEmail, password };
+    for (const [key, value] of Object.entries(requiredFields)) {
+        if (!value?.trim()) {
+            throw new ApiError(400, `${key} is required`);
+        }
+    }
+
+    const user = await findUserByEmail(normalizedEmail, "+password +sessions");
+    if (!user) {
+        throw new ApiError(401, "User doesn't exist");
+    }
+
+    if (user.accountStatus !== "active") {
+        throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support for assistance.`);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid email or password");
+    }
+
+    const existingSession = user.sessions.find(
+        (session) => session.device === device
+    );
+
+    let sessionId;
+    let refreshToken;
+
+    if (existingSession) {
+        //reuse session
+        sessionId = existingSession.sessionId;
+        refreshToken = generateRefreshToken(user._id, sessionId);
+        existingSession.refreshToken = refreshToken;
+
+        existingSession.latestLogin = new Date();
+        existingSession.isActive = true;
+
+        // debug log
+        // console.log(`Session resused | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
+    } else {
+        sessionId = generateSessionId();
+        refreshToken = generateRefreshToken(user._id, sessionId);
+
+        user.sessions.push({
+            sessionId,
+            device,
+            refreshToken,
+            firstLogin: new Date(),
+            latestLogin: new Date(),
+            isActive: true
+        });
+        console.log(`New session created | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
+    }
+    await user.save();
+
+    const accessToken = generateAccessToken(user);
+
+    console.log(`User logged in | Email: ${user.email} | Device: ${device}`);
+
+    return {
+        user: {
+            name: user.name,
+            email: normalizedEmail,
+        },
+        accessToken,
+        refreshToken
+    }
+};
+
+
+
+
+
+
+
+
+
+
+export const logoutService = async (refreshToken, userId) => {
+    if (!refreshToken) {
+        throw new ApiError(400, "Refresh token is required");
+    }
+    const user = await findUserById(userId, "+sessions.refreshToken");
+    console.log("Logout - User sessions before logout:", user); // Debug log
+    if (!user) {
+        throw new ApiError(401, "User doesn't exist");
+    }
+
+    const currentDevice = user.sessions.find(s => s.refreshToken === refreshToken)?.device || 'Unknown Device';
+    // deactivate the session
+    user.sessions = user.sessions.map((session) => {
+        if (session.refreshToken === refreshToken) {
+            session.isActive = false;
+            session.refreshToken = null; // Invalidate the refresh token
+        }
+        return session;
+    });
+
+    console.log("Logout - User sessions after logout:", user); // Debug log
+    await user.save();
+    
+    console.log(`User logged out | Email: ${user.email}`);
+
+    return {
+        message: "Logged out successfully",
+        email: user.email,
+        device: currentDevice
+    };
+
 };

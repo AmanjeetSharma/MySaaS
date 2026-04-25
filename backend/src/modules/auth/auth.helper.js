@@ -5,7 +5,7 @@ const removeLocalFile = (filePath, reason = "unknown") => {
         if (filePath && fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-        console.log(`Removed local file: ${filePath} due to ${reason}`);
+        console.log(`Removed local file: ${filePath} | Reason: ${reason}`);
     } catch (err) {
         console.error("File cleanup failed:", err.message);
     }

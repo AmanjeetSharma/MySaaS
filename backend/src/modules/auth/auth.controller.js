@@ -1,6 +1,7 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { registerService, verifyEmailService } from "./auth.service.js";
+import { registerService, verifyEmailService, loginService, logoutService } from "./auth.service.js";
+import { cookieOptions } from "../../config/cookieOptions.js";
 
 
 
@@ -30,4 +31,41 @@ export const verifyEmail = asyncHandler(async (req, res) => {
             "Email verified successfully!\nYou can login now."
         )
     );
+});
+
+
+export const login = asyncHandler(async (req, res) => {
+    const data = await loginService(req.body);
+
+    return res
+        .status(200)
+        .cookie("accessToken", data.accessToken, cookieOptions)
+        .cookie("refreshToken", data.refreshToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    name: data.user.name,
+                    email: data.user.email,
+                },
+                `Welcome back, ${data.user.name}!`
+            )
+        )
+});
+
+
+export const logout = asyncHandler(async (req, res) => {
+    const data = await logoutService(req.cookies?.refreshToken, req.user._id);
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                data,
+                "Logged out successfully"
+            )
+        )
 });
