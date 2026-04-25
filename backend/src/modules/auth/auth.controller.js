@@ -1,7 +1,13 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { registerService, verifyEmailService, loginService, logoutService } from "./auth.service.js";
 import { cookieOptions } from "../../config/cookieOptions.js";
+import {
+    registerService,
+    verifyEmailService,
+    loginService,
+    logoutService,
+    logoutAllService
+} from "./auth.service.js";
 
 
 
@@ -55,7 +61,7 @@ export const login = asyncHandler(async (req, res) => {
 
 
 export const logout = asyncHandler(async (req, res) => {
-    const data = await logoutService(req.cookies?.refreshToken, req.user._id);
+    const data = await logoutService(req.cookies?.refreshToken, req.user?._id);
 
     return res
         .status(200)
@@ -66,6 +72,23 @@ export const logout = asyncHandler(async (req, res) => {
                 200,
                 data,
                 "Logged out successfully"
+            )
+        )
+});
+
+
+export const logoutAll = asyncHandler(async (req, res) => {
+    const data = await logoutAllService( req.cookies?.refreshToken, req.user?._id);
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                data,
+                "Logged out from all devices successfully"
             )
         )
 });

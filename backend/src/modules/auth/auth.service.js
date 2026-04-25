@@ -22,7 +22,6 @@ import {
 } from "./auth.repository.js";
 import { Organization } from "../organization/organization.model.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
-import { ref } from "process";
 
 
 
@@ -356,25 +355,24 @@ export const logoutService = async (refreshToken, userId) => {
         throw new ApiError(400, "Refresh token is required");
     }
     const user = await findUserById(userId, "+sessions.refreshToken");
-    console.log("Logout - User sessions before logout:", user); // Debug log
+
     if (!user) {
         throw new ApiError(401, "User doesn't exist");
     }
 
     const currentDevice = user.sessions.find(s => s.refreshToken === refreshToken)?.device || 'Unknown Device';
-    // deactivate the session
+
     user.sessions = user.sessions.map((session) => {
         if (session.refreshToken === refreshToken) {
             session.isActive = false;
-            session.refreshToken = null; // Invalidate the refresh token
+            session.refreshToken = null;
         }
         return session;
     });
 
-    console.log("Logout - User sessions after logout:", user); // Debug log
     await user.save();
-    
-    console.log(`User logged out | Email: ${user.email}`);
+
+    console.log(`User logged out | Email: ${user.email} | Device: ${currentDevice}`);
 
     return {
         message: "Logged out successfully",
@@ -382,4 +380,67 @@ export const logoutService = async (refreshToken, userId) => {
         device: currentDevice
     };
 
+};
+
+
+
+
+
+
+
+
+
+export const logoutAllService = async (refreshToken, userId) => {
+    if (!userId) {
+        throw new ApiError(400, "Unauthorized");
+    }
+    if (!refreshToken) {
+        throw new ApiError(400, "No active session found");
+    }
+
+    const user = await findUserById(userId, "+sessions.refreshToken");
+
+    if (!user) {
+        throw new ApiError(401, "User doesn't exist");
+    }
+
+    const currentSession = user.sessions.find(
+        (session) => String(session.refreshToken) === String(refreshToken)
+    );
+
+    if (!currentSession) {
+        throw new ApiError(401, "Current session invalid or expired");
+    }
+
+    const otherActiveSessions = user.sessions.filter(
+        (session) =>
+            String(session.refreshToken) !== String(refreshToken) &&
+            session.isActive
+    );
+    if (otherActiveSessions.length === 0) {
+        throw new ApiError(400, "No other active sessions found");
+    }
+
+    user.sessions = user.sessions.map((session) => {
+        if (String(session.refreshToken) === String(refreshToken)) {
+            return session; // to keep current session active
+        }
+
+        return {
+            ...session,
+            isActive: false,
+            refreshToken: null,
+        };
+    });
+
+    await user.save();
+
+    console.log(`User logged out from all other devices | Email: ${user.email} | Current Device: ${currentSession.device}`);
+
+    return {
+        message: "Logged out from all other devices successfully",
+        email: user.email,
+        currentDevice: currentSession.device,
+        loggedOutDevices: otherActiveSessions.map(s => s.device)
+    };
 };
