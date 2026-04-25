@@ -6,7 +6,8 @@ import {
     verifyEmailService,
     loginService,
     logoutService,
-    logoutAllService
+    logoutAllService,
+    refreshTokenService,
 } from "./auth.service.js";
 
 
@@ -78,7 +79,7 @@ export const logout = asyncHandler(async (req, res) => {
 
 
 export const logoutAll = asyncHandler(async (req, res) => {
-    const data = await logoutAllService( req.cookies?.refreshToken, req.user?._id);
+    const data = await logoutAllService(req.cookies?.refreshToken, req.user?._id);
 
     return res
         .status(200)
@@ -89,6 +90,25 @@ export const logoutAll = asyncHandler(async (req, res) => {
                 200,
                 data,
                 "Logged out from all devices successfully"
+            )
+        )
+});
+
+
+export const refreshToken = asyncHandler(async (req, res) => {
+    const data = await refreshTokenService(req.cookies?.refreshToken);
+
+    return res
+        .status(200)
+        .cookie("accessToken", data.newAccessToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    name: data.user.name,
+                    email: data.user.email,
+                },
+                "Token refreshed"
             )
         )
 });

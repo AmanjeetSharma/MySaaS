@@ -1,5 +1,5 @@
 import express from "express";
-import { register, verifyEmail, login, logout, logoutAll } from "./auth.controller.js";
+import { register, verifyEmail, login, logout, logoutAll, refreshToken } from "./auth.controller.js";
 import { upload } from "../../middlewares/multer.middleware.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 
@@ -15,9 +15,6 @@ router.post("/logout", verifyToken, logout);
 
 router.post("/logout-all", verifyToken, logoutAll);
 
-
-// router.post("/refresh", refresh);
-
-
+router.post("/refresh", refreshToken);
 
 export default router;

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { ApiError } from "../../utils/ApiError.js";
 import env from "../../config/env.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "./auth.validators.js";
@@ -22,6 +23,7 @@ import {
 } from "./auth.repository.js";
 import { Organization } from "../organization/organization.model.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
+import { decode } from "punycode";
 
 
 
@@ -442,5 +444,53 @@ export const logoutAllService = async (refreshToken, userId) => {
         email: user.email,
         currentDevice: currentSession.device,
         loggedOutDevices: otherActiveSessions.map(s => s.device)
+    };
+};
+
+
+
+
+
+
+
+
+
+
+export const refreshTokenService = async (refreshToken) => {
+    if (!refreshToken) {
+        throw new ApiError(400, "Refresh token is missing");
+    }
+
+    const decoded = jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
+
+    const user = await findUserById(decoded.id, "+sessions.refreshToken");
+    if (!user) {
+        console.log(`Refresh token failed - user not found | userId: ${decoded.id}`);
+        throw new ApiError(401, "User doesn't exist");
+    }
+
+    const session = user.sessions.find(
+        (s) =>
+            s.sessionId === decoded.sessionId &&
+            s.refreshToken === refreshToken &&
+            s.isActive
+    );
+
+    if (!session) {
+        throw new ApiError(403, "Invalid session or session is inactive");
+    }
+
+    await user.save();
+
+    const newAccessToken = generateAccessToken(user);
+
+    console.log(`Access token refreshed | Email: ${user.email} | Device: ${session.device}`);
+
+    return {
+        user: {
+            name: user.name,
+            email: user.email,
+        },
+        newAccessToken
     };
 };
