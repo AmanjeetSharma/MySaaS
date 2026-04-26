@@ -26,3 +26,17 @@ export const getUserService = async (userId) => {
 
 
 
+
+
+export const updateUserService = async (userId, updateData, file) => {
+    
+    return{
+
+    }
+};
+
+
+
+
+
+

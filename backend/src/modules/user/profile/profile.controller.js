@@ -16,4 +16,14 @@ export const getUser = asyncHandler(async (req, res) => {
 });
 
 
+export const updateUser = asyncHandler(async (req, res) => {
+    const data = await updateUserService(req.user._id, req.body, req.file);
 
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "User updated successfully"
+        ));
+});

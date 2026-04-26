@@ -324,7 +324,7 @@ export const loginService = async (body) => {
             latestLogin: new Date(),
             isActive: true
         });
-        console.log(`New session created | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
+        // console.log(`New session created | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
     }
     await user.save();
 
