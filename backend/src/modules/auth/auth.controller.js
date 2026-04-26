@@ -1,6 +1,6 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { cookieOptions } from "../../config/cookieOptions.js";
+import { cookieOptions, cookieOptions } from "../../config/cookieOptions.js";
 import {
     registerService,
     verifyEmailService,
@@ -44,6 +44,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
     const data = await loginService(req.body);
 
+    const cookieOptions = cookieOptions();
     return res
         .status(200)
         .cookie("accessToken", data.accessToken, cookieOptions)
@@ -64,6 +65,7 @@ export const login = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
     const data = await logoutService(req.cookies?.refreshToken, req.user?._id);
 
+    const cookieOptions = cookieOptions();  
     return res
         .status(200)
         .clearCookie("accessToken", cookieOptions)
@@ -81,6 +83,7 @@ export const logout = asyncHandler(async (req, res) => {
 export const logoutAll = asyncHandler(async (req, res) => {
     const data = await logoutAllService(req.cookies?.refreshToken, req.user?._id);
 
+    const cookieOptions = cookieOptions();
     return res
         .status(200)
         .clearCookie("accessToken", cookieOptions)
@@ -98,6 +101,7 @@ export const logoutAll = asyncHandler(async (req, res) => {
 export const refreshToken = asyncHandler(async (req, res) => {
     const data = await refreshTokenService(req.cookies?.refreshToken);
 
+    const cookieOptions = cookieOptions();
     return res
         .status(200)
         .cookie("accessToken", data.newAccessToken, cookieOptions)
