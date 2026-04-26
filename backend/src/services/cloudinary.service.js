@@ -43,7 +43,7 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
         return null;
     } finally {
         // Clean up local files
-        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+        if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
         if (compressedPath && fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath);
     }
 };
