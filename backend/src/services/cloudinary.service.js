@@ -31,8 +31,7 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
         });
 
         // Cleanup
-        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath); // remove original file
-        if (fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath); // remove compressed file
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
 
         console.log(`File uploaded to Cloudinary successfully. Local files removed: ${path.basename(localFilePath)}, ${path.basename(compressedPath)}`);
 
@@ -44,8 +43,7 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
     } catch (error) {
         console.error("Cloudinary upload failed:", error.message);
 
-        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath); // ensure original file is removed on uploadation failure 
-        if (fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath); // ensure compressed file is also removed
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);// cleanup on failure
 
         return null;
     }
