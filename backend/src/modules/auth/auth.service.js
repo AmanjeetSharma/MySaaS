@@ -14,7 +14,6 @@ import {
     findUserByEmail,
     findPendingUserByEmail,
     createPendingUser,
-    savePendingUser,
     findPendingUserByVerificationToken,
     createNewUserFromPending,
     deletePendingUser,
@@ -125,7 +124,7 @@ export const registerService = async (body, avatarFile) => {
         existingPendingUser.verificationToken = hashedToken;
         existingPendingUser.verificationTokenExpiry = expiry;
 
-        await savePendingUser(existingPendingUser);
+        await existingPendingUser.save();
         // console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
     } else {
         await createPendingUser({
@@ -382,72 +381,6 @@ export const logoutService = async (refreshToken, userId) => {
     };
 
 };
-
-
-
-
-
-
-
-
-
-export const logoutAllService = async (refreshToken, userId) => {
-    if (!userId) {
-        throw new ApiError(400, "Unauthorized");
-    }
-    if (!refreshToken) {
-        throw new ApiError(400, "No active session found");
-    }
-
-    const user = await findUserById(userId, "+sessions.refreshToken");
-
-    if (!user) {
-        throw new ApiError(401, "User doesn't exist");
-    }
-
-    const currentSession = user.sessions.find(
-        (session) => String(session.refreshToken) === String(refreshToken)
-    );
-
-    if (!currentSession) {
-        throw new ApiError(401, "Current session invalid or expired");
-    }
-
-    const otherActiveSessions = user.sessions.filter(
-        (session) =>
-            String(session.refreshToken) !== String(refreshToken) &&
-            session.isActive
-    );
-    if (otherActiveSessions.length === 0) {
-        throw new ApiError(400, "No other active sessions found");
-    }
-
-    user.sessions = user.sessions.map((session) => {
-        if (String(session.refreshToken) === String(refreshToken)) {
-            return session; // to keep current session active
-        }
-
-        return {
-            ...session,
-            isActive: false,
-            refreshToken: null,
-        };
-    });
-
-    await user.save();
-
-    console.log(`User logged out from all other devices | Email: ${user.email} | Current Device: ${currentSession.device}`);
-
-    return {
-        message: "Logged out from all other devices successfully",
-        email: user.email,
-        currentDevice: currentSession.device,
-        loggedOutDevices: otherActiveSessions.map(s => s.device)
-    };
-};
-
-
-
 
 
 

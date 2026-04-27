@@ -19,10 +19,6 @@ export const createPendingUser = async (payload) => {
     return await PendingUser.create(payload);
 };
 
-export const savePendingUser = async (pendingUser) => {
-    return await pendingUser.save();
-};
-
 
 
 export const findPendingUserByVerificationToken = async (token, selectFields) => {

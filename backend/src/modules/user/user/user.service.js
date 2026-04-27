@@ -8,22 +8,16 @@ import {
 
 
 
-
-
 export const getUserService = async (userId) => {
     const user = await getUserById(userId);
     if (!user) {
         throw new ApiError(404, "User not found");
     }
 
-    console.log(`User retrieved: ${user.name} (${user.email})`);
+    console.log(`User retrieved | ${user.name} (${user.email})`);
 
     return user;
 };
-
-
-
-
 
 
 
@@ -48,6 +42,8 @@ export const updateUserService = async (userId, payload) => {
     user.name = payload.name.trim();
 
     await user.save();
+
+    console.log(`User updated | name: ${user.name} | email: ${user.email}`);
 
     return {
         _id: user._id,

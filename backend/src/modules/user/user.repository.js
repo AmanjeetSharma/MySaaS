@@ -8,3 +8,4 @@ export const getUserById = async (userId, selectFields) => {
     }
     return await query;
 };
+

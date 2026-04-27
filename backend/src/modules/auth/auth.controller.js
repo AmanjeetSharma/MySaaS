@@ -6,7 +6,6 @@ import {
     verifyEmailService,
     loginService,
     logoutService,
-    logoutAllService,
     refreshTokenService,
 } from "./auth.service.js";
 
@@ -75,24 +74,6 @@ export const logout = asyncHandler(async (req, res) => {
                 200,
                 data,
                 "Logged out successfully"
-            )
-        )
-});
-
-
-export const logoutAll = asyncHandler(async (req, res) => {
-    const data = await logoutAllService(req.cookies?.refreshToken, req.user?._id);
-
-    const cookieOptions = getCookieOptions();
-    return res
-        .status(200)
-        .clearCookie("accessToken", cookieOptions)
-        .clearCookie("refreshToken", cookieOptions)
-        .json(
-            new ApiResponse(
-                200,
-                data,
-                "Logged out from all devices successfully"
             )
         )
 });
