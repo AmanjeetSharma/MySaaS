@@ -8,13 +8,13 @@ import {
 
 
 export const changePassword = asyncHandler(async (req, res) => {
-    const data = await changePasswordService(req.user._id, req.body, req.cookies.refreshToken);
+    const data = await changePasswordService(req.user._id, req.user?.sessionId, req.body);
 
     return res
         .status(200)
         .json(new ApiResponse(
             200,
             data,
-            "Password changed successfully"
+            "Password changed successfully. You have been logged out from all other devices."
         ));
 });
