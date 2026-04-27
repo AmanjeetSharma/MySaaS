@@ -58,7 +58,7 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
         name: user.name,
         email: user.email,
         message: `Session ${sessionId} logged out successfully`
-    }; d
+    };
 };
 
 
@@ -104,17 +104,12 @@ export const logoutAllSessionsService = async (userId, currentSessionId) => {
     }
 
     // Deactivate all other sessions except current
-    user.sessions = user.sessions.map((session) => {
-        if (String(session.sessionId) === String(currentSessionId)) {
-            return session; // keep current session active
+    for (const session of user.sessions) {
+        if (String(session.sessionId) !== String(currentSessionId)) {
+            session.isActive = false;
+            session.refreshToken = null;
         }
-
-        return {
-            ...session,
-            isActive: false,
-            refreshToken: null,
-        };
-    });
+    }
 
     await user.save();
 

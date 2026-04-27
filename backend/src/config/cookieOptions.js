@@ -1,4 +1,6 @@
-export const getCookieOptions = () => {
+import env from "./env.config.js";
+
+export const getCookieOptions = (type = "access") => {
     const isProduction = process.env.NODE_ENV === "production";
     // console.log("Cookie Options - isProduction:", isProduction); // debug log to verify environment
 
@@ -13,6 +15,9 @@ export const getCookieOptions = () => {
 
         path: "/",
 
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        maxAge:
+            type === "access"
+                ? 15 * 60 * 1000       // match access token (15 min)
+                : 7 * 24 * 60 * 60 * 1000, // match refresh token (7 days)
     };
 };

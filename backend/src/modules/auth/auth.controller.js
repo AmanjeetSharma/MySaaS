@@ -43,11 +43,10 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
     const data = await loginService(req.body);
 
-    const cookieOptions = getCookieOptions();
     return res
         .status(200)
-        .cookie("accessToken", data.accessToken, cookieOptions)
-        .cookie("refreshToken", data.refreshToken, cookieOptions)
+        .cookie("accessToken", data.accessToken, getCookieOptions("access"))
+        .cookie("refreshToken", data.refreshToken, getCookieOptions("refresh"))
         .json(
             new ApiResponse(
                 200,
@@ -64,11 +63,10 @@ export const login = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
     const data = await logoutService(req.cookies?.refreshToken, req.user?._id);
 
-    const cookieOptions = getCookieOptions();  
     return res
         .status(200)
-        .clearCookie("accessToken", cookieOptions)
-        .clearCookie("refreshToken", cookieOptions)
+        .clearCookie("accessToken", getCookieOptions("access"))
+        .clearCookie("refreshToken", getCookieOptions("refresh"))
         .json(
             new ApiResponse(
                 200,
@@ -82,10 +80,9 @@ export const logout = asyncHandler(async (req, res) => {
 export const refreshToken = asyncHandler(async (req, res) => {
     const data = await refreshTokenService(req.cookies?.refreshToken);
 
-    const cookieOptions = getCookieOptions();
     return res
         .status(200)
-        .cookie("accessToken", data.newAccessToken, cookieOptions)
+        .cookie("accessToken", data.newAccessToken, getCookieOptions("access"))
         .json(
             new ApiResponse(
                 200,

@@ -25,6 +25,10 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
 
     const user = await User.findById(decoded._id).select("+sessions");
 
+    if (user.accountStatus !== "active") {
+        throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support.`);
+    }
+
     if (!user) throw new ApiError(404, "User not found");
 
     const session = user.sessions.find(

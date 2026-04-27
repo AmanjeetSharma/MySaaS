@@ -75,17 +75,13 @@ export const changePasswordService = async (
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
 
-    user.sessions = user.sessions.map((session) => {
-        if (String(session.sessionId) === String(currentSessionId)) {
-            return session; // keep current session active
+    // Invalidate all other sessions and tokens except current
+    for (const session of user.sessions) {
+        if (String(session.sessionId) !== String(currentSessionId)) {
+            session.isActive = false;
+            session.refreshToken = null;
         }
-
-        return {
-            ...session,
-            isActive: false,
-            refreshToken: null
-        };
-    });
+    }
 
     try {
         await user.save();
@@ -115,13 +111,14 @@ export const forgotPasswordService = async (email) => {
     if (!email) {
         throw new ApiError(400, "Email is required");
     }
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await getUserByEmail(email);
+    const user = await getUserByEmail(normalizedEmail);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     if (!user) {
         await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
-        console.log(`User with email ${email} does not exist.`);
+        console.log(`User with email ${normalizedEmail} does not exist.`);
         return null;
     }
 

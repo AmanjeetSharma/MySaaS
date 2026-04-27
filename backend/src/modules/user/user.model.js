@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { type } from 'os';
+
 
 const sessionSchema = new mongoose.Schema(
     {
@@ -9,8 +9,7 @@ const sessionSchema = new mongoose.Schema(
         firstLogin: { type: Date, default: Date.now },
         latestLogin: { type: Date, default: Date.now },
         isActive: { type: Boolean, default: true }
-    }, { _id: false }
-);
+    }, { _id: false });
 
 
 const settingsSchema = new mongoose.Schema(
@@ -21,8 +20,17 @@ const settingsSchema = new mongoose.Schema(
             email: { type: Boolean, default: false },
             inApp: { type: Boolean, default: true }
         },
-    }, { _id: false }
-);
+    }, { _id: false });
+
+
+const phoneSchema = new mongoose.Schema({
+    number: { type: String, default: null, trim: true },
+    pendingNumber: { type: String, default: null, trim: true },
+    isVerified: { type: Boolean, default: false },
+    otpHash: { type: String, default: null, select: false },
+    otpExpiry: { type: Date, default: null, select: false },
+}, { _id: false });
+
 
 const userSchema = new Schema(
     {
@@ -72,13 +80,14 @@ const userSchema = new Schema(
         },
 
         settings: { type: settingsSchema, default: {} },
+        phone: { type: phoneSchema, default: {} },
         sessions: [sessionSchema],
 
         accountStatus: {
             type: String,
             enum: ["active", "suspended", "deleted"],// in suspended user cant login, deletedd is for soft delete (data deleted but entry is there for record purposes)
-            default: "active",
-        }
+            default: "active"
+        },
 
     }, { timestamps: true }
 );

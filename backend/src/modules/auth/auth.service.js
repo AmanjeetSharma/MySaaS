@@ -194,7 +194,7 @@ export const verifyEmailService = async (token) => {
 
         throw new ApiError(
             400,
-            `Token expired ${timeInfo} ago. Please register again.`
+            `Token ${timeInfo}. Please register again.`
         );
     }
 
