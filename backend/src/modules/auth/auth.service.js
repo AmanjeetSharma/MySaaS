@@ -124,7 +124,12 @@ export const registerService = async (body, avatarFile) => {
         existingPendingUser.verificationToken = hashedToken;
         existingPendingUser.verificationTokenExpiry = expiry;
 
-        await existingPendingUser.save();
+        try {
+            await existingPendingUser.save();
+        } catch (err) {
+            throw new ApiError(500, "Failed to update pending user");
+        }
+
         // console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
     } else {
         await createPendingUser({

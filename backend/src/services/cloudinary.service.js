@@ -52,7 +52,7 @@ export const deleteFromCloudinary = async (publicId) => {
     try {
         if (!publicId) return;
         await cloudinary.uploader.destroy(publicId);
-        console.log(`File with publicId ${publicId} deleted from Cloudinary successfully.`);
+        console.log(`Old file with publicId ${publicId} deleted from Cloudinary successfully.`);
     } catch (error) {
         console.error(`Failed to delete file with publicId ${publicId} from Cloudinary:`, error.message);
     }
