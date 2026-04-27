@@ -69,23 +69,23 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
 
 
 
-export const logoutAllSessionsService = async (userId, currentRefreshToken) => {
+export const logoutAllSessionsService = async (userId, currentSessionId) => {
 
     if (!userId) {
         throw new ApiError(400, "Unauthorized");
     }
-    if (!currentRefreshToken) {
-        throw new ApiError(400, "Refresh token is required");
+    if (!currentSessionId) {
+        throw new ApiError(400, "Session ID is required");
     }
 
-    const user = await getUserById(userId, "+sessions.refreshToken");
+    const user = await getUserById(userId);
 
     if (!user) {
         throw new ApiError(401, "User not found");
     }
 
     const currentSession = user.sessions.find(
-        (session) => String(session.refreshToken) === String(currentRefreshToken)
+        (session) => String(session.sessionId) === String(currentSessionId)
     );
 
     if (!currentSession) {
@@ -95,7 +95,7 @@ export const logoutAllSessionsService = async (userId, currentRefreshToken) => {
     //Check if there are other active sessions
     const otherActiveSessions = user.sessions.filter(
         (session) =>
-            String(session.refreshToken) !== String(currentRefreshToken) &&
+            String(session.sessionId) !== String(currentSessionId) &&
             session.isActive
     );
 
@@ -105,7 +105,7 @@ export const logoutAllSessionsService = async (userId, currentRefreshToken) => {
 
     // Deactivate all other sessions except current
     user.sessions = user.sessions.map((session) => {
-        if (String(session.refreshToken) === String(currentRefreshToken)) {
+        if (String(session.sessionId) === String(currentSessionId)) {
             return session; // keep current session active
         }
 

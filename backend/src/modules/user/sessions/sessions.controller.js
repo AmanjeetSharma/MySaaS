@@ -34,7 +34,7 @@ export const logoutSessionById = asyncHandler(async (req, res) => {
 
 
 export const logoutAllSessions = asyncHandler(async (req, res) => {
-    const data = await logoutAllSessionsService(req.user?._id, req.cookies?.refreshToken);
+    const data = await logoutAllSessionsService(req.user?._id, req.user?.sessionId);
 
     return res
         .status(200)

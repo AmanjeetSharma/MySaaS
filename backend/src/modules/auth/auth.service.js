@@ -306,7 +306,7 @@ export const loginService = async (body) => {
     let refreshToken;
 
     if (existingSession) {
-        //reuse session
+        // Reuse session
         sessionId = existingSession.sessionId;
         refreshToken = generateRefreshToken(user._id, sessionId);
         existingSession.refreshToken = refreshToken;
@@ -317,6 +317,7 @@ export const loginService = async (body) => {
         // debug log
         // console.log(`Session resused | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
     } else {
+        // New session
         sessionId = generateSessionId();
         refreshToken = generateRefreshToken(user._id, sessionId);
 
@@ -332,7 +333,7 @@ export const loginService = async (body) => {
     }
     await user.save();
 
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken(user, sessionId);
 
     console.log(`User logged in | Email: ${user.email} | Device: ${device}`);
 
@@ -419,7 +420,7 @@ export const refreshTokenService = async (refreshToken) => {
 
     await user.save();
 
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(user, decoded.sessionId);
 
     console.log(`Access token refreshed | Email: ${user.email} | Device: ${session.device}`);
 

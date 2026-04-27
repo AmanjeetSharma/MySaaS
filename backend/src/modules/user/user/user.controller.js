@@ -16,7 +16,7 @@ export const getUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(
             200,
             data,
-            "User retrieved successfully"
+            "User fetched successfully"
         ));
 });
 

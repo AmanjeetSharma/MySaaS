@@ -12,42 +12,36 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
         req.cookies?.accessToken ||
         req.header("Authorization")?.replace("Bearer ", "");
 
-    if (!token) {
-        throw new ApiError(401, "No access token");
-    }
+    if (!token) throw new ApiError(401, "No access token");
 
     let decoded;
+
     try {
         decoded = jwt.verify(token, env.ACCESS_TOKEN_SECRET);
     } catch (err) {
-        console.log(`Auth middleware: ${err.message}`); // Debug log
+        console.error("Auth middleware error:", err); // debug log
         throw new ApiError(401, "Invalid or expired token");
     }
 
-    const user = await User.findById(decoded._id).select("+sessions.refreshToken");
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
+    const user = await User.findById(decoded._id).select("+sessions");
 
-    const refreshToken = req.cookies?.refreshToken;
+    if (!user) throw new ApiError(404, "User not found");
 
-    if (refreshToken) {
-        const session = user.sessions.find(
-            (s) => s.refreshToken === refreshToken && s.isActive
-        );
+    const session = user.sessions.find(
+        s => s.sessionId === decoded.sessionId && s.isActive
+    );
 
-        if (!session) {
-            throw new ApiError(401, "Session expired or logged out");
-        }
+    if (!session) {
+        throw new ApiError(401, "Session expired or logged out");
     }
 
     req.user = {
         _id: user._id,
-        avatar: user.avatar,
         name: user.name,
         email: user.email,
-        accountStatus: user.accountStatus,
-        activeOrganization: user.activeOrganization,
-    }
+        avatar: user.avatar,
+        sessionId: decoded.sessionId
+    };
+
     next();
 });
