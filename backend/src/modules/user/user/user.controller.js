@@ -1,6 +1,9 @@
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
-import { getUserService } from "./profile.service.js";
+import {
+    getUserService,
+    updateUserService
+} from "./user.service.js";
 
 
 export const getUser = asyncHandler(async (req, res) => {
@@ -17,7 +20,7 @@ export const getUser = asyncHandler(async (req, res) => {
 
 
 export const updateUser = asyncHandler(async (req, res) => {
-    const data = await updateUserService(req.user._id, req.body, req.file);
+    const data = await updateUserService(req.user._id, req.body);
 
     return res
         .status(200)
