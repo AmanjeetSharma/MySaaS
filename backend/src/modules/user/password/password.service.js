@@ -1,9 +1,13 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { ApiError } from "../../../utils/ApiError.js";
 import { sendEmail } from "../../../services/email.service.js";
 import { resetEmailTemplate } from "../../../utils/email/resetEmailTemplate.js"
 import { passwordValidator } from "../../../validations/auth.validators.js";
-import { getUserById } from "../user.repository.js";
+import { getUserById, getUserByEmail, getUserByHashedToken } from "../user.repository.js";
+import { generateToken } from "../../../utils/token.js";
+import env from "../../../config/env.config.js";
+import { raw } from "express";
 
 
 
@@ -106,4 +110,109 @@ export const changePasswordService = async (
 
 
 
+
+export const forgotPasswordService = async (email) => {
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    const user = await getUserByEmail(email);
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    if (!user) {
+        await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
+        console.log(`User with email ${email} does not exist.`);
+        return null;
+    }
+
+    const { rawToken, hashedToken, expiry } = generateToken();
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpiry = expiry;
+
+    try {
+        await user.save();
+    } catch (err) {
+        throw new ApiError(500, "Error generating password reset token");
+    }
+
+    const resetLink = `${env.CLIENT_URL}/reset-password?token=${rawToken}`;
+
+    const emailContent = resetEmailTemplate(user.name, resetLink);
+
+    if (env.EMAIL_ENABLED === 'true') { // Only send email if enabled
+        await sendEmail(user.email, "Reset Your Password - MySaaS", emailHTML, true);
+    }
+
+    console.log(`[sendEmail] for password reset: ${env.EMAIL_ENABLED === 'true' ? 'Email sent' : 'Email sending disabled, skipping...'}`);
+    console.log(`Reset link for ${user.email}: ${resetLink}`); // link for testing (debug log)
+
+    return null;
+};
+
+
+
+
+
+
+
+
+
+export const resetPasswordService = async (rawToken, newPassword, confirmNewPassword) => {
+    if (!rawToken) {
+        throw new ApiError(400, "Reset token is missing");
+    }
+    if (!newPassword) {
+        throw new ApiError(400, "New password is required");
+    }
+    if (!confirmNewPassword) {
+        throw new ApiError(400, "Confirm new password is required");
+    }
+    const passwordError = passwordValidator(newPassword);
+    if (!passwordError.valid) {
+        throw new ApiError(400, `Password is invalid: ${passwordError.errors.join(", ")}`);
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        throw new ApiError(400, "New password and confirm new password do not match");
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    const user = await getUserByHashedToken(hashedToken, "+password +sessions.refreshToken");
+    if (!user) {
+        throw new ApiError(400, "Reset token is invalid or your link has expired");
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+        throw new ApiError(400, "New password must be different from old password");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Invalidate all sessions and tokens
+    user.sessions.forEach((session) => {
+        session.isActive = false;
+        session.refreshToken = null;
+    });
+
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
+
+    try {
+        await user.save();
+    } catch (err) {
+        throw new ApiError(500, "Error resetting password");
+    }
+
+    console.log(`Password reset successful for email: ${user.email}`);
+
+    return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+    };
+};
 

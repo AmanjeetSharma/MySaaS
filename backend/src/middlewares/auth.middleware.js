@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../modules/user/user.model.js";
-import env from "../config/env.js";
+import env from "../config/env.config.js";
 
 
 

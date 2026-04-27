@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import chalk from "chalk";
-import env from "./env.js";
+import env from "./env.config.js";
 import dns from "dns";
 
 if (env.NODE_ENV === "development") {

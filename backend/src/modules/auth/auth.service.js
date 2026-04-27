@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../../utils/ApiError.js";
-import env from "../../config/env.js";
+import env from "../../config/env.config.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "../../validations/auth.validators.js";
 import { cleanupAvatar, getTimeDifference } from "./auth.helper.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.service.js";

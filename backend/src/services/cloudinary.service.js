@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import sharp from "sharp";
 import path from "path";
-import env from "../config/env.js";
+import env from "../config/env.config.js";
 
 cloudinary.config({
     cloud_name: env.CLOUDINARY_CLOUD_NAME,
