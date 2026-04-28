@@ -4,7 +4,7 @@ import env from "./env.config.js";
 import dns from "dns";
 
 if (env.NODE_ENV === "development") {
-    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+    dns.setServers(["1.1.1.1", "8.8.8.8"]);
     console.log();
 }
 

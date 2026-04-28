@@ -5,7 +5,7 @@ import { getUserById } from "../user.repository.js";
 
 export const getUserSessionsService = async (userId) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     const user = await getUserById(userId);
 
@@ -29,7 +29,7 @@ export const getUserSessionsService = async (userId) => {
 
 export const logoutSessionByIdService = async (userId, sessionId) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     const user = await getUserById(userId);
 
@@ -72,7 +72,7 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
 export const logoutAllSessionsService = async (userId, currentSessionId) => {
 
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     if (!currentSessionId) {
         throw new ApiError(400, "Session ID is required");

@@ -8,7 +8,7 @@ import { cleanupAvatar } from "../../auth/auth.helper.js";
 
 export const getUserService = async (userId) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
 
     const user = await getUserById(userId);
@@ -29,7 +29,7 @@ export const getUserService = async (userId) => {
 
 export const updateUserService = async (userId, payload) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
 
     if (!payload.name.trim()) {
@@ -69,7 +69,7 @@ export const updateUserService = async (userId, payload) => {
 
 export const updateUserAvatarService = async (userId, avatarFile) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     if (!avatarFile) {
         throw new ApiError(400, "Avatar image is required");
@@ -143,7 +143,7 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
 
 export const deleteUserAvatarService = async (userId) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
 
     const user = await getUserById(userId);

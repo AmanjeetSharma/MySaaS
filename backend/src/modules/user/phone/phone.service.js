@@ -13,7 +13,7 @@ import { getUserById, getUserByPhone } from "../user.repository.js";
 
 export const addPhoneService = async (userId, phone) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     const phoneValidationErrors = phoneNumberValidator(phone);
     if (!phoneValidationErrors.valid) {
@@ -69,7 +69,7 @@ export const addPhoneService = async (userId, phone) => {
 
 export const verifyPhoneOtpService = async (userId, otp) => {
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
     if (!otp) {
         throw new ApiError(400, "OTP is required");

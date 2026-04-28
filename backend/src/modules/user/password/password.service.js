@@ -27,7 +27,7 @@ export const changePasswordService = async (
     }) => {
 
     if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
+        throw new ApiError(401, "Unauthorized access");
     }
 
     if (!currentPassword) {

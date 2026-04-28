@@ -1,26 +1,24 @@
 import mongoose, { Schema } from 'mongoose';
 
 
-const sessionSchema = new mongoose.Schema(
-    {
-        sessionId: { type: String, required: true },
-        device: { type: String, default: 'Unknown Device' },
-        refreshToken: { type: String, default: null, select: false },
-        firstLogin: { type: Date, default: Date.now },
-        latestLogin: { type: Date, default: Date.now },
-        isActive: { type: Boolean, default: true }
-    }, { _id: false });
+const sessionSchema = new mongoose.Schema({
+    sessionId: { type: String, required: true },
+    device: { type: String, default: 'Unknown Device' },
+    refreshToken: { type: String, default: null, select: false },
+    firstLogin: { type: Date, default: Date.now },
+    latestLogin: { type: Date, default: Date.now },
+    isActive: { type: Boolean, default: true }
+}, { _id: false });
 
 
-const settingsSchema = new mongoose.Schema(
-    {
-        theme: { type: String, enum: ["light", "dark"], default: "light" },
-        timezone: { type: String, default: "Asia/Kolkata" },
-        notifications: {
-            email: { type: Boolean, default: false },
-            inApp: { type: Boolean, default: true }
-        },
-    }, { _id: false });
+const settingsSchema = new mongoose.Schema({
+    theme: { type: String, enum: ["light", "dark"], default: "light" },
+    timezone: { type: String, default: "Asia/Kolkata" },
+    notifications: {
+        email: { type: Boolean, default: false },
+        inApp: { type: Boolean, default: true }
+    },
+}, { _id: false });
 
 
 const phoneSchema = new mongoose.Schema({

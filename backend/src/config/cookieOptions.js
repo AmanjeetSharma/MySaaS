@@ -17,7 +17,7 @@ export const getCookieOptions = (type = "access") => {
 
         maxAge:
             type === "access"
-                ? 15 * 60 * 1000       // match access token (15 min)
+                ? 60 * 60 * 1000       // match access token (1 hour)
                 : 7 * 24 * 60 * 60 * 1000, // match refresh token (7 days)
     };
 };

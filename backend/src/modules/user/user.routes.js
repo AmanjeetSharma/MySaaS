@@ -5,7 +5,7 @@ import { getUser, updateUser, updateUserAvatar, deleteUserAvatar } from "./user/
 import { getUserSessions, logoutSessionById, logoutAllSessions } from "./sessions/sessions.controller.js";
 import { changePassword, forgotPassword, resetPassword } from "./password/password.controller.js";
 import { addPhone, verifyPhoneOtp, unlinkPhone } from "./phone/phone.controller.js";
-// import { getUserSettings, updateUserSettings } from "./settings/settings.controller.js";
+import { updateThemeController, updateTimezoneController, updateNotificationsController } from "./settings/settings.controller.js";
 
 const router = express.Router();
 
@@ -35,8 +35,9 @@ router.delete("/phone", verifyToken, unlinkPhone);
 
 
 // Settings routes
-// router.get("/settings", verifyToken, getUserSettings);
-// router.patch("/settings", verifyToken, updateUserSettings);
+router.patch("/settings/theme", verifyToken, updateThemeController);
+router.patch("/settings/timezone", verifyToken, updateTimezoneController);
+router.patch("/settings/notifications", verifyToken, updateNotificationsController);
 
 
 export default router;

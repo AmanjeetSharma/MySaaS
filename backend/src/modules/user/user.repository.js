@@ -46,3 +46,13 @@ export const getUserByPhone = async (userId, phone, selectFields) => {
     }
     return await query;
 };
+
+
+
+export const updateUserSettingsField = async (userId, updateObj) => {
+    return await User.findByIdAndUpdate(
+        userId,
+        { $set: updateObj },
+        { returnDocument: "after", runValidators: true } // after: return doc after update
+    );
+};
