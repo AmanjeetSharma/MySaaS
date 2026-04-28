@@ -7,7 +7,6 @@ import { passwordValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getUserByEmail, getUserByHashedToken } from "../user.repository.js";
 import { generateToken } from "../../../utils/token.js";
 import env from "../../../config/env.config.js";
-import { raw } from "express";
 
 
 
@@ -28,7 +27,7 @@ export const changePasswordService = async (
     }) => {
 
     if (!userId) {
-        throw new ApiError(400, "Unauthorized");
+        throw new ApiError(400, "Unauthorized access");
     }
 
     if (!currentPassword) {

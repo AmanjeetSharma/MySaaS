@@ -81,3 +81,29 @@ export const avatarValidator = (file) => {
   return result;
 };
 
+
+export const phoneNumberValidator = (phoneNumber) => {
+  const errors = [];
+
+  const cleaned = phoneNumber.trim();
+  if (!cleaned) {
+    errors.push("Phone number is required");
+  }
+
+  if (cleaned && !/^\d+$/.test(cleaned)) {
+    errors.push("Phone number must contain only numbers");
+  }
+
+  if (cleaned && cleaned.length !== 10) {
+    errors.push("Phone number must be exactly 10 digits");
+  }
+
+  if (cleaned && !/^[6-9]/.test(cleaned)) {
+    errors.push("Phone number must start with 6, 7, 8, or 9");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+};
