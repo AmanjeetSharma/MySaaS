@@ -3,6 +3,8 @@ import { OAuth2Client } from 'google-auth-library';
 import env from "../../../../config/env.config.js";
 import { findUserByEmail, createUserByGoogle, createDefaultOrganization } from "../../auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../../../utils/token.js";
+import { welcomeEmailTemplate } from "../../../../utils/email/welcomeEmailTemplate.js";
+import { sendEmail } from "../../../../services/email.service.js";
 
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -121,6 +123,18 @@ export const googleLoginService = async (token, device = "unknown device") => {
     }
 
     const accessToken = generateAccessToken(user, sessionId);
+
+    if (isNewUser) {
+        try {
+            if (env.EMAIL_ENABLED) {
+                await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
+            } else {
+                console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
+            }
+        } catch (err) {
+            console.error(`[Google Login err log] Error sending welcome email to ${user.email} | Error: ${err.message}`);
+        }
+    }
 
     console.log(`${isNewUser ? "New user created and logged in with Google" : "Existing user logged in with Google"} | User: ${user.email} | Device: ${device}`);
 

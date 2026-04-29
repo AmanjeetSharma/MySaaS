@@ -250,6 +250,8 @@ export const verifyEmailService = async (token) => {
     try {
         if (env.EMAIL_ENABLED) {
             await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
+        }else{
+            console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
         }
     } catch (err) {
         console.log(`Welcome email failed for ${user.email} | userId: ${user._id} | error: ${err.message}`);
