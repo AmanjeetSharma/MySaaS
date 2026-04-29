@@ -1,21 +1,27 @@
 import express from "express";
 import { upload } from "../../middlewares/multer.middleware.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
-import { register, verifyEmail, login, logout, refreshToken } from "./auth.controller.js";
+import {
+    registerController,
+    verifyEmailController,
+    loginController,
+    logoutController,
+    refreshTokenController
+} from "./auth.controller.js";
 import { googleLoginController } from "./oauth/google/google.controller.js";
 
 const router = express.Router();
 
-router.post("/register", upload.single("avatar"), register);
+router.post("/register", upload.single("avatar"), registerController);
 
-router.post("/verify-email/:token", verifyEmail);
+router.post("/verify-email/:token", verifyEmailController);
 
-router.post("/login", login);
+router.post("/login", loginController);
 
 router.post("/login/google", googleLoginController);
 
-router.post("/logout", verifyToken, logout);
+router.post("/logout", verifyToken, logoutController);
 
-router.post("/refresh", refreshToken);
+router.post("/refresh", refreshTokenController);
 
 export default router;

@@ -7,7 +7,7 @@ import {
 } from "./sessions.service.js";
 
 
-export const getUserSessions = asyncHandler(async (req, res) => {
+export const getUserSessionsController = asyncHandler(async (req, res) => {
     const data = await getUserSessionsService(req.user._id);
 
     return res
@@ -20,7 +20,7 @@ export const getUserSessions = asyncHandler(async (req, res) => {
 });
 
 
-export const logoutSessionById = asyncHandler(async (req, res) => {
+export const logoutSessionByIdController = asyncHandler(async (req, res) => {
     const data = await logoutSessionByIdService(req.user._id, req.params.sessionId);
 
     return res
@@ -33,7 +33,7 @@ export const logoutSessionById = asyncHandler(async (req, res) => {
 });
 
 
-export const logoutAllSessions = asyncHandler(async (req, res) => {
+export const logoutAllSessionsController = asyncHandler(async (req, res) => {
     const data = await logoutAllSessionsService(req.user?._id, req.user?.sessionId);
 
     return res

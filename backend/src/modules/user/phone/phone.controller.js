@@ -3,7 +3,7 @@ import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { addPhoneService, verifyPhoneOtpService, unlinkPhoneService } from "./phone.service.js";
 
 
-export const addPhone = asyncHandler(async (req, res) => {
+export const addPhoneController = asyncHandler(async (req, res) => {
     const data = await addPhoneService(req.user._id, req.body.phone);
 
     return res
@@ -16,7 +16,7 @@ export const addPhone = asyncHandler(async (req, res) => {
 });
 
 
-export const verifyPhoneOtp = asyncHandler(async (req, res) => {
+export const verifyPhoneOtpController = asyncHandler(async (req, res) => {
     const data = await verifyPhoneOtpService(req.user._id, req.body.otp);
 
     return res
@@ -29,7 +29,7 @@ export const verifyPhoneOtp = asyncHandler(async (req, res) => {
 });
 
 
-export const unlinkPhone = asyncHandler(async (req, res) => {
+export const unlinkPhoneController = asyncHandler(async (req, res) => {
     const data = await unlinkPhoneService(req.user._id);
 
     return res

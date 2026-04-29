@@ -8,7 +8,7 @@ import {
 } from "./user.service.js";
 
 
-export const getUser = asyncHandler(async (req, res) => {
+export const getUserController = asyncHandler(async (req, res) => {
     const data = await getUserService(req.user._id);
 
     return res
@@ -21,7 +21,7 @@ export const getUser = asyncHandler(async (req, res) => {
 });
 
 
-export const updateUser = asyncHandler(async (req, res) => {
+export const updateUserController = asyncHandler(async (req, res) => {
     const data = await updateUserService(req.user._id, req.body);
 
     return res
@@ -34,7 +34,7 @@ export const updateUser = asyncHandler(async (req, res) => {
 });
 
 
-export const updateUserAvatar = asyncHandler(async (req, res) => {
+export const updateUserAvatarController = asyncHandler(async (req, res) => {
     const data = await updateUserAvatarService(req.user._id, req.file);
 
     return res
@@ -47,7 +47,7 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 
-export const deleteUserAvatar = asyncHandler(async (req, res) => {
+export const deleteUserAvatarController = asyncHandler(async (req, res) => {
     const data = await deleteUserAvatarService(req.user._id);
 
     return res

@@ -14,7 +14,7 @@ import {
 
 
 
-export const register = asyncHandler(async (req, res) => {
+export const registerController = asyncHandler(async (req, res) => {
     const data = await registerService(req.body, req.file);
 
     return res.status(201).json(
@@ -27,7 +27,7 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 
-export const verifyEmail = asyncHandler(async (req, res) => {
+export const verifyEmailController = asyncHandler(async (req, res) => {
     const data = await verifyEmailService(req.params.token);
 
     return res.status(200).json(
@@ -40,7 +40,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 });
 
 
-export const login = asyncHandler(async (req, res) => {
+export const loginController = asyncHandler(async (req, res) => {
     const data = await loginService(req.body);
 
     return res
@@ -60,7 +60,7 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 
-export const logout = asyncHandler(async (req, res) => {
+export const logoutController = asyncHandler(async (req, res) => {
     const data = await logoutService(req.cookies?.refreshToken, req.user?._id);
 
     return res
@@ -77,7 +77,7 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 
-export const refreshToken = asyncHandler(async (req, res) => {
+export const refreshTokenController = asyncHandler(async (req, res) => {
     const data = await refreshTokenService(req.cookies?.refreshToken);
 
     return res

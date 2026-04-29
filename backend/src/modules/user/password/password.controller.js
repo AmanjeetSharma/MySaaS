@@ -7,7 +7,7 @@ import {
 } from "./password.service.js";
 
 
-export const changePassword = asyncHandler(async (req, res) => {
+export const changePasswordController = asyncHandler(async (req, res) => {
     const data = await changePasswordService(req.user._id, req.user?.sessionId, req.body);
 
     return res
@@ -20,7 +20,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 });
 
 
-export const forgotPassword = asyncHandler(async (req, res) => {
+export const forgotPasswordController = asyncHandler(async (req, res) => {
     const data = await forgotPasswordService(req.body.email);
 
     return res
@@ -33,7 +33,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 
-export const resetPassword = asyncHandler(async (req, res) => {
+export const resetPasswordController = asyncHandler(async (req, res) => {
     const { token, newPassword, confirmNewPassword } = req.body;
     const data = await resetPasswordService(token, newPassword, confirmNewPassword);
 
