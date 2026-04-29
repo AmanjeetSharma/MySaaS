@@ -285,6 +285,7 @@ export const loginService = async (body) => {
     }
 
     const user = await findUserByEmail(normalizedEmail, "+password +sessions");
+    console.log(user);
     if (!user) {
         throw new ApiError(401, "User doesn't exist");
     }
@@ -306,7 +307,7 @@ export const loginService = async (body) => {
     let refreshToken;
 
     if (existingSession) {
-        // Reuse session
+        // Update existing session
         sessionId = existingSession.sessionId;
         refreshToken = generateRefreshToken(user._id, sessionId);
         existingSession.refreshToken = refreshToken;
@@ -331,7 +332,13 @@ export const loginService = async (body) => {
         });
         // console.log(`New session created | Device: ${device} | User: ${user.email} | sessionId: ${sessionId}`);
     }
-    await user.save();
+
+    try {
+        await user.save();
+    } catch (err) {
+        console.error(`[Login err log] Error saving user session for ${user.email} | Error: ${err.message}`);
+        throw new ApiError(500, "An error occurred while logging in. Please try again.");
+    }
 
     const accessToken = generateAccessToken(user, sessionId);
 

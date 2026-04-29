@@ -50,3 +50,9 @@ export const findUserById = async (id, selectFields) => {
     }
     return await query;
 };
+
+
+
+export const createUserByGoogle = async (payload) => {
+    return await User.create(payload);
+};

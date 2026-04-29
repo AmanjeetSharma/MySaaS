@@ -5,6 +5,9 @@ import { getUserById, updateUserSettingsField } from "../user.repository.js";
 
 
 
+
+
+
 const updateSettings = async (userId, updateObj) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized access");
@@ -17,6 +20,9 @@ const updateSettings = async (userId, updateObj) => {
 
     return updatedUser.settings;
 };
+
+
+
 
 
 
@@ -37,6 +43,9 @@ export const updateThemeService = async (userId, theme) => {
 
 
 
+
+
+
 export const updateTimezoneService = async (userId, timezone) => {
     const validation = timezoneValidator(timezone);
     if (!validation.valid) {
@@ -51,6 +60,9 @@ export const updateTimezoneService = async (userId, timezone) => {
 
     return { timezone: settings.timezone };
 };
+
+
+
 
 
 
