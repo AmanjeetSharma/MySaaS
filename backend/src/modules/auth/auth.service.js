@@ -220,11 +220,11 @@ export const verifyEmailService = async (token) => {
     // To prevent race condition
     if (!user.activeOrganization) {
         // Default Org assignment
-        let organizationName = `${user.name.trim()}'s Workspace`;
+
         let org;
         try {
             org = await createDefaultOrganization({
-                name: organizationName,
+                name: `${user.name.trim()}'s Workspace`,
                 owner: user._id,
                 members: [],
                 subscription: {
@@ -250,7 +250,7 @@ export const verifyEmailService = async (token) => {
     try {
         if (env.EMAIL_ENABLED) {
             await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
-        }else{
+        } else {
             console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
         }
     } catch (err) {

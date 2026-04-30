@@ -53,7 +53,7 @@ export const googleLoginService = async (token, device = "unknown device") => {
         let org;
         try {
             org = await createDefaultOrganization({
-                name: `${user.name}'s Organization`,
+                name: `${user.name.trim()}'s Workspace`,
                 owner: user._id,
                 members: [],
                 subscription: {
