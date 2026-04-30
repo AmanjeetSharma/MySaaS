@@ -1,7 +1,7 @@
 import env from "./env.config.js";
 
 export const getCookieOptions = (type = "access") => {
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = env.NODE_ENV === "production";
     // console.log("Cookie Options - isProduction:", isProduction); // debug log to verify environment
 
     return {

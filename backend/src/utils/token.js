@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import env from "../config/env.config.js";
 
 
 export const generateToken = () => {
@@ -30,7 +31,7 @@ export const generateSessionId = () => {
 
 
 export const generateAccessToken = (user, sessionId) => {
-    console.log("access token expires in:", process.env.ACCESS_TOKEN_EXPIRY || "15m");
+    console.log("access token expires in:", env.ACCESS_TOKEN_EXPIRY || "15m");
     return jwt.sign(
         {
             _id: user._id,
@@ -38,9 +39,9 @@ export const generateAccessToken = (user, sessionId) => {
             name: user.name,
             sessionId
         },
-        process.env.ACCESS_TOKEN_SECRET,
+        env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m",
+            expiresIn: env.ACCESS_TOKEN_EXPIRY || "15m",
         }
     );
 };
@@ -48,15 +49,15 @@ export const generateAccessToken = (user, sessionId) => {
 
 
 export const generateRefreshToken = (userId, sessionId) => {
-    console.log("refresh token expires in:", process.env.REFRESH_TOKEN_EXPIRY || "7d");
+    console.log("refresh token expires in:", env.REFRESH_TOKEN_EXPIRY || "7d");
     return jwt.sign(
         {
             id: userId,
             sessionId
         },
-        process.env.REFRESH_TOKEN_SECRET,
+        env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
+            expiresIn: env.REFRESH_TOKEN_EXPIRY || "7d",
         }
     );
 };

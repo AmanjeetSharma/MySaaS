@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
+import env from "../config/env.config.js";
 
 const errorHandler = (err, req, res, next) => {
 
@@ -38,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
         ...(error.errors?.length > 0 && { errors: error.errors }),// Include errors array if it exists and is not empty
     };
 
-    if (process.env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
         response.stack = error.stack;
     }
 

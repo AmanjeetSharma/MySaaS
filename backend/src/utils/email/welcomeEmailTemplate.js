@@ -1,3 +1,5 @@
+import env from "../../config/env.config.js";
+
 export const welcomeEmailTemplate = (name) => {
     return `
         <!DOCTYPE html>
@@ -301,7 +303,7 @@ export const welcomeEmailTemplate = (name) => {
                         </div>
                         
                         <div class="button-container">
-                            <a href="${process.env.CLIENT_URL}/dashboard" class="action-button">
+                            <a href="${env.CLIENT_URL}/dashboard" class="action-button">
                                 Go to Your Dashboard →
                             </a>
                         </div>
