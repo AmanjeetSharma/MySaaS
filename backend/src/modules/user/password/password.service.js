@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { ApiError } from "../../../utils/ApiError.js";
-import { sendEmail } from "../../../services/email.service.js";
+import { sendEmail } from "../../../integrations/email.integration.js";
 import { resetEmailTemplate } from "../../../utils/email/resetEmailTemplate.js"
 import { passwordValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getUserByEmail, getUserByHashedToken } from "../user.repository.js";

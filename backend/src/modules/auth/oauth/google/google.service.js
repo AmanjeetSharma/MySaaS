@@ -4,7 +4,7 @@ import env from "../../../../config/env.config.js";
 import { findUserByEmail, createUserByGoogle, createDefaultOrganization } from "../../auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../../../utils/token.js";
 import { welcomeEmailTemplate } from "../../../../utils/email/welcomeEmailTemplate.js";
-import { sendEmail } from "../../../../services/email.service.js";
+import { sendEmail } from "../../../../integrations/email.integration.js";
 
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -135,7 +135,7 @@ export const googleLoginService = async (token, device = "unknown device") => {
                 console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
             }
         } catch (err) {
-            console.error(`[Google Login err log] Error sending welcome email to ${user.email} | Error: ${err.message}`);
+            // ignore: already logged in sendEmail
         }
     }
 

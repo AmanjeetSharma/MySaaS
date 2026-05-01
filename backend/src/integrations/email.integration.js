@@ -38,6 +38,7 @@ export const sendEmail = async (to, subject, content, isHtml = false) => {
 
         return info;
     } catch (error) {
+        console.log(`[Email Service Error] Failed to send email to ${to} | Subject: ${subject} | Error: ${error.message}`);
         throw new ApiError(500, "Email could not be sent", error.message);
     }
 };

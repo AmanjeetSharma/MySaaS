@@ -5,11 +5,11 @@ import { ApiError } from "../../utils/ApiError.js";
 import env from "../../config/env.config.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "../../validations/auth.validators.js";
 import { cleanupAvatar, getTimeDifference } from "./auth.helper.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.service.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../../integrations/cloudinary.integration.js";
 import { generateToken } from "../../utils/token.js";
 import { registerEmailTemplate } from "../../utils/email/registerEmailTemplate.js";
 import { welcomeEmailTemplate } from "../../utils/email/welcomeEmailTemplate.js";
-import { sendEmail } from "../../services/email.service.js";
+import { sendEmail } from "../../integrations/email.integration.js";
 import {
     findUserByEmail,
     findPendingUserByEmail,
@@ -154,6 +154,8 @@ export const registerService = async (body, avatarFile) => {
     if (env.EMAIL_ENABLED) {
         await sendEmail(normalizedEmail, "Kindly Verify Your Email Address - Complete Your Registration", emailHTML, true);
         console.log(`Verification email sent to ${normalizedEmail} | verificationLink: ${verificationLink}`);
+    } else {
+        console.log(`Email service is disabled. Skipping verification email for ${normalizedEmail}`);
     }
 
     return {
@@ -253,7 +255,7 @@ export const verifyEmailService = async (token) => {
             console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
         }
     } catch (err) {
-        console.log(`Welcome email failed for ${user.email} | userId: ${user._id} | error: ${err.message}`);
+        // ignore: already logged in sendEmail
     }
 
     return {

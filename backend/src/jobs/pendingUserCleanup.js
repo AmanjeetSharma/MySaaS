@@ -1,5 +1,5 @@
 import { PendingUser } from "../modules/user/pendingUser.model.js";
-import { deleteFromCloudinary } from "../services/cloudinary.service.js"
+import { deleteFromCloudinary } from "../integrations/cloudinary.integration.js"
 import chalk from "chalk";
 
 export const runPendingUserCleanup = async () => {

@@ -1,7 +1,7 @@
 import { ApiError } from "../../../utils/ApiError.js";
 import { nameValidator, avatarValidator } from "../../../validations/auth.validators.js";
 import { getUserById, } from "../user.repository.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../../../services/cloudinary.service.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../../../integrations/cloudinary.integration.js";
 import { cleanupAvatar } from "../../auth/auth.helper.js";
 
 
