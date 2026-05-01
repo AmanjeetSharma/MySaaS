@@ -4,10 +4,8 @@ import env from "../config/env.config.js";
 
 
 export const generateToken = () => {
-    // raw token (send in email)
     const rawToken = crypto.randomBytes(32).toString("hex");
 
-    // hashed token (store in DB)
     const hashedToken = crypto
         .createHash("sha256")
         .update(rawToken)

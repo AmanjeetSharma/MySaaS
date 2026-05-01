@@ -220,10 +220,8 @@ export const verifyEmailService = async (token) => {
     // To prevent race condition
     if (!user.activeOrganization) {
         // Default Org assignment
-
-        let org;
         try {
-            org = await createDefaultOrganization({
+            const org = await createDefaultOrganization({
                 name: `${user.name.trim()}'s Workspace`,
                 owner: user._id,
                 members: [],
@@ -286,8 +284,8 @@ export const loginService = async (body) => {
         }
     }
 
-    const user = await findUserByEmail(normalizedEmail, "+password +sessions");
-    console.log(user);
+    const user = await findUserByEmail(normalizedEmail, "+password");
+
     if (!user) {
         throw new ApiError(401, "User doesn't exist");
     }

@@ -50,9 +50,8 @@ export const googleLoginService = async (token, device = "unknown device") => {
         });
 
         // default org creation for new user
-        let org;
         try {
-            org = await createDefaultOrganization({
+            const org = await createDefaultOrganization({
                 name: `${user.name.trim()}'s Workspace`,
                 owner: user._id,
                 members: [],
