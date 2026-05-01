@@ -34,6 +34,10 @@ export const googleLoginService = async (token, device = "unknown device") => {
 
     let isNewUser = false;
 
+    const trimmed = user.name.trim();
+    const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
+
+
     if (!user) {
         // new user
         user = await createUserByGoogle({
@@ -52,7 +56,7 @@ export const googleLoginService = async (token, device = "unknown device") => {
         // default org creation for new user
         try {
             const org = await createDefaultOrganization({
-                name: `${user.name.trim()}'s Workspace`,
+                name: orgName,
                 owner: user._id,
                 members: [],
                 subscription: {

@@ -111,7 +111,7 @@ export const registerService = async (body, avatarFile) => {
         try {
             if (existingPendingUser.avatar?.publicId) {
                 await deleteFromCloudinary(existingPendingUser.avatar.publicId);
-                console.log(`Removed old avatar from Cloudinary for existing pending user | email: ${normalizedEmail}`);
+                // console.log(`Removed old avatar from Cloudinary for existing pending user | email: ${normalizedEmail}`);
             }
         } catch (err) {
             console.error(`Failed to remove old avatar from Cloudinary for existing pending user | email: ${normalizedEmail} | error: ${err.message}`);
@@ -144,8 +144,6 @@ export const registerService = async (body, avatarFile) => {
             verificationTokenExpiry: expiry
         });
     }
-
-    // Org assignment will be done after email verification to avoid cluttering database with unverified users and orphaned orgs in case of non verification or spam signups
 
     console.log(`${existingPendingUser ? "Existing" : "New"} pendingUser ${existingPendingUser ? "updated" : "created"} for ${normalizedEmail} | Token ${rawToken} (duration: 10 mins)`);
 
@@ -217,12 +215,15 @@ export const verifyEmailService = async (token) => {
 
     console.log(`Email verified | User: ${user.email} | ID: ${user._id}`);
 
+    const trimmed = user.name.trim();
+    const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
+
     // To prevent race condition
     if (!user.activeOrganization) {
         // Default Org assignment
         try {
             const org = await createDefaultOrganization({
-                name: `${user.name.trim()}'s Workspace`,
+                name: orgName,
                 owner: user._id,
                 members: [],
                 subscription: {
@@ -259,7 +260,7 @@ export const verifyEmailService = async (token) => {
         name: user.name,
         email: user.email,
         organization: user.activeOrganization,
-        organizationName: user.name ? `${user.name.trim()}'s Workspace` : "Your Workspace"
+        organizationName: user.name ? orgName : "Your Workspace"
     };
 };
 

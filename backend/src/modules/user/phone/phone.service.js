@@ -114,6 +114,8 @@ export const verifyPhoneOtpService = async (userId, otp) => {
         throw new ApiError(500, "Failed to verify phone number. Please try again");
     }
 
+    console.log(`Phone number verified for user ${user.email} | phone: ${user.phone.number}`);
+
     return {
         _id: user._id,
         name: user.name,
@@ -167,6 +169,8 @@ export const unlinkPhoneService = async (userId) => {
             "Failed to remove phone number. Please try again."
         );
     }
+
+    console.log(`Phone number removed/unlinked for user ${user.email} | phone: ${user.phone.number}`);
 
     return {
         removed: true,
