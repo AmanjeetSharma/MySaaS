@@ -20,7 +20,6 @@ import {
     createDefaultOrganization,
     findUserById,
 } from "./auth.repository.js";
-import { Organization } from "../organization/organization.model.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 
 
@@ -227,16 +226,6 @@ export const verifyEmailService = async (token) => {
             const org = await createDefaultOrganization({
                 name: orgName,
                 owner: user._id,
-                members: [],
-                subscription: {
-                    plan: "free",
-                    status: "active",
-                    startDate: new Date(),
-                    endDate: null
-                },
-                usage: {
-                    aiCreditsUsed: 0
-                }
             });
             if (org) {
                 user.activeOrganization = org._id;

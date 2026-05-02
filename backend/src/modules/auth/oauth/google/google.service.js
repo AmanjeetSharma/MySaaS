@@ -58,16 +58,6 @@ export const googleLoginService = async (token, device = "unknown device") => {
             const org = await createDefaultOrganization({
                 name: orgName,
                 owner: user._id,
-                members: [],
-                subscription: {
-                    plan: "free",
-                    status: "active",
-                    startDate: new Date(),
-                    endDate: null
-                },
-                usage: {
-                    aiCreditsUsed: 0
-                }
             });
 
             if (org) {

@@ -8,11 +8,6 @@ const customerSchema = new Schema(
             required: true,
             index: true
         },
-        currentDeal: {
-            type: Schema.Types.ObjectId,
-            ref: "Deal",
-            default: null
-        },
         name: {
             type: String,
             required: true,
@@ -34,11 +29,11 @@ const customerSchema = new Schema(
 
         source: {
             type: String,
-            enum: ["manual", "booking"],// manual for notes, booking for public-link booking
+            enum: ["manual", "booking"],// manual for notes, booking for public-link created customers
             default: "manual"
         },
 
-        latestNoteSummary: {//this will show the summary of latest stage of relationship with customer
+        latestNoteSummary: {// latest stage summary for quick reference
             type: String,
             default: null
         },
@@ -48,7 +43,7 @@ const customerSchema = new Schema(
             default: null
         },
 
-        isDeleted: { // delete all notes and interactions when this is true, but keep record for analytics and safety
+        isDeleted: {
             type: Boolean,
             default: false
         }
