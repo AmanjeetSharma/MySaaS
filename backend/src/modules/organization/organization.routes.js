@@ -24,11 +24,11 @@ router.post("/:orgId/switch", verifyToken, switchOrganizationController);
 
 // member routes
 
-// router.get("/:orgId/members", verifyToken, getOrganizationMembersController);
-// router.patch("/:orgId/members/:memberId", verifyToken, updateMemberRoleController);
-// router.delete("/:orgId/members/:memberId", verifyToken, removeMemberController);
+// router.get("/:orgId/members", verifyToken, getMembersController);
 // router.post("/:orgId/invite", verifyToken, inviteMemberController);
+// router.post("/:orgId/invitations/accept", verifyToken, acceptInvitationController);
 // router.get("/:orgId/invitations", verifyToken, getPendingInvitationsController);
+// router.delete("/:orgId/members/:memberId", verifyToken, removeMemberController);
 // router.post("/:orgId/leave", verifyToken, leaveOrganizationController);
 
 
