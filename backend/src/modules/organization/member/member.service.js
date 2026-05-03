@@ -8,8 +8,14 @@ import { emailValidator } from "../../../validations/auth.validators.js";
 import { findOrganizationById, findUserById } from "../organization.repository.js";
 import { sendEmail } from "../../../integrations/email.integration.js";
 import { invitationEmailTemplate } from "../../../utils/email/invitationEmailTemplate.js";
-import { findInvited, createInvitation, findUserByEmail } from "./member.repository.js";
-import { count } from "console";
+import {
+    findInvitationByEmail,
+    createInvitation,
+    findUserByEmail,
+    findInvitationByToken,
+    addNewMemberToOrganization,
+    findInvitationsByOrg
+} from "./member.repository.js";
 
 
 
@@ -102,7 +108,7 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
             }
         }
 
-        const alreadyInvited = await findInvited(org, cleanedEmail, session);
+        const alreadyInvited = await findInvitationByEmail(org, cleanedEmail, session);
         if (alreadyInvited) {
             throw new ApiError(400, `An invitation has already been sent to ${cleanedEmail}`);
         }
@@ -133,6 +139,7 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
             console.log(`Email service is disabled. Skipping invitation email for ${cleanedEmail}`);
         }
 
+        console.log(`Invitation token for ${cleanedEmail}: ${rawToken} | Expires at: ${expiresAt.toLocaleString()}`);// development log
         console.log(`Member invited: ${cleanedEmail} to organization ${org.name} by ${inviterName} | Invitation ID: ${invitation._id}`);
 
         return {
@@ -162,3 +169,121 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
 
 
+
+
+
+
+
+export const acceptInvitationService = async (userId, token) => {
+    if (!userId) throw new ApiError(400, "Unauthorized access");
+    if (!token) throw new ApiError(400, "Invitation token is missing");
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const invitation = await findInvitationByToken(hashedToken, session);
+        if (!invitation) {
+            throw new ApiError(400, "Invalid or expired invitation token");
+        }
+
+        if (invitation.expiresAt < new Date()) {
+            invitation.status = "expired";
+            await invitation.save({ session });
+            throw new ApiError(400, "The invitation link has expired. Please contact the inviter to generate a new one.");
+        }
+
+        const org = await findOrganizationById(invitation.organization, session);
+        if (!org) {
+            throw new ApiError(404, "Organization not found");
+        }
+
+        const user = await findUserById(userId, null, session);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
+            throw new ApiError(403, "This invitation was not sent to your email address");
+        }
+
+        const alreadyAMember = org.members.some(
+            m => m.user.toString() === userId.toString()
+        );
+
+        if (!alreadyAMember) {
+            const newMemberPayload = {
+                user: userId,
+                role: invitation.role,
+                invitedBy: invitation.invitedBy,
+                joinedAt: new Date()
+            };
+            const newMember = await addNewMemberToOrganization(org._id, newMemberPayload, session);
+        }
+
+        invitation.status = "accepted";
+
+        await invitation.save({ session });
+
+        await session.commitTransaction();
+
+        console.log(`Invitation accepted by ${user.email} for organization ${org.name} | Invitation ID: ${invitation._id}`);
+
+        return {
+            organization: org.name,
+            user: user.name,
+            email: user.email,
+            role: invitation.role
+        };
+
+    } catch (error) {
+        await session.abortTransaction();
+        if (error instanceof ApiError) {
+            throw error;
+        } else {
+            console.error("Error accepting invitation:", error);
+            throw new ApiError(500, "An error occurred while accepting the invitation. Please try again.");
+        }
+    } finally {
+        session.endSession();
+    }
+};
+
+
+
+
+
+
+
+
+
+export const getPendingInvitationsService = async (userId, orgId) => {
+    if (!userId) throw new ApiError(400, "Unauthorized access");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+
+    const org = await findOrganizationById(orgId, null);
+    if (!org) throw new ApiError(404, "Organization not found");
+
+    if (org.owner.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not authorized to view invitations.");
+    }
+
+    const invitations = await findInvitationsByOrg(orgId, "email role status expiresAt createdAt invitedBy", [
+        { path: "invitedBy", select: "name email" }
+    ]);
+    console.log(`Pending invitations fetched for organization ${org.name} | Total pending invitations: ${invitations.length}`);
+
+    return invitations.map(invite => ({
+        id: invite._id,
+        email: invite.email,
+        role: invite.role,
+        inviter: invite.invitedBy?.name || null,
+        inviterEmail: invite.invitedBy?.email || null,
+        status: invite.status,
+        expiresAt: invite.expiresAt,
+        invitedAt: invite.createdAt
+    }));
+};

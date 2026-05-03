@@ -11,8 +11,8 @@ import {
 import {
     getMembersController,
     inviteMemberController,
-    // acceptInvitationController,
-    // getPendingInvitationsController,
+    acceptInvitationController,
+    getPendingInvitationsController,
     // removeMemberController,
     // leaveOrganizationController
 } from "./member/member.controller.js";
@@ -34,8 +34,8 @@ router.post("/:orgId/switch", verifyToken, switchOrganizationController);
 
 router.get("/:orgId/members", verifyToken, getMembersController);
 router.post("/:orgId/invite", verifyToken, inviteMemberController);
-// router.post("/:orgId/invitations/accept", verifyToken, acceptInvitationController);
-// router.get("/:orgId/invitations", verifyToken, getPendingInvitationsController);
+router.post("/:orgId/invitations/accept", verifyToken, acceptInvitationController);
+router.get("/:orgId/invitations", verifyToken, getPendingInvitationsController);
 // router.delete("/:orgId/members/:memberId", verifyToken, removeMemberController);
 // router.post("/:orgId/leave", verifyToken, leaveOrganizationController);
 

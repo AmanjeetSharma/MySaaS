@@ -3,8 +3,8 @@ import { asyncHandler } from "../../../utils/asyncHandler.js";
 import {
     getMembersService,
     inviteMemberService,
-    // acceptInvitationService,
-    // getPendingInvitationsService,
+    acceptInvitationService,
+    getPendingInvitationsService,
     // removeMemberService,
     // leaveOrganizationService
 } from "./member.service.js";
@@ -34,7 +34,7 @@ export const inviteMemberController = asyncHandler(async (req, res) => {
 
 
 export const acceptInvitationController = asyncHandler(async (req, res) => {
-    const data = await acceptInvitationService(req.body.token, req.user._id);
+    const data = await acceptInvitationService(req.user._id, req.body.token);
 
     return res.status(200).json(
         new ApiResponse(
@@ -46,7 +46,7 @@ export const acceptInvitationController = asyncHandler(async (req, res) => {
 
 
 export const getPendingInvitationsController = asyncHandler(async (req, res) => {
-    const data = await getPendingInvitationsService(req.params.orgId, req.user._id);
+    const data = await getPendingInvitationsService(req.user._id, req.params.orgId);
 
     return res.status(200).json(
         new ApiResponse(
