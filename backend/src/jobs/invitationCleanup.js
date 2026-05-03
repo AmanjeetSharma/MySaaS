@@ -8,7 +8,7 @@ export const runInvitationCleanup = async () => {
         const expiredInvites = await Invitation.find({
             status: "pending",
             expiresAt: { $lt: now }
-        }).select("email organization");
+        }).select("email organization token");
 
         if (expiredInvites.length === 0) {
             console.log(`${new Date().toLocaleString()} ${chalk.yellow("[InvitationCleanup]")} No expired invitations found`);
@@ -21,7 +21,7 @@ export const runInvitationCleanup = async () => {
                 expiresAt: { $lt: now }
             },
             {
-                $set: { status: "expired" }
+                $set: { status: "expired", token: null }
             }
         );
 

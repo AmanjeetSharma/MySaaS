@@ -54,13 +54,13 @@ export const setActiveOrganization = async (userId, orgId, session = null) => {
 };
 
 
-export const setActiveOrganizationForUsers = async (orgId, session) => {
-    const org = await User.updateMany(
+export const unsetActiveOrganizationForUsers = async (orgId, session) => {
+    const query = await User.updateMany(
         { activeOrganization: orgId },
         { $set: { activeOrganization: null } },
         { session }
     );
-    return org;
+    return query;
 };
 
 

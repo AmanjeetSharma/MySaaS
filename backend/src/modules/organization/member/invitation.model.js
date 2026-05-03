@@ -30,7 +30,7 @@ const inviteSchema = new Schema({
     },
     token: {
         type: String,
-        required: true
+        select: false
     },
     expiresAt: {
         type: Date,

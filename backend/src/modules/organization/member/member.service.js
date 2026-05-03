@@ -5,9 +5,13 @@ import env from "../../../config/env.config.js";
 import { generateToken } from "../../../utils/token.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { emailValidator } from "../../../validations/auth.validators.js";
-import { findOrganizationById, findUserById } from "../organization.repository.js";
 import { sendEmail } from "../../../integrations/email.integration.js";
 import { invitationEmailTemplate } from "../../../utils/email/invitationEmailTemplate.js";
+import {
+    findOrganizationById,
+    findUserById,
+    unsetActiveOrganizationForUsers,
+} from "../organization.repository.js";
 import {
     findInvitationByEmail,
     createInvitation,
@@ -184,13 +188,14 @@ export const acceptInvitationService = async (userId, token) => {
     session.startTransaction();
 
     try {
-        const invitation = await findInvitationByToken(hashedToken, session);
+        const invitation = await findInvitationByToken(hashedToken, "+token", session);
         if (!invitation) {
             throw new ApiError(400, "Invalid or expired invitation token");
         }
 
         if (invitation.expiresAt < new Date()) {
             invitation.status = "expired";
+            invitation.token = null;
             await invitation.save({ session });
             throw new ApiError(400, "The invitation link has expired. Please contact the inviter to generate a new one.");
         }
@@ -224,6 +229,7 @@ export const acceptInvitationService = async (userId, token) => {
         }
 
         invitation.status = "accepted";
+        invitation.token = null;
 
         await invitation.save({ session });
 
@@ -286,4 +292,120 @@ export const getPendingInvitationsService = async (userId, orgId) => {
         expiresAt: invite.expiresAt,
         invitedAt: invite.createdAt
     }));
+};
+
+
+
+
+
+
+
+
+export const removeMemberService = async (userId, orgId, memberId) => {
+    if (!userId) throw new ApiError(400, "Unauthorized access");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!memberId) throw new ApiError(400, "Member ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!mongoose.Types.ObjectId.isValid(memberId)) throw new ApiError(400, "Invalid member ID");
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const org = await findOrganizationById(orgId, session);
+        if (!org) {
+            throw new ApiError(404, "Organization not found");
+        }
+
+        if (org.owner.toString() !== userId.toString()) {
+            throw new ApiError(403, "You are not authorized to remove members.");
+        }
+
+        if (org.owner.toString() === memberId.toString()) {
+            throw new ApiError(400, "Organization owner cannot be removed");
+        }
+
+        const memberExists = org.members.some(m => m.user.toString() === memberId.toString());
+        if (!memberExists) {
+            throw new ApiError(404, "This user is not a member of the organization");
+        }
+
+        org.members = org.members.filter(m => m.user.toString() !== memberId.toString());
+
+        await org.save({ session });
+
+        await unsetActiveOrganizationForUsers(orgId, session);
+
+        await session.commitTransaction();
+
+        console.log(`Member with ID ${memberId} removed from organization ${org.name} by user ${userId}`);
+    } catch (error) {
+        await session.abortTransaction();
+        if (error instanceof ApiError) {
+            throw error;
+        } else {
+            console.error("Error removing member:", error);
+            throw new ApiError(500, "An error occurred while removing the member. Please try again.");
+        }
+    } finally {
+        session.endSession();
+    }
+};
+
+
+
+
+
+
+
+
+export const leaveOrganizationService = async (userId, orgId) => {
+    if (!userId) throw new ApiError(400, "Unauthorized access");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const org = await findOrganizationById(orgId, session);
+        if (!org) {
+            throw new ApiError(404, "Organization not found");
+        }
+
+        if (org.owner.toString() === userId.toString()) {
+            throw new ApiError(400, "Owner cannot leave organization. Delete it instead");
+        }
+
+        const isMemberOfOrg = org.members.some(m => m.user.toString() === userId.toString());
+        if (!isMemberOfOrg) {
+            throw new ApiError(404, `You are not a member of ${org.name}`);
+        }
+
+        org.members = org.members.filter(m => m.user.toString() !== userId.toString());
+
+        await org.save({ session });
+
+        await unsetActiveOrganizationForUsers(orgId, session);
+
+        await session.commitTransaction();
+
+        console.log(`User with ID ${userId} left organization ${org.name}`);
+
+        return {
+            success: true,
+            message: "You have left the organization"
+        };
+
+    } catch (error) {
+        await session.abortTransaction();
+        if (error instanceof ApiError) {
+            throw error;
+        } else {
+            console.error("Error leaving organization:", error);
+            throw new ApiError(500, "An error occurred while leaving the organization. Please try again.");
+        }
+    } finally {
+        session.endSession();
+    }
 };

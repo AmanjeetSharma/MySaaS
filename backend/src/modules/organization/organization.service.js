@@ -8,7 +8,7 @@ import {
     findOrganizationById,
     deleteOrganizationById,
     setActiveOrganization,
-    setActiveOrganizationForUsers,
+    unsetActiveOrganizationForUsers,
     findOrganizationsByUserId
 } from "./organization.repository.js";
 
@@ -167,7 +167,7 @@ export const deleteOrganizationService = async (userId, orgId) => {
         }
 
         // setting activeOrganization to null for all users before deletion to prevent dangling references
-        await setActiveOrganizationForUsers(orgId, session);
+        await unsetActiveOrganizationForUsers(orgId, session);
 
         await deleteOrganizationById(orgId, session);
 

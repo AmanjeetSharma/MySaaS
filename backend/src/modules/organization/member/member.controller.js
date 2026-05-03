@@ -5,8 +5,8 @@ import {
     inviteMemberService,
     acceptInvitationService,
     getPendingInvitationsService,
-    // removeMemberService,
-    // leaveOrganizationService
+    removeMemberService,
+    leaveOrganizationService
 } from "./member.service.js";
 
 export const getMembersController = asyncHandler(async (req, res) => {
@@ -58,38 +58,24 @@ export const getPendingInvitationsController = asyncHandler(async (req, res) => 
 
 
 export const removeMemberController = asyncHandler(async (req, res) => {
-    await removeMemberService(req.params.orgId, req.params.memberId, req.user._id);
+    const data = await removeMemberService(req.user._id, req.params.orgId, req.params.memberId);
 
     return res.status(200).json(
         new ApiResponse(
             200,
-            null,
+            data,
             "Member removed successfully"
         ));
 });
 
 
 export const leaveOrganizationController = asyncHandler(async (req, res) => {
-    await leaveOrganizationService(req.params.orgId, req.user._id);
+    const data = await leaveOrganizationService(req.user._id, req.params.orgId);
 
     return res.status(200).json(
         new ApiResponse(
             200,
-            null,
-            "Left organization successfully"
+            data,
+            "User left the organization successfully"
         ));
 });
-
-
-export const deleteOrganizationController = asyncHandler(async (req, res) => {
-    await deleteOrganizationService(req.user._id, req.params.orgId);
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            null,
-            "Organization deleted successfully"
-        ));
-});
-
-

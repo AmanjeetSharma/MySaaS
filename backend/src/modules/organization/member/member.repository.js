@@ -7,7 +7,8 @@ export const findInvitationByEmail = async (org, email, session) => {
     let query = Invitation.findOne({
         organization: org._id,
         email: email,
-        status: "pending"
+        status: "pending",
+        expiresAt: { $gt: new Date() } // only non-expired ones
     });
     if (session) {
         query = query.session(session);
@@ -34,8 +35,11 @@ export const findUserByEmail = async (email, selectedFields, session) => {
 };
 
 
-export const findInvitationByToken = async (hashedToken, session) => {
+export const findInvitationByToken = async (hashedToken, selectedFields, session) => {
     let query = Invitation.findOne({ token: hashedToken, status: "pending" });
+    if (selectedFields) {
+        query = query.select(selectedFields);
+    }
     if (session) {
         query = query.session(session);
     }
