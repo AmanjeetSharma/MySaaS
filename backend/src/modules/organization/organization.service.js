@@ -64,6 +64,9 @@ export const createOrganizationService = async (userId, orgName) => {
         }
         if (err instanceof ApiError) {
             throw err;
+        } else {
+            console.error("Error creating organization:", err);
+            throw new ApiError(500, "An error occurred while creating the organization. Please try again.");
         }
     } finally {
         session.endSession();
@@ -179,6 +182,9 @@ export const deleteOrganizationService = async (userId, orgId) => {
         await session.abortTransaction();
         if (err instanceof ApiError) {
             throw err;
+        } else {
+            console.error("Error deleting organization:", err);
+            throw new ApiError(500, "An error occurred while deleting the organization. Please try again.");
         }
     } finally {
         session.endSession();
@@ -203,7 +209,7 @@ export const switchOrganizationService = async (userId, orgId) => {
 
     const user = await findUserById(userId);
 
-    if(user.activeOrganization && user.activeOrganization.toString() === orgId.toString()) {
+    if (user.activeOrganization && user.activeOrganization.toString() === orgId.toString()) {
         throw new ApiError(400, "Your workspace is already set to this organization");
     }
 

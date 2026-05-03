@@ -8,6 +8,14 @@ import {
     deleteOrganizationController,
     switchOrganizationController
 } from "./organization.controller.js";
+import {
+    getMembersController,
+    inviteMemberController,
+    // acceptInvitationController,
+    // getPendingInvitationsController,
+    // removeMemberController,
+    // leaveOrganizationController
+} from "./member/member.controller.js";
 
 const router = express.Router();
 
@@ -24,8 +32,8 @@ router.post("/:orgId/switch", verifyToken, switchOrganizationController);
 
 // member routes
 
-// router.get("/:orgId/members", verifyToken, getMembersController);
-// router.post("/:orgId/invite", verifyToken, inviteMemberController);
+router.get("/:orgId/members", verifyToken, getMembersController);
+router.post("/:orgId/invite", verifyToken, inviteMemberController);
 // router.post("/:orgId/invitations/accept", verifyToken, acceptInvitationController);
 // router.get("/:orgId/invitations", verifyToken, getPendingInvitationsController);
 // router.delete("/:orgId/members/:memberId", verifyToken, removeMemberController);

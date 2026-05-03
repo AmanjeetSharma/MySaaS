@@ -1,8 +1,8 @@
-import { ApiResponse } from "../../utils/ApiResponse.js";
-import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../../utils/ApiResponse.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 import {
-    // getMembersService,
-    // inviteMemberService,
+    getMembersService,
+    inviteMemberService,
     // acceptInvitationService,
     // getPendingInvitationsService,
     // removeMemberService,
@@ -10,7 +10,7 @@ import {
 } from "./member.service.js";
 
 export const getMembersController = asyncHandler(async (req, res) => {
-    const data = await getMembersService(req.params.orgId, req.user._id);
+    const data = await getMembersService(req.user._id, req.params.orgId);
 
     return res.status(200).json(
         new ApiResponse(
@@ -22,7 +22,7 @@ export const getMembersController = asyncHandler(async (req, res) => {
 
 
 export const inviteMemberController = asyncHandler(async (req, res) => {
-    const data = await inviteMemberService(req.params.orgId, req.body.email, req.user._id);
+    const data = await inviteMemberService(req.user._id, req.user.name, req.params.orgId, req.body.email);
 
     return res.status(200).json(
         new ApiResponse(

@@ -27,10 +27,15 @@ export const createOrganization = async (orgData, session = null) => {
 };
 
 
-export const findOrganizationById = async (orgId, session) => {
+export const findOrganizationById = async (orgId, session, populateOptions = []) => {
     let query = Organization.findById(orgId);
     if (session) {
         query = query.session(session);
+    }
+    if (populateOptions.length > 0) {
+        populateOptions.forEach(option => {
+            query = query.populate(option);
+        });
     }
     return await query;
 };

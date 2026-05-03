@@ -2,7 +2,11 @@ import mongoose, { Schema } from "mongoose";
 
 
 const inviteSchema = new Schema({
-    organization: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
+    organization: {
+        type: Schema.Types.ObjectId,
+        ref: "Organization",
+        required: true
+    },
     email: {
         type: String,
         required: true,
