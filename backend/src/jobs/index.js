@@ -7,7 +7,7 @@ export const startJobs = () => {
     console.log(`${chalk.blueBright("Starting background jobs...")}`);
     console.log(chalk.gray(`-----------------------------------------`));
 
-    // every hour
+    // every 1 hour
     cron.schedule("0 * * * *", async () => {
         await runPendingUserCleanup();
     });

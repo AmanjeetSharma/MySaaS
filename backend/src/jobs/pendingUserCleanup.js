@@ -10,12 +10,14 @@ export const runPendingUserCleanup = async () => {
             verificationTokenExpiry: { $lt: new Date() }
         });
 
+        if (expiredUsers.length === 0) {
+            console.log(`${new Date().toLocaleString()} ${chalk.yellow("[PendingUserCleanup]")} No expired pending users found.`);
+            return;
+        }
+
         for (const user of expiredUsers) {
             if (user.avatar?.publicId) {
                 const result = await deleteFromCloudinary(user.avatar.publicId);
-                if (result) {
-                    console.log(`${new Date().toLocaleString()} ${chalk.green("[PendingUserCleanup]")} Removed avatar from Cloudinary for expired pending user | email: ${user.email}`);
-                }
             }
         }
 
