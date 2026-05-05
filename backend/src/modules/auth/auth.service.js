@@ -244,7 +244,7 @@ export const verifyEmailService = async (token) => {
             console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
         }
     } catch (err) {
-        // ignore: already logged in sendEmail
+        // ignore: already handled in sendEmail
     }
 
     return {

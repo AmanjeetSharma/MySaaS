@@ -125,7 +125,7 @@ export const googleLoginService = async (token, device = "unknown device") => {
                 console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
             }
         } catch (err) {
-            // ignore: already logged in sendEmail
+            // ignore: already handled in sendEmail
         }
     }
 

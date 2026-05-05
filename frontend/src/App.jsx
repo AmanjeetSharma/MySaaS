@@ -1,11 +1,13 @@
 import React from 'react'
-import './App.css'
+import { Button } from '@/components/ui/button'
+
 
 const App = () => {
   return (
-    <div className='app-container flex flex-col items-center justify-center min-h-screen bg-gray-100'>
-      <h1>Welcome to the React App!</h1>
-
+    <div>
+      <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Click me
+      </Button>
     </div>
   )
 }
