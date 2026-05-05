@@ -34,9 +34,8 @@ export const googleLoginService = async (token, device = "unknown device") => {
 
     let isNewUser = false;
 
-    const trimmed = user.name.trim();
-    const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
-
+    const safeName = name || email.split("@")[0] || "User";
+    const orgName = safeName.split(" ")[0] + "'s Workspace";
 
     if (!user) {
         // new user
@@ -45,7 +44,7 @@ export const googleLoginService = async (token, device = "unknown device") => {
                 url: picture,
                 publicId: `google-${googleId}`
             },
-            name,
+            name: safeName,
             email,
             providers: {
                 local: { enabled: false },

@@ -32,7 +32,6 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
         throw new ApiError(400, validation.errors.join(", "));
     }
 
-    //check if theme is same as current one, if yes then return current settings without updating
     const user = await getUserById(userId);
     if (user.settings.theme.name === themeName && user.settings.theme.mode === themeMode) {
         throw new ApiError(400, "You are already using this theme");
