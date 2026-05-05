@@ -12,7 +12,18 @@ const sessionSchema = new mongoose.Schema({
 
 
 const settingsSchema = new mongoose.Schema({
-    theme: { type: String, enum: ["light", "dark"], default: "light" },
+    theme: {
+        name: {
+            type: String,
+            enum: ["default", "modern", "minimal", "darkPro"],
+            default: "default"
+        },
+        mode: {
+            type: String,
+            enum: ["light", "dark"],
+            default: "dark"
+        }
+    },
     timezone: { type: String, default: "Asia/Kolkata" },
     notifications: {
         email: { type: Boolean, default: false },

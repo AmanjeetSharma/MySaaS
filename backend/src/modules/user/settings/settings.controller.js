@@ -4,7 +4,7 @@ import { updateThemeService, updateTimezoneService, updateNotificationsService }
 
 
 export const updateThemeController = asyncHandler(async (req, res) => {
-    const data = await updateThemeService(req.user._id, req.body.theme);
+    const data = await updateThemeService(req.user._id, req.body.theme.name, req.body.theme.mode);
 
     return res
         .status(200)

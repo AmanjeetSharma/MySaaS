@@ -7,7 +7,7 @@ import { getUserById, updateUserSettingsField } from "../user.repository.js";
 
 
 
-
+// Helper function to update user settings
 const updateSettings = async (userId, updateObj) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized access");
@@ -26,14 +26,21 @@ const updateSettings = async (userId, updateObj) => {
 
 
 
-export const updateThemeService = async (userId, theme) => {
-    const validation = themeValidator(theme);
+export const updateThemeService = async (userId, themeName, themeMode) => {
+    const validation = themeValidator({ name: themeName, mode: themeMode });
     if (!validation.valid) {
         throw new ApiError(400, validation.errors.join(", "));
     }
 
+    //check if theme is same as current one, if yes then return current settings without updating
+    const user = await getUserById(userId);
+    if (user.settings.theme.name === themeName && user.settings.theme.mode === themeMode) {
+        throw new ApiError(400, "You are already using this theme");
+    }
+
     const settings = await updateSettings(userId, {
-        "settings.theme": theme
+        "settings.theme.name": themeName,
+        "settings.theme.mode": themeMode
     });
 
     console.log(`Theme updated for user ${userId}: ${settings.theme}`);
