@@ -1,5 +1,5 @@
 // theme.utils.js
-import { themeProfiles } from './theme.config';
+import { themeProfiles } from '../config/theme.config.js';
 import { THEME_IDS, THEME_MODES } from './theme.constant.js';
 
 /**

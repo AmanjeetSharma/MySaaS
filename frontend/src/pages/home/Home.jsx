@@ -3,6 +3,7 @@ import { HeroSection } from './HeroSection';
 import { FeaturesSection } from './FeaturesSection';
 import { HowItWorksSection } from './HowItWorksSection';
 import { CTASection } from './CTASection';
+import { NavBadgesSection } from './NavBadgesSection';
 import { initializeThemeFromLocalStorage } from '@/theme/themeSync.utils';
 
 export const Home = () => {
@@ -14,6 +15,7 @@ export const Home = () => {
     return (
         <div className="min-h-screen bg-black">
             <HeroSection />
+            <NavBadgesSection />
             <FeaturesSection />
             <HowItWorksSection />
             <CTASection />

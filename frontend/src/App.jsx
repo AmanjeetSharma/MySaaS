@@ -1,15 +1,32 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
+import { BrowserRouter } from 'react-router-dom';
+import { AppRoutes } from './routes/AppRoutes';
+import { Toaster } from '@/components/ui/sonner';
+import { useEffect } from 'react';
+import { useAuthStore, useUserStore, useSettingsStore } from './stores';
+import { initializeThemeFromLocalStorage } from './theme/themeSync.utils';
 
+function App() {
+  const { isAuthenticated, getUserProfile } = useAuthStore();
+  const { getUserProfile: fetchUserProfile } = useUserStore();
+  const { syncThemeWithBackend } = useSettingsStore();
 
-const App = () => {
+  useEffect(() => {
+    // Initialize theme from localStorage before app loads
+    initializeThemeFromLocalStorage();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserProfile();
+    }
+  }, [isAuthenticated, fetchUserProfile]);
+
   return (
-    <div>
-      <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Click me
-      </Button>
-    </div>
-  )
+    <BrowserRouter>
+      <AppRoutes />
+      <Toaster position="top-right" />
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

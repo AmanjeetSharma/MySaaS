@@ -1,5 +1,5 @@
-import { THEME_IDS, THEME_MODES } from '../constants/theme.constant';
-import { applyUserTheme } from './theme.utils';
+import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
+import { applyUserTheme } from './theme.utils.js';
 
 // Local storage keys
 const STORAGE_KEYS = {

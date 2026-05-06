@@ -2,10 +2,15 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
-import backgroundImage from '../../assets/hero-bg.png';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores';
+
+const backgroundImage = '../../assets/hero-bg.png';
 
 export const HeroSection = () => {
     const targetRef = useRef(null);
+    const navigate = useNavigate();
+    const { isAuthenticated } = useAuthStore();
     const { scrollYProgress } = useScroll({
         target: targetRef,
         offset: ["start start", "end start"]
@@ -14,6 +19,22 @@ export const HeroSection = () => {
     const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
     const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
     const scale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+
+    const handleGetStarted = () => {
+        if (isAuthenticated) {
+            navigate("/dashboard");
+        } else {
+            navigate("/register");
+        }
+    };
+
+    const handleWatchDemo = () => {
+        // Add demo video modal or scroll to features section
+        const featuresSection = document.getElementById('features');
+        if (featuresSection) {
+            featuresSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 
     return (
         <div ref={targetRef} className="relative h-screen overflow-hidden">
@@ -94,11 +115,20 @@ export const HeroSection = () => {
                         transition={{ delay: 0.5 }}
                         className="flex flex-col sm:flex-row gap-4 justify-center"
                     >
-                        <Button size="lg" className="group bg-white text-black hover:bg-gray-100">
-                            Start Free Trial
+                        <Button 
+                            size="lg" 
+                            className="group bg-white text-black hover:bg-gray-100"
+                            onClick={handleGetStarted}
+                        >
+                            {isAuthenticated ? 'Go to Dashboard' : 'Start Free Trial'}
                             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Button>
-                        <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                        <Button 
+                            size="lg" 
+                            variant="outline" 
+                            className="border-white/20 text-white hover:bg-white/10"
+                            onClick={handleWatchDemo}
+                        >
                             Watch Demo
                             <Zap className="ml-2 w-4 h-4" />
                         </Button>

@@ -1,5 +1,5 @@
 // theme.config.js
-import { THEME_IDS } from './theme.constant.js';
+import { THEME_IDS } from '../theme/theme.constant.js';
 
 export const themeProfiles = {
     [THEME_IDS.DEFAULT]: {

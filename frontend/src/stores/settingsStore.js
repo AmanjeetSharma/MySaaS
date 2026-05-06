@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
-import { THEME_IDS, THEME_MODES } from '../constants/theme.constant';
-import { applyUserTheme } from '../utils/theme.utils';
-import { saveThemeToLocalStorage, getThemeFromLocalStorage } from '../utils/themeSync.utils';
-
+import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
+import { applyUserTheme } from '../theme/theme.utils.js';
+import { saveThemeToLocalStorage, getThemeFromLocalStorage } from '../theme/themeSync.utils.js';
 export const useSettingsStore = create((set, get) => ({
     // State - Matching backend defaults
     theme: {
