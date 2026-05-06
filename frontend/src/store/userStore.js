@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
+import { useSettingsStore } from './settingsStore';
 
 export const useUserStore = create((set, get) => ({
     // State
@@ -13,7 +14,8 @@ export const useUserStore = create((set, get) => ({
 
 
 
-    // Profile Actions (existing)
+
+    // Profile Actions
     getUserProfile: async () => {
         set({ isLoading: true, error: null });
         try {
@@ -27,6 +29,12 @@ export const useUserStore = create((set, get) => ({
                 isLoading: false,
                 error: null
             });
+
+            // Sync theme with backend (if settings exist)
+            if (data.settings?.theme) {
+                const settingsStore = useSettingsStore.getState();
+                settingsStore.syncThemeWithBackend(data.settings.theme);
+            }
 
             return data;
         } catch (error) {
@@ -115,6 +123,9 @@ export const useUserStore = create((set, get) => ({
 
 
 
+
+
+
     // Session Actions
     getUserSessions: async () => {
         set({ isLoading: true, error: null });
@@ -183,6 +194,12 @@ export const useUserStore = create((set, get) => ({
             throw error;
         }
     },
+
+
+
+
+
+
 
     // Phone Actions
     addPhoneNumber: async (phone) => {
@@ -258,6 +275,12 @@ export const useUserStore = create((set, get) => ({
             throw error;
         }
     },
+
+
+
+
+
+
 
     clearError: () => set({ error: null }),
 

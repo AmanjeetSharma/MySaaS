@@ -1,17 +1,20 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
+import { THEME_IDS, THEME_MODES } from '../constants/theme.constant';
+import { applyUserTheme } from '../utils/theme.utils';
+import { saveThemeToLocalStorage, getThemeFromLocalStorage } from '../utils/themeSync.utils';
 
 export const useSettingsStore = create((set, get) => ({
     // State - Matching backend defaults
     theme: {
-        name: 'default',  // Changed from 'light' to 'default'
-        mode: 'dark',     // Changed from 'light' to 'dark' (matches backend)
-        tier: 'free'      // Added tier field
+        name: THEME_IDS.DEFAULT,
+        mode: THEME_MODES.DARK,
+        tier: 'free'
     },
-    timezone: 'Asia/Kolkata',  // Changed to match backend default
+    timezone: 'Asia/Kolkata',
     notifications: {
-        email: false,    // Changed from true to false (matches backend)
-        inApp: true      // Keep as true (matches backend)
+        email: false,
+        inApp: true
     },
     isLoading: false,
     error: null,
@@ -25,14 +28,17 @@ export const useSettingsStore = create((set, get) => ({
             const response = await http.get('/users/me');
             const { data } = response.data;
 
+            const settings = data.settings || {};
+            const themeData = {
+                name: settings.theme?.name || THEME_IDS.DEFAULT,
+                mode: settings.theme?.mode || THEME_MODES.DARK,
+                tier: settings.theme?.tier || 'free'
+            };
+
             set({
-                theme: data.settings?.theme || {
-                    name: 'default',
-                    mode: 'dark',
-                    tier: 'free'
-                },
-                timezone: data.settings?.timezone || 'Asia/Kolkata',
-                notifications: data.settings?.notifications || {
+                theme: themeData,
+                timezone: settings.timezone || 'Asia/Kolkata',
+                notifications: settings.notifications || {
                     email: false,
                     inApp: true
                 },
@@ -56,15 +62,23 @@ export const useSettingsStore = create((set, get) => ({
             });
             const { data } = response.data;
 
+            const newTheme = {
+                name: data.theme.name,
+                mode: data.theme.mode,
+                tier: get().theme.tier // Preserve tier
+            };
+
             set({
-                theme: {
-                    ...get().theme,
-                    name: data.theme.name,
-                    mode: data.theme.mode
-                },
+                theme: newTheme,
                 isUpdating: false,
                 error: null
             });
+
+            // Apply theme to DOM immediately
+            applyUserTheme(newTheme.name, newTheme.mode);
+
+            // Save to localStorage for persistence
+            saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
             return data;
         } catch (error) {
@@ -122,29 +136,73 @@ export const useSettingsStore = create((set, get) => ({
     // Helper method to get available themes (based on tier)
     getAvailableThemes: () => {
         const allThemes = [
-            { value: 'default', label: 'Default' },
-            { value: 'slate-orange', label: 'Slate Orange' },
-            { value: 'midnight-violet', label: 'Midnight Violet' },
-            { value: 'forest-amber', label: 'Forest Amber' },
-            { value: 'rose-quartz', label: 'Rose Quartz' }
+            { value: THEME_IDS.DEFAULT, label: 'Default' },
+            { value: THEME_IDS.SLATE_ORANGE, label: 'Slate Orange' },
+            { value: THEME_IDS.MIDNIGHT_VIOLET, label: 'Midnight Violet' },
+            { value: THEME_IDS.FOREST_AMBER, label: 'Forest Amber' },
+            { value: THEME_IDS.ROSE_QUARTZ, label: 'Rose Quartz' },
+            { value: THEME_IDS.GRAPHITE_LIME, label: 'Graphite Lime' }
         ];
 
         const currentTier = get().theme.tier;
         if (currentTier === 'free') {
             // Free tier only gets default theme
-            return allThemes.filter(theme => theme.value === 'default');
+            return allThemes.filter(theme => theme.value === THEME_IDS.DEFAULT);
         }
 
         // Pro tier gets all themes
         return allThemes;
     },
 
+    // Sync theme with backend (called after getUserProfile)
+    syncThemeWithBackend: (backendTheme) => {
+        const currentTheme = get().theme;
+        const localStorageTheme = getThemeFromLocalStorage();
+
+        const backendThemeData = {
+            name: backendTheme?.name || THEME_IDS.DEFAULT,
+            mode: backendTheme?.mode || THEME_MODES.DARK,
+            tier: backendTheme?.tier || 'free'
+        };
+
+        // Priority: Backend > LocalStorage > Default
+        const finalTheme = {
+            name: backendThemeData.name !== THEME_IDS.DEFAULT
+                ? backendThemeData.name
+                : localStorageTheme.name,
+            mode: backendThemeData.mode !== THEME_MODES.DARK
+                ? backendThemeData.mode
+                : localStorageTheme.mode,
+            tier: backendThemeData.tier
+        };
+
+        // Check if theme needs to be updated
+        const needsUpdate =
+            currentTheme.name !== finalTheme.name ||
+            currentTheme.mode !== finalTheme.mode;
+
+        if (needsUpdate) {
+            // Update store
+            set({ theme: finalTheme });
+
+            // Apply theme to DOM
+            applyUserTheme(finalTheme.name, finalTheme.mode);
+
+            // Save to localStorage
+            saveThemeToLocalStorage(finalTheme.name, finalTheme.mode);
+
+            console.log(`Theme synced: ${finalTheme.name} (${finalTheme.mode})`);
+        }
+
+        return finalTheme;
+    },
+
     clearError: () => set({ error: null }),
 
     resetSettings: () => set({
         theme: {
-            name: 'default',
-            mode: 'dark',
+            name: THEME_IDS.DEFAULT,
+            mode: THEME_MODES.DARK,
             tier: 'free'
         },
         timezone: 'Asia/Kolkata',

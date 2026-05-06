@@ -1,7 +1,7 @@
 // theme.config.js
 import { THEME_IDS } from './theme.constant.js';
 
-export const themeDictionary = {
+export const themeProfiles = {
     [THEME_IDS.DEFAULT]: {
         name: "Default",
         tier: "free",
