@@ -24,7 +24,7 @@ const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export function ResetPassword() {
+const ResetPassword = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -174,3 +174,5 @@ export function ResetPassword() {
     </div>
   );
 }
+
+export default ResetPassword;

@@ -16,7 +16,7 @@ const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
-export function ForgotPassword() {
+const ForgotPassword = () => {
   const { forgotPassword, isLoading, error, isSuccess, successMessage, clearState } = usePasswordStore();
   const [showError, setShowError] = useState(false);
 
@@ -118,3 +118,6 @@ export function ForgotPassword() {
     </div>
   );
 }
+
+
+export default ForgotPassword;

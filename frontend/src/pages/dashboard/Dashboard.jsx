@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function Dashboard() {
+const Dashboard = () => {
     return (
         <div className="space-y-6">
             <div>
@@ -50,3 +50,5 @@ export function Dashboard() {
         </div>
     );
 }
+
+export default Dashboard;

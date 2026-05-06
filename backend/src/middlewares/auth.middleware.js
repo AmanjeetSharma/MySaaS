@@ -19,7 +19,7 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
     try {
         decoded = jwt.verify(token, env.ACCESS_TOKEN_SECRET);
     } catch (err) {
-        console.error("Auth middleware error:", err); // debug log
+        // console.error("Auth middleware error:", err); // debug log
         throw new ApiError(401, "Invalid or expired token");
     }
 

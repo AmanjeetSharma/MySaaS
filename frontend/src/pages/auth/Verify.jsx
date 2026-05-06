@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function Verify() {
+const Verify = () => {
   const navigate = useNavigate();
   const { token } = useParams();
   const { verifyEmail, isLoading, error, clearError } = useAuthStore();
@@ -134,3 +134,5 @@ export function Verify() {
     </div>
   );
 }
+
+export default Verify;

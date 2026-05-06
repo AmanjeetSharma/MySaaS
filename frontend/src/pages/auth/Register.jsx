@@ -29,7 +29,7 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export function Register() {
+const Register = () => {
   const navigate = useNavigate();
   const { register: registerUser, googleLogin, isLoading, error, clearError } = useAuthStore();
   const [showDialog, setShowDialog] = useState(false);
@@ -119,7 +119,7 @@ export function Register() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -137,7 +137,7 @@ export function Register() {
                   <p className="text-sm text-destructive">{errors.name.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -154,7 +154,7 @@ export function Register() {
                   <p className="text-sm text-destructive">{errors.email.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -171,7 +171,7 @@ export function Register() {
                   <p className="text-sm text-destructive">{errors.password.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
@@ -188,7 +188,7 @@ export function Register() {
                   <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="avatar">Avatar (Optional)</Label>
                 <div className="flex items-center gap-4">
@@ -211,7 +211,7 @@ export function Register() {
                   )}
                 </div>
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -223,7 +223,7 @@ export function Register() {
                 )}
               </Button>
             </form>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -234,7 +234,7 @@ export function Register() {
                 </span>
               </div>
             </div>
-            
+
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
               <div className="flex justify-center">
                 <GoogleLogin
@@ -259,7 +259,7 @@ export function Register() {
           </CardFooter>
         </Card>
       </div>
-      
+
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
@@ -284,3 +284,5 @@ export function Register() {
     </>
   );
 }
+
+export default Register;

@@ -18,7 +18,7 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-export function Login() {
+const Login = () => {
   const navigate = useNavigate();
   const { login, googleLogin, isLoading, error, clearError } = useAuthStore();
   const [showError, setShowError] = useState(false);
@@ -86,7 +86,7 @@ export function Login() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -104,7 +104,7 @@ export function Login() {
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password</Label>
@@ -129,7 +129,7 @@ export function Login() {
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -141,7 +141,7 @@ export function Login() {
               )}
             </Button>
           </form>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -152,7 +152,7 @@ export function Login() {
               </span>
             </div>
           </div>
-          
+
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
             <div className="flex justify-center">
               <GoogleLogin
@@ -179,3 +179,5 @@ export function Login() {
     </div>
   );
 }
+
+export default Login;

@@ -27,18 +27,33 @@ export const navigationConfig = {
             items: []
         },
         {
-            title: "Customers",
-            icon: Users,
+            title: "Organization",
+            href: "/organization",
+            icon: Settings,
+            items: []
+        },
+        {
+            title: "Services",
+            icon: BookOpen,
             items: [
                 {
-                    title: "All Customers",
-                    href: "/customers",
+                    title: "All Services",
+                    href: "/services",
                 },
                 {
-                    title: "Customer Details",
-                    href: "/customers/details",
+                    title: "Create Service",
+                    href: "/services/create",
+                },
+                {
+                    title: "Availability / Slots",
+                    href: "/services/availability",
                 }
             ]
+        },
+        {
+            title: "Customers",
+            icon: Users,
+            items: []
         },
         {
             title: "Deals",
@@ -64,91 +79,12 @@ export const navigationConfig = {
         {
             title: "Reminders",
             icon: Bell,
-            items: [
-                {
-                    title: "Upcoming",
-                    href: "/reminders/upcoming",
-                    icon: Clock
-                },
-                {
-                    title: "Overdue",
-                    href: "/reminders/overdue",
-                    icon: AlertCircle
-                },
-                {
-                    title: "Completed",
-                    href: "/reminders/completed",
-                    icon: CheckCircle2
-                }
-            ]
-        },
-        {
-            title: "Notes / Timeline",
-            href: "/timeline",
-            icon: FileText,
             items: []
         },
         {
             title: "Bookings",
             icon: Calendar,
-            items: [
-                {
-                    title: "Upcoming Bookings",
-                    href: "/bookings/upcoming",
-                },
-                {
-                    title: "Completed Bookings",
-                    href: "/bookings/completed",
-                },
-                {
-                    title: "Booking Calendar",
-                    href: "/bookings/calendar",
-                }
-            ]
-        },
-        {
-            title: "Services",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "All Services",
-                    href: "/services",
-                },
-                {
-                    title: "Create Service",
-                    href: "/services/create",
-                },
-                {
-                    title: "Availability / Slots",
-                    href: "/services/availability",
-                }
-            ]
-        },
-        {
-            title: "Organization",
-            icon: Settings,
-            items: [
-                {
-                    title: "General Settings",
-                    href: "/organization/settings",
-                },
-                {
-                    title: "Members",
-                    href: "/organization/members",
-                },
-                {
-                    title: "Invitations",
-                    href: "/organization/invitations",
-                },
-                {
-                    title: "Integrations",
-                    href: "/organization/integrations",
-                },
-                {
-                    title: "Billing / Subscription",
-                    href: "/organization/billing",
-                }
-            ]
+            items: []
         },
         {
             title: "Analytics",
