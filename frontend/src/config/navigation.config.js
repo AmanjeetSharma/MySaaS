@@ -15,6 +15,7 @@ import {
     Clock,
     CheckCircle2,
     Star,
+    SettingsIcon,
     AlertCircle
 } from 'lucide-react';
 
@@ -38,7 +39,7 @@ export const navigationConfig = {
             items: [
                 {
                     title: "All Services",
-                    href: "/services",
+                    href: "/services/all",
                 },
                 {
                     title: "Create Service",
@@ -52,6 +53,7 @@ export const navigationConfig = {
         },
         {
             title: "Customers",
+            href: "/customers",
             icon: Users,
             items: []
         },
@@ -78,11 +80,13 @@ export const navigationConfig = {
         },
         {
             title: "Reminders",
+            href: "/reminders",
             icon: Bell,
             items: []
         },
         {
             title: "Bookings",
+            href: "/bookings",
             icon: Calendar,
             items: []
         },
@@ -105,22 +109,10 @@ export const navigationConfig = {
             ]
         },
         {
-            title: "Profile / Preferences",
-            icon: UserCircle,
-            items: [
-                {
-                    title: "Account Settings",
-                    href: "/profile/account",
-                },
-                {
-                    title: "Theme Preferences",
-                    href: "/profile/theme",
-                },
-                {
-                    title: "Notifications",
-                    href: "/profile/notifications",
-                }
-            ]
+            title: "Settings",
+            href: "/settings",
+            icon: SettingsIcon,
+            items: []
         },
         {
             title: "Help / Support",

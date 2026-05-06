@@ -101,7 +101,7 @@ const testimonials = [
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export const Home = () => {
+const Home = () => {
     const scrollY = useParallax();
     const [hoveredFeature, setHoveredFeature] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -738,3 +738,5 @@ export const Home = () => {
         </div>
     );
 }
+
+export default Home;
