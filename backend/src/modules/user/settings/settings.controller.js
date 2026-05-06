@@ -1,6 +1,11 @@
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
-import { updateThemeService, updateTimezoneService, updateNotificationsService } from "./settings.service.js";
+import {
+    updateThemeService,
+    updateTimezoneService,
+    updateNotificationsService,
+    getSettingsService
+} from "./settings.service.js";
 
 
 export const updateThemeController = asyncHandler(async (req, res) => {
@@ -38,5 +43,18 @@ export const updateNotificationsController = asyncHandler(async (req, res) => {
             200,
             data,
             "Notification preferences updated successfully."
+        ))
+});
+
+
+export const getSettingsController = asyncHandler(async (req, res) => {
+    const data = await getSettingsService(req.user._id);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "User settings retrieved successfully."
         ))
 });

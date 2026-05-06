@@ -1,13 +1,13 @@
 import { ApiError } from "../../../utils/ApiError.js";
 import { themeValidator, timezoneValidator, notificationValidator } from "./settings.validator.js";
 import { getUserById, updateUserSettingsField } from "../user.repository.js";
+import { THEME_IDS } from "../settings/theme.constant.js";
 
 
 
 
 
-
-// Helper function to update user settings
+// helper func
 const updateSettings = async (userId, updateObj) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized access");
@@ -35,6 +35,10 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
     const user = await getUserById(userId);
     if (user.settings.theme.name === themeName && user.settings.theme.mode === themeMode) {
         throw new ApiError(400, "You are already using this theme");
+    }
+
+    if (user.settings.theme.tier === "free" && themeName !== THEME_IDS.DEFAULT) {
+        throw new ApiError(403, "Upgrade to pro to unlock this theme");
     }
 
     const settings = await updateSettings(userId, {
@@ -88,4 +92,26 @@ export const updateNotificationsService = async (userId, notifications) => {
     return {
         notifications: settings.notifications
     };
+};
+
+
+
+
+
+
+
+
+export const getSettingsService = async (userId) => {
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const user = await getUserById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
+    const settings = user.settings || {
+        theme: { name: "default", mode: "dark", tier: "free" },
+        timezone: "Asia/Kolkata",
+        notifications: { email: false, inApp: true }
+    };
+    const themesAvailable = settings.theme.tier === "free" ? [THEME_IDS.DEFAULT] : Object.values(THEME_IDS);
+    return { settings, themesAvailable };
 };

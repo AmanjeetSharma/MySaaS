@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-
+import { THEME_IDS } from './settings/theme.constant.js';
 
 const sessionSchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
@@ -15,13 +15,18 @@ const settingsSchema = new mongoose.Schema({
     theme: {
         name: {
             type: String,
-            enum: ["default", "modern", "minimal", "darkPro"],
-            default: "default"
+            enum: Object.values(THEME_IDS),
+            default: THEME_IDS.DEFAULT
         },
         mode: {
             type: String,
             enum: ["light", "dark"],
             default: "dark"
+        },
+        tier: {
+            type: String,
+            enum: ["free", "pro"],
+            default: "free"
         }
     },
     timezone: { type: String, default: "Asia/Kolkata" },

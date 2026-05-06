@@ -1,7 +1,9 @@
+import { THEME_IDS } from "./theme.constant.js";
+
 export const themeValidator = (theme) => {
     const errors = [];
 
-    const allowedNames = ["default", "modern", "minimal", "darkPro"];
+    const allowedNames = Object.values(THEME_IDS);
     const allowedModes = ["light", "dark"];
 
     if (!theme || typeof theme !== "object") {
@@ -15,11 +17,7 @@ export const themeValidator = (theme) => {
     if (theme.mode && !allowedModes.includes(theme.mode)) {
         errors.push("Invalid theme mode");
     }
-
-    if (!theme.name && !theme.mode) {
-        errors.push("At least one of theme.name or theme.mode is required");
-    }
-
+    
     return {
         valid: errors.length === 0,
         errors

@@ -1,3 +1,10 @@
+# Full Stack (Node + Vite + React)
+
+# Dependencies
+node_modules/
+jspm_packages/
+web_modules/
+
 # Logs
 logs
 *.log
@@ -6,15 +13,54 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Runtime files
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Editor directories and files
+# Coverage
+coverage/
+*.lcov
+.nyc_output
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.vuepress/dist
+
+# Cache
+.cache
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.eslintcache
+.npm
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment files (important)
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Archives
+*.tgz
+
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
+.vscode-test
 .idea
 .DS_Store
 *.suo
@@ -22,3 +68,31 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+Thumbs.db
+
+# Package managers
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn-integrity
+.pnp.*
+
+# Misc
+.grunt
+.lock-wscript
+lib-cov
+.fusebox/
+.serverless/
+.dynamodb/
+.tern-port
+
+# Custom
+example/
+
+# Optional
+Prompt.txt

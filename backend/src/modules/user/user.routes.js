@@ -30,7 +30,8 @@ import {
 import {
     updateThemeController,
     updateTimezoneController,
-    updateNotificationsController
+    updateNotificationsController,
+    getSettingsController
 } from "./settings/settings.controller.js";
 
 const router = express.Router();
@@ -64,6 +65,7 @@ router.delete("/phone", verifyToken, unlinkPhoneController);
 router.patch("/settings/theme", verifyToken, updateThemeController);
 router.patch("/settings/timezone", verifyToken, updateTimezoneController);
 router.patch("/settings/notifications", verifyToken, updateNotificationsController);
+router.get("/settings", verifyToken, getSettingsController);
 
 
 export default router;
