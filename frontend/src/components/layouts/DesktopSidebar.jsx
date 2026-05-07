@@ -119,12 +119,12 @@ export function DesktopSidebar() {
                                                         {item.icon && <item.icon className="h-5 w-5" />}
                                                         <span className={cn(
                                                             "font-medium text-[15px]",
-                                                            isCollapsed && "hidden"  // ← Hide text when collapsed
+                                                            isCollapsed && "hidden"
                                                         )}>
                                                             {item.title}
                                                         </span>
                                                     </div>
-                                                    {!isCollapsed && (  // ← Only show chevron when expanded
+                                                    {!isCollapsed && (
                                                         <ChevronDown className={cn(
                                                             "h-4 w-4 transition-transform duration-200",
                                                             openMenus[item.title] && "rotate-180"
@@ -132,7 +132,6 @@ export function DesktopSidebar() {
                                                     )}
                                                 </SidebarMenuButton>
                                             </CollapsibleTrigger>
-                                            {/* ← Only render nested content when NOT collapsed */}
                                             {!isCollapsed && (
                                                 <CollapsibleContent>
                                                     <SidebarMenu className="ml-6 mt-1 border-l border-border/50 pl-3 space-y-1">
@@ -172,7 +171,7 @@ export function DesktopSidebar() {
                                                     {item.icon && <item.icon className="h-5 w-5" />}
                                                     <span className={cn(
                                                         "font-medium text-[15px]",
-                                                        isCollapsed && "hidden"  // ← Hide text when collapsed
+                                                        isCollapsed && "hidden"
                                                     )}>
                                                         {item.title}
                                                     </span>
@@ -192,14 +191,14 @@ export function DesktopSidebar() {
                     variant="ghost"
                     className={cn(
                         "w-full justify-start gap-3 h-11 transition-all duration-200 text-muted-foreground hover:text-red-500 hover:bg-red-50/10 dark:hover:bg-red-950/20",
-                        isCollapsed && "justify-center px-0"  // ← Center icon when collapsed
+                        isCollapsed && "justify-center px-0"
                     )}
                     onClick={() => logout()}
                 >
                     <LogOut className="h-5 w-5" />
                     <span className={cn(
                         "font-medium text-[15px]",
-                        isCollapsed && "hidden"  // ← Hide text when collapsed
+                        isCollapsed && "hidden"
                     )}>
                         Logout
                     </span>

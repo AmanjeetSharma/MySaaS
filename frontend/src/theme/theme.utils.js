@@ -28,11 +28,4 @@ export const applyUserTheme = (backendThemeId, backendMode) => {
     Object.entries(cssVariables).forEach(([cssVar, hexValue]) => {
         root.style.setProperty(cssVar, hexValue);
     });
-
-    // Optional: Add a class to the body for global targeting (e.g., standard Tailwind dark mode)
-    // if (validMode === THEME_MODES.DARK) {
-    //     root.classList.add('dark');
-    // } else {
-    //     root.classList.remove('dark');
-    // }
 };

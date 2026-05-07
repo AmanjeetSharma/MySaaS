@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
 import { useSettingsStore } from './settingsStore';
+import { syncThemeWithBackend } from '../theme/themeSync.utils.js';
 
 export const useUserStore = create((set, get) => ({
     // State
@@ -33,8 +34,15 @@ export const useUserStore = create((set, get) => ({
 
             // Sync theme with backend (if settings exist)
             if (data.settings?.theme) {
-                const settingsStore = useSettingsStore.getState();
-                settingsStore.syncThemeWithBackend(data.settings.theme);
+                const userTheme = data.settings.theme;
+                const wasUpdated = syncThemeWithBackend(userTheme.name, userTheme.mode);
+
+                if (wasUpdated) {
+                    console.log(`Theme synced with backend: ${userTheme.name} (${userTheme.mode})`);
+                    // Refresh settings store to get updated theme info
+                    const settingsStore = useSettingsStore.getState();
+                    await settingsStore.fetchSettings();
+                }
             }
             return data;
         } catch (error) {

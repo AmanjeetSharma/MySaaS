@@ -2,11 +2,10 @@
 
 export const THEME_IDS = {
     DEFAULT: "default",
-    SLATE_ORANGE: "slate-orange",
+    OCEAN_TEAL: "ocean-teal",
     MIDNIGHT_VIOLET: "midnight-violet",
     FOREST_AMBER: "forest-amber",
     ROSE_QUARTZ: "rose-quartz",
-    GRAPHITE_LIME: "graphite-lime"
 };
 
 export const THEME_MODES = {

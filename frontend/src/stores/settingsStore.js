@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { http } from '../api/httpClient';
 import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
 import { applyUserTheme } from '../theme/theme.utils.js';
-import { saveThemeToLocalStorage, getThemeFromLocalStorage } from '../theme/themeSync.utils.js';
+import { saveThemeToLocalStorage, getThemeFromLocalStorage, syncThemeWithBackend } from '../theme/themeSync.utils.js';
+
 export const useSettingsStore = create((set, get) => ({
-    // State - Matching backend defaults
     theme: {
         name: THEME_IDS.DEFAULT,
         mode: THEME_MODES.DARK,
@@ -19,14 +19,11 @@ export const useSettingsStore = create((set, get) => ({
     error: null,
     isUpdating: false,
 
-    // Actions
     fetchSettings: async () => {
         set({ isLoading: true, error: null });
         try {
-            // Settings are included in user profile response
             const response = await http.get('/users/me');
             const { data } = response.data;
-
             const settings = data.settings || {};
             const themeData = {
                 name: settings.theme?.name || THEME_IDS.DEFAULT,
@@ -64,7 +61,7 @@ export const useSettingsStore = create((set, get) => ({
             const newTheme = {
                 name: data.theme.name,
                 mode: data.theme.mode,
-                tier: get().theme.tier // Preserve tier
+                tier: get().theme.tier
             };
 
             set({
@@ -73,10 +70,7 @@ export const useSettingsStore = create((set, get) => ({
                 error: null
             });
 
-            // Apply theme to DOM immediately
             applyUserTheme(newTheme.name, newTheme.mode);
-
-            // Save to localStorage for persistence
             saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
             return data;
@@ -151,49 +145,6 @@ export const useSettingsStore = create((set, get) => ({
 
         // Pro tier gets all themes
         return allThemes;
-    },
-
-    // Sync theme with backend (called after getUserProfile)
-    syncThemeWithBackend: (backendTheme) => {
-        const currentTheme = get().theme;
-        const localStorageTheme = getThemeFromLocalStorage();
-
-        const backendThemeData = {
-            name: backendTheme?.name || THEME_IDS.DEFAULT,
-            mode: backendTheme?.mode || THEME_MODES.DARK,
-            tier: backendTheme?.tier || 'free'
-        };
-
-        // Priority: Backend > LocalStorage > Default
-        const finalTheme = {
-            name: backendThemeData.name !== THEME_IDS.DEFAULT
-                ? backendThemeData.name
-                : localStorageTheme.name,
-            mode: backendThemeData.mode !== THEME_MODES.DARK
-                ? backendThemeData.mode
-                : localStorageTheme.mode,
-            tier: backendThemeData.tier
-        };
-
-        // Check if theme needs to be updated
-        const needsUpdate =
-            currentTheme.name !== finalTheme.name ||
-            currentTheme.mode !== finalTheme.mode;
-
-        if (needsUpdate) {
-            // Update store
-            set({ theme: finalTheme });
-
-            // Apply theme to DOM
-            applyUserTheme(finalTheme.name, finalTheme.mode);
-
-            // Save to localStorage
-            saveThemeToLocalStorage(finalTheme.name, finalTheme.mode);
-
-            console.log(`Theme synced: ${finalTheme.name} (${finalTheme.mode})`);
-        }
-
-        return finalTheme;
     },
 
     clearError: () => set({ error: null }),
