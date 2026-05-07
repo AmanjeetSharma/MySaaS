@@ -286,6 +286,11 @@ export const loginService = async (body) => {
         throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support for assistance.`);
     }
 
+    // Check if user registered via Google
+    if (user.providers?.google?.enabled) {
+        throw new ApiError(403, "This email is registered via Google. Please login with Google");
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
         throw new ApiError(401, "Invalid email or password");
