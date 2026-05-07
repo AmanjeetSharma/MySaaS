@@ -71,10 +71,6 @@ const Login = () => {
     try {
       await login(data);
 
-      toast.success(
-        'Login successful! Redirecting to dashboard...'
-      );
-
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       // handled by store
@@ -87,15 +83,8 @@ const Login = () => {
     try {
       await googleLogin(credentialResponse.credential);
 
-      toast.success(
-        'Google login successful! Redirecting to dashboard...'
-      );
-
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
-      toast.error(
-        'Google login failed. Please try again.'
-      );
     }
   };
 
@@ -257,7 +246,6 @@ const Login = () => {
                 onError={handleGoogleError}
                 theme="filled_blue"
                 size="large"
-                width="100%"
                 text="continue_with"
                 shape="rectangular"
               />

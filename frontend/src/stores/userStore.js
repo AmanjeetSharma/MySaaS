@@ -21,6 +21,7 @@ export const useUserStore = create((set, get) => ({
         try {
             const response = await http.get('/users/me');
             const { data } = response.data;
+            console.log('Fetched user profile:', data);// debug log
 
             set({
                 userProfile: data,
@@ -35,7 +36,6 @@ export const useUserStore = create((set, get) => ({
                 const settingsStore = useSettingsStore.getState();
                 settingsStore.syncThemeWithBackend(data.settings.theme);
             }
-
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to fetch user profile';
