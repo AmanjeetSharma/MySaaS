@@ -77,7 +77,6 @@ export function OrganizationSwitcher() {
       const matchedOrg = organizations.find(org => org._id === userActiveOrgId);
       if (matchedOrg) {
         setCurrentOrganization(matchedOrg);
-        console.log(`Active organization set: ${matchedOrg.name}`);
       }
     }
     
@@ -88,7 +87,6 @@ export function OrganizationSwitcher() {
       if (!currentOrganization) {
         // Set the first organization as current
         setCurrentOrganization(organizations[0]);
-        console.log(`No active organization found, setting default: ${organizations[0].name}`);
       }
     }
   }, [

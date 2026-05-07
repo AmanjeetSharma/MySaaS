@@ -29,12 +29,6 @@ const Home = () => {
           {/* Desktop Navigation */}
           <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
             <a
-              href="#contact"
-              className="px-5 py-2 text-[13px] font-medium text-slate-400 hover:text-white transition-all rounded-full hover:bg-white/5"
-            >
-              Contact
-            </a>
-            <a
               href="/login"
               className="px-5 py-2 text-[13px] font-medium text-slate-400 hover:text-white transition-all rounded-full hover:bg-white/5"
             >
@@ -67,10 +61,7 @@ const Home = () => {
 
                 <nav className="flex flex-col gap-6 items-center">
                   <SheetClose asChild>
-                    <a href="#contact" className="text-xl font-medium text-slate-500 hover:text-white transition-colors">Contact</a>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <a href="/login" className="text-xl font-medium text-slate-500 hover:text-white transition-colors">Sign In</a>
+                    <a href="/login" className="text-xl font-medium text-white hover:text-white transition-colors">Sign In</a>
                   </SheetClose>
 
                   <div className="pt-6 w-full px-4">
@@ -79,7 +70,6 @@ const Home = () => {
                         className="w-full rounded-2xl bg-white text-black py-7 text-lg font-bold hover:bg-slate-200 transition-all shadow-xl shadow-white/5"
                         onClick={() => navigate("/register")}
                       >
-                        <Sparkles className="w-5 h-5 mr-2 text-indigo-600" />
                         Get Started
                       </Button>
                     </SheetClose>
