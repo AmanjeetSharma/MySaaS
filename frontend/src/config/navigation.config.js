@@ -109,12 +109,6 @@ export const navigationConfig = {
             ]
         },
         {
-            title: "Settings",
-            href: "/settings",
-            icon: SettingsIcon,
-            items: []
-        },
-        {
             title: "Help / Support",
             href: "/support",
             icon: LifeBuoy,

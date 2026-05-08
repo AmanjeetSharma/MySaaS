@@ -45,8 +45,8 @@ import Bookings from '@/pages/bookings/Bookings';
 import Reminder from '@/pages/reminder/Reminder';
 
 // Settings imports
-import Settings from '@/pages/settings/Settings';
-import Profile from '@/pages/settings/Profile';
+import SystemSettings from '@/pages/settings/SystemSettings';
+import ProfileSettings from '@/pages/settings/ProfileSettings';
 
 // Contact imports
 import Contact from '@/pages/public/Contact';
@@ -100,8 +100,8 @@ export const AppRoutes = () => {
                     <Route path="/reminders" element={<Reminder />} />
 
                     {/* Settings Route */}
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/settings/profile" element={<Profile />} />
+                    <Route path="/settings/system" element={<SystemSettings />} />
+                    <Route path="/settings/profile" element={<ProfileSettings />} />
 
                     {/* Contact Route */}
                     <Route path="/support" element={<Contact />} />

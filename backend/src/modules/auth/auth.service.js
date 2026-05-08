@@ -154,7 +154,7 @@ export const registerService = async (body, avatarFile) => {
         await sendEmail(normalizedEmail, "Kindly Verify Your Email Address - Complete Your Registration", emailHTML, true);
         console.log(`Verification email sent to ${normalizedEmail} | verificationLink: ${verificationLink}`);
     } else {
-        console.log(`Email service is disabled. Skipping verification email for ${normalizedEmail}`);
+        console.log(`Email service is disabled. Skipping verification email for ${normalizedEmail} | verificationLink: ${verificationLink}`);
     }
 
     return {

@@ -1,21 +1,12 @@
 import "./App.css";
 import { BrowserRouter } from 'react-router-dom';
-import { AppRoutes } from './routes/AppRoutes';
 import { Toaster } from '@/components/ui/sonner';
-import { useEffect } from 'react';
-import { initializeThemeFromLocalStorage } from './theme/themeSync.utils';
+import { AppContent } from './components/app/AppContent';
 
 function App() {
-
-  useEffect(() => {
-    // Initialize theme from localStorage before app loads
-    initializeThemeFromLocalStorage();
-  }, []);
-
-
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppContent />
       <Toaster position="top-right" />
     </BrowserRouter>
   );

@@ -128,14 +128,18 @@ export const useSettingsStore = create((set, get) => ({
 
     // Helper method to get available themes (based on tier)
     getAvailableThemes: () => {
-        const allThemes = [
-            { value: THEME_IDS.DEFAULT, label: 'Default' },
-            { value: THEME_IDS.SLATE_ORANGE, label: 'Slate Orange' },
-            { value: THEME_IDS.MIDNIGHT_VIOLET, label: 'Midnight Violet' },
-            { value: THEME_IDS.FOREST_AMBER, label: 'Forest Amber' },
-            { value: THEME_IDS.ROSE_QUARTZ, label: 'Rose Quartz' },
-            { value: THEME_IDS.GRAPHITE_LIME, label: 'Graphite Lime' }
-        ];
+        // const allThemes = [
+        //     { value: THEME_IDS.DEFAULT, label: 'Default' },
+        //     { value: THEME_IDS.OCEAN_TEAL, label: 'Ocean Teal' },
+        //     { value: THEME_IDS.MIDNIGHT_VIOLET, label: 'Midnight Violet' },
+        //     { value: THEME_IDS.FOREST_AMBER, label: 'Forest Amber' },
+        //     { value: THEME_IDS.ROSE_QUARTZ, label: 'Rose Quartz' }
+        // ];
+
+        const allThemes = Object.values(THEME_IDS).map(themeId => ({
+            value: themeId,
+            label: themeId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        }));
 
         const currentTier = get().theme.tier;
         if (currentTier === 'free') {
