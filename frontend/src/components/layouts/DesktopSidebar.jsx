@@ -17,13 +17,12 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, LogOut } from 'lucide-react';
 import { navigationConfig } from '@/config/navigation.config';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ChevronDown, PanelRightClose, PanelLeftClose } from 'lucide-react';
 
 export function DesktopSidebar() {
     const location = useLocation();
@@ -82,10 +81,19 @@ export function DesktopSidebar() {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <SidebarTrigger className={cn(
-                                "hover:bg-accent transition-all duration-200",
-                                !isCollapsed && "ml-auto"
-                            )} />
+                            <button
+                                onClick={toggleSidebar}
+                                className={cn(
+                                    "flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent transition-all duration-200",
+                                    !isCollapsed && "ml-auto"
+                                )}
+                            >
+                                {isCollapsed ? (
+                                    <PanelRightClose className="h-5 w-5" />
+                                ) : (
+                                    <PanelLeftClose className="h-5 w-5" />
+                                )}
+                            </button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
                             <span>{isCollapsed ? "Expand" : "Collapse"}</span>
@@ -187,22 +195,12 @@ export function DesktopSidebar() {
             </SidebarContent>
 
             <SidebarFooter className="border-t border-border/50 p-3">
-                <Button
-                    variant="ghost"
-                    className={cn(
-                        "w-full justify-start gap-3 h-11 transition-all duration-200 text-muted-foreground hover:text-red-500 hover:bg-red-50/10 dark:hover:bg-red-950/20",
-                        isCollapsed && "justify-center px-0"
-                    )}
-                    onClick={() => logout()}
-                >
-                    <LogOut className="h-5 w-5" />
-                    <span className={cn(
-                        "font-medium text-[15px]",
-                        isCollapsed && "hidden"
-                    )}>
-                        Logout
-                    </span>
-                </Button>
+                <div className={cn(
+                    "text-xs text-muted-foreground",
+                    isCollapsed && "hidden"
+                )}>
+                    <p>© 2026 miniCRM</p>
+                </div>
             </SidebarFooter>
         </SidebarContainer>
     );

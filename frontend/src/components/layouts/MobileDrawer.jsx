@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
 export function MobileDrawer({ children }) {
     const [open, setOpen] = useState(false);
     const [openMenus, setOpenMenus] = useState({});
+
     const location = useLocation();
     const { logout } = useAuthStore();
 
@@ -29,21 +31,23 @@ export function MobileDrawer({ children }) {
         setOpen(false);
     }, [location.pathname]);
 
-    const toggleMenu = (title) => {
-        setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
-    };
-
     const isActive = (href) => {
         if (!href) return false;
+
         if (href === '/dashboard') {
             return location.pathname === href;
         }
+
         return location.pathname.startsWith(href);
     };
 
     const isItemActive = (item) => {
         if (item.href) return isActive(item.href);
-        if (item.items) return item.items.some(subItem => isActive(subItem.href));
+
+        if (item.items) {
+            return item.items.some((subItem) => isActive(subItem.href));
+        }
+
         return false;
     };
 
@@ -52,10 +56,17 @@ export function MobileDrawer({ children }) {
             <SheetTrigger asChild>
                 {children}
             </SheetTrigger>
-            <SheetContent side="left" className="w-[85%] sm:w-87.5 p-0 [&>button]:hidden">
+
+            <SheetContent
+                side="left"
+                className="w-[85%] sm:w-[350px] p-0 [&>button]:hidden"
+            >
                 <SheetHeader className="border-b p-4">
                     <div className="flex items-center justify-between">
-                        <SheetTitle className="text-xl font-bold text-center">MySaaS</SheetTitle>
+                        <SheetTitle className="text-xl font-bold">
+                            MySaaS
+                        </SheetTitle>
+
                         <Button
                             variant="ghost"
                             size="icon"
@@ -65,56 +76,93 @@ export function MobileDrawer({ children }) {
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
+
+                    <SheetDescription className="sr-only">
+                        Mobile navigation menu
+                    </SheetDescription>
                 </SheetHeader>
 
-                <div className="flex flex-col h-full">
-                    {/* Navigation Menu */}
+                <div className="flex h-full flex-col">
+                    {/* Navigation */}
                     <div className="flex-1 overflow-y-auto py-4">
-                        <div className="px-3 space-y-1">
+                        <div className="space-y-1 px-3">
                             {navigationConfig.mainNav.map((item) => (
                                 <div key={item.title} className="space-y-1">
                                     {item.items && item.items.length > 0 ? (
                                         <Collapsible
-                                            open={openMenus[item.title]}
-                                            onOpenChange={() => toggleMenu(item.title)}
+                                            open={openMenus[item.title] ?? false}
+                                            onOpenChange={(isOpen) =>
+                                                setOpenMenus((prev) => ({
+                                                    ...prev,
+                                                    [item.title]: isOpen,
+                                                }))
+                                            }
                                         >
                                             <CollapsibleTrigger asChild>
                                                 <Button
                                                     variant="ghost"
                                                     className={cn(
-                                                        "w-full justify-between px-3 py-2 h-auto",
-                                                        isItemActive(item) && "bg-accent text-accent-foreground"
+                                                        'w-full justify-between px-3 py-2 h-auto',
+                                                        isItemActive(item) &&
+                                                            'bg-accent text-accent-foreground'
                                                     )}
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        {item.icon && <item.icon className="h-5 w-5" />}
-                                                        <span className="font-medium">{item.title}</span>
+                                                        {item.icon && (
+                                                            <item.icon className="h-5 w-5" />
+                                                        )}
+
+                                                        <span className="font-medium">
+                                                            {item.title}
+                                                        </span>
                                                     </div>
-                                                    <ChevronDown className={cn(
-                                                        "h-4 w-4 transition-transform",
-                                                        openMenus[item.title] && "rotate-180"
-                                                    )} />
+
+                                                    <ChevronDown
+                                                        className={cn(
+                                                            'h-4 w-4 transition-transform',
+                                                            openMenus[
+                                                                item.title
+                                                            ] && 'rotate-180'
+                                                        )}
+                                                    />
                                                 </Button>
                                             </CollapsibleTrigger>
+
                                             <CollapsibleContent>
-                                                <div className="ml-6 pl-3 border-l border-border space-y-1 mt-1">
-                                                    {item.items.map((subItem) => (
-                                                        <NavLink
-                                                            key={subItem.title}
-                                                            to={subItem.href}
-                                                            className={({ isActive: active }) =>
-                                                                cn(
-                                                                    "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
-                                                                    active
-                                                                        ? "bg-accent/50 text-accent-foreground font-medium"
-                                                                        : "hover:bg-accent/50 text-muted-foreground"
-                                                                )
-                                                            }
-                                                        >
-                                                            {subItem.icon && <subItem.icon className="h-4 w-4" />}
-                                                            <span>{subItem.title}</span>
-                                                        </NavLink>
-                                                    ))}
+                                                <div className="ml-6 mt-1 space-y-1 border-l border-border pl-3">
+                                                    {item.items.map(
+                                                        (subItem) => (
+                                                            <NavLink
+                                                                key={
+                                                                    subItem.title
+                                                                }
+                                                                to={
+                                                                    subItem.href
+                                                                }
+                                                                className={({
+                                                                    isActive:
+                                                                        active,
+                                                                }) =>
+                                                                    cn(
+                                                                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                                                                        active
+                                                                            ? 'bg-accent/50 text-accent-foreground font-medium'
+                                                                            : 'text-muted-foreground hover:bg-accent/50'
+                                                                    )
+                                                                }
+                                                            >
+                                                                {subItem.icon && (
+                                                                    <subItem.icon className="h-4 w-4" />
+                                                                )}
+
+                                                                <span>
+                                                                    {
+                                                                        subItem.title
+                                                                    }
+                                                                </span>
+                                                            </NavLink>
+                                                        )
+                                                    )}
                                                 </div>
                                             </CollapsibleContent>
                                         </Collapsible>
@@ -123,15 +171,20 @@ export function MobileDrawer({ children }) {
                                             to={item.href}
                                             className={({ isActive: active }) =>
                                                 cn(
-                                                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                                                    'flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
                                                     active
-                                                        ? "bg-accent text-accent-foreground font-medium"
-                                                        : "hover:bg-accent/50 text-foreground"
+                                                        ? 'bg-accent text-accent-foreground font-medium'
+                                                        : 'text-foreground hover:bg-accent/50'
                                                 )
                                             }
                                         >
-                                            {item.icon && <item.icon className="h-5 w-5" />}
-                                            <span className="font-medium">{item.title}</span>
+                                            {item.icon && (
+                                                <item.icon className="h-5 w-5" />
+                                            )}
+
+                                            <span className="font-medium">
+                                                {item.title}
+                                            </span>
                                         </NavLink>
                                     )}
                                 </div>
@@ -139,15 +192,18 @@ export function MobileDrawer({ children }) {
                         </div>
                     </div>
 
-                    {/* Footer with Logout */}
+                    {/* Footer */}
                     <div className="border-t p-4">
                         <Button
                             variant="ghost"
-                            className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50/10 dark:hover:bg-red-950/20"
-                            onClick={() => logout()}
+                            className="w-full justify-start gap-3 text-red-500 hover:bg-red-50/10 hover:text-red-600 dark:hover:bg-red-950/20"
+                            onClick={logout}
                         >
                             <LogOut className="h-5 w-5" />
-                            <span className="font-medium">Logout</span>
+
+                            <span className="font-medium">
+                                Logout
+                            </span>
                         </Button>
                     </div>
                 </div>

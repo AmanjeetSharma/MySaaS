@@ -28,6 +28,7 @@ export const useUserStore = create((set, get) => ({
                 userProfile: data,
                 phoneNumber: data.phone?.number || null,
                 isPhoneVerified: data.phone?.isVerified || false,
+                // sessions: data.sessions || [], // no need here, alreay have getUserSessions
                 isLoading: false,
                 error: null
             });

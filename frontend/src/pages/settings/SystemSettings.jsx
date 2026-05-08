@@ -76,7 +76,11 @@ const SystemSettings = () => {
         setIsThemeUpdating(true);
         try {
             await updateTheme(theme.name, newMode);
-            toast.success(`Switched to ${newMode} mode`);
+            toast.success(`Switched to ${newMode} mode`,{
+                icon: <Palette className="h-4 w-4 text-primary" />,
+                duration: 1500,
+                position: 'top-center'
+            });
         } catch (error) {
             setLocalThemeMode(theme.mode);
             toast.error(error.message || 'Failed to switch theme mode');
