@@ -5,7 +5,6 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../../../integrations/
 import { cleanupAvatar } from "../../auth/auth.helper.js";
 
 
-
 export const getUserService = async (userId) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized access");
@@ -188,22 +187,52 @@ export const deleteUserAvatarService = async (userId) => {
 
 
 
-
 export const deleteUserService = async (userId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
+    if (!userId) { throw new ApiError(401, "Unauthorized access"); }
 
     const user = await getUserById(userId);
-    if (!user) {
-        throw new ApiError(404, "User not found");
+    if (!user) { throw new ApiError(404, "User not found"); }
+
+    if (user.avatar?.publicId) {
+        try {
+            await deleteFromCloudinary(user.avatar.publicId);
+        } catch (err) {
+            console.error("Cloudinary delete failed:", err.message);
+        }
+    }
+
+    // invalidate all sessions
+    // user.sessions = user.sessions.map((session) => ({
+    //     ...session,
+    //     isActive: false,
+    //     refreshToken: null,
+    // }));
+
+    user.sessions = [];
+
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
+    if (user.phone) {
+        user.phone.otpHash = null;
+        user.phone.otpExpiry = null;
+        user.phone.pendingNumber = null;
+    }
+
+    if (user.providers?.google) {
+        user.providers.google.enabled = false;
+        user.providers.google.googleId = null;
     }
 
     user.accountStatus = "deleted";
+
     user.avatar = {
         url: null,
         publicId: null,
     };
+
+    // Appended deleted_ prefix with user ID to ensure uniqueness
+    // and to prevent conflicts if user tries to register again with same email after deletion
+    user.email = `deleted_${user._id}_${user.email}`;
 
     try {
         await user.save();
@@ -211,7 +240,7 @@ export const deleteUserService = async (userId) => {
         throw new ApiError(500, "Failed to delete user account");
     }
 
-    console.log(`User account deleted | email: ${user.email}`);
+    console.log(`User account deleted | userId: ${user._id} | email: ${user.email}`);
 
     return {
         _id: user._id,

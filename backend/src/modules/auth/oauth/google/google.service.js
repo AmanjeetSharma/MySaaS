@@ -71,8 +71,9 @@ export const googleLoginService = async (token, device = "unknown device") => {
         isNewUser = true;
     }
 
+    //deleted users email is modified to deleted_userId_email, to prevent conflicts while registering again with same email
     if (user.accountStatus !== "active") {
-        throw new ApiError(403, "Your account is not active. Please contact support for assistance.");
+        throw new ApiError(403, `Your account has been ${user.accountStatus}. Please contact support for assistance.`);
     }
 
     if (!user.providers?.google?.enabled) {

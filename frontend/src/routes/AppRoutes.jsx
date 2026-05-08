@@ -48,7 +48,7 @@ import Reminder from '@/pages/reminder/Reminder';
 import Profile from '@/pages/settings/account/Profile';
 import Appearance from '@/pages/settings/system/Appearance';
 import Preferences from '@/pages/settings/system/Preferences';
-import Security from '@/pages/settings/account/Sessions';
+import Security from '@/pages/settings/account/Security';
 import ChangePassword from '@/pages/settings/account/ChangePassword';
 
 
@@ -107,9 +107,9 @@ export const AppRoutes = () => {
                     <Route path="/settings/account/profile" element={<Profile />} />
                     <Route path="/settings/system/appearance" element={<Appearance />} />
                     <Route path="/settings/system/preferences" element={<Preferences />} />
-                    <Route path="/settings/account/sessions" element={<Security />} />
+                    <Route path="/settings/account/security" element={<Security />} />
                     <Route path="/settings/account/change-password" element={<ChangePassword />} />
-                    
+
                     {/* Contact Route */}
                     <Route path="/support" element={<Contact />} />
                 </Route>

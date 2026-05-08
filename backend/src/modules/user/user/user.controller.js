@@ -7,6 +7,8 @@ import {
     deleteUserAvatarService,
     deleteUserService
 } from "./user.service.js";
+import { getCookieOptions } from "../../../config/cookieOptions.js";
+
 
 
 export const getUserController = asyncHandler(async (req, res) => {
@@ -66,6 +68,8 @@ export const deleteUserController = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
+        .clearCookie("accessToken", getCookieOptions("access"))
+        .clearCookie("refreshToken", getCookieOptions("refresh"))
         .json(new ApiResponse(
             200,
             data,

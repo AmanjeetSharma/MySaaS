@@ -15,6 +15,7 @@ const removeLocalFile = (filePath, reason = "unknown") => {
 
 export const cleanupAvatar = (file, reason = "avatar upload failure") => {
     if (file?.path) removeLocalFile(file.path, reason);
+    console.log(`Avatar cleanup done [onServer] | file: ${file?.path} | reason: ${reason}`);
 };
 
 

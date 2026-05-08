@@ -72,6 +72,12 @@ export const registerService = async (body, avatarFile) => {
 
     const existingUser = await findUserByEmail(normalizedEmail);
 
+    //deleted users email is modified to deleted_userId_email, to prevent conflicts while registering again with same email
+    if (existingUser?.accountStatus !== "active") {
+        cleanUp(`Account Status: ${existingUser.accountStatus}`);
+        throw new ApiError(403, `Your account has been ${existingUser.accountStatus}. Please contact support for assistance.`);
+    }
+
     if (existingUser) {
         if (avatarFile) {
             cleanUp("User already exists");
@@ -282,13 +288,13 @@ export const loginService = async (body) => {
         throw new ApiError(401, "User doesn't exist");
     }
 
-    if (user.accountStatus !== "active") {
-        throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support for assistance.`);
-    }
-
     // Check if user registered via Google
     if (user.providers?.google?.enabled) {
         throw new ApiError(403, "This email is registered via Google. Please login with Google");
+    }
+
+    if (user.accountStatus !== "active") {
+        throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support for assistance.`);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

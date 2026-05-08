@@ -8,7 +8,7 @@ import {
 
 
 export const getUserSessionsController = asyncHandler(async (req, res) => {
-    const data = await getUserSessionsService(req.user._id);
+    const data = await getUserSessionsService(req.user._id, req.user.sessionId);
 
     return res
         .status(200)

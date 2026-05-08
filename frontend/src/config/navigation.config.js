@@ -13,6 +13,7 @@ import {
     TrendingUp,
     TrendingDown,
     Clock,
+    Shield,
     CheckCircle2,
     Star,
     SettingsIcon,
@@ -131,9 +132,9 @@ export const navigationConfig = {
                     icon: Sliders
                 },
                 {
-                    title: "Manage Sessions",
-                    href: "/settings/account/sessions",
-                    icon: AlertCircle
+                    title: "Security",
+                    href: "/settings/account/security",
+                    icon: Shield
                 },
                 {
                     title: "Change Password",

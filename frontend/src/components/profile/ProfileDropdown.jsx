@@ -17,9 +17,9 @@ import {
   User,
   Palette,
   Sliders,
-  AlertCircle,
   LogOut,
   ChevronRight,
+  Shield
 } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
@@ -60,9 +60,9 @@ export function ProfileDropdown() {
       action: () => navigate('/settings/system/preferences'),
     },
     {
-      label: 'Manage Sessions',
-      icon: AlertCircle,
-      action: () => navigate('/settings/account/sessions'),
+      label: 'Security',
+      icon: Shield,
+      action: () => navigate('/settings/account/security'),
     }
   ];
 

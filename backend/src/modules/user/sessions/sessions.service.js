@@ -3,7 +3,7 @@ import { getUserById } from "../user.repository.js";
 
 
 
-export const getUserSessionsService = async (userId) => {
+export const getUserSessionsService = async (userId, currentSessionId) => {
     if (!userId) {
         throw new ApiError(401, "Unauthorized access");
     }
@@ -18,7 +18,8 @@ export const getUserSessionsService = async (userId) => {
     return {
         name: user.name,
         email: user.email,
-        sessions: user.sessions
+        sessions: user.sessions,
+        currentSessionId
     };
 };
 
@@ -37,6 +38,15 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
         throw new ApiError(404, "User not found");
     }
 
+    if (!sessionId) {
+        throw new ApiError(400, "Session is not valid");
+    }
+
+    // restrict user from logging out of current session using this endpoint
+    if (String(user.sessionId) === String(sessionId)) {
+        throw new ApiError(400, "Cannot log out of current session using this endpoint. Use 'Logout from all devices' option instead.");
+    }
+
     const session = user.sessions.find(s => s.sessionId === sessionId); // Finding the session by sessionId
 
     if (!session) {
@@ -52,12 +62,13 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
 
     await user.save();
 
-    console.log(`Session invalidated | user: ${user.email} | sessionId: ${sessionId}`);
+    console.log(`Session invalidated | user: ${user.email} | sessionId: ${sessionId} | device: ${session.device}`);
 
     return {
         name: user.name,
         email: user.email,
-        message: `Session ${sessionId} logged out successfully`
+        message: `Session ${sessionId} logged out successfully`,
+        device: session.device,
     };
 };
 

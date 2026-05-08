@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import { http } from '../api/httpClient';
 import { useSettingsStore } from './settingsStore';
 import { syncThemeWithBackend } from '../theme/themeSync.utils.js';
+import { useAuthStore } from './authStore';
+import { use } from 'react';
 
 export const useUserStore = create((set, get) => ({
     // State
     userProfile: null,
     sessions: [],
+    currentSessionId: null,
     phoneNumber: null,
     isPhoneVerified: false,
     isLoading: false,
@@ -132,19 +135,32 @@ export const useUserStore = create((set, get) => ({
 
 
 
-
     deleteUserAccount: async () => {
         set({ isUpdating: true, error: null });
+
         try {
             const response = await http.delete('/users/me/account');
             const { data } = response.data;
 
-            // Clear user store on account deletion
             get().resetUserStore();
+
+            useAuthStore.setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: null
+            });
+
+            localStorage.removeItem('auth-storage');
+
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to delete account';
-            set({ isUpdating: false, error: errorMessage });
+            const errorMessage =
+                error.response?.data?.message || 'Failed to delete account';
+            set({
+                isUpdating: false,
+                error: errorMessage
+            });
             throw error;
         }
     },
@@ -164,6 +180,7 @@ export const useUserStore = create((set, get) => ({
 
             set({
                 sessions: data.sessions || [],
+                currentSessionId: data.currentSessionId || null,
                 userProfile: {
                     ...get().userProfile,
                     name: data.name,
@@ -183,49 +200,55 @@ export const useUserStore = create((set, get) => ({
 
     logoutSessionById: async (sessionId) => {
         set({ isUpdating: true, error: null });
-        try {
-            const response = await http.post(`/users/sessions/logout/${sessionId}`);
-            const { data } = response.data;
 
-            // Remove the logged out session from state
+        try {
+            await http.post(`/users/sessions/logout/${sessionId}`);
+
+            await get().getUserSessions();
+
             set({
-                sessions: get().sessions.filter(s => s.sessionId !== sessionId),
                 isUpdating: false,
                 error: null
             });
-
-            return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to logout session';
-            set({ isUpdating: false, error: errorMessage });
+            const errorMessage =
+                error.response?.data?.message || 'Failed to logout session';
+
+            set({
+                isUpdating: false,
+                error: errorMessage
+            });
+
             throw error;
         }
     },
+
 
     logoutAllSessions: async () => {
         set({ isUpdating: true, error: null });
-        try {
-            const response = await http.post('/users/sessions/logout');
-            const { data } = response.data;
 
-            // Keep only the current session
-            const currentSession = get().sessions.find(s => s.isActive);
+        try {
+            await http.post('/users/sessions/logout');
+
+            await get().getUserSessions();
+
             set({
-                sessions: currentSession ? [currentSession] : [],
                 isUpdating: false,
                 error: null
             });
 
-            return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to logout all sessions';
-            set({ isUpdating: false, error: errorMessage });
+            const errorMessage =
+                error.response?.data?.message || 'Failed to logout all sessions';
+
+            set({
+                isUpdating: false,
+                error: errorMessage
+            });
+
             throw error;
         }
     },
-
-
-
 
 
 
