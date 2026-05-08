@@ -22,7 +22,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronDown, PanelRightClose, PanelLeftClose } from 'lucide-react';
+import { ChevronRight, PanelRightClose, PanelLeftClose } from 'lucide-react';
 
 export function DesktopSidebar() {
     const location = useLocation();
@@ -132,10 +132,12 @@ export function DesktopSidebar() {
                                                         </span>
                                                     </div>
                                                     {!isCollapsed && (
-                                                        <ChevronDown className={cn(
-                                                            "h-4 w-4 transition-transform duration-200",
-                                                            openMenus[item.title] && "rotate-180"
-                                                        )} />
+                                                        <ChevronRight
+                                                            className={cn(
+                                                                "h-4 w-4 transition-transform duration-200",
+                                                                openMenus[item.title] && "rotate-90"
+                                                            )}
+                                                        />
                                                     )}
                                                 </SidebarMenuButton>
                                             </CollapsibleTrigger>

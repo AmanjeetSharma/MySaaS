@@ -13,7 +13,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronUp, ArrowLeftToLine } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowLeftToLine } from 'lucide-react';
 import { navigationConfig } from '@/config/navigation.config';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -117,7 +117,7 @@ export function MobileDrawer({ children }) {
                                                     </div>
 
                                                     {openMenus[item.title] ? (
-                                                        <ChevronUp className="h-4 w-4" />
+                                                        <ChevronDown className="h-4 w-4" />
                                                     ) : (
                                                         <ChevronRight className="h-4 w-4" />
                                                     )}

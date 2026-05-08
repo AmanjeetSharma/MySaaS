@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UAParser } from 'ua-parser-js';
 import {
   Card,
   CardContent,
@@ -31,6 +32,18 @@ const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
+
+// Helper function to extract device info
+const getDeviceName = () => {
+  const parser = new UAParser();
+  const result = parser.getResult();
+  const { browser, os, device } = result;
+
+  if (device.vendor && device.model) {
+    return `${device.vendor} ${device.model} (${browser.name || 'Unknown Browser'})`;
+  }
+  return `${browser.name || 'Unknown Browser'} on ${os.name || 'Unknown OS'}`;
+};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -69,7 +82,10 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      await login(data);
+      const device = getDeviceName();
+
+      // Append device to the standard login payload
+      await login({ ...data, device });
 
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
@@ -77,26 +93,28 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSuccess = async (
-    credentialResponse
-  ) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      await googleLogin(credentialResponse.credential);
+      const device = getDeviceName();
+
+      // Update your store to accept an object containing the credential and device
+      await googleLogin({
+        credential: credentialResponse.credential,
+        device
+      });
 
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
+      // handled by store
     }
   };
 
   const handleGoogleError = () => {
-    toast.error(
-      'Google login failed. Please try again.'
-    );
+    toast.error('Google login failed. Please try again.');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative">
-
       {/* HOME BUTTON */}
       <Button
         variant="outline"
@@ -114,8 +132,7 @@ const Login = () => {
           </CardTitle>
 
           <CardDescription>
-            Enter your email and password to access your
-            account
+            Enter your email and password to access your account
           </CardDescription>
         </CardHeader>
 
@@ -175,9 +192,7 @@ const Login = () => {
 
                 <Input
                   id="password"
-                  type={
-                    showPassword ? 'text' : 'password'
-                  }
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   className="pl-9 pr-10"
                   {...register('password')}
@@ -186,9 +201,7 @@ const Login = () => {
                 {/* EYE BUTTON */}
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 >
                   {showPassword ? (
