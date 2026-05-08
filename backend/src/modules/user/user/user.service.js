@@ -184,3 +184,38 @@ export const deleteUserAvatarService = async (userId) => {
 
 
 
+
+
+
+
+
+export const deleteUserService = async (userId) => {
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+
+    const user = await getUserById(userId);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    user.accountStatus = "deleted";
+    user.avatar = {
+        url: null,
+        publicId: null,
+    };
+
+    try {
+        await user.save();
+    } catch (err) {
+        throw new ApiError(500, "Failed to delete user account");
+    }
+
+    console.log(`User account deleted | email: ${user.email}`);
+
+    return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+    };
+};

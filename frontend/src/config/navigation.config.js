@@ -17,7 +17,9 @@ import {
     Star,
     SettingsIcon,
     AlertCircle,
-    Building2
+    Building2,
+    Palette,
+    Sliders
 } from 'lucide-react';
 
 export const navigationConfig = {
@@ -108,6 +110,38 @@ export const navigationConfig = {
                     href: "/analytics/conversion",
                 }
             ]
+        },
+        {
+            title: "Settings",
+            icon: Settings,
+            items: [
+                {
+                    title: "Manage Profile",
+                    href: "/settings/account/profile",
+                    icon: UserCircle
+                },
+                {
+                    title: "Appearance",
+                    href: "/settings/system/appearance",
+                    icon: Palette
+                },
+                {
+                    title: "Preferences",
+                    href: "/settings/system/preferences",
+                    icon: Sliders
+                },
+                {
+                    title: "Manage Sessions",
+                    href: "/settings/account/sessions",
+                    icon: AlertCircle
+                },
+                {
+                    title: "Change Password",
+                    href: "/settings/account/change-password",
+                    icon: CheckCircle2
+                }
+            ]
+
         },
         {
             title: "Help / Support",

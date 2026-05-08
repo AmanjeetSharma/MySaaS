@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
@@ -45,8 +45,12 @@ import Bookings from '@/pages/bookings/Bookings';
 import Reminder from '@/pages/reminder/Reminder';
 
 // Settings imports
-import SystemSettings from '@/pages/settings/SystemSettings';
-import ProfileSettings from '@/pages/settings/ProfileSettings';
+import Profile from '@/pages/settings/account/Profile';
+import Appearance from '@/pages/settings/system/Appearance';
+import Preferences from '@/pages/settings/system/Preferences';
+import Security from '@/pages/settings/account/Sessions';
+import ChangePassword from '@/pages/settings/account/ChangePassword';
+
 
 // Contact imports
 import Contact from '@/pages/public/Contact';
@@ -100,9 +104,12 @@ export const AppRoutes = () => {
                     <Route path="/reminders" element={<Reminder />} />
 
                     {/* Settings Route */}
-                    <Route path="/settings/system" element={<SystemSettings />} />
-                    <Route path="/settings/profile" element={<ProfileSettings />} />
-
+                    <Route path="/settings/account/profile" element={<Profile />} />
+                    <Route path="/settings/system/appearance" element={<Appearance />} />
+                    <Route path="/settings/system/preferences" element={<Preferences />} />
+                    <Route path="/settings/account/sessions" element={<Security />} />
+                    <Route path="/settings/account/change-password" element={<ChangePassword />} />
+                    
                     {/* Contact Route */}
                     <Route path="/support" element={<Contact />} />
                 </Route>

@@ -45,12 +45,12 @@ export function ProfileDropdown() {
     {
       label: 'Profile',
       icon: User,
-      action: () => navigate('/settings/profile'),
+      action: () => navigate('/settings/account/profile'),
     },
     {
       label: 'Settings',
       icon: Settings,
-      action: () => navigate('/settings/system'),
+      action: () => navigate('/settings/account'),
     },
   ];
 
@@ -79,8 +79,8 @@ export function ProfileDropdown() {
             />
 
             <AvatarFallback className="bg-muted text-xs font-medium">
-              {userProfile?.avatar?.url ? initials : (
-                <User className="h-4 w-4 text-muted-foreground" />
+              {userProfile?.avatar?.url ? <User className="h-4 w-4 text-muted-foreground" /> : (
+                initials
               )}
             </AvatarFallback>
           </Avatar>

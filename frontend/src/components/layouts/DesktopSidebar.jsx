@@ -95,7 +95,7 @@ export function DesktopSidebar() {
                             </button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
-                            <span>{isCollapsed ? "Expand" : "Collapse"}</span>
+                            <span>{isCollapsed ? "Expand" : "Close"}</span>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

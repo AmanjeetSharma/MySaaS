@@ -6,7 +6,8 @@ import {
     getUserController,
     updateUserController,
     updateUserAvatarController,
-    deleteUserAvatarController
+    deleteUserAvatarController,
+    deleteUserController
 } from "./user/user.controller.js";
 
 import {
@@ -41,6 +42,7 @@ router.get("/me", verifyToken, getUserController);
 router.patch("/me", verifyToken, updateUserController);
 router.patch('/me/avatar', verifyToken, upload.single('avatar'), updateUserAvatarController);
 router.delete('/me/avatar', verifyToken, deleteUserAvatarController);
+router.delete('/me/account', verifyToken, deleteUserController);
 
 
 // Sessions routes

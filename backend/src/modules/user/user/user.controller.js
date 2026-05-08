@@ -4,7 +4,8 @@ import {
     getUserService,
     updateUserService,
     updateUserAvatarService,
-    deleteUserAvatarService
+    deleteUserAvatarService,
+    deleteUserService
 } from "./user.service.js";
 
 
@@ -56,5 +57,18 @@ export const deleteUserAvatarController = asyncHandler(async (req, res) => {
             200,
             data,
             "User avatar deleted successfully"
+        ));
+});
+
+
+export const deleteUserController = asyncHandler(async (req, res) => {
+    const data = await deleteUserService(req.user._id);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "User account deleted successfully"
         ));
 });

@@ -34,7 +34,7 @@ export function TopNavbar() {
             {/* Right Section */}
             <div className="flex items-center gap-2 md:gap-4">
                 {!isMobile && <OrganizationSwitcher />}
-                <div className="h-6 w-px bg-border hidden md:block" />
+                <div className="h-7 w-px bg-border hidden md:block" />
                 <ProfileDropdown user={user} />
             </div>
         </header>

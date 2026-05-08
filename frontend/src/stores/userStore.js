@@ -133,6 +133,26 @@ export const useUserStore = create((set, get) => ({
 
 
 
+    deleteUserAccount: async () => {
+        set({ isUpdating: true, error: null });
+        try {
+            const response = await http.delete('/users/me/account');
+            const { data } = response.data;
+
+            // Clear user store on account deletion
+            get().resetUserStore();
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to delete account';
+            set({ isUpdating: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+
+
+
+
 
 
     // Session Actions
