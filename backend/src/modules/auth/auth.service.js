@@ -73,14 +73,13 @@ export const registerService = async (body, avatarFile) => {
     const existingUser = await findUserByEmail(normalizedEmail);
 
     //deleted users email is modified to deleted_userId_email, to prevent conflicts while registering again with same email
-    if (existingUser?.accountStatus !== "active") {
-        cleanUp(`Account Status: ${existingUser.accountStatus}`);
-        throw new ApiError(403, `Your account has been ${existingUser.accountStatus}. Please contact support for assistance.`);
-    }
-
     if (existingUser) {
-        if (avatarFile) {
-            cleanUp("User already exists");
+        if (existingUser.accountStatus !== "active") {
+            cleanUp(`Account Status: ${existingUser.accountStatus}`);
+            throw new ApiError(
+                403,
+                `Your account has been ${existingUser.accountStatus}. Please contact support for assistance.`
+            );
         }
 
         if (existingUser.providers?.google?.enabled) {

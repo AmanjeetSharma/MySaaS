@@ -1,6 +1,6 @@
 import { ApiError } from "../../../utils/ApiError.js";
 import { nameValidator, avatarValidator } from "../../../validations/auth.validators.js";
-import { getUserById, } from "../user.repository.js";
+import { getUserById, getOrganizationByUserId, deleteOrganization } from "../user.repository.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../../integrations/cloudinary.integration.js";
 import { cleanupAvatar } from "../../auth/auth.helper.js";
 
@@ -190,7 +190,7 @@ export const deleteUserAvatarService = async (userId) => {
 export const deleteUserService = async (userId) => {
     if (!userId) { throw new ApiError(401, "Unauthorized access"); }
 
-    const user = await getUserById(userId);
+    const user = await getUserById(userId, "+password");
     if (!user) { throw new ApiError(404, "User not found"); }
 
     if (user.avatar?.publicId) {
@@ -209,6 +209,8 @@ export const deleteUserService = async (userId) => {
     // }));
 
     user.sessions = [];
+
+    user.password = null;
 
     user.resetPasswordToken = null;
     user.resetPasswordExpiry = null;
@@ -229,6 +231,11 @@ export const deleteUserService = async (userId) => {
         url: null,
         publicId: null,
     };
+
+    const organization = await getOrganizationByUserId(user._id);
+    if (organization) {
+        await deleteOrganization(organization._id);
+    }
 
     // Appended deleted_ prefix with user ID to ensure uniqueness
     // and to prevent conflicts if user tries to register again with same email after deletion

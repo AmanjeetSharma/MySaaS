@@ -56,3 +56,15 @@ export const updateUserSettingsField = async (userId, updateObj) => {
         { returnDocument: "after", runValidators: true } // after: return doc after update
     );
 };
+
+
+
+export const getOrganizationByUserId = async (userId) => {
+    return await Organization.findOne({ owner: userId });
+};
+
+
+
+export const deleteOrganization = async (organizationId) => {
+    return await Organization.findByIdAndDelete(organizationId);
+};
