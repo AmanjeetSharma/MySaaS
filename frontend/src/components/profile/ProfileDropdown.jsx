@@ -15,7 +15,9 @@ import {
 
 import {
   User,
-  Settings,
+  Palette,
+  Sliders,
+  AlertCircle,
   LogOut,
   ChevronRight,
 } from 'lucide-react';
@@ -48,10 +50,20 @@ export function ProfileDropdown() {
       action: () => navigate('/settings/account/profile'),
     },
     {
-      label: 'Settings',
-      icon: Settings,
-      action: () => navigate('/settings/account'),
+      label: 'Appearance',
+      icon: Palette,
+      action: () => navigate('/settings/system/appearance'),
     },
+    {
+      label: 'Preferences',
+      icon: Sliders,
+      action: () => navigate('/settings/system/preferences'),
+    },
+    {
+      label: 'Manage Sessions',
+      icon: AlertCircle,
+      action: () => navigate('/settings/account/sessions'),
+    }
   ];
 
   return (
