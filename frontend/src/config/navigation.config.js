@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     Star,
     SettingsIcon,
-    AlertCircle
+    AlertCircle,
+    Building2
 } from 'lucide-react';
 
 export const navigationConfig = {
@@ -30,7 +31,7 @@ export const navigationConfig = {
         {
             title: "Organization",
             href: "/organization",
-            icon: Settings,
+            icon: Building2,
             items: []
         },
         {

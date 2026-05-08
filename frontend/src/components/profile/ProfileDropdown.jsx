@@ -6,76 +6,101 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut } from 'lucide-react';
+
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
+
+import {
+  User,
+  Settings,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react';
+
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useUserStore } from '@/stores';
+import { cn } from '@/lib/utils';
+
+const menuItemClass =
+  'group flex items-center justify-between rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent focus:bg-accent cursor-pointer';
 
 export function ProfileDropdown() {
   const navigate = useNavigate();
+
   const { logout } = useAuthStore();
   const { userProfile } = useUserStore();
 
-  const getInitials = (name) => {
-    return name
+  const initials =
+    userProfile?.name
       ?.split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2);
-  };
+      .slice(0, 2) || 'U';
+
+  const menuItems = [
+    {
+      label: 'Profile',
+      icon: User,
+      action: () => navigate('/settings/profile'),
+    },
+    {
+      label: 'Settings',
+      icon: Settings,
+      action: () => navigate('/settings/system'),
+    },
+  ];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="focus:outline-none rounded-full">
-          {userProfile?.avatar?.url ? (
-            <Avatar
-              className="
-          h-10 w-10 cursor-pointer
-          ring-1 ring-white/15
-          bg-white/3
-          shadow-md
-          transition-all duration-200
-          hover:ring-white/25
-          hover:scale-[1.02]
-        "
-            >
-              <AvatarImage
-                src={userProfile?.avatar?.url}
-                className="object-cover"
-              />
-              <AvatarFallback className="bg-transparent text-sm">
-                {getInitials(userProfile?.name) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <div
-              className="
-          h-10 w-10 rounded-full
-          ring-1 ring-white/15
-          bg-white/3
-          shadow-md
-          flex items-center justify-center
-          cursor-pointer
-          transition-all duration-200
-          hover:ring-white/25
-          hover:scale-[1.02]
-        "
-            >
-              <User className="h-5 w-5 text-muted-foreground" />
-            </div>
+        <button
+          className={cn(
+            'rounded-full outline-none cursor-pointer',
+            'transition-transform duration-200',
+            'hover:scale-[1.03]',
+            'focus-visible:ring-2 focus-visible:ring-ring'
           )}
+        >
+          <Avatar
+            className={cn(
+              'h-10 w-10',
+              'ring-1 ring-border/60',
+              'shadow-sm',
+              'bg-background'
+            )}
+          >
+            <AvatarImage
+              src={userProfile?.avatar?.url}
+              className="object-cover"
+            />
+
+            <AvatarFallback className="bg-muted text-xs font-medium">
+              {userProfile?.avatar?.url ? initials : (
+                <User className="h-4 w-4 text-muted-foreground" />
+              )}
+            </AvatarFallback>
+          </Avatar>
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {userProfile?.name}
+      <DropdownMenuContent
+        align="end"
+        className={cn(
+          'w-64 rounded-xl border bg-background/95 p-2',
+          'backdrop-blur-xl shadow-2xl'
+        )}
+      >
+        <DropdownMenuLabel className="px-2 py-3">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold leading-none">
+              {userProfile?.name || 'User'}
             </p>
-            <p className="text-xs leading-none text-muted-foreground">
+
+            <p className="text-xs text-muted-foreground truncate">
               {userProfile?.email}
             </p>
           </div>
@@ -83,21 +108,47 @@ export function ProfileDropdown() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={() => navigate('/settings/profile')}>
-          <User className="mr-2 h-4 w-4" />
-          Profile
-        </DropdownMenuItem>
+        <div className="py-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
 
-        <DropdownMenuItem onClick={() => navigate('/settings/system')}>
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
+            return (
+              <DropdownMenuItem
+                key={item.label}
+                onClick={item.action}
+                className={menuItemClass}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+
+                  <span>{item.label}</span>
+                </div>
+
+                <ChevronRight
+                  className="
+                    h-4 w-4 text-muted-foreground/60
+                    opacity-0 transition-opacity
+                    group-hover:opacity-100
+                  "
+                />
+              </DropdownMenuItem>
+            );
+          })}
+        </div>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={() => logout()}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
+        <DropdownMenuItem
+          onClick={logout}
+          className={cn(
+            menuItemClass,
+            'text-red-500 focus:text-red-500 cursor-pointer',
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

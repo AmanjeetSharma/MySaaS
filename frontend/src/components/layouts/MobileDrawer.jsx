@@ -13,18 +13,17 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
-import { Menu, ChevronDown, LogOut, X } from 'lucide-react';
+import { ChevronRight, ChevronUp, ArrowLeftToLine } from 'lucide-react';
 import { navigationConfig } from '@/config/navigation.config';
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/stores';
 import { cn } from '@/lib/utils';
+import { SidebarFooter } from '@/components/ui/sidebar';
 
 export function MobileDrawer({ children }) {
     const [open, setOpen] = useState(false);
     const [openMenus, setOpenMenus] = useState({});
 
     const location = useLocation();
-    const { logout } = useAuthStore();
 
     // Close drawer when route changes
     useEffect(() => {
@@ -59,7 +58,7 @@ export function MobileDrawer({ children }) {
 
             <SheetContent
                 side="left"
-                className="w-[85%] sm:w-[350px] p-0 [&>button]:hidden"
+                className="w-[85%] sm:w-87.5 p-0 [&>button]:hidden"
             >
                 <SheetHeader className="border-b p-4">
                     <div className="flex items-center justify-between">
@@ -73,7 +72,7 @@ export function MobileDrawer({ children }) {
                             onClick={() => setOpen(false)}
                             className="h-8 w-8 shrink-0"
                         >
-                            <X className="h-4 w-4" />
+                            <ArrowLeftToLine className="h-4 w-4" />
                         </Button>
                     </div>
 
@@ -104,7 +103,7 @@ export function MobileDrawer({ children }) {
                                                     className={cn(
                                                         'w-full justify-between px-3 py-2 h-auto',
                                                         isItemActive(item) &&
-                                                            'bg-accent text-accent-foreground'
+                                                        'bg-accent text-accent-foreground'
                                                     )}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -117,14 +116,11 @@ export function MobileDrawer({ children }) {
                                                         </span>
                                                     </div>
 
-                                                    <ChevronDown
-                                                        className={cn(
-                                                            'h-4 w-4 transition-transform',
-                                                            openMenus[
-                                                                item.title
-                                                            ] && 'rotate-180'
-                                                        )}
-                                                    />
+                                                    {openMenus[item.title] ? (
+                                                        <ChevronUp className="h-4 w-4" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    )}
                                                 </Button>
                                             </CollapsibleTrigger>
 
@@ -141,7 +137,7 @@ export function MobileDrawer({ children }) {
                                                                 }
                                                                 className={({
                                                                     isActive:
-                                                                        active,
+                                                                    active,
                                                                 }) =>
                                                                     cn(
                                                                         'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
@@ -192,20 +188,17 @@ export function MobileDrawer({ children }) {
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="border-t p-4">
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-start gap-3 text-red-500 hover:bg-red-50/10 hover:text-red-600 dark:hover:bg-red-950/20"
-                            onClick={logout}
-                        >
-                            <LogOut className="h-5 w-5" />
+                    <SidebarFooter className="border-t p-4">
+                        <div className="space-y-1 text-center">
+                            <p className="text-sm font-medium">
+                                MySaaS
+                            </p>
 
-                            <span className="font-medium">
-                                Logout
-                            </span>
-                        </Button>
-                    </div>
+                            <p className="text-xs text-muted-foreground">
+                                Version 1.0.0
+                            </p>
+                        </div>
+                    </SidebarFooter>
                 </div>
             </SheetContent>
         </Sheet>

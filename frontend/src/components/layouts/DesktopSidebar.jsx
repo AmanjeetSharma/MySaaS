@@ -26,7 +26,6 @@ import { ChevronDown, PanelRightClose, PanelLeftClose } from 'lucide-react';
 
 export function DesktopSidebar() {
     const location = useLocation();
-    const { logout } = useAuthStore();
     const { state, toggleSidebar } = useSidebar();
     const [openMenus, setOpenMenus] = useState({});
 
