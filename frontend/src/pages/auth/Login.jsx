@@ -82,10 +82,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const device = getDeviceName();
-
-      // Append device to the standard login payload
-      await login({ ...data, device });
+      await login({ ...data, device: getDeviceName() });
 
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
@@ -95,12 +92,11 @@ const Login = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const device = getDeviceName();
 
       // Update your store to accept an object containing the credential and device
       await googleLogin({
-        credential: credentialResponse.credential,
-        device
+        token: credentialResponse.credential,
+        device: getDeviceName(),
       });
 
       setTimeout(() => navigate('/dashboard'), 1500);

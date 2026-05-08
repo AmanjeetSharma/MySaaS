@@ -69,10 +69,10 @@ export const useAuthStore = create(persist(
             }
         },
 
-        googleLogin: async (token, device = 'web') => {
+        googleLogin: async (credentials) => {
             set({ isLoading: true, error: null });
             try {
-                const response = await http.post('/auth/login/google', { token, device });
+                const response = await http.post('/auth/login/google', credentials);
                 const { data } = response.data;
 
                 set({

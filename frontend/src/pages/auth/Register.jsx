@@ -35,6 +35,7 @@ import {
   EyeOff,
   Home,
 } from 'lucide-react';
+import { UAParser } from 'ua-parser-js';
 
 import { toast } from 'sonner';
 
@@ -84,6 +85,19 @@ const Register = () => {
     resolver: zodResolver(registerSchema),
   });
 
+
+  const getDeviceName = () => {
+    const parser = new UAParser();
+    const result = parser.getResult();
+    const { browser, os, device } = result;
+
+    if (device.vendor && device.model) {
+      return `${device.vendor} ${device.model} (${browser.name || 'Unknown Browser'})`;
+    }
+
+    return `${browser.name || 'Unknown Browser'} on ${os.name || 'Unknown OS'}`;
+  };
+
   const avatar = watch('avatar');
 
   useEffect(() => {
@@ -128,7 +142,10 @@ const Register = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      await googleLogin(credentialResponse.credential);
+      await googleLogin({
+        token: credentialResponse.credential,
+        device: getDeviceName()
+      });
 
       toast.success('Google login successful! Redirecting to dashboard...');
 
@@ -329,7 +346,7 @@ const Register = () => {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  theme="filled_blue" 
+                  theme="filled_blue"
                   size="large"
                   text="signup_with"
                   shape="rectangular"

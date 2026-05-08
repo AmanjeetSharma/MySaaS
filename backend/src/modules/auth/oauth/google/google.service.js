@@ -10,13 +10,18 @@ import { sendEmail } from "../../../../integrations/email.integration.js";
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 
-export const googleLoginService = async (token, device = "unknown device") => {
-    if (!token?.trim()) {
+export const googleLoginService = async (body) => {
+
+    const { token, device = "unknown device" } = body;
+
+    const googleToken = typeof token === "string" ? token : token?.token;
+
+    if (!googleToken || typeof googleToken !== "string" || !googleToken.trim()) {
         throw new ApiError(400, "No Google token provided");
     }
 
     const ticket = await client.verifyIdToken({
-        idToken: token,
+        idToken: googleToken,
         audience: env.GOOGLE_CLIENT_ID,
     });
     if (!ticket) {
