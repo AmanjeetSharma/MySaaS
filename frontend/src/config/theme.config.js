@@ -52,7 +52,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#a1a1aa",
                 "--accent": "#27272a",
                 "--accent-foreground": "#fafafa",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#14532d",
                 "--warning": "#78350f",
                 "--border": "#27272a",
@@ -75,66 +75,93 @@ export const themeProfiles = {
         tier: "pro",
         mode: {
             light: {
-                "--background": "#e6fffa",
-                "--foreground": "#0f2c2a",
+                "--background": "#f2fffd",
+                "--foreground": "#102a2a",
+
                 "--card": "#ffffff",
-                "--card-foreground": "#0f2c2a",
+                "--card-foreground": "#102a2a",
+
                 "--popover": "#ffffff",
-                "--popover-foreground": "#0f2c2a",
-                "--primary": "#0d9488",
+                "--popover-foreground": "#102a2a",
+
+                "--primary": "#0f766e",
                 "--primary-foreground": "#ffffff",
-                "--secondary": "#b2f5ea",
-                "--secondary-foreground": "#0f2c2a",
-                "--muted": "#e6fffa",
-                "--muted-foreground": "#4fd1c5",
+
+                "--secondary": "#d7f5f1",
+                "--secondary-foreground": "#134e4a",
+
+                "--muted": "#ecfdfb",
+                "--muted-foreground": "#5b8f8a",
+
                 "--accent": "#14b8a6",
                 "--accent-foreground": "#ffffff",
-                "--destructive": "#ef4444",
-                "--success": "#10b981",
-                "--warning": "#f59e0b",
-                "--border": "#b2f5ea",
-                "--input": "#b2f5ea",
-                "--ring": "#0d9488",
-                "--radius": "0.5rem",
-                "--sidebar": "#ffffff",
-                "--sidebar-foreground": "#0f2c2a",
-                "--sidebar-primary": "#0d9488",
-                "--sidebar-primary-foreground": "#ffffff",
-                "--sidebar-accent": "#e6fffa",
-                "--sidebar-accent-foreground": "#0f2c2a",
-                "--sidebar-border": "#b2f5ea",
-                "--sidebar-ring": "#0d9488",
-            },
-            dark: {
-                "--background": "#021a19",
-                "--foreground": "#ccfbf1",
-                "--card": "#043130",
-                "--card-foreground": "#ccfbf1",
-                "--popover": "#043130",
-                "--popover-foreground": "#ccfbf1",
-                "--primary": "#14b8a6",
-                "--primary-foreground": "#021a19",
-                "--secondary": "#0b5e56",
-                "--secondary-foreground": "#ccfbf1",
-                "--muted": "#0b5e56",
-                "--muted-foreground": "#5eead4",
-                "--accent": "#0d9488",
-                "--accent-foreground": "#ccfbf1",
-                "--destructive": "#7f1d1d",
-                "--success": "#064e3b",
-                "--warning": "#78350f",
-                "--border": "#0b5e56",
-                "--input": "#0b5e56",
+
+                "--destructive": "#dc2626",
+                "--success": "#059669",
+                "--warning": "#d97706",
+
+                "--border": "#c7ebe6",
+                "--input": "#dff7f3",
                 "--ring": "#14b8a6",
-                "--radius": "0.5rem",
-                "--sidebar": "#043130",
-                "--sidebar-foreground": "#ccfbf1",
-                "--sidebar-primary": "#14b8a6",
-                "--sidebar-primary-foreground": "#021a19",
-                "--sidebar-accent": "#0b5e56",
-                "--sidebar-accent-foreground": "#ccfbf1",
-                "--sidebar-border": "#0b5e56",
+
+                "--radius": "0.75rem",
+
+                "--sidebar": "#fcfffe",
+                "--sidebar-foreground": "#102a2a",
+
+                "--sidebar-primary": "#0f766e",
+                "--sidebar-primary-foreground": "#ffffff",
+
+                "--sidebar-accent": "#e6faf7",
+                "--sidebar-accent-foreground": "#134e4a",
+
+                "--sidebar-border": "#c7ebe6",
                 "--sidebar-ring": "#14b8a6",
+            },
+
+            dark: {
+                "--background": "#071c1c",
+                "--foreground": "#d7fffa",
+
+                "--card": "#0b2626",
+                "--card-foreground": "#d7fffa",
+
+                "--popover": "#0b2626",
+                "--popover-foreground": "#d7fffa",
+
+                "--primary": "#2dd4bf",
+                "--primary-foreground": "#06201f",
+
+                "--secondary": "#123837",
+                "--secondary-foreground": "#d7fffa",
+
+                "--muted": "#102f2e",
+                "--muted-foreground": "#7dd3c7",
+
+                "--accent": "#14b8a6",
+                "--accent-foreground": "#ecfeff",
+
+                "--destructive": "#dc2626",
+                "--success": "#065f46",
+                "--warning": "#92400e",
+
+                "--border": "#184544",
+                "--input": "#123837",
+                "--ring": "#2dd4bf",
+
+                "--radius": "0.75rem",
+
+                "--sidebar": "#0b2626",
+                "--sidebar-foreground": "#d7fffa",
+
+                "--sidebar-primary": "#2dd4bf",
+                "--sidebar-primary-foreground": "#06201f",
+
+                "--sidebar-accent": "#123837",
+                "--sidebar-accent-foreground": "#d7fffa",
+
+                "--sidebar-border": "#184544",
+                "--sidebar-ring": "#2dd4bf",
             }
         }
     },
@@ -188,7 +215,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#a1a1aa",
                 "--accent": "#6d28d9",
                 "--accent-foreground": "#ede9fe",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#064e3b",
                 "--warning": "#78350f",
                 "--border": "#1c103f",
@@ -256,7 +283,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#8fa086",
                 "--accent": "#f59e0b",
                 "--accent-foreground": "#0a1208",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#14532d",
                 "--warning": "#854d0e",
                 "--border": "#1a2e14",
@@ -392,7 +419,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#b8956e",
                 "--accent": "#e8913e",
                 "--accent-foreground": "#1a120b",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#064e3b",
                 "--warning": "#78350f",
                 "--border": "#3a2a1a",
@@ -528,7 +555,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#a0aec0",
                 "--accent": "#718096",
                 "--accent-foreground": "#e2e8f0",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#064e3b",
                 "--warning": "#78350f",
                 "--border": "#2d3748",
@@ -596,7 +623,7 @@ export const themeProfiles = {
                 "--muted-foreground": "#c4b5fd",
                 "--accent": "#8b5cf6",
                 "--accent-foreground": "#ffffff",
-                "--destructive": "#7f1d1d",
+                "--destructive": "#dc2626",
                 "--success": "#064e3b",
                 "--warning": "#78350f",
                 "--border": "#3a2a7a",

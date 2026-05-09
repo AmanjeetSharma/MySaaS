@@ -82,36 +82,36 @@ export const navigationConfig = {
                 }
             ]
         },
-        {
-            title: "Reminders",
-            href: "/reminders",
-            icon: Bell,
-            items: []
-        },
-        {
-            title: "Bookings",
-            href: "/bookings",
-            icon: Calendar,
-            items: []
-        },
-        {
-            title: "Analytics",
-            icon: BarChart3,
-            items: [
-                {
-                    title: "CRM Stats",
-                    href: "/analytics/crm",
-                },
-                {
-                    title: "Booking Stats",
-                    href: "/analytics/bookings",
-                },
-                {
-                    title: "Conversion Stats",
-                    href: "/analytics/conversion",
-                }
-            ]
-        },
+        // {
+        //     title: "Reminders",
+        //     href: "/reminders",
+        //     icon: Bell,
+        //     items: []
+        // },
+        // {
+        //     title: "Bookings",
+        //     href: "/bookings",
+        //     icon: Calendar,
+        //     items: []
+        // },
+        // {
+        //     title: "Analytics",
+        //     icon: BarChart3,
+        //     items: [
+        //         {
+        //             title: "CRM Stats",
+        //             href: "/analytics/crm",
+        //         },
+        //         {
+        //             title: "Booking Stats",
+        //             href: "/analytics/bookings",
+        //         },
+        //         {
+        //             title: "Conversion Stats",
+        //             href: "/analytics/conversion",
+        //         }
+        //     ]
+        // },
         {
             title: "Settings",
             icon: Settings,

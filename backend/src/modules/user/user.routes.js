@@ -42,19 +42,19 @@ router.get("/me", verifyToken, getUserController);
 router.patch("/me", verifyToken, updateUserController);
 router.patch('/me/avatar', verifyToken, upload.single('avatar'), updateUserAvatarController);
 router.delete('/me/avatar', verifyToken, deleteUserAvatarController);
-router.delete('/me/account', verifyToken, deleteUserController);
+router.delete('/me/account', verifyToken, deleteUserController);//done
 
 
 // Sessions routes
-router.get("/sessions", verifyToken, getUserSessionsController);
-router.post("/sessions/logout/:sessionId", verifyToken, logoutSessionByIdController);
-router.post("/sessions/logout", verifyToken, logoutAllSessionsController);
+router.get("/sessions", verifyToken, getUserSessionsController);//done
+router.post("/sessions/logout/:sessionId", verifyToken, logoutSessionByIdController);//done
+router.post("/sessions/logout", verifyToken, logoutAllSessionsController);//done
 
 
 // Password routes
-router.post("/password/change", verifyToken, changePasswordController);
-router.post("/password/forgot", forgotPasswordController);
-router.post("/password/reset", resetPasswordController);
+router.post("/password/change", verifyToken, changePasswordController);//done
+router.post("/password/forgot", forgotPasswordController);//done
+router.post("/password/reset", resetPasswordController);//done
 
 
 // Phone routes
@@ -64,10 +64,10 @@ router.delete("/phone", verifyToken, unlinkPhoneController);
 
 
 // Settings routes
-router.patch("/settings/theme", verifyToken, updateThemeController);
-router.patch("/settings/timezone", verifyToken, updateTimezoneController);
-router.patch("/settings/notifications", verifyToken, updateNotificationsController);
-router.get("/settings", verifyToken, getSettingsController);
+router.patch("/settings/theme", verifyToken, updateThemeController);//done
+router.patch("/settings/timezone", verifyToken, updateTimezoneController);//done
+router.patch("/settings/notifications", verifyToken, updateNotificationsController);// DONE 
+router.get("/settings", verifyToken, getSettingsController);//done
 
 
 export default router;
