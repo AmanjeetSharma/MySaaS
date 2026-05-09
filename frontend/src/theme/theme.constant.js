@@ -9,7 +9,7 @@ export const THEME_IDS = {
     ROSE_QUARTZ: "rose-quartz",
     COFFEE: "coffee",
     SAKURA: "sakura",
-    ROYAL_NEBULA: "royal-nebula"
+    AZURE_BLUE: "azure-blue",
 };
 
 export const THEME_MODES = {
