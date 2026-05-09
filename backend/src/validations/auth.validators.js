@@ -56,9 +56,18 @@ export const passwordValidator = (password) => {
 };
 
 
+
 export const avatarValidator = (file) => {
   const maxSize = 5 * 1024 * 1024; // 5 MB
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  const maxGifSize = 2 * 1024 * 1024; // 2 MB
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/jpg",
+    "image/gif"
+  ];
 
   const result = {
     valid: true,
@@ -69,8 +78,14 @@ export const avatarValidator = (file) => {
 
   if (!allowedTypes.includes(file.mimetype)) {
     result.valid = false;
-    result.errors.push("Only JPEG, PNG, and WebP images are allowed");
-    return result; // if type is invalid, no need to check size
+    result.errors.push("Only JPEG, PNG, JPG, GIF, and WebP images are allowed");
+    return result;
+  }
+
+  if (file.mimetype === "image/gif" && file.size >= maxGifSize) {
+    result.valid = false;
+    result.errors.push("GIF size must be less than 2 MB");
+    return result;
   }
 
   if (file.size > maxSize) {
@@ -80,6 +95,7 @@ export const avatarValidator = (file) => {
 
   return result;
 };
+
 
 
 export const phoneNumberValidator = (phoneNumber) => {

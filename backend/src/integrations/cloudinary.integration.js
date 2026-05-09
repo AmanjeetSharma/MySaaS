@@ -13,8 +13,24 @@ cloudinary.config({
 // Upload avatar
 export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
     let compressedPath;
+    
     try {
         if (!localFilePath) return null;
+
+        const isGif = path.extname(localFilePath).toLowerCase() === ".gif";
+
+        if (isGif) {
+            const result = await cloudinary.uploader.upload(localFilePath, {
+                folder,
+                resource_type: "image",
+            });
+
+            console.log(`GIF file uploaded to Cloudinary successfully. Local file removed: ${path.basename(localFilePath)}`);
+            return {
+                url: result.secure_url,
+                publicId: result.public_id,
+            };
+        }
 
         compressedPath = localFilePath.replace(/(\.\w+)$/, "-compressed.jpg");// e.g., 1697059200000-avatar-compressed.jpg
 

@@ -91,9 +91,7 @@ export function ProfileDropdown() {
             />
 
             <AvatarFallback className="bg-muted text-xs font-medium">
-              {userProfile?.avatar?.url ? <User className="h-4 w-4 text-muted-foreground" /> : (
-                initials
-              )}
+              {userProfile?.avatar?.url ? initials : <User className="h-4 w-4 text-muted-foreground" />}
             </AvatarFallback>
           </Avatar>
         </button>
