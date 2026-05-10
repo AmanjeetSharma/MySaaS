@@ -359,91 +359,92 @@ export const themeProfiles = {
             }
         }
     },
-    [THEME_IDS.ROSE_QUARTZ]: {
-        name: "Rose Quartz",
+    [THEME_IDS.DUSTY_ROSE]: {
+        name: "Dusty Rose",
         tier: "pro",
         mode: {
             light: {
-                "--background": "#fff5f7",
-                "--foreground": "#4a0519",
+                "--background": "#fafaf9", /* Stone 50 */
+                "--foreground": "#1c1917", /* Stone 900 */
+
                 "--card": "#ffffff",
-                "--card-foreground": "#4a0519",
+                "--card-foreground": "#1c1917",
+
                 "--popover": "#ffffff",
-                "--popover-foreground": "#4a0519",
-                "--primary": "#e11d48",
+                "--popover-foreground": "#1c1917",
+
+                "--primary": "#e11d48", /* Rose 600 (Darker for light mode visibility) */
                 "--primary-foreground": "#ffffff",
-                "--secondary": "#ffe6ea",
-                "--secondary-foreground": "#4a0519",
-                "--muted": "#fff0f3",
-                "--muted-foreground": "#9f5a6b",
-                "--accent": "#be123c",
-                "--accent-foreground": "#ffffff",
-                "--destructive": "#ef4444",
-                "--success": "#10b981",
-                "--warning": "#f59e0b",
-                "--border": "#fecdd3",
-                "--input": "#fecdd3",
+
+                "--secondary": "#f5f5f4", /* Stone 100 */
+                "--secondary-foreground": "#1c1917",
+
+                "--muted": "#f5f5f4",
+                "--muted-foreground": "#78716c", /* Stone 500 */
+
+                "--accent": "#e7e5e4", /* Stone 200 */
+                "--accent-foreground": "#1c1917",
+
+                "--destructive": "#dc2626",
+                "--success": "#16a34a",
+                "--warning": "#d97706",
+
+                "--border": "#e7e5e4",
+                "--input": "#e7e5e4",
                 "--ring": "#e11d48",
+
                 "--radius": "1rem",
-                "--sidebar": "#ffffff",
-                "--sidebar-foreground": "#4a0519",
+
+                "--sidebar": "#f5f5f4",
+                "--sidebar-foreground": "#1c1917",
                 "--sidebar-primary": "#e11d48",
                 "--sidebar-primary-foreground": "#ffffff",
-                "--sidebar-accent": "#fff0f3",
-                "--sidebar-accent-foreground": "#4a0519",
-                "--sidebar-border": "#fecdd3",
+                "--sidebar-accent": "#e7e5e4",
+                "--sidebar-accent-foreground": "#1c1917",
+                "--sidebar-border": "#d6d3d1",
                 "--sidebar-ring": "#e11d48",
             },
             dark: {
-                "--background": "#140006",
-                "--foreground": "#fff0f3",
+                "--background": "#1c1917",
+                "--foreground": "#fafaf9",
 
-                /* Surface hierarchy */
-                "--card": "#22000d",
-                "--card-foreground": "#fff0f3",
+                "--card": "#292524",
+                "--card-foreground": "#fafaf9",
 
-                "--popover": "#2a0010",
-                "--popover-foreground": "#fff0f3",
+                "--popover": "#352f2d",
+                "--popover-foreground": "#fafaf9",
 
-                /* Brand */
-                "--primary": "#fb7185",
-                "--primary-foreground": "#140006",
+                "--primary": "#f43f5e", /* Rose 500 */
+                "--primary-foreground": "#ffffff",
 
-                /* Layers */
-                "--secondary": "#3f0016",
-                "--secondary-foreground": "#fff0f3",
+                "--secondary": "#44403c",
+                "--secondary-foreground": "#fafaf9",
 
-                "--muted": "#2a0010",
-                "--muted-foreground": "#fda4af",
+                "--muted": "#352f2d",
+                "--muted-foreground": "#a8a29e",
 
-                /* Hover / accent refinement */
-                "--accent": "#9f1239",
+                "--accent": "#57534e",
                 "--accent-foreground": "#ffffff",
 
-                "--destructive": "#7f1d1d",
-                "--success": "#14532d",
-                "--warning": "#78350f",
+                "--destructive": "#ef4444",
+                "--success": "#10b981",
+                "--warning": "#f59e0b",
 
-                /* Better separation */
-                "--border": "#3a0a1a",
-                "--input": "#2f0012",
+                "--border": "#4a4441",
+                "--input": "#44403c",
 
-                "--ring": "#fb7185",
+                "--ring": "#f43f5e",
 
                 "--radius": "1rem",
 
-                /* Sidebar depth */
-                "--sidebar": "#1a0008",
-                "--sidebar-foreground": "#fff0f3",
-
-                "--sidebar-primary": "#fb7185",
-                "--sidebar-primary-foreground": "#140006",
-
-                "--sidebar-accent": "#3f0016",
-                "--sidebar-accent-foreground": "#fff0f3",
-
-                "--sidebar-border": "#3a0a1a",
-                "--sidebar-ring": "#fb7185",
+                "--sidebar": "#161412",
+                "--sidebar-foreground": "#fafaf9",
+                "--sidebar-primary": "#f43f5e",
+                "--sidebar-primary-foreground": "#ffffff",
+                "--sidebar-accent": "#44403c",
+                "--sidebar-accent-foreground": "#fafaf9",
+                "--sidebar-border": "#4a4441",
+                "--sidebar-ring": "#f43f5e",
             }
         }
     },
@@ -483,55 +484,49 @@ export const themeProfiles = {
                 "--sidebar-ring": "#8b5a2b",
             },
             dark: {
-                "--background": "#120409",
-                "--foreground": "#f5e6d3",
+                "--background": "#0f0905",
+                "--foreground": "#fff7ed",
 
-                /* Surface hierarchy */
-                "--card": "#241a12",
-                "--card-foreground": "#f5e6d3",
+                "--card": "#170e08",
+                "--card-foreground": "#fff7ed",
 
-                "--popover": "#2c2016",
-                "--popover-foreground": "#f5e6d3",
+                "--popover": "#1f130b",
+                "--popover-foreground": "#fff7ed",
 
-                /* Brand */
-                "--primary": "#b8823a",
-                "--primary-foreground": "#120409",
+                "--primary": "#fb923c", /* Orange 400 */
+                "--primary-foreground": "#0f0905",
 
-                /* Layers */
-                "--secondary": "#332415",
-                "--secondary-foreground": "#f5e6d3",
+                "--secondary": "#2b1a10",
+                "--secondary-foreground": "#fff7ed",
 
-                "--muted": "#2a1d12",
-                "--muted-foreground": "#b8956e",
+                "--muted": "#1f130b",
+                "--muted-foreground": "#fdba74",
 
-                /* Accent (slightly toned down for balance) */
-                "--accent": "#d97706",
-                "--accent-foreground": "#120409",
+                "--accent": "#432817",
+                "--accent-foreground": "#ffffff",
 
-                "--destructive": "#dc2626",
-                "--success": "#14532d",
-                "--warning": "#a16207",
+                "--destructive": "#ef4444",
+                "--success": "#4ade80",
+                "--warning": "#fcd34d",
 
-                /* Better separation */
-                "--border": "#3a281a",
-                "--input": "#2f2116",
+                "--border": "#3b2416",
+                "--input": "#2b1a10",
 
-                "--ring": "#b8823a",
+                "--ring": "#fb923c",
 
-                "--radius": "0.5rem",
+                "--radius": "1rem",
 
-                /* Sidebar depth */
-                "--sidebar": "#1a0b07",
-                "--sidebar-foreground": "#f5e6d3",
+                "--sidebar": "#120a06",
+                "--sidebar-foreground": "#fff7ed",
 
-                "--sidebar-primary": "#b8823a",
-                "--sidebar-primary-foreground": "#120409",
+                "--sidebar-primary": "#fb923c",
+                "--sidebar-primary-foreground": "#0f0905",
 
-                "--sidebar-accent": "#2e2015",
-                "--sidebar-accent-foreground": "#f5e6d3",
+                "--sidebar-accent": "#2b1a10",
+                "--sidebar-accent-foreground": "#fff7ed",
 
-                "--sidebar-border": "#3a281a",
-                "--sidebar-ring": "#b8823a",
+                "--sidebar-border": "#3b2416",
+                "--sidebar-ring": "#fb923c",
             }
         }
     },
@@ -659,54 +654,52 @@ export const themeProfiles = {
                 "--sidebar-ring": "#4a5568",
             },
             dark: {
+                /* Base */
                 "--background": "#0b0f14",
-                "--foreground": "#e2e8f0",
+                "--foreground": "#f1f5f9", /* Brightened slightly for better reading contrast */
 
-                /* Surface hierarchy */
-                "--card": "#141a23",
-                "--card-foreground": "#e2e8f0",
+                /* Surface hierarchy (Perfectly stepped lightness) */
+                "--card": "#11161d",
+                "--card-foreground": "#f1f5f9",
 
-                "--popover": "#18202b",
-                "--popover-foreground": "#e2e8f0",
+                "--popover": "#151b23",
+                "--popover-foreground": "#f1f5f9",
 
-                /* Brand (slightly more confident) */
-                "--primary": "#a5b4fc",
+                /* Brand */
+                "--primary": "#a5b4fc", /* Your original beautiful indigo */
                 "--primary-foreground": "#0b0f14",
 
-                /* Layers */
-                "--secondary": "#1f2937",
-                "--secondary-foreground": "#e2e8f0",
+                /* Layers & Interactive */
+                "--secondary": "#171f2a", /* Tinted blue-slate to match background */
+                "--secondary-foreground": "#f1f5f9",
 
-                "--muted": "#17202b",
-                "--muted-foreground": "#9aa4b2",
+                "--muted": "#151b23",
+                "--muted-foreground": "#8b96a5", /* Smoothed out */
 
-                /* Better interaction accent */
-                "--accent": "#64748b",
-                "--accent-foreground": "#e2e8f0",
+                /* Subtle hover accent */
+                "--accent": "#1c2532", /* Darkened for perfect row/menu hover states */
+                "--accent-foreground": "#f1f5f9",
 
-                "--destructive": "#dc2626",
-                "--success": "#16a34a",
-                "--warning": "#ca8a04",
+                /* Status (Adjusted to neon/pastel for dark mode pop) */
+                "--destructive": "#f87171",
+                "--success": "#4ade80",
+                "--warning": "#fbbf24",
 
-                /* Better separation */
-                "--border": "#263241",
-                "--input": "#1b2430",
-
+                /* Separation & Input */
+                "--border": "#212b36",
+                "--input": "#171f2a",
                 "--ring": "#a5b4fc",
 
                 "--radius": "0.375rem",
 
-                /* Sidebar depth */
-                "--sidebar": "#0e131a",
-                "--sidebar-foreground": "#e2e8f0",
-
+                /* Sidebar */
+                "--sidebar": "#090c10", /* Darker than base for depth */
+                "--sidebar-foreground": "#f1f5f9",
                 "--sidebar-primary": "#a5b4fc",
                 "--sidebar-primary-foreground": "#0b0f14",
-
-                "--sidebar-accent": "#1a2230",
-                "--sidebar-accent-foreground": "#e2e8f0",
-
-                "--sidebar-border": "#263241",
+                "--sidebar-accent": "#151b23",
+                "--sidebar-accent-foreground": "#f1f5f9",
+                "--sidebar-border": "#212b36",
                 "--sidebar-ring": "#a5b4fc",
             }
         }
@@ -820,6 +813,95 @@ export const themeProfiles = {
 
                 "--sidebar-border": "#22314d",
                 "--sidebar-ring": "#3b82f6",
+            }
+        }
+    },
+    [THEME_IDS.GRAPHITE_GOLD]: {
+        name: "Graphite Gold",
+        tier: "pro",
+        mode: {
+            light: {
+                "--background": "#ffffff",
+                "--foreground": "#121212",
+
+                "--card": "#ffffff",
+                "--card-foreground": "#121212",
+
+                "--popover": "#ffffff",
+                "--popover-foreground": "#121212",
+
+                "--primary": "#f59e0b", /* Amber 500 */
+                "--primary-foreground": "#121212", /* Dark text on gold buttons */
+
+                "--secondary": "#f4f4f5", /* Zinc 100 */
+                "--secondary-foreground": "#18181b",
+
+                "--muted": "#f4f4f5",
+                "--muted-foreground": "#71717a", /* Zinc 500 */
+
+                "--accent": "#e4e4e7", /* Zinc 200 */
+                "--accent-foreground": "#18181b",
+
+                "--destructive": "#dc2626",
+                "--success": "#16a34a",
+                "--warning": "#d97706",
+
+                "--border": "#e4e4e7",
+                "--input": "#e4e4e7",
+                "--ring": "#f59e0b",
+
+                "--radius": "1rem",
+
+                "--sidebar": "#fafafa", /* Very light gray sidebar */
+                "--sidebar-foreground": "#121212",
+                "--sidebar-primary": "#f59e0b",
+                "--sidebar-primary-foreground": "#121212",
+                "--sidebar-accent": "#f4f4f5",
+                "--sidebar-accent-foreground": "#18181b",
+                "--sidebar-border": "#e4e4e7",
+                "--sidebar-ring": "#f59e0b",
+            },
+            dark: {
+                "--background": "#121212",
+                "--foreground": "#f4f4f5",
+
+                "--card": "#18181b",
+                "--card-foreground": "#f4f4f5",
+
+                "--popover": "#1f1f22",
+                "--popover-foreground": "#f4f4f5",
+
+                "--primary": "#fbbf24", /* Amber/Gold 400 */
+                "--primary-foreground": "#121212",
+
+                "--secondary": "#27272a",
+                "--secondary-foreground": "#f4f4f5",
+
+                "--muted": "#1f1f22",
+                "--muted-foreground": "#a1a1aa",
+
+                "--accent": "#3f3f46",
+                "--accent-foreground": "#ffffff",
+
+                "--destructive": "#ef4444",
+                "--success": "#22c55e",
+                "--warning": "#f59e0b",
+
+                "--border": "#333338",
+                "--input": "#27272a",
+
+                "--ring": "#fbbf24",
+
+                "--radius": "1rem",
+
+                "--sidebar": "#0a0a0a",
+                "--sidebar-foreground": "#f4f4f5",
+                "--sidebar-primary": "#fbbf24",
+                "--sidebar-primary-foreground": "#121212",
+                "--sidebar-accent": "#27272a",
+                "--sidebar-accent-foreground": "#f4f4f5",
+                "--sidebar-border": "#333338",
+                "--sidebar-ring": "#fbbf24",
             }
         }
     }

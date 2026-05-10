@@ -322,11 +322,12 @@ const Appearance = () => {
                                                     ${themeOption.value === THEME_IDS.OCEAN_TEAL && 'bg-teal-500'}
                                                     ${themeOption.value === THEME_IDS.MIDNIGHT_VIOLET && 'bg-violet-950'}
                                                     ${themeOption.value === THEME_IDS.FOREST_AMBER && 'bg-linear-to-br from-amber-400 to-emerald-500'}
-                                                    ${themeOption.value === THEME_IDS.ROSE_QUARTZ && 'bg-rose-700'}
+                                                    ${themeOption.value === THEME_IDS.DUSTY_ROSE && 'bg-rose-700'}
                                                     ${themeOption.value === THEME_IDS.COFFEE && 'bg-amber-700'}
                                                     ${themeOption.value === THEME_IDS.SAKURA && 'bg-pink-400'}
                                                     ${themeOption.value === THEME_IDS.PLATINUM && 'bg-slate-400'}
                                                     ${themeOption.value === THEME_IDS.AZURE_BLUE && 'bg-blue-500'}
+                                                    ${themeOption.value === THEME_IDS.GRAPHITE_GOLD && 'bg-gradient-to-br from-amber-400 to-yellow-500'}
                                                 `}
                                             />
 

@@ -6,10 +6,11 @@ export const THEME_IDS = {
     OCEAN_TEAL: "ocean-teal",
     MIDNIGHT_VIOLET: "midnight-violet",
     FOREST_AMBER: "forest-amber",
-    ROSE_QUARTZ: "rose-quartz",
+    DUSTY_ROSE: "dusty-rose",
     COFFEE: "coffee",
     SAKURA: "sakura",
     AZURE_BLUE: "azure-blue",
+    GRAPHITE_GOLD: "graphite-gold"
 };
 
 export const THEME_MODES = {

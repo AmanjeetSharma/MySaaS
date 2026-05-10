@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
     Building2, Save, ArrowLeft, ShieldCheck,
     Users, Cpu, UserPlus, Zap, CheckCircle2,
@@ -245,7 +245,7 @@ export default function OrganizationDetails() {
                     <section>
                         <div className="mb-6 flex items-center gap-3">
                             <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10">
-                                <BsPlug className="h-4 w-4 text-primary" />
+                                <LayoutGrid className="h-4 w-4 text-primary" />
                             </div>
                             <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Integrations</h2>
                         </div>
@@ -255,34 +255,50 @@ export default function OrganizationDetails() {
                                 {
                                     name: 'Google Calendar',
                                     key: 'googleCalendar',
+                                    path: '/integrations/google-calendar',
                                     connected: organization.integrations?.googleCalendar?.isConnected
                                 },
                                 {
                                     name: 'WhatsApp Business',
                                     key: 'whatsapp',
+                                    path: '/integrations/whatsapp',
                                     connected: organization.integrations?.whatsapp?.isEnabled
                                 }
                             ].map((item) => (
-                                <div
+                                <Link
                                     key={item.key}
-                                    className="flex items-center justify-between rounded-2xl border border-border/40 bg-card p-4 hover:bg-muted/30 transition-all cursor-pointer group"
+                                    to={item.path}
+                                    className="flex items-center justify-between rounded-2xl border border-border/40 bg-card p-4 transition-all active:scale-[0.98] hover:bg-muted/30 hover:border-primary/30 group"
                                 >
                                     <div className="flex items-center gap-3">
-
                                         {/* ICON STATE */}
-                                        {item.connected ? (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/30" />
-                                        ) : (
-                                            <Circle className="h-4 w-4 text-muted-foreground/30" />
-                                        )}
+                                        <div className="relative flex items-center justify-center">
+                                            {item.connected ? (
+                                                <>
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/10" />
+                                                </>
+                                            ) : (
+                                                <Circle className="h-4 w-4 text-muted-foreground/30" />
+                                            )}
+                                        </div>
 
-                                        <span className="text-xs font-bold tracking-tight">
-                                            {item.name}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold tracking-tight">
+                                                {item.name}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground font-medium">
+                                                {item.connected ? 'Connected' : 'Not Configured'}
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:translate-x-1 transition-transform" />
-                                </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+                                            Configure
+                                        </span>
+                                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </Link>
                             ))}
                         </div>
                     </section>

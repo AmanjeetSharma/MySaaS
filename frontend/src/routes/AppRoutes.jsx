@@ -28,8 +28,8 @@ import AnalyticsConversion from '@/pages/analytics/AnalyticsConversion';
 
 
 // Service imports
-import AllServices from '@/pages/services/AllServices';
-import Availability from '@/pages/services/Availability';
+import AllServices from '@/pages/organization/services/AllServices';
+import Availability from '@/pages/organization/services/Availability';
 
 // Customer imports
 import Customers from '@/pages/customers/Customers';
@@ -51,6 +51,10 @@ import Appearance from '@/pages/settings/system/Appearance';
 import Preferences from '@/pages/settings/system/Preferences';
 import Security from '@/pages/settings/account/Security';
 import ChangePassword from '@/pages/settings/account/ChangePassword';
+
+// Integrations imports
+import GoogleCalendar from '@/pages/organization/integrations/GoogleCalendar';
+import WhatsApp from '@/pages/organization/integrations/WhatsApp';
 
 // Notifications imports
 import Notifications from '@/pages/notifications/Notifications';
@@ -103,6 +107,10 @@ export const AppRoutes = () => {
 
                     {/* Bookings Route */}
                     <Route path="/bookings" element={<Bookings />} />
+
+                    {/* Integrations Routes */}
+                    <Route path="/integrations/google-calendar" element={<GoogleCalendar />} />
+                    <Route path="/integrations/whatsapp" element={<WhatsApp />} />
 
                     {/* Reminder Route */}
                     <Route path="/reminders" element={<Reminder />} />

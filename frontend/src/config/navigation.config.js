@@ -6,22 +6,22 @@ import {
     Shield,
     CheckCircle2,
     Star,
-    SettingsIcon,
-    AlertCircle,
     Building2,
     Palette,
     Sliders,
     Settings,
     UserCircle,
-    LifeBuoy,
     TrendingUp,
     TrendingDown,
-    UserStar ,
+    UserStar,
     Bell,
     Info,
-    BookOpen ,
-    Handshake ,
-    CircleQuestionMark 
+    Plug,
+    CalendarDays,
+    MessageCircle,
+    BookOpen,
+    Handshake,
+    CircleQuestionMark
 } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
@@ -76,13 +76,13 @@ export const useNavigationConfig = () => {
             },
             {
                 title: "Services",
-                icon: Briefcase ,
+                icon: Briefcase,
                 items: [
                     {
                         title: "All Services",
                         href: "/services/all",
-                        icon: Briefcase 
-                    },                    {
+                        icon: Briefcase
+                    }, {
                         title: "Availability / Slots",
                         href: "/services/availability",
                         icon: Clock
@@ -92,12 +92,12 @@ export const useNavigationConfig = () => {
             {
                 title: "Customers",
                 href: "/customers",
-                icon: UserStar ,
+                icon: UserStar,
                 items: []
             },
             {
                 title: "Deals",
-                icon: Handshake ,
+                icon: Handshake,
                 items: [
                     {
                         title: "Active Deals",
@@ -119,8 +119,24 @@ export const useNavigationConfig = () => {
             {
                 title: "Bookings",
                 href: "/bookings",
-                icon: BookOpen ,
+                icon: BookOpen,
                 items: []
+            },
+            {
+                title: "Integrations",
+                icon: Plug,
+                items: [
+                    {
+                        title: "Google Calendar",
+                        href: "/integrations/google-calendar",
+                        icon: CalendarDays
+                    },
+                    {
+                        title: "WhatsApp",
+                        href: "/integrations/whatsapp",
+                        icon: MessageCircle
+                    },
+                ]
             },
             {
                 title: "Notifications",
@@ -131,7 +147,7 @@ export const useNavigationConfig = () => {
             {
                 title: "Support",
                 href: "/support",
-                icon: CircleQuestionMark ,
+                icon: CircleQuestionMark,
                 items: []
             },
             {
