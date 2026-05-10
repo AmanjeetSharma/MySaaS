@@ -1,9 +1,13 @@
 export const PLAN_CONFIG = {
     free: {
         name: "Free",
-        maxUsers: 1,
-        maxCustomers: 50,
-        aiCredits: 0,
+
+        limits: {
+            maxMembers: 3,
+            maxCustomers: 50,
+            aiCredits: 5,
+        },
+
         features: {
             aiAssistance: false,
             googleCalendar: false,
@@ -12,20 +16,28 @@ export const PLAN_CONFIG = {
 
     pro: {
         name: "Pro",
-        maxUsers: 5,
-        maxCustomers: 1000,
-        aiCredits: 50,
+
+        limits: {
+            maxMembers: 10,
+            maxCustomers: 1000,
+            aiCredits: 50,
+        },
+
         features: {
-            aiAssistance: false,    
+            aiAssistance: false,
             googleCalendar: true,
         },
     },
 
     elite: {
         name: "Elite",
-        maxUsers: 999, // avoid Infinity for safety
-        maxCustomers: 10000,
-        aiCredits: 500,
+
+        limits: {
+            maxMembers: 999,//avoiding using Infinity for safety in calculations
+            maxCustomers: 99999,
+            aiCredits: 500,
+        },
+
         features: {
             aiAssistance: true,
             googleCalendar: true,

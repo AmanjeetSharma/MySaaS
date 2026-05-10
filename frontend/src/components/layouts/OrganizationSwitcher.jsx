@@ -3,19 +3,15 @@
 import {
   useEffect,
   useMemo,
-  useState,
 } from 'react';
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import * as Dialog from '@radix-ui/react-dialog';
 
 import {
   Building2,
   Check,
   ChevronDown,
   Loader2,
-  Plus,
-  Shield,
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -40,7 +36,6 @@ export function OrganizationSwitcher() {
 
     getOrganizations,
     switchOrganization,
-    createOrganization,
 
     setCurrentOrganization,
     getAllOrganizations,
@@ -53,12 +48,6 @@ export function OrganizationSwitcher() {
 
   const isMobile = useIsMobile();
 
-  const [isCreateOpen, setIsCreateOpen] =
-    useState(false);
-
-  const [newOrgName, setNewOrgName] =
-    useState('');
-
   // =========================================================
   // DERIVED STATE
   // =========================================================
@@ -70,12 +59,6 @@ export function OrganizationSwitcher() {
 
   const activeOrganizationId =
     userProfile?.activeOrganization;
-
-  const hasOrganizations =
-    organizations.length > 0;
-
-  const canCreateOrganization =
-    !ownedOrganization;
 
   // =========================================================
   // INITIAL FETCH
@@ -93,7 +76,7 @@ export function OrganizationSwitcher() {
   }, []);
 
   // =========================================================
-  // HYDRATE CURRENT ORG
+  // HYDRATE ACTIVE ORG
   // =========================================================
 
   useEffect(() => {
@@ -157,8 +140,6 @@ export function OrganizationSwitcher() {
 
       await switchOrganization(orgId);
 
-      // IMPORTANT:
-      // backend is source of truth
       await getUserProfile();
 
       toast.success(
@@ -170,42 +151,6 @@ export function OrganizationSwitcher() {
           ?.message ||
         error.message ||
         'Failed to switch organization'
-      );
-    }
-  };
-
-  // =========================================================
-  // CREATE
-  // =========================================================
-
-  const handleCreate = async () => {
-    if (!newOrgName.trim()) {
-      toast.error(
-        'Workspace name is required'
-      );
-      return;
-    }
-
-    try {
-      const organization =
-        await createOrganization(
-          newOrgName
-        );
-
-      await getUserProfile();
-
-      setNewOrgName('');
-      setIsCreateOpen(false);
-
-      toast.success(
-        `"${organization.name}" created`
-      );
-    } catch (error) {
-      toast.error(
-        error?.response?.data
-          ?.message ||
-        error.message ||
-        'Failed to create organization'
       );
     }
   };
@@ -235,35 +180,19 @@ export function OrganizationSwitcher() {
   // EMPTY STATE
   // =========================================================
 
-  if (!hasOrganizations) {
+  if (organizations.length === 0) {
     return (
-      <>
-        <button
-          onClick={() =>
-            setIsCreateOpen(true)
-          }
-          className="
-            flex h-10 items-center gap-2
-            rounded-xl bg-primary px-4
-            text-sm font-medium
-            text-primary-foreground
-          "
-        >
-          <Plus className="h-4 w-4" />
-
-          {!isMobile &&
-            'Create Workspace'}
-        </button>
-
-        <CreateOrganizationDialog
-          open={isCreateOpen}
-          setOpen={setIsCreateOpen}
-          value={newOrgName}
-          setValue={setNewOrgName}
-          onSubmit={handleCreate}
-          loading={isUpdating}
-        />
-      </>
+      <div
+        className="
+          flex h-10 items-center gap-2
+          rounded-xl border border-dashed
+          border-border/60 px-3
+          text-sm text-muted-foreground
+        "
+      >
+        <Building2 className="h-4 w-4" />
+        {!isMobile && 'No Workspace'}
+      </div>
     );
   }
 
@@ -272,313 +201,196 @@ export function OrganizationSwitcher() {
   // =========================================================
 
   return (
-    <>
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger asChild>
-          <button
-            className={cn(
-              `
-                group flex items-center
-                justify-between
-                transition-all
-                hover:bg-accent/50
-              `,
-              isMobile
-                ? `
-                    h-10 w-10 rounded-xl
-                    border border-border/50
-                    bg-card
-                  `
-                : `
-                    h-11 min-w-[230px]
-                    rounded-2xl border
-                    border-border/50
-                    bg-card px-3
-                  `
-            )}
-          >
-            {isMobile ? (
-              <Building2 className="mx-auto h-4 w-4 text-primary" />
-            ) : (
-              <>
-                <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className="
-                      flex h-8 w-8
-                      items-center justify-center
-                      rounded-xl bg-primary/10
-                    "
-                  >
-                    <Building2 className="h-4 w-4 text-primary" />
-                  </div>
-
-                  <div className="min-w-0 text-left">
-                    <p className="truncate text-sm font-medium">
-                      {
-                        currentOrganization?.name
-                      }
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      {isOwner(
-                        currentOrganization?._id
-                      )
-                        ? 'Owner'
-                        : 'Member'}
-                    </p>
-                  </div>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <button
+          className={cn(
+            `
+              group flex items-center
+              justify-between
+              transition-all
+              hover:bg-accent/50
+            `,
+            isMobile
+              ? `
+                  h-10 w-10 rounded-xl
+                  border border-border/50
+                  bg-card
+                `
+              : `
+                  h-11 min-w-57.5
+                  rounded-sm border
+                  border-border/50
+                  bg-card px-3
+                `
+          )}
+        >
+          {isMobile ? (
+            <Building2 className="mx-auto h-4 w-4 text-primary" />
+          ) : (
+            <>
+              <div className="flex min-w-0 items-center gap-3">
+                <div
+                  className="
+                    flex h-8 w-8
+                    items-center justify-center
+                    rounded-xl bg-primary/10
+                  "
+                >
+                  <Building2 className="h-4 w-4 text-primary" />
                 </div>
 
-                <ChevronDown
-                  className="
-                    h-4 w-4 shrink-0
-                    text-muted-foreground
-                  "
-                />
-              </>
-            )}
-          </button>
-        </DropdownMenu.Trigger>
+                <div className="min-w-0 text-left">
+                  <p className="truncate text-sm font-medium">
+                    {
+                      currentOrganization?.name
+                    }
+                  </p>
 
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content
-            sideOffset={8}
-            align="end"
-            className="
-              z-50 w-[320px]
-              overflow-hidden rounded-2xl
-              border border-border/50
-              bg-popover p-2 shadow-xl
-            "
-          >
-            <div className="mb-2 px-2 pt-1">
-              <p
+                  <p className="text-xs text-muted-foreground">
+                    {isOwner(
+                      currentOrganization?._id
+                    )
+                      ? 'Primary Workspace'
+                      : 'Shared Workspace'}
+                  </p>
+                </div>
+              </div>
+
+              <ChevronDown
                 className="
-                  text-[11px]
-                  font-semibold uppercase
-                  tracking-wider
+                  h-4 w-4 shrink-0
                   text-muted-foreground
                 "
-              >
-                Workspaces
-              </p>
-            </div>
+              />
+            </>
+          )}
+        </button>
+      </DropdownMenu.Trigger>
 
-            <div className="space-y-1">
-              {organizations.map((org) => {
-                const active =
-                  currentOrganization?._id ===
-                  org._id;
-
-                const owner =
-                  isOwner(org._id);
-
-                return (
-                  <DropdownMenu.Item
-                    key={org._id}
-                    asChild
-                  >
-                    <button
-                      onClick={() =>
-                        handleSwitch(org._id)
-                      }
-                      className={cn(
-                        `
-                          flex w-full items-center
-                          gap-3 rounded-xl
-                          px-3 py-3 text-left
-                          transition-all
-                          hover:bg-accent/60
-                        `,
-                        active &&
-                        'bg-primary/5'
-                      )}
-                    >
-                      <div
-                        className="
-                          flex h-9 w-9
-                          items-center justify-center
-                          rounded-xl bg-primary/10
-                        "
-                      >
-                        <Building2
-                          className="
-                            h-4 w-4 text-primary
-                          "
-                        />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-medium">
-                            {org.name}
-                          </p>
-
-                          {owner && (
-                            <div
-                              className="
-                                flex items-center gap-1
-                                rounded-md bg-primary/10
-                                px-1.5 py-0.5
-                                text-[10px]
-                                font-medium text-primary
-                              "
-                            >
-                              <Shield className="h-3 w-3" />
-                              Owner
-                            </div>
-                          )}
-                        </div>
-
-                        <p
-                          className="
-                            mt-0.5 text-xs
-                            text-muted-foreground
-                          "
-                        >
-                          {owner
-                            ? 'Primary workspace'
-                            : 'Shared workspace'}
-                        </p>
-                      </div>
-
-                      {active && (
-                        <div
-                          className="
-                            flex h-5 w-5
-                            items-center justify-center
-                            rounded-full
-                            bg-primary/10
-                          "
-                        >
-                          <Check className="h-3 w-3 text-primary" />
-                        </div>
-                      )}
-                    </button>
-                  </DropdownMenu.Item>
-                );
-              })}
-            </div>
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
-
-      <CreateOrganizationDialog
-        open={isCreateOpen}
-        setOpen={setIsCreateOpen}
-        value={newOrgName}
-        setValue={setNewOrgName}
-        onSubmit={handleCreate}
-        loading={isUpdating}
-      />
-    </>
-  );
-}
-
-function CreateOrganizationDialog({
-  open,
-  setOpen,
-  value,
-  setValue,
-  onSubmit,
-  loading,
-}) {
-  return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <Dialog.Portal>
-        <Dialog.Overlay
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          sideOffset={8}
+          align="end"
           className="
-            fixed inset-0 z-50
-            bg-black/50 backdrop-blur-sm
-          "
-        />
-
-        <Dialog.Content
-          className="
-            fixed left-1/2 top-1/2 z-50
-            w-[92vw] max-w-md
-            -translate-x-1/2 -translate-y-1/2
-            rounded-3xl border border-border/50
-            bg-card p-6 shadow-2xl
+            z-50 w-[320px]
+            overflow-hidden rounded-2xl
+            border border-border/50
+            bg-popover p-2 shadow-xl
           "
         >
-          <div className="space-y-6">
-            <div className="space-y-1">
-              <Dialog.Title
-                className="
-                  text-xl font-semibold
-                "
-              >
-                Create workspace
-              </Dialog.Title>
-
-              <Dialog.Description
-                className="
-                  text-sm text-muted-foreground
-                "
-              >
-                Create your organization
-              </Dialog.Description>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="
-                  text-sm font-medium
-                "
-              >
-                Workspace name
-              </label>
-
-              <input
-                value={value}
-                onChange={(e) =>
-                  setValue(e.target.value)
-                }
-                onKeyDown={(e) =>
-                  e.key === 'Enter' &&
-                  onSubmit()
-                }
-                placeholder="Acme Inc."
-                className="
-                  h-11 w-full rounded-xl
-                  border border-border/60
-                  bg-background px-4
-                  text-sm outline-none
-                  focus:border-primary/40
-                "
-              />
-            </div>
-
-            <button
-              onClick={onSubmit}
-              disabled={loading}
+          <div className="mb-2 px-2 pt-1">
+            <p
               className="
-                flex h-11 w-full items-center
-                justify-center gap-2
-                rounded-xl bg-primary
-                text-sm font-medium
-                text-primary-foreground
+                text-[11px]
+                font-semibold uppercase
+                tracking-wider
+                text-muted-foreground
               "
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" />
-                  Create Workspace
-                </>
-              )}
-            </button>
+              Workspaces
+            </p>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+
+          <div className="space-y-1">
+            {organizations.map((org) => {
+              const active =
+                currentOrganization?._id ===
+                org._id;
+
+              const owner =
+                isOwner(org._id);
+
+              return (
+                <DropdownMenu.Item
+                  key={org._id}
+                  asChild
+                >
+                  <button
+                    onClick={() =>
+                      handleSwitch(org._id)
+                    }
+                    disabled={
+                      isUpdating
+                    }
+                    className={cn(
+                      `
+                        flex w-full items-center
+                        gap-3 rounded-xl
+                        px-3 py-3 text-left
+                        transition-all
+                        hover:bg-accent/60
+                      `,
+                      active &&
+                      'bg-primary/5'
+                    )}
+                  >
+                    <div
+                      className="
+                        flex h-9 w-9
+                        items-center justify-center
+                        rounded-xl bg-primary/10
+                      "
+                    >
+                      <Building2
+                        className="
+                          h-4 w-4 text-primary
+                        "
+                      />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium">
+                          {org.name}
+                        </p>
+
+                        {owner && (
+                          <div
+                            className="
+                              flex items-center gap-1
+                              rounded-sm bg-primary/10
+                              px-1.5 py-0.5
+                              text-[10px]
+                              font-medium text-primary
+                            "
+                          >
+                            Owner
+                          </div>
+                        )}
+                      </div>
+
+                      <p
+                        className="
+                          mt-0.5 text-xs
+                          text-muted-foreground
+                        "
+                      >
+                        {owner
+                          ? 'Primary workspace'
+                          : 'Shared workspace'}
+                      </p>
+                    </div>
+
+                    {active && (
+                      <div
+                        className="
+                          flex h-5 w-5
+                          items-center justify-center
+                          rounded-full
+                          bg-primary/10
+                        "
+                      >
+                        <Check className="h-3 w-3 text-primary" />
+                      </div>
+                    )}
+                  </button>
+                </DropdownMenu.Item>
+              );
+            })}
+          </div>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }

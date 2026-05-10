@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/collapsible';
 import { navigationConfig } from '@/config/navigation.config';
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/stores';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronRight, PanelRightClose, PanelLeftClose } from 'lucide-react';

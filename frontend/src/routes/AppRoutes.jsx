@@ -17,7 +17,9 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 import Dashboard from '@/pages/dashboard/Dashboard';
 
 // Organization imports
-import Organization from '@/pages/organization/Organization';
+import Organizations from '@/pages/organization/Organizations';
+import OrganizationDetails from '@/pages/organization/OrganizationDetails';
+import Members from '@/pages/organization/Members';
 
 // Analytics imports
 import AnalyticsBookings from '@/pages/analytics/AnalyticsBookings';
@@ -77,7 +79,9 @@ export const AppRoutes = () => {
                     <Route path="/dashboard" element={<Dashboard />} />
 
                     {/* Organization Route */}
-                    <Route path="/organization" element={<Organization />} />
+                    <Route path="/organization/manage" element={<Organizations />} />
+                    <Route path="/organization/:orgId" element={<OrganizationDetails />} />
+                    <Route path="/organization/:orgId/members" element={<Members />} />
 
                     {/* Service Routes */}
                     <Route path="/services/all" element={<AllServices />} />

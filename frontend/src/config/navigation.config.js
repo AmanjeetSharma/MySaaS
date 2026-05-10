@@ -35,7 +35,17 @@ export const navigationConfig = {
             title: "Organization",
             href: "/organization",
             icon: Building2,
-            items: []
+            items: [
+                {
+                    title: "Manage Organization",
+                    href: "/organization/manage",
+                },
+                {
+                    title: "Members",
+                    href: "/organization/:orgId/members",
+                },
+
+            ]
         },
         {
             title: "Services",

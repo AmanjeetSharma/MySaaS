@@ -179,6 +179,8 @@ export const deleteOrganizationService = async (userId, orgId) => {
 
         await session.commitTransaction();
 
+        console.log(`Organization ${org.name} (ID: ${org._id}) deleted by user ID: ${userId}`);
+
         return {
             success: true,
             message: "Organization deleted successfully"
@@ -226,6 +228,8 @@ export const switchOrganizationService = async (userId, orgId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
+
+    console.log(`User ${user.email} switched active organization to ${user.activeOrganization}`);
 
     return {
         success: true,
