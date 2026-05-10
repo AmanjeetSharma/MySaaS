@@ -79,9 +79,9 @@ export const AppRoutes = () => {
                     <Route path="/dashboard" element={<Dashboard />} />
 
                     {/* Organization Route */}
-                    <Route path="/organization/manage" element={<Organizations />} />
-                    <Route path="/organization/:orgId" element={<OrganizationDetails />} />
-                    <Route path="/organization/:orgId/members" element={<Members />} />
+                    <Route path="/organizations" element={<Organizations />} />
+                    <Route path="/organizations/:orgId" element={<OrganizationDetails />} />
+                    <Route path="/organizations/:orgId/members" element={<Members />} />
 
                     {/* Service Routes */}
                     <Route path="/services/all" element={<AllServices />} />

@@ -11,7 +11,7 @@ import {
     unsetActiveOrganizationForUsers,
     findOrganizationsByUserId
 } from "./organization.repository.js";
-
+import { getOrganizationMeta } from "./organization.helper.js";
 
 
 
@@ -111,7 +111,10 @@ export const getOrganizationService = async (orgId, userId) => {
         throw new ApiError(404, "Organization not found");
     }
 
-    return org;
+    return {
+        ...org.toObject(),
+        meta: getOrganizationMeta(org)
+    };
 };
 
 

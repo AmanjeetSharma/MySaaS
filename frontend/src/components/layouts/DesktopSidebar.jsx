@@ -9,7 +9,6 @@ import {
     SidebarMenuButton,
     SidebarHeader,
     SidebarFooter,
-    SidebarTrigger,
     useSidebar,
 } from '@/components/ui/sidebar';
 import {
@@ -17,41 +16,96 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { navigationConfig } from '@/config/navigation.config';
+import { useNavigationConfig } from '@/config/navigation.config';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronRight, PanelRightClose, PanelLeftClose } from 'lucide-react';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
+} from '@/components/ui/tooltip';
+import {
+    ChevronRight,
+    PanelRightClose,
+    PanelLeftClose
+} from 'lucide-react';
 
 export function DesktopSidebar() {
     const location = useLocation();
     const { state, toggleSidebar } = useSidebar();
+    const navigationConfig = useNavigationConfig();
     const [openMenus, setOpenMenus] = useState({});
 
-    // Auto-close all menus when sidebar is collapsed
+    // Auto close menus when collapsed
     useEffect(() => {
         if (state === "collapsed") {
             setOpenMenus({});
         }
     }, [state]);
 
+    // Auto-open parent menu if child is active
+    useEffect(() => {
+        navigationConfig.mainNav.forEach((item) => {
+            if (item.items && item.items.some(subItem => isItemActive(subItem))) {
+                setOpenMenus(prev => ({ ...prev, [item.title]: true }));
+            }
+        });
+    }, [location.pathname]);
+
     const toggleMenu = (title) => {
         if (state !== "collapsed") {
-            setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
+            setOpenMenus(prev => ({
+                ...prev,
+                [title]: !prev[title]
+            }));
         }
     };
 
-    const isActive = (href) => {
-        if (!href) return false;
-        if (href === '/dashboard') {
-            return location.pathname === href;
+    const isActive = (item) => {
+        if (!item.href) return false;
+
+        // Exact match for dashboard or items with exactMatch flag
+        if (item.exactMatch || item.href === '/dashboard') {
+            return location.pathname === item.href;
         }
-        return location.pathname.startsWith(href);
+
+        // Pattern-based matching for nested org routes
+        if (item.pattern) {
+            const patternParts = item.pattern.split('/');
+            const pathParts = location.pathname.split('/');
+
+            if (patternParts.length !== pathParts.length) return false;
+
+            return patternParts.every((part, i) => {
+                if (part.startsWith(':')) return true; // Dynamic segment
+                return part === pathParts[i];
+            });
+        }
+
+        // For non-organization nested routes
+        if (location.pathname === item.href) return true;
+
+        // Check if current path is a direct child of this item's href
+        const childPatterns = navigationConfig.mainNav
+            .flatMap(nav => nav.items || [])
+            .filter(sub => sub.href && sub.href.startsWith(item.href + '/'))
+            .map(sub => sub.href);
+
+        if (childPatterns.length > 0) {
+            return location.pathname === item.href;
+        }
+
+        return location.pathname.startsWith(item.href);
     };
 
     const isItemActive = (item) => {
-        if (item.href) return isActive(item.href);
-        if (item.items) return item.items.some(subItem => isActive(subItem.href));
+        if (item.href) {
+            return isActive(item);
+        }
+        if (item.items) {
+            return item.items.some(subItem => isActive(subItem));
+        }
         return false;
     };
 
@@ -72,10 +126,13 @@ export function DesktopSidebar() {
                 '--sidebar-width': '16rem'
             }}
         >
-            <SidebarHeader className={cn(
-                "flex h-16 items-center border-b border-border/50 px-4",
-                isCollapsed ? "justify-center" : "justify-end"
-            )}>
+            {/* Header */}
+            <SidebarHeader
+                className={cn(
+                    "flex h-16 items-center border-b border-border/50 px-4",
+                    isCollapsed ? "justify-center" : "justify-end"
+                )}
+            >
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -100,6 +157,7 @@ export function DesktopSidebar() {
                 </TooltipProvider>
             </SidebarHeader>
 
+            {/* Content */}
             <SidebarContent className="py-4">
                 <SidebarGroup>
                     <SidebarGroupContent>
@@ -118,7 +176,8 @@ export function DesktopSidebar() {
                                                     onClick={handleNavClick}
                                                     className={cn(
                                                         "h-11 w-full justify-between transition-all duration-200",
-                                                        isItemActive(item) && "bg-accent text-accent-foreground font-medium"
+                                                        isItemActive(item) &&
+                                                        "bg-accent text-accent-foreground font-medium"
                                                     )}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -150,7 +209,8 @@ export function DesktopSidebar() {
                                                                         tooltip={subItem.title}
                                                                         className={cn(
                                                                             "h-10 w-full transition-all duration-200",
-                                                                            isActive(subItem.href) && "bg-accent/50 text-accent-foreground font-medium"
+                                                                            isActive(subItem) &&
+                                                                            "bg-accent/50 text-accent-foreground font-medium"
                                                                         )}
                                                                     >
                                                                         <div className="flex items-center gap-3">
@@ -172,7 +232,8 @@ export function DesktopSidebar() {
                                                 onClick={handleNavClick}
                                                 className={cn(
                                                     "h-11 w-full transition-all duration-200",
-                                                    isActive(item.href) && "bg-accent text-accent-foreground font-medium shadow-sm"
+                                                    isActive(item) &&
+                                                    "bg-accent text-accent-foreground font-medium shadow-sm"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -194,6 +255,7 @@ export function DesktopSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
+            {/* Footer */}
             <SidebarFooter className="border-t border-border/50 p-3">
                 <div className={cn(
                     "text-xs text-muted-foreground",

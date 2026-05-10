@@ -26,7 +26,7 @@ const memberSchema = new Schema({
 const subscriptionSchema = new Schema({
     plan: {
         type: String,
-        enum: ["free", "pro", "elite"],
+        enum: ["free", "pro"],
         default: "free",
     },
     status: {
@@ -57,6 +57,21 @@ const integrationsSchema = new Schema({
     }
 }, { _id: false });
 
+const usageSchema = new Schema({
+    aiCreditsUsed: {
+        type: Number,
+        default: 0,
+    },
+    customerCount: {
+        type: Number,
+        default: 0,
+    },
+    memberCount: {
+        type: Number,
+        default: 0,
+    }
+}, { _id: false });
+
 const organizationSchema = new Schema(
     {
         name: {
@@ -79,12 +94,7 @@ const organizationSchema = new Schema(
 
         integrations: { type: integrationsSchema, default: {} },
 
-        usage: {
-            aiCreditsUsed: {
-                type: Number,
-                default: 0
-            },
-        }
+        usage: { type: usageSchema, default: {} },
 
     },
     { timestamps: true }

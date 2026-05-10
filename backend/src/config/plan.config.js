@@ -1,7 +1,6 @@
 export const PLAN_CONFIG = {
     free: {
         name: "Free",
-
         limits: {
             maxMembers: 3,
             maxCustomers: 50,
@@ -10,32 +9,16 @@ export const PLAN_CONFIG = {
 
         features: {
             aiAssistance: false,
-            googleCalendar: false,
+            googleCalendar: true,
         },
     },
 
     pro: {
         name: "Pro",
-
         limits: {
             maxMembers: 10,
             maxCustomers: 1000,
-            aiCredits: 50,
-        },
-
-        features: {
-            aiAssistance: false,
-            googleCalendar: true,
-        },
-    },
-
-    elite: {
-        name: "Elite",
-
-        limits: {
-            maxMembers: 999,//avoiding using Infinity for safety in calculations
-            maxCustomers: 99999,
-            aiCredits: 500,
+            aiCredits: 100,
         },
 
         features: {
@@ -43,4 +26,21 @@ export const PLAN_CONFIG = {
             googleCalendar: true,
         },
     },
+
+    // 
+
+    // elite: {
+    //     name: "Elite",
+
+    //     limits: {
+    //         maxMembers: 1000,//avoiding using Infinity for safety in calculations
+    //         maxCustomers: 100000,
+    //         aiCredits: 1000,
+    //     },
+
+    //     features: {
+    //         aiAssistance: true,
+    //         googleCalendar: true,
+    //     },
+    // },
 };

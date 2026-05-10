@@ -76,7 +76,7 @@ const OrganizationCard = ({
 
       <div className="mt-6 flex items-center gap-2">
         <Link
-          to={`/organization/${org._id}`}
+          to={`/organizations/${org._id}`}
           onClick={(e) => e.stopPropagation()}
           className="flex h-10 flex-1 items-center justify-center rounded-xl bg-secondary text-sm font-medium transition-colors hover:bg-secondary/80"
         >
