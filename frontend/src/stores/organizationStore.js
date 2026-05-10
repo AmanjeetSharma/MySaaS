@@ -1,165 +1,237 @@
+// organizationStore.js
+
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
 
 export const useOrganizationStore = create((set, get) => ({
-    // State
-    organizations: [],
+    // =========================================================
+    // STATE
+    // =========================================================
+
+    ownedOrganization: null,
+    memberOrganizations: [],
     currentOrganization: null,
+
     isLoading: false,
-    error: null,
     isUpdating: false,
+    error: null,
 
-    // Organization CRUD Actions
-    createOrganization: async (orgName) => {
-        set({ isUpdating: true, error: null });
-        try {
-            const response = await http.post('/organizations', { orgName });
-            const { data } = response.data;
+    // =========================================================
+    // HELPERS
+    // =========================================================
 
-            // Add new organization to list and set as current
-            set({
-                organizations: [data, ...get().organizations],
-                currentOrganization: data,
-                isUpdating: false,
-                error: null
-            });
+    getAllOrganizations: () => {
+        const {
+            ownedOrganization,
+            memberOrganizations,
+        } = get();
 
-            return data;
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to create organization';
-            set({ isUpdating: false, error: errorMessage });
-            throw error;
-        }
+        return [
+            ...(ownedOrganization
+                ? [ownedOrganization]
+                : []),
+            ...memberOrganizations,
+        ];
     },
+
+    getOrganizationById: (orgId) => {
+        return (
+            get()
+                .getAllOrganizations()
+                .find(
+                    (org) =>
+                        org._id === orgId
+                ) || null
+        );
+    },
+
+    hasOwnedOrganization: () => {
+        return !!get().ownedOrganization;
+    },
+
+    // =========================================================
+    // GET ORGANIZATIONS
+    // =========================================================
 
     getOrganizations: async () => {
-        set({ isLoading: true, error: null });
+        set({
+            isLoading: true,
+            error: null,
+        });
+
         try {
-            const response = await http.get('/organizations');
-            const { data } = response.data;
+            const response =
+                await http.get(
+                    '/organizations'
+                );
+
+            const { data } =
+                response.data;
 
             set({
-                organizations: data,
+                ownedOrganization:
+                    data?.ownedOrganization ||
+                    null,
+
+                memberOrganizations:
+                    data?.memberOrganizations ||
+                    [],
+
+                // IMPORTANT:
+                // current org is controlled
+                // by user.activeOrganization
+                // NOT auto guessed here
                 isLoading: false,
-                error: null
+                error: null,
             });
 
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch organizations';
-            set({ isLoading: false, error: errorMessage });
+            const errorMessage =
+                error.response?.data
+                    ?.message ||
+                'Failed to fetch organizations';
+
+            set({
+                isLoading: false,
+                error: errorMessage,
+            });
+
             throw error;
         }
     },
 
-    getOrganization: async (orgId) => {
-        set({ isLoading: true, error: null });
+    // =========================================================
+    // CREATE ORGANIZATION
+    // =========================================================
+
+    createOrganization: async (
+        orgName
+    ) => {
+        set({
+            isUpdating: true,
+            error: null,
+        });
+
         try {
-            const response = await http.get(`/organizations/${orgId}`);
-            const { data } = response.data;
+            const response =
+                await http.post(
+                    '/organizations',
+                    {
+                        orgName,
+                    }
+                );
+
+            const { data } =
+                response.data;
 
             set({
+                ownedOrganization: data,
                 currentOrganization: data,
-                isLoading: false,
-                error: null
+
+                isUpdating: false,
+                error: null,
             });
 
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch organization';
-            set({ isLoading: false, error: errorMessage });
-            throw error;
-        }
-    },
-
-    updateOrganization: async (orgId, orgName) => {
-        set({ isUpdating: true, error: null });
-        try {
-            const response = await http.patch(`/organizations/${orgId}`, { orgName });
-            const { data } = response.data;
-
-            // Update organization in list
-            const updatedOrganizations = get().organizations.map(org =>
-                org._id === orgId ? data : org
-            );
+            const errorMessage =
+                error.response?.data
+                    ?.message ||
+                'Failed to create organization';
 
             set({
-                organizations: updatedOrganizations,
-                currentOrganization: get().currentOrganization?._id === orgId ? data : get().currentOrganization,
                 isUpdating: false,
-                error: null
+                error: errorMessage,
             });
 
-            return data;
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to update organization';
-            set({ isUpdating: false, error: errorMessage });
             throw error;
         }
     },
 
-    deleteOrganization: async (orgId) => {
-        set({ isUpdating: true, error: null });
+    // =========================================================
+    // SWITCH ORGANIZATION
+    // =========================================================
+
+    switchOrganization: async (
+        orgId
+    ) => {
+        set({
+            isUpdating: true,
+            error: null,
+        });
+
         try {
-            await http.delete(`/organizations/${orgId}`);
+            const response =
+                await http.post(
+                    `/organizations/${orgId}/switch`
+                );
 
-            // Remove organization from list
-            const remainingOrgs = get().organizations.filter(org => org._id !== orgId);
-
-            // If deleted org was current, set current to first available or null
-            const isCurrentDeleted = get().currentOrganization?._id === orgId;
-            const newCurrentOrg = isCurrentDeleted && remainingOrgs.length > 0 ? remainingOrgs[0] : get().currentOrganization;
+            const organization =
+                get().getOrganizationById(
+                    orgId
+                );
 
             set({
-                organizations: remainingOrgs,
-                currentOrganization: isCurrentDeleted ? newCurrentOrg : get().currentOrganization,
+                currentOrganization:
+                    organization,
+
                 isUpdating: false,
-                error: null
+                error: null,
             });
 
-            return { success: true };
+            return response.data.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to delete organization';
-            set({ isUpdating: false, error: errorMessage });
-            throw error;
-        }
-    },
-
-    switchOrganization: async (orgId) => {
-        set({ isUpdating: true, error: null });
-        try {
-            const response = await http.post(`/organizations/${orgId}/switch`);
-            const { data } = response.data;
-
-            // Find the organization object
-            const organization = get().organizations.find(org => org._id === orgId);
+            const errorMessage =
+                error.response?.data
+                    ?.message ||
+                'Failed to switch organization';
 
             set({
-                currentOrganization: organization || null,
                 isUpdating: false,
-                error: null
+                error: errorMessage,
             });
 
-            return data;
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to switch organization';
-            set({ isUpdating: false, error: errorMessage });
             throw error;
         }
     },
 
-    // Helper Methods
-    setCurrentOrganization: (organization) => {
-        set({ currentOrganization: organization });
+    // =========================================================
+    // SET CURRENT ORGANIZATION
+    // =========================================================
+
+    setCurrentOrganization: (
+        organization
+    ) => {
+        set({
+            currentOrganization:
+                organization,
+        });
     },
 
-    clearError: () => set({ error: null }),
+    // =========================================================
+    // CLEAR ERROR
+    // =========================================================
 
-    resetOrganizationStore: () => set({
-        organizations: [],
-        currentOrganization: null,
-        isLoading: false,
-        error: null,
-        isUpdating: false
-    }),
+    clearError: () => {
+        set({
+            error: null,
+        });
+    },
+
+    // =========================================================
+    // RESET
+    // =========================================================
+
+    resetOrganizationStore: () => {
+        set({
+            ownedOrganization: null,
+            memberOrganizations: [],
+            currentOrganization: null,
+
+            isLoading: false,
+            isUpdating: false,
+            error: null,
+        });
+    },
 }));

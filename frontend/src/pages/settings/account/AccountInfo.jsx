@@ -14,10 +14,10 @@ import {
     Palette,
     Globe,
     Shield,
-    Monitor,
+    Crown,
+    Leaf,
     Check,
     Copy,
-    User
 } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
 
@@ -83,9 +83,9 @@ const AccountInfo = () => {
     const getThemeTierIcon = (tier) => {
         switch (tier?.toLowerCase()) {
             case 'pro':
-                return <Monitor className="h-4 w-4 text-primary" />;
+                return <Crown className="h-4 w-4 text-primary" />;
             default:
-                return <Palette className="h-4 w-4 text-primary" />;
+                return <Leaf className="h-4 w-4 text-primary" />;
         }
     };
 

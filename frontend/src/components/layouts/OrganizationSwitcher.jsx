@@ -1,308 +1,584 @@
-import { useState, useEffect } from 'react';
+// OrganizationSwitcher.jsx
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, Building2, Plus, Loader2 } from 'lucide-react';
-import { useOrganizationStore, useUserStore } from '@/stores';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import * as Dialog from '@radix-ui/react-dialog';
+
+import {
+  Building2,
+  Check,
+  ChevronDown,
+  Loader2,
+  Plus,
+  Shield,
+} from 'lucide-react';
+
 import { toast } from 'sonner';
+
+import {
+  useOrganizationStore,
+  useUserStore,
+} from '@/stores';
+
+import { useIsMobile } from '@/hooks/use-mobile';
+
+import { cn } from '@/lib/utils';
 
 export function OrganizationSwitcher() {
   const {
-    organizations,
+    ownedOrganization,
+    memberOrganizations,
     currentOrganization,
+
+    isLoading,
+    isUpdating,
+
     getOrganizations,
     switchOrganization,
     createOrganization,
-    isLoading: isOrgsLoading,
-    isUpdating,
-    setCurrentOrganization
-  } = useOrganizationStore();
-  
-  const { userProfile, getUserProfile, isLoading: isUserLoading } = useUserStore();
-  
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newOrgName, setNewOrgName] = useState('');
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Fetch organizations and check user profile on mount
+    setCurrentOrganization,
+    getAllOrganizations,
+  } = useOrganizationStore();
+
+  const {
+    userProfile,
+    getUserProfile,
+  } = useUserStore();
+
+  const isMobile = useIsMobile();
+
+  const [isCreateOpen, setIsCreateOpen] =
+    useState(false);
+
+  const [newOrgName, setNewOrgName] =
+    useState('');
+
+  // =========================================================
+  // DERIVED STATE
+  // =========================================================
+
+  const organizations = useMemo(
+    () => getAllOrganizations(),
+    [ownedOrganization, memberOrganizations]
+  );
+
+  const activeOrganizationId =
+    userProfile?.activeOrganization;
+
+  const hasOrganizations =
+    organizations.length > 0;
+
+  const canCreateOrganization =
+    !ownedOrganization;
+
+  // =========================================================
+  // INITIAL FETCH
+  // =========================================================
+
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsInitialLoad(true);
-      
-      // First, ensure we have user profile with active organization
-      if (!userProfile) {
-        await getUserProfile();
-      }
-      
-      // Then fetch all organizations
-      await getOrganizations();
-      
-      setIsInitialLoad(false);
+    const initialize = async () => {
+      await Promise.all([
+        getUserProfile(),
+        getOrganizations(),
+      ]);
     };
-    
-    fetchInitialData();
+
+    initialize();
   }, []);
 
-  // CRITICAL: Check if user has an active organization from userProfile
-  const hasActiveOrganization = userProfile?.activeOrganization !== null && 
-                                 userProfile?.activeOrganization !== undefined;
-  
-  // Get the active organization ID from userProfile
-  const userActiveOrgId = userProfile?.activeOrganization;
-  
-  // Check if user has any organizations in the organizationStore
-  const hasOrganizations = organizations && organizations.length > 0;
-  const hasSingleOrg = hasOrganizations && organizations.length === 1;
-  const hasMultipleOrgs = hasOrganizations && organizations.length > 1;
+  // =========================================================
+  // HYDRATE CURRENT ORG
+  // =========================================================
 
-  // CRITICAL: Sync current organization with user's active organization
   useEffect(() => {
-    // Don't sync if still loading
-    if (isInitialLoad || isUserLoading || isOrgsLoading) {
+    if (
+      !activeOrganizationId ||
+      organizations.length === 0
+    ) {
       return;
     }
 
-    // If user has an active organization but no current organization is set
-    if (hasActiveOrganization && !currentOrganization) {
-      const matchedOrg = organizations.find(org => org._id === userActiveOrgId);
-      if (matchedOrg) {
-        setCurrentOrganization(matchedOrg);
-      }
-    }
-    
-    // If user has no active organization but has organizations, 
-    // we need to set one as active
-    if (!hasActiveOrganization && hasOrganizations && organizations.length > 0) {
-      // Check if current organization is already set
-      if (!currentOrganization) {
-        // Set the first organization as current
-        setCurrentOrganization(organizations[0]);
-      }
+    const matchedOrganization =
+      organizations.find(
+        (org) =>
+          org._id ===
+          activeOrganizationId
+      );
+
+    if (
+      matchedOrganization &&
+      currentOrganization?._id !==
+      matchedOrganization._id
+    ) {
+      setCurrentOrganization(
+        matchedOrganization
+      );
     }
   }, [
-    isInitialLoad, 
-    isUserLoading, 
-    isOrgsLoading, 
-    hasActiveOrganization, 
-    userActiveOrgId, 
-    organizations, 
-    currentOrganization, 
-    hasOrganizations,
-    setCurrentOrganization
+    activeOrganizationId,
+    organizations,
   ]);
 
-  const handleSwitch = async (orgId) => {
-    if (currentOrganization?._id === orgId) {
-      return; // Already on this organization
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  const isOwner = (orgId) => {
+    return (
+      ownedOrganization?._id === orgId
+    );
+  };
+
+  // =========================================================
+  // SWITCH
+  // =========================================================
+
+  const handleSwitch = async (
+    orgId
+  ) => {
+    if (
+      currentOrganization?._id ===
+      orgId
+    ) {
+      return;
     }
-    
+
     try {
+      const organization =
+        organizations.find(
+          (org) => org._id === orgId
+        );
+
       await switchOrganization(orgId);
-      const selectedOrg = organizations.find(org => org._id === orgId);
-      toast.success(`Switched to ${selectedOrg?.name}`);
-      
-      // CRITICAL: Refresh user profile to get updated activeOrganization
+
+      // IMPORTANT:
+      // backend is source of truth
       await getUserProfile();
-      
+
+      toast.success(
+        `Switched to ${organization?.name}`
+      );
     } catch (error) {
-      toast.error(error.message || 'Failed to switch organization');
+      toast.error(
+        error?.response?.data
+          ?.message ||
+        error.message ||
+        'Failed to switch organization'
+      );
     }
   };
+
+  // =========================================================
+  // CREATE
+  // =========================================================
 
   const handleCreate = async () => {
     if (!newOrgName.trim()) {
-      toast.error('Organization name is required');
+      toast.error(
+        'Workspace name is required'
+      );
       return;
     }
-    
+
     try {
-      const newOrg = await createOrganization(newOrgName);
+      const organization =
+        await createOrganization(
+          newOrgName
+        );
+
+      await getUserProfile();
+
       setNewOrgName('');
       setIsCreateOpen(false);
-      toast.success(`Organization "${newOrg.name}" created successfully`);
-      
-      // CRITICAL: Refresh user profile to get updated activeOrganization
-      await getUserProfile();
-      
+
+      toast.success(
+        `"${organization.name}" created`
+      );
     } catch (error) {
-      toast.error(error.message || 'Failed to create organization');
+      toast.error(
+        error?.response?.data
+          ?.message ||
+        error.message ||
+        'Failed to create organization'
+      );
     }
   };
 
-  const getInitials = (name) => {
-    return name?.charAt(0).toUpperCase() || 'O';
-  };
+  // =========================================================
+  // LOADING
+  // =========================================================
 
-  // Loading state
-  if (isInitialLoad || isUserLoading || isOrgsLoading) {
+  if (isLoading) {
     return (
-      <Button variant="outline" className="gap-2" disabled>
+      <button
+        disabled
+        className="
+          flex h-10 items-center gap-2
+          rounded-xl border border-border/50
+          bg-card px-3 text-sm
+          text-muted-foreground
+        "
+      >
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Loading...</span>
-      </Button>
+        Loading...
+      </button>
     );
   }
 
-  // CRITICAL: Check if user has NO active organization AND NO organizations at all
-  if (!hasActiveOrganization && !hasOrganizations) {
+  // =========================================================
+  // EMPTY STATE
+  // =========================================================
+
+  if (!hasOrganizations) {
     return (
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogTrigger asChild>
-          <Button variant="default" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4" />
-            <span>Create Your First Organization</span>
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Your First Organization</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              You need to create an organization to start using MySaaS
-            </p>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+      <>
+        <button
+          onClick={() =>
+            setIsCreateOpen(true)
+          }
+          className="
+            flex h-10 items-center gap-2
+            rounded-xl bg-primary px-4
+            text-sm font-medium
+            text-primary-foreground
+          "
+        >
+          <Plus className="h-4 w-4" />
+
+          {!isMobile &&
+            'Create Workspace'}
+        </button>
+
+        <CreateOrganizationDialog
+          open={isCreateOpen}
+          setOpen={setIsCreateOpen}
+          value={newOrgName}
+          setValue={setNewOrgName}
+          onSubmit={handleCreate}
+          loading={isUpdating}
+        />
+      </>
+    );
+  }
+
+  // =========================================================
+  // MAIN
+  // =========================================================
+
+  return (
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className={cn(
+              `
+                group flex items-center
+                justify-between
+                transition-all
+                hover:bg-accent/50
+              `,
+              isMobile
+                ? `
+                    h-10 w-10 rounded-xl
+                    border border-border/50
+                    bg-card
+                  `
+                : `
+                    h-11 min-w-[230px]
+                    rounded-2xl border
+                    border-border/50
+                    bg-card px-3
+                  `
+            )}
+          >
+            {isMobile ? (
+              <Building2 className="mx-auto h-4 w-4 text-primary" />
+            ) : (
+              <>
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="
+                      flex h-8 w-8
+                      items-center justify-center
+                      rounded-xl bg-primary/10
+                    "
+                  >
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+
+                  <div className="min-w-0 text-left">
+                    <p className="truncate text-sm font-medium">
+                      {
+                        currentOrganization?.name
+                      }
+                    </p>
+
+                    <p className="text-xs text-muted-foreground">
+                      {isOwner(
+                        currentOrganization?._id
+                      )
+                        ? 'Owner'
+                        : 'Member'}
+                    </p>
+                  </div>
+                </div>
+
+                <ChevronDown
+                  className="
+                    h-4 w-4 shrink-0
+                    text-muted-foreground
+                  "
+                />
+              </>
+            )}
+          </button>
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            sideOffset={8}
+            align="end"
+            className="
+              z-50 w-[320px]
+              overflow-hidden rounded-2xl
+              border border-border/50
+              bg-popover p-2 shadow-xl
+            "
+          >
+            <div className="mb-2 px-2 pt-1">
+              <p
+                className="
+                  text-[11px]
+                  font-semibold uppercase
+                  tracking-wider
+                  text-muted-foreground
+                "
+              >
+                Workspaces
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              {organizations.map((org) => {
+                const active =
+                  currentOrganization?._id ===
+                  org._id;
+
+                const owner =
+                  isOwner(org._id);
+
+                return (
+                  <DropdownMenu.Item
+                    key={org._id}
+                    asChild
+                  >
+                    <button
+                      onClick={() =>
+                        handleSwitch(org._id)
+                      }
+                      className={cn(
+                        `
+                          flex w-full items-center
+                          gap-3 rounded-xl
+                          px-3 py-3 text-left
+                          transition-all
+                          hover:bg-accent/60
+                        `,
+                        active &&
+                        'bg-primary/5'
+                      )}
+                    >
+                      <div
+                        className="
+                          flex h-9 w-9
+                          items-center justify-center
+                          rounded-xl bg-primary/10
+                        "
+                      >
+                        <Building2
+                          className="
+                            h-4 w-4 text-primary
+                          "
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-medium">
+                            {org.name}
+                          </p>
+
+                          {owner && (
+                            <div
+                              className="
+                                flex items-center gap-1
+                                rounded-md bg-primary/10
+                                px-1.5 py-0.5
+                                text-[10px]
+                                font-medium text-primary
+                              "
+                            >
+                              <Shield className="h-3 w-3" />
+                              Owner
+                            </div>
+                          )}
+                        </div>
+
+                        <p
+                          className="
+                            mt-0.5 text-xs
+                            text-muted-foreground
+                          "
+                        >
+                          {owner
+                            ? 'Primary workspace'
+                            : 'Shared workspace'}
+                        </p>
+                      </div>
+
+                      {active && (
+                        <div
+                          className="
+                            flex h-5 w-5
+                            items-center justify-center
+                            rounded-full
+                            bg-primary/10
+                          "
+                        >
+                          <Check className="h-3 w-3 text-primary" />
+                        </div>
+                      )}
+                    </button>
+                  </DropdownMenu.Item>
+                );
+              })}
+            </div>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+
+      <CreateOrganizationDialog
+        open={isCreateOpen}
+        setOpen={setIsCreateOpen}
+        value={newOrgName}
+        setValue={setNewOrgName}
+        onSubmit={handleCreate}
+        loading={isUpdating}
+      />
+    </>
+  );
+}
+
+function CreateOrganizationDialog({
+  open,
+  setOpen,
+  value,
+  setValue,
+  onSubmit,
+  loading,
+}) {
+  return (
+    <Dialog.Root
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className="
+            fixed inset-0 z-50
+            bg-black/50 backdrop-blur-sm
+          "
+        />
+
+        <Dialog.Content
+          className="
+            fixed left-1/2 top-1/2 z-50
+            w-[92vw] max-w-md
+            -translate-x-1/2 -translate-y-1/2
+            rounded-3xl border border-border/50
+            bg-card p-6 shadow-2xl
+          "
+        >
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <Dialog.Title
+                className="
+                  text-xl font-semibold
+                "
+              >
+                Create workspace
+              </Dialog.Title>
+
+              <Dialog.Description
+                className="
+                  text-sm text-muted-foreground
+                "
+              >
+                Create your organization
+              </Dialog.Description>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="orgName">Organization Name</Label>
-              <Input
-                id="orgName"
-                placeholder="Enter organization name"
-                value={newOrgName}
-                onChange={(e) => setNewOrgName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                autoFocus
+              <label
+                className="
+                  text-sm font-medium
+                "
+              >
+                Workspace name
+              </label>
+
+              <input
+                value={value}
+                onChange={(e) =>
+                  setValue(e.target.value)
+                }
+                onKeyDown={(e) =>
+                  e.key === 'Enter' &&
+                  onSubmit()
+                }
+                placeholder="Acme Inc."
+                className="
+                  h-11 w-full rounded-xl
+                  border border-border/60
+                  bg-background px-4
+                  text-sm outline-none
+                  focus:border-primary/40
+                "
               />
             </div>
-            <Button onClick={handleCreate} className="w-full" disabled={isUpdating}>
-              {isUpdating ? (
+
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="
+                flex h-11 w-full items-center
+                justify-center gap-2
+                rounded-xl bg-primary
+                text-sm font-medium
+                text-primary-foreground
+              "
+            >
+              {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Creating...
                 </>
               ) : (
-                'Create Organization'
+                <>
+                  <Plus className="h-4 w-4" />
+                  Create Workspace
+                </>
               )}
-            </Button>
+            </button>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // CRITICAL: If user has active organization but somehow no organizations in store
-  if (hasActiveOrganization && !hasOrganizations) {
-    return (
-      <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Loading organizations...</span>
-      </div>
-    );
-  }
-
-  // Normal dropdown when user has organizations
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2 min-w-[180px] justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <Building2 className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">
-                {currentOrganization?.name || organizations[0]?.name || 'Select Organization'}
-              </span>
-            </div>
-            <ChevronDown className="h-4 w-4 flex-shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-80" align="end">
-          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-            Your Organizations ({organizations.length})
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          
-          {/* List all organizations */}
-          {organizations.map((org) => {
-            const isActive = currentOrganization?._id === org._id;
-            const isUserActive = userActiveOrgId === org._id;
-            
-            return (
-              <DropdownMenuItem
-                key={org._id}
-                onClick={() => handleSwitch(org._id)}
-                className={`flex items-center gap-3 py-2 cursor-pointer ${
-                  isActive || isUserActive ? 'bg-accent' : ''
-                }`}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {getInitials(org.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{org.name}</p>
-                  {(isActive || isUserActive) && (
-                    <p className="text-xs text-green-600 dark:text-green-400">Active</p>
-                  )}
-                </div>
-                {(isActive || isUserActive) && (
-                  <div className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
-                )}
-              </DropdownMenuItem>
-            );
-          })}
-          
-          <DropdownMenuSeparator />
-          
-          {/* Create new organization option (always available) */}
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="gap-2 cursor-pointer">
-                <Plus className="h-4 w-4" />
-                <span>Create New Organization</span>
-              </DropdownMenuItem>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Organization</DialogTitle>
-                <p className="text-sm text-muted-foreground">
-                  You can create multiple organizations and switch between them
-                </p>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="orgName">Organization Name</Label>
-                  <Input
-                    id="orgName"
-                    placeholder="Enter organization name"
-                    value={newOrgName}
-                    onChange={(e) => setNewOrgName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                  />
-                </div>
-                <Button onClick={handleCreate} className="w-full" disabled={isUpdating}>
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Organization'
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

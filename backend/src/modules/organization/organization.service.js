@@ -88,7 +88,13 @@ export const getOrganizationsService = async (userId) => {
         throw new ApiError(404, "No organizations found");
     }
 
-    return organizations;
+    const ownedOrganization = organizations.find(org => org.owner.toString() === userId.toString()) || null;
+    const memberOrganizations = organizations.filter(org => org.owner.toString() !== userId.toString());
+
+    return {
+        ownedOrganization: ownedOrganization || null,
+        memberOrganizations: memberOrganizations || []
+    }
 };
 
 
