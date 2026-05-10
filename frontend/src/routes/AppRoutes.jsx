@@ -29,7 +29,6 @@ import AnalyticsConversion from '@/pages/analytics/AnalyticsConversion';
 
 // Service imports
 import AllServices from '@/pages/services/AllServices';
-import CreateService from '@/pages/services/CreateService';
 import Availability from '@/pages/services/Availability';
 
 // Customer imports
@@ -53,6 +52,8 @@ import Preferences from '@/pages/settings/system/Preferences';
 import Security from '@/pages/settings/account/Security';
 import ChangePassword from '@/pages/settings/account/ChangePassword';
 
+// Notifications imports
+import Notifications from '@/pages/notifications/Notifications';
 
 // Contact imports
 import Contact from '@/pages/public/Contact';
@@ -85,7 +86,6 @@ export const AppRoutes = () => {
 
                     {/* Service Routes */}
                     <Route path="/services/all" element={<AllServices />} />
-                    <Route path="/services/create" element={<CreateService />} />
                     <Route path="/services/availability" element={<Availability />} />
 
                     {/* Analytics Routes */}
@@ -113,6 +113,9 @@ export const AppRoutes = () => {
                     <Route path="/settings/system/preferences" element={<Preferences />} />
                     <Route path="/settings/account/security" element={<Security />} />
                     <Route path="/settings/account/change-password" element={<ChangePassword />} />
+
+                    {/* Notifications Route */}
+                    <Route path="/notifications" element={<Notifications />} />
 
                     {/* Contact Route */}
                     <Route path="/support" element={<Contact />} />

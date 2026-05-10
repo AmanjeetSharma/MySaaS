@@ -174,6 +174,14 @@ export const useOrganizationStore = create((set, get) => ({
                 error: null
             });
 
+            const {
+                ownedOrganization,
+                memberOrganizations,
+                currentOrganization
+            } = get(); // Get latest state
+
+
+
             return data;
 
         } catch (error) {

@@ -2,10 +2,12 @@ import { useLocation } from 'react-router-dom';
 import { AppRoutes } from '../../routes/AppRoutes';
 import { useEffect } from 'react';
 import { initializeThemeFromLocalStorage } from '../../theme/themeSync.utils';
+import { useUserStore, useAuthStore } from '@/stores'; 
 
 export const AppContent = () => {
     const location = useLocation();
-
+    const { getUserProfile, userProfile } = useUserStore();
+ 
     const isAuthRoute = () => {
         const authPaths = [
             '/login',
@@ -15,24 +17,25 @@ export const AppContent = () => {
             '/',
         ];
 
-        if (authPaths.includes(location.pathname)) {
-            return true;
-        }
-        if (location.pathname.startsWith('/verify/')) {
-            return true;
-        }
-
-        return false;
+        return authPaths.includes(location.pathname) || location.pathname.startsWith('/verify/');
     };
 
     useEffect(() => {
-        // Only initialize theme for non-auth routes
+        // 1. Theme Logic
         if (!isAuthRoute()) {
             initializeThemeFromLocalStorage();
         } else {
-            // Reset theme styles for auth pages
             const root = document.documentElement;
             root.removeAttribute('style');
+        }
+
+        // 2. Profile Hydration Logic
+        // If the user is logged in and we don't have the profile yet, fetch it.
+        // This ensures a refresh on any protected page triggers the fetch.
+        if (!isAuthRoute() && !userProfile) {
+            getUserProfile().catch(() => {
+                console.error("Failed to hydrate user profile on refresh");
+            });
         }
     }, [location.pathname]);
 

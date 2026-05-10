@@ -52,6 +52,8 @@ export const createOrganizationService = async (userId, orgName) => {
 
         await session.commitTransaction();
 
+        console.log(`Organization ${org.name} (ID: ${org._id}) created by user ID: ${userId}`);
+
         return {
             ...org.toObject(),
         };
@@ -91,6 +93,8 @@ export const getOrganizationsService = async (userId) => {
     const ownedOrganization = organizations.find(org => org.owner.toString() === userId.toString()) || null;
     const memberOrganizations = organizations.filter(org => org.owner.toString() !== userId.toString());
 
+    console.log(`User ID: ${userId} - Owned Organization: ${ownedOrganization ? ownedOrganization.name : "None"}, Member Organizations: ${memberOrganizations.length}`);
+
     return {
         ownedOrganization: ownedOrganization || null,
         memberOrganizations: memberOrganizations || []
@@ -110,6 +114,8 @@ export const getOrganizationService = async (orgId, userId) => {
     if (!org) {
         throw new ApiError(404, "Organization not found");
     }
+
+    console.log(`User ID: ${userId} requested details for Organization: ${org.name}`);
 
     return {
         ...org.toObject(),
@@ -148,6 +154,8 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to update organization - please try again");
     }
+
+    console.log(`Organization ${org.name} (ID: ${org._id}) updated by user ID: ${userId}`);
 
     return org;
 };

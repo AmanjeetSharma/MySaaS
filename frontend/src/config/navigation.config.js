@@ -16,16 +16,24 @@ import {
     LifeBuoy,
     TrendingUp,
     TrendingDown,
-    BookOpen
+    UserStar ,
+    Bell,
+    Info,
+    BookOpen ,
+    Handshake ,
+    CircleQuestionMark 
 } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
+// import { useOrganizationStore } from '@/stores/organizationStore';
 
 export const useNavigationConfig = () => {
 
     const activeOrganization = useUserStore(
         (state) => state.userProfile?.activeOrganization
     );
+
+    // const currentOrganization = useOrganizationStore((state) => state.currentOrganization);
 
     return {
         mainNav: [
@@ -44,7 +52,7 @@ export const useNavigationConfig = () => {
                     {
                         title: "Manage Organizations",
                         href: "/organizations",
-                        icon: SettingsIcon,
+                        icon: Building2,
                         exactMatch: true  // Only active on exact /organizations
                     },
                     {
@@ -52,7 +60,7 @@ export const useNavigationConfig = () => {
                         href: activeOrganization
                             ? `/organizations/${activeOrganization}`
                             : "/organizations",
-                        icon: AlertCircle,
+                        icon: Info,
                         // Active only on exact org details page, not sub-routes
                         pattern: '/organizations/:orgId'
                     },
@@ -68,19 +76,13 @@ export const useNavigationConfig = () => {
             },
             {
                 title: "Services",
-                icon: BookOpen,
+                icon: Briefcase ,
                 items: [
                     {
                         title: "All Services",
                         href: "/services/all",
-                        icon: BookOpen
-                    },
-                    {
-                        title: "Create Service",
-                        href: "/services/create",
-                        icon: SettingsIcon
-                    },
-                    {
+                        icon: Briefcase 
+                    },                    {
                         title: "Availability / Slots",
                         href: "/services/availability",
                         icon: Clock
@@ -90,12 +92,12 @@ export const useNavigationConfig = () => {
             {
                 title: "Customers",
                 href: "/customers",
-                icon: Users,
+                icon: UserStar ,
                 items: []
             },
             {
                 title: "Deals",
-                icon: Briefcase,
+                icon: Handshake ,
                 items: [
                     {
                         title: "Active Deals",
@@ -113,6 +115,24 @@ export const useNavigationConfig = () => {
                         icon: TrendingDown
                     }
                 ]
+            },
+            {
+                title: "Bookings",
+                href: "/bookings",
+                icon: BookOpen ,
+                items: []
+            },
+            {
+                title: "Notifications",
+                href: "/notifications",
+                icon: Bell,
+                items: []
+            },
+            {
+                title: "Support",
+                href: "/support",
+                icon: CircleQuestionMark ,
+                items: []
             },
             {
                 title: "Settings",
@@ -145,12 +165,6 @@ export const useNavigationConfig = () => {
                     }
                 ]
             },
-            {
-                title: "Help / Support",
-                href: "/support",
-                icon: LifeBuoy,
-                items: []
-            }
         ]
     };
 };
