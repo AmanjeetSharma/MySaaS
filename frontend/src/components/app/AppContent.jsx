@@ -1,43 +1,50 @@
 import { useLocation } from 'react-router-dom';
+
 import { AppRoutes } from '../../routes/AppRoutes';
-import { useEffect } from 'react';
-import { initializeThemeFromLocalStorage } from '../../theme/themeSync.utils';
-import { useUserStore, useAuthStore } from '@/stores'; 
+import { AppLoader } from '../loader/AppLoader';
+
+import { useAppStore } from '@/stores/appStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useAppBootstrap } from '@/hooks/useAppBootstrap';
+import { useUserStore } from '@/stores/userStore';
+
+const AUTH_PATHS = [
+    '/',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+];
+
+const isAuthRoute = (pathname) => {
+    return (
+        AUTH_PATHS.includes(pathname) ||
+        pathname.startsWith('/verify/')
+    );
+};
 
 export const AppContent = () => {
     const location = useLocation();
-    const { getUserProfile, userProfile } = useUserStore();
- 
-    const isAuthRoute = () => {
-        const authPaths = [
-            '/login',
-            '/register',
-            '/forgot-password',
-            '/reset-password',
-            '/',
-        ];
 
-        return authPaths.includes(location.pathname) || location.pathname.startsWith('/verify/');
-    };
+    useAppBootstrap();
 
-    useEffect(() => {
-        // 1. Theme Logic
-        if (!isAuthRoute()) {
-            initializeThemeFromLocalStorage();
-        } else {
-            const root = document.documentElement;
-            root.removeAttribute('style');
-        }
+    const isAppReady = useAppStore(
+        (state) => state.isAppReady
+    );
+    const isAuthenticated = useAuthStore(
+        (state) => state.isAuthenticated
+    );
+    const userProfile = useUserStore(
+        (state) => state.userProfile
+    );
 
-        // 2. Profile Hydration Logic
-        // If the user is logged in and we don't have the profile yet, fetch it.
-        // This ensures a refresh on any protected page triggers the fetch.
-        if (!isAuthRoute() && !userProfile) {
-            getUserProfile().catch(() => {
-                console.error("Failed to hydrate user profile on refresh");
-            });
-        }
-    }, [location.pathname]);
+    const isOnAuthRoute = isAuthRoute(location.pathname);
+    const isProtectedHydrating =
+        !isOnAuthRoute && isAuthenticated && !userProfile;
+
+    if (!isAppReady || isProtectedHydrating) {
+        return <AppLoader />;
+    }
 
     return <AppRoutes />;
-}
+};

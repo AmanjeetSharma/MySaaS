@@ -3,7 +3,6 @@ import { http } from '../api/httpClient';
 import { useSettingsStore } from './settingsStore';
 import { syncThemeWithBackend } from '../theme/themeSync.utils.js';
 import { useAuthStore } from './authStore';
-import { use } from 'react';
 
 export const useUserStore = create((set, get) => ({
     // State

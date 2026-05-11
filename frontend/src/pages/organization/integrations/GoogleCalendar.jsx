@@ -28,7 +28,7 @@ const GoogleCalendar = () => {
                                 Google Calendar
                             </h1>
                             <p className="text-muted-foreground text-sm leading-relaxed mb-8 max-w-[240px]">
-                                Sync your professional schedule with real-time data mirroring.
+                                Sync your schedule with real-time data mirroring.
                             </p>
 
                             {/* High-Depth Multi-color Google Button */}
@@ -48,19 +48,6 @@ const GoogleCalendar = () => {
                                     <ChevronRight size={16} className="text-black group-hover/btn:translate-x-1 transition-transform" />
                                 </div>
                             </button>
-
-                            {/* Status Footer */}
-                            <div className="mt-8 grid grid-cols-2 gap-4 w-full pt-6 border-t border-border/50">
-                                <div className="flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    <RefreshCw size={14} className="text-blue-500" />
-                                    <span>Real-time</span>
-                                </div>
-                                <div className="flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                    <ShieldCheck size={14} className="text-emerald-500" />
-                                    <span>Secure</span>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>

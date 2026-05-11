@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { http } from '../api/httpClient';
+import { useAppStore } from './appStore';
 
 export const useAuthStore = create(persist(
     (set, get) => ({
@@ -54,6 +55,8 @@ export const useAuthStore = create(persist(
                 const response = await http.post('/auth/login', credentials);
                 const { data } = response.data;
 
+                useAppStore.getState().setAppReady(false);
+
                 set({
                     user: data,
                     isAuthenticated: true,
@@ -74,6 +77,8 @@ export const useAuthStore = create(persist(
             try {
                 const response = await http.post('/auth/login/google', credentials);
                 const { data } = response.data;
+
+                useAppStore.getState().setAppReady(false);
 
                 set({
                     user: data,
@@ -101,6 +106,7 @@ export const useAuthStore = create(persist(
                     isLoading: false,
                     error: null
                 });
+                useAppStore.getState().setAppReady(true);
 
                 // Clear persisted data
                 localStorage.removeItem('auth-storage');
@@ -113,6 +119,7 @@ export const useAuthStore = create(persist(
                     isLoading: false,
                     error: null
                 });
+                useAppStore.getState().setAppReady(true);
                 localStorage.removeItem('auth-storage');
             }
         },
