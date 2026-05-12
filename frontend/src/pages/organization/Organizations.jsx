@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Building2, Check, Plus, Shield, Trash2, Users,
   Sparkles, ArrowUpRight, Crown, UserPlus,
-  Zap, Calendar, MessageSquare, X
+  Zap, Calendar, MessageSquare, X, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrganizationStore, useUserStore } from '@/stores';
@@ -133,7 +133,7 @@ const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, isUpdati
               e.stopPropagation();
               onDelete(org);
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-destructive/10 text-destructive transition-all hover:bg-destructive hover:text-white active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-destructive/10 text-destructive transition-all hover:bg-destructive hover:text-white active:scale-90 cursor-pointer"
           >
             <Trash2 className="h-4.5 w-4.5" />
           </button>
@@ -142,22 +142,54 @@ const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, isUpdati
     </div>
   );
 };
-
 // --- Create Organization Card ---
 const CreateOrganizationCard = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-muted-foreground/20 bg-card/30 p-8 min-h-[320px] transition-all duration-300 hover:border-primary/40 hover:bg-primary/[0.02] hover:shadow-2xl"
+      className="
+        group relative flex w-full max-w-sm flex-col items-center justify-center
+        rounded-[2rem] border-2 border-dashed border-muted-foreground/20
+        bg-card p-8 min-h-80
+        transition-all duration-300
+        hover:border-primary/40
+        hover:bg-accent/40
+        hover:shadow-2xl
+        cursor-pointer
+      "
     >
-      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-muted/50 transition-all group-hover:bg-primary group-hover:text-white group-hover:rotate-90 duration-500">
+      {/* Icon */}
+      <div className="
+        flex h-20 w-20 items-center justify-center
+        rounded-3xl bg-muted/60 text-muted-foreground
+        transition-all duration-500
+        group-hover:bg-primary group-hover:text-primary-foreground
+        group-hover:rotate-90
+      ">
         <Plus className="h-10 w-10" />
       </div>
-      <h3 className="mt-8 text-xl font-black tracking-tight uppercase">New Workspace</h3>
-      <p className="mt-2 text-sm font-medium text-muted-foreground max-w-[220px] text-center">
+
+      {/* Title */}
+      <h3 className="mt-8 text-xl font-black tracking-tight uppercase text-foreground">
+        New Workspace
+      </h3>
+
+      {/* Description */}
+      <p className="mt-2 text-sm font-medium text-muted-foreground max-w-55 text-center">
         Set up a professional space for your team and operations.
       </p>
-      <div className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-primary/20 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+
+      {/* CTA Badge */}
+      <div className="
+        mt-8 inline-flex items-center gap-2
+        rounded-xl bg-primary px-6 py-2.5
+        text-[10px] font-black uppercase tracking-[0.2em]
+        text-primary-foreground
+        shadow-lg shadow-primary/20
+        opacity-0 translate-y-2
+        group-hover:opacity-100 group-hover:translate-y-0
+        transition-all duration-300
+      ">
         <Sparkles className="h-3 w-3" />
         Launch Now
       </div>
@@ -189,6 +221,7 @@ export default function Organizations() {
   }, []);
 
   const activeOrganizationId = userProfile?.activeOrganization;
+  const hasNoActiveOrganization = Boolean(userProfile) && !activeOrganizationId;
 
   const handleSwitch = async (orgId) => {
     try {
@@ -244,10 +277,27 @@ export default function Organizations() {
     <div className="mx-auto max-w-7xl space-y-12 px-4 py-12 md:py-20">
       {/* Header */}
       <div className="space-y-2 text-center md:text-left">
-        <h1 className="text-5xl font-black tracking-tighter md:text-6xl uppercase ">Workspace</h1>
-        <p className="text-muted-foreground font-medium md:text-lg">
+        <h1 className="text-5xl font-black tracking-tighter uppercase md:text-6xl">
+          Workspace
+        </h1>
+
+        <p className="font-medium text-muted-foreground md:text-lg">
           Switch between your owned and team organizations.
         </p>
+
+        {hasNoActiveOrganization && (
+          <div className="inline-flex max-w-full items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive/90 sm:items-center sm:px-4 sm:py-2">
+
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400 sm:mt-0" />
+
+            <p className="leading-snug">
+              You don’t have an active organization.
+              <span className="font-medium"> Please select or create one.</span>
+            </p>
+
+          </div>
+        )}
+
       </div>
 
       {/* Organizations Grid */}
@@ -285,7 +335,7 @@ export default function Organizations() {
 
       {/* Modal for creating workspace */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+        <DialogContent className="sm:max-w-106.25 rounded-[2rem]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black uppercase tracking-tight">Launch Workspace</DialogTitle>
             <DialogDescription className="font-medium text-muted-foreground">Give your new organization a name to get started.</DialogDescription>
@@ -298,10 +348,10 @@ export default function Organizations() {
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
                 className="h-12 rounded-xl text-lg font-bold"
-                placeholder="Acme Corp"
+                placeholder="please enter a name..."
               />
             </div>
-            <Button disabled={isUpdating} type="submit" className="w-full h-12 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-primary/20">
+            <Button disabled={isUpdating} type="submit" className="w-full h-12 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-primary/20 cursor-pointer">
               {isUpdating ? 'Creating...' : 'Create Organization'}
             </Button>
           </form>
@@ -311,7 +361,7 @@ export default function Organizations() {
       {/* Delete Modal */}
       {deleteOrg && (
         <Dialog open={!!deleteOrg} onOpenChange={() => setDeleteOrg(null)}>
-          <DialogContent className="sm:max-w-[400px] rounded-[2rem]">
+          <DialogContent className="sm:max-w-100 rounded-[1rem]">
             <DialogHeader>
               <DialogTitle className="text-destructive font-black uppercase tracking-tight">Dangerous Action</DialogTitle>
               <DialogDescription className="font-medium">
@@ -319,8 +369,8 @@ export default function Organizations() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" className="flex-1 rounded-xl font-bold" onClick={() => setDeleteOrg(null)}>Cancel</Button>
-              <Button variant="destructive" className="flex-1 rounded-xl font-bold" onClick={() => handleDelete(deleteOrg._id)}>Delete</Button>
+              <Button variant="outline" className="flex-1 rounded-xl font-bold cursor-pointer" onClick={() => setDeleteOrg(null)}>Cancel</Button>
+              <Button variant="destructive" className="flex-1 rounded-xl font-bold cursor-pointer" onClick={() => handleDelete(deleteOrg._id)}>Delete</Button>
             </div>
           </DialogContent>
         </Dialog>
