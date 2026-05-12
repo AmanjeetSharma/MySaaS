@@ -1,370 +1,520 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-    Building2, Save, ArrowLeft, ShieldCheck,
-    Users, Cpu, UserPlus, Zap, CheckCircle2,
-    Calendar, MessageSquare, BadgeCheck, Circle,
-    Settings2, ChevronRight, LayoutGrid, RefreshCw, AlertCircle, Activity
+    Building2, ArrowLeft, ShieldCheck,
+    Users, Cpu, UserPlus,
+    Settings2, ChevronRight, LayoutGrid,
+    CreditCard, ExternalLink, X, Send
 } from 'lucide-react';
-import { BsPlug } from "react-icons/bs";
 import { toast } from 'sonner';
-import { useOrganizationStore } from '@/stores';
+import { useOrganizationStore, useUserStore } from '@/stores';
+import { cn } from '@/lib/utils';
+import { iso } from 'zod';
+
+const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === 'string') return entity;
+    return entity._id || entity.id || null;
+};
+
+const hasSameId = (left, right) => {
+    const leftId = getEntityId(left);
+    const rightId = getEntityId(right);
+
+    return !!leftId && !!rightId && leftId.toString() === rightId.toString();
+};
+
+// Reusable UI Components using theme tokens
+const Card = ({ children, className = '', padding = 'md' }) => {
+    const paddingClasses = {
+        sm: 'p-3 md:p-4',
+        md: 'p-4 md:p-6',
+        lg: 'p-6 md:p-8'
+    };
+    return (
+        <div className={cn(
+            "bg-card border border-border rounded-lg",
+            paddingClasses[padding],
+            className
+        )}>
+            {children}
+        </div>
+    );
+};
+
+const StatCard = ({ label, value, limit, icon: Icon, badge }) => {
+    const percentage = ((value || 0) / (limit || 1)) * 100;
+
+    return (
+        <Card padding="sm" className="hover:border-border/80 transition-colors">
+            <div className="space-y-2 md:space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 md:gap-2 text-muted-foreground">
+                        <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                        <span className="text-[10px] md:text-xs font-medium uppercase tracking-wide">
+                            {label}
+                        </span>
+                    </div>
+                    {badge && (
+                        <span className="text-[10px] md:text-xs text-muted-foreground">{badge}</span>
+                    )}
+                </div>
+                <div>
+                    <div className="flex items-baseline gap-1 md:gap-1.5 mb-1.5 md:mb-2">
+                        <span className="text-xl md:text-2xl font-semibold text-foreground">
+                            {value?.toLocaleString() || 0}
+                        </span>
+                        <span className="text-xs md:text-sm text-muted-foreground">/ {limit?.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-primary rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(percentage, 100)}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+        </Card>
+    );
+};
+
+const SectionHeader = ({ icon: Icon, title, description }) => (
+    <div className="space-y-1">
+        <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">
+                {title}
+            </h2>
+        </div>
+        {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+    </div>
+);
+
+const IntegrationRow = ({ name, connected, path }) => (
+    <Link
+        to={path}
+        className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:bg-accent/5 hover:border-border/80 transition-all group"
+    >
+        <div className="flex items-center gap-2 md:gap-3">
+            <div className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                connected ? "bg-green-500" : "bg-muted-foreground/30"
+            )} />
+            <div>
+                <p className="text-sm font-medium text-foreground">{name}</p>
+                <p className="text-xs text-muted-foreground">
+                    {connected ? 'Connected' : 'Not configured'}
+                </p>
+            </div>
+        </div>
+        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+    </Link>
+);
+
+const DetailRow = ({ label, value, valueClassName }) => (
+    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className={cn("text-sm font-medium text-foreground", valueClassName)}>
+            {value}
+        </span>
+    </div>
+);
+
+// Invite Member Modal
+const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
+    const [email, setEmail] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!email) {
+            toast.error('Please enter an email address');
+            return;
+        }
+
+        setIsSending(true);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        onInvite(email);
+        setEmail('');
+        setIsSending(false);
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-card border border-border rounded-lg w-full max-w-md shadow-lg">
+                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+                    <h3 className="text-lg font-semibold text-foreground">Invite Team Member</h3>
+                    <button
+                        onClick={onClose}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="p-4 md:p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-foreground mb-2">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="colleague@company.com"
+                                className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                                autoFocus
+                                required
+                            />
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                They'll receive an email with instructions to join your organization.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex gap-3 p-4 md:p-6 border-t border-border">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSending}
+                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {isSending ? (
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                            ) : (
+                                <>
+                                    <Send className="h-4 w-4" />
+                                    Send Invite
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
 
 export default function OrganizationDetails() {
     const { orgId } = useParams();
     const navigate = useNavigate();
     const { getOrganization, updateOrganization, ownedOrganization, isLoading, isUpdating } = useOrganizationStore();
+    const { userProfile } = useUserStore();
+    const currentUserId = userProfile?._id;
 
     const [organization, setOrganization] = useState(null);
     const [orgName, setOrgName] = useState('');
-
+    const [isEditing, setIsEditing] = useState(false);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     useEffect(() => {
         const fetchOrganization = async () => {
             try {
                 const data = await getOrganization(orgId);
                 setOrganization(data);
                 setOrgName(data.name);
-            } catch (error) {
+            } catch {
                 toast.error('Failed to load organization');
                 navigate('/organizations');
             }
         };
         fetchOrganization();
-    }, [orgId, getOrganization, navigate]);
+    }, [orgId, currentUserId, getOrganization, navigate]);
+    const isOwner = useMemo(() => {
+        return (
+            hasSameId(ownedOrganization, orgId) ||
+            hasSameId(organization?.owner, currentUserId)
+        );
+    }, [organization?.owner, orgId, ownedOrganization, currentUserId]);
 
-    const isOwner = ownedOrganization?._id === orgId;
+
 
     const handleUpdate = async () => {
         try {
-            await updateOrganization(orgId, orgName);
+            const updatedOrganization = await updateOrganization(orgId, orgName);
+            setOrganization((currentOrganization) => ({
+                ...currentOrganization,
+                ...updatedOrganization
+            }));
             toast.success('Organization updated');
+            setIsEditing(false);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Update failed');
         }
     };
 
+    const handleInviteMember = (email) => {
+        toast.success(`Invitation sent to ${email}`);
+        // Here you would make the actual API call to invite the member
+    };
+
     if (isLoading || !organization) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
         );
     }
 
     const stats = [
-        { label: 'Members', value: organization.members?.length, limit: organization.meta?.limits?.maxMembers, icon: Users, color: 'text-blue-500' },
         {
-            label: "Today's AI Usage",
+            label: 'Team Members',
+            value: organization.members?.length,
+            limit: organization.meta?.limits?.maxMembers,
+            icon: Users,
+            badge: `${organization.members?.length || 0} / ${organization.meta?.limits?.maxMembers || 0}`
+        },
+        {
+            label: 'AI Credits Used',
             value: organization.usage?.aiCreditsUsed,
             limit: organization.meta?.limits?.aiCredits,
             icon: Cpu,
-            color: 'text-purple-500',
             badge: 'Resets daily'
         },
-        { label: 'Customers', value: organization.usage?.customerCount, limit: organization.meta?.limits?.maxCustomers, icon: UserPlus, color: 'text-emerald-500' },
+        {
+            label: 'Customers',
+            value: organization.usage?.customerCount,
+            limit: organization.meta?.limits?.maxCustomers,
+            icon: UserPlus,
+            badge: `${((organization.usage?.customerCount || 0) / (organization.meta?.limits?.maxCustomers || 1) * 100).toFixed(0)}% of limit`
+        },
     ];
 
     const remainingSlots = (organization.meta?.limits?.maxMembers || 0) - (organization.members?.length || 0);
 
     return (
-        <div className="mx-auto max-w-6xl px-4 py-4 md:py-10 antialiased font-sans">
+        <>
+            <div className="min-h-screen bg-background">
+                {/* Main Content Container */}
+                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-[1400px]">
 
-            {/* Nav Row */}
-            <div className="mb-6 md:mb-10">
-                <button
-                    onClick={() => navigate('/organizations')}
-                    className="group flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                    Back to Dashboard
-                </button>
-            </div>
+                    {/* Navigation Header */}
+                    <div className="mb-6 sm:mb-8">
+                        <button
+                            onClick={() => navigate('/organizations')}
+                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 sm:mb-6"
+                        >
+                            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                            Back to organizations
+                        </button>
 
-            {/* Profile Header */}
-            <header className="mb-8 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-                <div className="relative">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-sm ring-1 ring-border md:h-24 md:w-24">
-                        <Building2 className="h-8 w-8 opacity-90 md:h-12 md:w-12" />
-                    </div>
-                    {isOwner && (
-                        <div className="absolute -bottom-1 -right-1 rounded-full bg-background p-1 shadow-md ring-1 ring-border">
-                            <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-50 md:h-6 md:w-6" />
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex-1 text-center sm:text-left pt-2">
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                        <h1 className="text-2xl font-black tracking-tight md:text-5xl uppercase">{organization.name}</h1>
-                        <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary border border-primary/20">
-                            {/* <Zap className="h-2.5 w-2.5 fill-current" /> */}
-                            {organization.subscription?.plan?.toUpperCase()}
-                        </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap justify-center gap-4 sm:justify-start">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                            <Calendar className="h-3 w-3" />
-                            Active since{" - "}
-                            {new Date(organization.createdAt).toLocaleDateString(undefined, {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Visual Stats Row - COMPACT 3-Column mobile grid */}
-            <div className="mb-12 grid grid-cols-3 gap-2 md:gap-6">
-                {stats.map((stat) => (
-                    <div
-                        key={stat.label}
-                        className="group p-2.5 md:p-5 border-l-2 md:border-l-[3px] border-muted hover:border-primary transition-all duration-300 bg-card/30 flex flex-col justify-between overflow-hidden"
-                    >
-                        <div>
-                            <div className="flex items-center gap-1 md:gap-1.5 text-muted-foreground mb-1 md:mb-2">
-                                <stat.icon className={`h-3 w-3 md:h-4 md:w-4 shrink-0 ${stat.color}`} />
-                                {/* 
-                        Changed: 
-                        1. Removed 'truncate'
-                        2. Added 'whitespace-nowrap' 
-                        3. Adjusted tracking-tight for mobile 
-                    */}
-                                <span className="text-[7px] min-[380px]:text-[8px] md:text-[10px] font-black uppercase tracking-tight md:tracking-widest leading-none whitespace-nowrap">
-                                    {stat.label}
-                                </span>
-                            </div>
-                            <div className="flex items-baseline gap-0.5 md:gap-1.5">
-                                <span className="text-base min-[380px]:text-lg md:text-3xl font-black tracking-tighter">
-                                    {stat.value}
-                                </span>
-                                <span className="text-[8px] md:text-xs font-bold text-muted-foreground/50 uppercase">
-                                    /{stat.limit}
-                                </span>
-                            </div>
-                        </div>
-
-                        {stat.badge && (
-                            <div className="mt-1.5 flex items-center gap-1">
-                                <RefreshCw className="h-2 w-2 text-purple-400 animate-spin-slow shrink-0" />
-                                <span className="text-[6px] md:text-[9px] font-bold text-purple-400 uppercase tracking-tight md:tracking-widest whitespace-nowrap">
-                                    {stat.badge}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-            <div className="grid gap-12 lg:grid-cols-12">
-
-                {/* Left Area */}
-                <div className="lg:col-span-7 space-y-12">
-                    <section>
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10">
-                                <Settings2 className="h-4 w-4 text-primary" />
-                            </div>
-                            <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Identity & Settings</h2>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="grid gap-2">
-                                <div className="flex items-center justify-between px-1">
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Workspace Display Name</label>
-                                    {!isOwner && (
-                                        <span className="flex items-center gap-1 text-[9px] font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded border border-destructive/20 uppercase">
-                                            <AlertCircle className="h-2.5 w-2.5" />
-                                            Only owner can edit
-                                        </span>
-                                    )}
+                        {/* Organization Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-muted rounded-lg flex items-center justify-center border border-border">
+                                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
                                 </div>
-
-                                <div className="relative flex flex-col sm:flex-row items-stretch gap-2 sm:gap-3">
-                                    <div className="relative flex-1 group">
-                                        <input
-                                            value={orgName}
-                                            onChange={(e) => setOrgName(e.target.value)}
-                                            disabled={!isOwner}
-                                            className={`
-                h-11 w-full rounded-xl border bg-background px-4 text-sm font-semibold transition-all outline-none border-border/60 placeholder:text-muted-foreground/50
-                ${isOwner ? 'focus:ring-2 focus:ring-primary/20' : ''}
-                ${isOwner && orgName !== organization.name ? 'pr-24 sm:pr-4' : ''} 
-                disabled:bg-muted/30
-            `}
-                                            placeholder="Organization name"
-                                        />
-
-                                        {/* Mobile View: Inline button that only appears when name is changed (dirty) */}
-                                        {isOwner && orgName !== organization.name && (
-                                            <button
-                                                onClick={handleUpdate}
-                                                disabled={isUpdating}
-                                                className="absolute right-1 top-1 bottom-1 px-3 sm:hidden flex items-center justify-center rounded-lg bg-primary text-[10px] font-black uppercase tracking-tighter text-primary-foreground transition-all animate-in fade-in zoom-in duration-200 active:scale-95 shadow-sm"
-                                            >
-                                                {isUpdating ? (
-                                                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                                ) : (
-                                                    'Update'
-                                                )}
-                                            </button>
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+                                            {organization.name}
+                                        </h1>
+                                        <span className="px-2 py-0.5 bg-muted text-[10px] sm:text-xs font-medium text-muted-foreground rounded-md">
+                                            {organization.subscription?.plan?.toUpperCase() || 'FREE'}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                                        <span>Created {new Date(organization.createdAt).toLocaleDateString()}</span>
+                                        {isOwner && (
+                                            <span className="flex items-center gap-1">
+                                                <ShieldCheck className="h-3 w-3" />
+                                                Owner
+                                            </span>
                                         )}
                                     </div>
-
-                                    {/* Desktop View: Separate Button that only appears when name is changed (dirty) */}
-                                    {isOwner && orgName !== organization.name && (
-                                        <button
-                                            onClick={handleUpdate}
-                                            disabled={isUpdating}
-                                            className="hidden sm:inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all animate-in fade-in slide-in-from-right-2 duration-200 hover:scale-[1.02] active:scale-95"
-                                        >
-                                            {isUpdating ? (
-                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                            ) : (
-                                                <>
-                                                    Update
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Description moved below editable name */}
-                                <div className="mt-4 rounded-xl bg-muted/20 p-4 border border-dashed border-border/60">
-                                    <p className="text-[11px] md:text-xs font-medium text-muted-foreground leading-relaxed">
-                                        This is a premium workspace dedicated to enterprise-level management and AI-driven operations.
-                                        {isOwner
-                                            ? " As the owner, you can manage team access and update branding here."
-                                            : " Please contact your administrator for any identity or branding changes."}
-                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    </section>
 
-                    <section>
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10">
-                                <LayoutGrid className="h-4 w-4 text-primary" />
-                            </div>
-                            <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Integrations</h2>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {[
-                                {
-                                    name: 'Google Calendar',
-                                    key: 'googleCalendar',
-                                    path: '/integrations/google-calendar',
-                                    connected: organization.integrations?.googleCalendar?.isConnected
-                                },
-                                {
-                                    name: 'WhatsApp Business',
-                                    key: 'whatsapp',
-                                    path: '/integrations/whatsapp',
-                                    connected: organization.integrations?.whatsapp?.isEnabled
-                                }
-                            ].map((item) => (
-                                <Link
-                                    key={item.key}
-                                    to={item.path}
-                                    className="flex items-center justify-between rounded-2xl border border-border/40 bg-card p-4 transition-all active:scale-[0.98] hover:bg-muted/30 hover:border-primary/30 group"
+                            {isOwner && !isEditing && (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent hover:border-border/80 transition-colors cursor-pointer"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        {/* ICON STATE */}
-                                        <div className="relative flex items-center justify-center">
-                                            {item.connected ? (
-                                                <>
-                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/10" />
-                                                </>
-                                            ) : (
-                                                <Circle className="h-4 w-4 text-muted-foreground/30" />
-                                            )}
-                                        </div>
-
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold tracking-tight">
-                                                {item.name}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground font-medium">
-                                                {item.connected ? 'Connected' : 'Not Configured'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity text-primary">
-                                            Configure
-                                        </span>
-                                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-
-                {/* Right Area */}
-                <div className="lg:col-span-5 space-y-8">
-                    <div className="rounded-3xl border border-border/40 bg-card/40 p-6 shadow-sm">
-                        <div className="mb-6 flex items-center justify-between border-b border-border/40 pb-4">
-                            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Subscription</h3>
-                            {/* <Zap className="h-3.5 w-3.5 text-muted-foreground/40" /> */}
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center text-xs">
-                                <span className="font-bold text-muted-foreground uppercase tracking-widest">Plan</span>
-                                <span className="font-black capitalize text-primary">{organization.subscription?.plan}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs">
-                                <span className="font-bold text-muted-foreground uppercase tracking-widest">Renewal</span>
-                                <span className="font-bold">{organization.subscription?.endDate ? new Date(organization.subscription.endDate).toLocaleDateString() : 'Unlimited'}</span>
-                            </div>
-                            <button className="w-full rounded-xl bg-foreground py-3 text-[10px] font-black uppercase tracking-[0.2em] text-background hover:opacity-90 transition-all active:scale-[0.98]"
-                                onClick={() => toast('Subscription management coming soon!')}
-                            >
-                                Manage Subscription
-                            </button>
+                                    Edit details
+                                </button>
+                            )}
                         </div>
                     </div>
 
-                    <div className="rounded-3xl border bg-card/50 p-6 shadow-sm ring-1 ring-border/50">
-                        <div className="mb-6 flex items-baseline justify-between px-1">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Memeber slots</h3>
-                            <div className="text-[10px] font-black text-primary uppercase">
-                                {Math.round(((organization.members?.length || 0) / (organization.meta?.limits?.maxMembers || 1)) * 100)}% Used
-                            </div>
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                        {stats.map((stat) => (
+                            <StatCard key={stat.label} {...stat} />
+                        ))}
+                    </div>
+
+                    {/* Two Column Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                        {/* Left Column - Primary Content */}
+                        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+                            {/* Organization Settings Section */}
+                            <Card>
+                                <SectionHeader
+                                    icon={Settings2}
+                                    title="Organization Settings"
+                                    description="Manage your organization's basic information"
+                                />
+                                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+                                    {isEditing ? (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-foreground mb-2">
+                                                    Organization Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={orgName}
+                                                    onChange={(e) => setOrgName(e.target.value)}
+                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                                                    placeholder="Organization name"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditing(false);
+                                                        setOrgName(organization.name);
+                                                    }}
+                                                    className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleUpdate}
+                                                    disabled={isUpdating}
+                                                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                                                >
+                                                    {isUpdating ? 'Saving...' : 'Save changes'}
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
+                                                <span className="text-sm text-muted-foreground">Organization name</span>
+                                                <span className="text-sm font-medium text-foreground">{organization.name}</span>
+                                            </div>
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
+                                                <span className="text-sm text-muted-foreground">Description</span>
+                                                <span className="text-sm font-medium text-foreground">{organization?.description || 'No description provided'}</span>
+                                            </div>
+                                            <div className="pt-2 text-sm text-destructive/60">
+                                                {((isOwner) ? (
+                                                    null
+                                                ) : (
+                                                    "Contact your organization owner for any changes"
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+
+                            {/* Integrations Section */}
+                            <Card>
+                                <SectionHeader
+                                    icon={LayoutGrid}
+                                    title="Integrations"
+                                    description="Connect external services to your organization"
+                                />
+                                <div className="mt-4 sm:mt-6 space-y-2">
+                                    <IntegrationRow
+                                        name="Google Calendar"
+                                        connected={organization.integrations?.googleCalendar?.isConnected}
+                                        path="/integrations/google-calendar"
+                                    />
+                                    <IntegrationRow
+                                        name="WhatsApp Business"
+                                        connected={organization.integrations?.whatsapp?.isEnabled}
+                                        path="/integrations/whatsapp"
+                                    />
+                                </div>
+                            </Card>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black tracking-tighter">{organization.members?.length || 0}</span>
-                                <span className="text-xs font-bold text-muted-foreground/50">/ {organization.meta?.limits?.maxMembers || 0} Slots</span>
-                            </div>
-
-                            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                                <div
-                                    className="absolute inset-y-0 left-0 bg-primary transition-all duration-500"
-                                    style={{ width: `${Math.min(((organization.members?.length || 0) / (organization.meta?.limits?.maxMembers || 1)) * 100, 100)}%` }}
+                        {/* Right Column - Secondary Information */}
+                        <div className="space-y-6 sm:space-y-8">
+                            {/* Subscription Card */}
+                            <Card>
+                                <SectionHeader
+                                    icon={CreditCard}
+                                    title="Subscription"
+                                    description="Your current plan and billing"
                                 />
-                            </div>
+                                <div className="mt-4 sm:mt-6 space-y-3">
+                                    <DetailRow
+                                        label="Current Plan"
+                                        value={organization.subscription?.plan?.toUpperCase() || 'Free'}
+                                        valueClassName="capitalize"
+                                    />
+                                    <DetailRow
+                                        label="Renewal Date"
+                                        value={organization.subscription?.endDate
+                                            ? new Date(organization.subscription.endDate).toLocaleDateString()
+                                            : 'No expiration'}
+                                    />
+                                    <button className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+                                        Manage subscription
+                                    </button>
+                                </div>
+                            </Card>
 
-                            <p className="text-[9px] font-medium text-muted-foreground italic leading-none">
-                                {remainingSlots <= 0 ? "Slots Full, Remove Members or Upgrade Plan" : `${remainingSlots} slots remaining`}
-                            </p>
+                            {/* Team Members Card */}
+                            <Card>
+                                <SectionHeader
+                                    icon={Users}
+                                    title="Team Members"
+                                    description={`${organization.members?.length || 0} of ${organization.meta?.limits?.maxMembers || 0} members`}
+                                />
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => navigate(`/organizations/${orgId}/members`)}
+                                        className="w-full flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/5 transition-colors group"
+                                    >
+                                        <span className="text-sm font-medium text-foreground">View all members</span>
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                    </button>
 
-                            <button
-                                onClick={() => window.location.hash = 'members'}
-                                className="group flex w-full items-center justify-center gap-2 rounded-xl border bg-background py-2.5 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-muted"
-                            >
-                                View All Members
-                                <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                            </button>
+                                    {remainingSlots > 0 && (
+                                        <button
+                                            onClick={() => setIsInviteModalOpen(true)}
+                                            className="w-full mt-3 px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors font-medium border border-dashed border-border rounded-lg hover:border-primary/50"
+                                        >
+                                            + Invite members
+                                        </button>
+                                    )}
+
+                                    {remainingSlots <= 0 && (
+                                        <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                                            <p className="text-xs text-muted-foreground text-center">
+                                                Member limit reached. Upgrade to add more members.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Invite Member Modal */}
+            <InviteMemberModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                onInvite={handleInviteMember}
+            />
+        </>
     );
 }

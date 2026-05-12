@@ -1,5 +1,33 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
+import { useUserStore } from './userStore';
+
+const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === 'string') return entity;
+    return entity._id || entity.id || null;
+};
+
+const isSameId = (left, right) => {
+    const leftId = getEntityId(left);
+    const rightId = getEntityId(right);
+
+    return !!leftId && !!rightId && leftId.toString() === rightId.toString();
+};
+
+const mergeOrganizationById = (organizations, organization) => {
+    const exists = organizations.some(org => isSameId(org, organization));
+
+    if (!exists) {
+        return [...organizations, organization];
+    }
+
+    return organizations.map(org =>
+        isSameId(org, organization)
+            ? organization
+            : org
+    );
+};
 
 export const useOrganizationStore = create((set, get) => ({
 
@@ -169,18 +197,38 @@ export const useOrganizationStore = create((set, get) => ({
 
             const { data } = response.data;
 
-            set({
-                isLoading: false,
-                error: null
-            });
-
             const {
                 ownedOrganization,
                 memberOrganizations,
                 currentOrganization
-            } = get(); // Get latest state
+            } = get();
 
+            const currentUserId =
+                useUserStore.getState().userProfile?._id;
 
+            const isOwner =
+                isSameId(data?.owner, currentUserId);
+
+            const updatedOwnedOrganization = isOwner
+                ? data
+                : isSameId(ownedOrganization, data)
+                    ? null
+                    : ownedOrganization;
+
+            const updatedMemberOrganizations = isOwner
+                ? memberOrganizations.filter(org => !isSameId(org, data))
+                : mergeOrganizationById(memberOrganizations, data);
+
+            set({
+                ownedOrganization: updatedOwnedOrganization,
+                memberOrganizations: updatedMemberOrganizations,
+                currentOrganization: isSameId(currentOrganization, data)
+                    ? data
+                    : currentOrganization,
+
+                isLoading: false,
+                error: null
+            });
 
             return data;
 
