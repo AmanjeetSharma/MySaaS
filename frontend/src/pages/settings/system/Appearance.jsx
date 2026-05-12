@@ -274,18 +274,19 @@ const Appearance = () => {
                                             key={themeOption.value}
                                             onClick={() =>
                                                 !isLocked &&
+                                                !isActive &&
                                                 handleThemeChange(
                                                     themeOption.value,
                                                     selectedThemeMode
                                                 )
                                             }
                                             disabled={
-                                                isLocked || isThemeUpdating
+                                                isLocked || isActive || isThemeUpdating
                                             }
                                             className={`relative overflow-hidden rounded-2xl border transition-all duration-200 text-left p-3 sm:p-4 ${isActive
                                                 ? 'border-primary/40 bg-primary/5'
                                                 : 'border-border/40 bg-muted/20 hover:bg-muted/40 hover:border-border'
-                                                } ${isLocked
+                                                } ${isLocked || isActive
                                                     ? 'opacity-60 cursor-not-allowed'
                                                     : 'cursor-pointer hover:-translate-y-px'
                                                 }`}
