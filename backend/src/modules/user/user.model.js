@@ -43,6 +43,7 @@ const phoneSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     otpHash: { type: String, default: null, select: false },
     otpExpiry: { type: Date, default: null, select: false },
+    otpResendAllowedAt: { type: Date, default: null, select: false }
 }, { _id: false });
 
 

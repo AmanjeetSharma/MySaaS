@@ -12,18 +12,28 @@ import { getUserById, getUserByPhone } from "../user.repository.js";
 
 
 export const addPhoneService = async (userId, phone) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
     const phoneValidationErrors = phoneNumberValidator(phone);
     if (!phoneValidationErrors.valid) {
         throw new ApiError(400, phoneValidationErrors.errors.join(", "));
     }
 
-    const user = await getUserById(userId);
+    const user = await getUserById(userId, "+phone.otpExpiry +phone.otpResendAllowedAt");
     if (!user) {
         throw new ApiError(404, "User not found");
     }
+
+    if (user.phone?.pendingNumber === phone &&
+        user.phone?.otpResendAllowedAt > Date.now()
+    ) {
+        const remainingSeconds = Math.ceil((user.phone.otpResendAllowedAt - Date.now()) / 1000);
+
+        throw new ApiError(429, `Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
+    }
+
+
+
 
     const existingPhoneOwner = await getUserByPhone(userId, phone);
     if (existingPhoneOwner) {
@@ -42,7 +52,8 @@ export const addPhoneService = async (userId, phone) => {
         pendingNumber: phone,
         isVerified: false,
         otpHash: hashedOtp,
-        otpExpiry: Date.now() + 10 * 60 * 1000 // 10 mins
+        otpExpiry: Date.now() + 5 * 60 * 1000, // 5 mins
+        otpResendAllowedAt: Date.now() + 60 * 1000 // 1 min
     };
 
     try {
@@ -56,7 +67,8 @@ export const addPhoneService = async (userId, phone) => {
     return {
         pendingNumber: phone,
         otpSent: true,
-        expiresIn: "10 minutes"
+        expiresIn: "5 minutes",
+        resendAfter: "1 minute"
     };
 }
 

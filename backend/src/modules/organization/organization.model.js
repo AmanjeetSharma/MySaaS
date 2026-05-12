@@ -79,7 +79,7 @@ const organizationSchema = new Schema(
             required: true,
             trim: true,
             minlength: [3, "Organization name must be at least 3 characters"],
-            maxlength: [50, "Organization name must be at most 50 characters"],
+            maxlength: [80, "Organization name must be at most 80 characters"],
         },
 
         owner: {

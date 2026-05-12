@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
-import { nameValidator } from "../../validations/auth.validators.js";
+import { organizationNameValidator } from "./organization.validator.js";
 import {
     findUserById,
     findExistingOrganization,
@@ -23,7 +23,7 @@ export const createOrganizationService = async (userId, orgName) => {
 
     const cleanedOrgName = orgName.trim();
 
-    const nameError = nameValidator(cleanedOrgName);
+    const nameError = organizationNameValidator(cleanedOrgName);
     if (!nameError.valid) {
         throw new ApiError(400, `Name is invalid: ${nameError.errors.join(", ")}`);
     }
@@ -107,12 +107,25 @@ export const getOrganizationsService = async (userId) => {
 
 
 export const getOrganizationService = async (orgId, userId) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
-    if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
 
     const org = await findOrganizationById(orgId);
     if (!org) {
         throw new ApiError(404, "Organization not found");
+    }
+
+    const isOwner = org.owner.toString() === userId.toString();
+
+    const isMember = org.members.some(
+        member => member.user.toString() === userId.toString()
+    );
+
+    if (!isOwner && !isMember) {
+        throw new ApiError(
+            403,
+            "You do not have access to this organization"
+        );
     }
 
     console.log(`User ID: ${userId} requested details for Organization: ${org.name}`);
@@ -135,7 +148,7 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
     const { orgName } = updateData;
     const cleanedOrgName = orgName.trim();
 
-    const nameError = nameValidator(cleanedOrgName);
+    const nameError = organizationNameValidator(cleanedOrgName);
     if (!nameError.valid) {
         throw new ApiError(400, `Name is invalid: ${nameError.errors.join(", ")}`);
     }

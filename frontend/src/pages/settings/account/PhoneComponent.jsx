@@ -355,7 +355,7 @@ const PhoneComponent = () => {
                             <Button
                                 onClick={handleSendOtp}
                                 disabled={isSendingOtp || phone.length !== 10}
-                                className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-[140px] text-sm"
+                                className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-35 text-sm cursor-pointer"
                             >
 
                                 {isSendingOtp ? (
@@ -408,7 +408,7 @@ const PhoneComponent = () => {
                                 <Button
                                     onClick={handleVerifyOtp}
                                     disabled={isVerifyingOtp || otp.length !== 6}
-                                    className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-[140px] text-sm"
+                                    className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-35 text-sm cursor-pointer"
                                 >
 
                                     {isVerifyingOtp ? (
@@ -439,7 +439,7 @@ const PhoneComponent = () => {
                             variant="destructive"
                             onClick={handleRemovePhone}
                             disabled={isRemovingPhone || isUpdating}
-                            className="w-full h-10 sm:h-11 rounded-xl text-sm"
+                            className="w-full h-10 sm:h-11 rounded-xl text-sm cursor-pointer"
                         >
 
                             {isRemovingPhone ? (
