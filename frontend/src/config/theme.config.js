@@ -27,7 +27,7 @@ export const themeProfiles = {
                 "--border": "#e4e4e7",
                 "--input": "#e4e4e7",
                 "--ring": "#18181b",
-                "--radius": "0.5rem",
+                "--radius": "1rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#18181b",
                 "--sidebar-primary": "#18181b",
@@ -67,7 +67,7 @@ export const themeProfiles = {
                 "--input": "#121212",
                 "--ring": "#52525b",
 
-                "--radius": "0.5rem",
+                "--radius": "1rem",
 
                 "--sidebar": "#000000",
                 "--sidebar-foreground": "#fafafa",
@@ -117,7 +117,7 @@ export const themeProfiles = {
                 "--input": "#dff7f3",
                 "--ring": "#14b8a6",
 
-                "--radius": "0.75rem",
+                "--radius": "1rem",
 
                 "--sidebar": "#fcfffe",
                 "--sidebar-foreground": "#102a2a",
@@ -166,7 +166,7 @@ export const themeProfiles = {
 
                 "--ring": "#2dd4bf",
 
-                "--radius": "0.75rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#040808",
@@ -208,7 +208,7 @@ export const themeProfiles = {
                 "--border": "#e4e4e7",
                 "--input": "#e4e4e7",
                 "--ring": "#6d28d9",
-                "--radius": "0.75rem",
+                "--radius": "1rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#160b2e",
                 "--sidebar-primary": "#6d28d9",
@@ -254,7 +254,7 @@ export const themeProfiles = {
 
                 "--ring": "#8b5cf6",
 
-                "--radius": "0.75rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#06020f",
@@ -296,7 +296,7 @@ export const themeProfiles = {
                 "--border": "#dce5d0",
                 "--input": "#dce5d0",
                 "--ring": "#4a7c2e",
-                "--radius": "0.5rem",
+                "--radius": "1rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#1a2416",
                 "--sidebar-primary": "#4a7c2e",
@@ -342,7 +342,7 @@ export const themeProfiles = {
 
                 "--ring": "#84cc16",
 
-                "--radius": "0.5rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#0a0f07",
@@ -473,7 +473,7 @@ export const themeProfiles = {
                 "--border": "#e6d5c0",
                 "--input": "#e6d5c0",
                 "--ring": "#8b5a2b",
-                "--radius": "0.5rem",
+                "--radius": "1rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#3b2a1f",
                 "--sidebar-primary": "#8b5a2b",
@@ -643,7 +643,7 @@ export const themeProfiles = {
                 "--border": "#cbd5e0",
                 "--input": "#cbd5e0",
                 "--ring": "#4a5568",
-                "--radius": "0.375rem",
+                "--radius": "1rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#1a202c",
                 "--sidebar-primary": "#4a5568",
@@ -674,13 +674,11 @@ export const themeProfiles = {
                 "--secondary-foreground": "#f1f5f9",
 
                 "--muted": "#151b23",
-                "--muted-foreground": "#8b96a5", /* Smoothed out */
+                "--muted-foreground": "#8b96a5",
 
-                /* Subtle hover accent */
-                "--accent": "#1c2532", /* Darkened for perfect row/menu hover states */
+                "--accent": "#1c2532",
                 "--accent-foreground": "#f1f5f9",
 
-                /* Status (Adjusted to neon/pastel for dark mode pop) */
                 "--destructive": "#f87171",
                 "--success": "#4ade80",
                 "--warning": "#fbbf24",
@@ -690,7 +688,7 @@ export const themeProfiles = {
                 "--input": "#171f2a",
                 "--ring": "#a5b4fc",
 
-                "--radius": "0.375rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#090c10", /* Darker than base for depth */
@@ -746,7 +744,7 @@ export const themeProfiles = {
                 /* Focus ring */
                 "--ring": "#3b82f6",
 
-                "--radius": "0.5rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#ffffff",
@@ -799,7 +797,7 @@ export const themeProfiles = {
                 /* Focus ring */
                 "--ring": "#3b82f6",
 
-                "--radius": "0.5rem",
+                "--radius": "1rem",
 
                 /* Sidebar */
                 "--sidebar": "#0b1220",
@@ -871,7 +869,7 @@ export const themeProfiles = {
                 "--popover": "#1f1f22",
                 "--popover-foreground": "#f4f4f5",
 
-                "--primary": "#fbbf24", /* Amber/Gold 400 */
+                "--primary": "#fbbf24",
                 "--primary-foreground": "#121212",
 
                 "--secondary": "#27272a",

@@ -268,13 +268,6 @@ export default function OrganizationDetails() {
 
     const stats = [
         {
-            label: 'Team Members',
-            value: organization.members?.length,
-            limit: organization.meta?.limits?.maxMembers,
-            icon: Users,
-            badge: `${organization.members?.length || 0} / ${organization.meta?.limits?.maxMembers || 0}`
-        },
-        {
             label: 'AI Credits Used',
             value: organization.usage?.aiCreditsUsed,
             limit: organization.meta?.limits?.aiCredits,
@@ -287,7 +280,13 @@ export default function OrganizationDetails() {
             limit: organization.meta?.limits?.maxCustomers,
             icon: UserPlus,
             badge: `${((organization.usage?.customerCount || 0) / (organization.meta?.limits?.maxCustomers || 1) * 100).toFixed(0)}% of limit`
-        },
+        }, {
+            label: 'Team Members',
+            value: organization.members?.length,
+            limit: organization.meta?.limits?.maxMembers,
+            icon: Users,
+            badge: `${organization.members?.length || 0} / ${organization.meta?.limits?.maxMembers || 0}`
+        }
     ];
 
     const remainingSlots = (organization.meta?.limits?.maxMembers || 0) - (organization.members?.length || 0);
@@ -296,7 +295,7 @@ export default function OrganizationDetails() {
         <>
             <div className="min-h-screen bg-background">
                 {/* Main Content Container */}
-                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-[1400px]">
+                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-350">
 
                     {/* Navigation Header */}
                     <div className="mb-6 sm:mb-8">
