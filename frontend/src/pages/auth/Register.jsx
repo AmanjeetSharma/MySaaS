@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -158,6 +158,24 @@ const Register = () => {
   const handleGoogleError = () => {
     toast.error('Google registration failed. Please try again.');
   };
+
+
+  const googleWrapperRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (googleWrapperRef.current) {
+        setContainerWidth(googleWrapperRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+
 
   return (
     <>
@@ -338,19 +356,17 @@ const Register = () => {
               </div>
             </div>
 
-            {/* GOOGLE */}
-            <GoogleOAuthProvider
-              clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
-            >
-              <div className="w-full">
+            {/* GOOGLE LOGIN */}
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <div ref={googleWrapperRef} className="w-full flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
                   theme="filled_blue"
                   size="large"
-                  width={320}
-                  text="signup_with"
+                  text="continue_with"
                   shape="rectangular"
+                  width={containerWidth}
                 />
               </div>
             </GoogleOAuthProvider>

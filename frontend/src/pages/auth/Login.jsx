@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,6 +108,22 @@ const Login = () => {
   const handleGoogleError = () => {
     toast.error('Google login failed. Please try again.');
   };
+
+  const googleWrapperRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (googleWrapperRef.current) {
+        setContainerWidth(googleWrapperRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative">
@@ -246,18 +262,17 @@ const Login = () => {
           </div>
 
           {/* GOOGLE LOGIN */}
-          <GoogleOAuthProvider
-            clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
-          >
-            <div className="w-full">
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+            <div ref={googleWrapperRef} className="w-full flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
                 theme="filled_blue"
-                width={320}
                 size="large"
                 text="continue_with"
                 shape="rectangular"
+                // 2. Use the dynamic width here
+                width={containerWidth}
               />
             </div>
           </GoogleOAuthProvider>
