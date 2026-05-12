@@ -254,6 +254,7 @@ const Login = () => {
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
                 theme="filled_blue"
+                width={320}
                 size="large"
                 text="continue_with"
                 shape="rectangular"

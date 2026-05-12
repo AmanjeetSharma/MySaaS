@@ -348,6 +348,7 @@ const Register = () => {
                   onError={handleGoogleError}
                   theme="filled_blue"
                   size="large"
+                  width={320}
                   text="signup_with"
                   shape="rectangular"
                 />
