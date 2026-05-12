@@ -136,11 +136,11 @@ export const forgotPasswordService = async (email) => {
 
     const emailContent = resetEmailTemplate(user.name, resetLink);
 
-    if (env.EMAIL_ENABLED === 'true') { // Only send email if enabled
+    if (env.EMAIL_ENABLED) { // Only send email if enabled
         await sendEmail(user.email, "Reset Your Password - MySaaS", emailHTML, true);
     }
 
-    console.log(`[sendEmail] for password reset: ${env.EMAIL_ENABLED === 'true' ? 'Email sent' : 'Email sending disabled, skipping...'}`);
+    console.log(`[sendEmail] for password reset: ${env.EMAIL_ENABLED ? 'Email sent' : 'Email sending disabled, skipping...'}`);
     console.log(`Reset link for ${user.email}: ${resetLink}`); // link for testing (debug log)
 
     return null;
