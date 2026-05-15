@@ -275,13 +275,13 @@ const Preferences = () => {
                                 disabled={isTimezoneUpdating}
                             >
 
-                                <SelectTrigger className="w-full lg:w-[260px] h-11 rounded-xl border-border/50 bg-background/60 backdrop-blur-md">
+                                <SelectTrigger className="w-full lg:w-65 h-11 rounded-xl border-border/50 bg-background/60 backdrop-blur-md">
 
                                     <SelectValue placeholder="Select timezone" />
 
                                 </SelectTrigger>
 
-                                <SelectContent className="max-h-[280px]">
+                                <SelectContent className="max-h-70">
 
                                     {timezones.map((tz) => (
 
@@ -343,10 +343,7 @@ const Preferences = () => {
 
                             <div className="space-y-1 flex-1">
 
-                                <Label
-                                    htmlFor="email-notifs"
-                                    className="text-sm font-medium cursor-pointer"
-                                >
+                                <Label className="text-sm font-medium">
                                     Email Notifications
                                 </Label>
 
@@ -357,11 +354,10 @@ const Preferences = () => {
                             </div>
 
                             <Switch
-                                id="email-notifs"
                                 checked={localNotifications.email}
                                 onCheckedChange={handleEmailNotificationChange}
                                 disabled={isEmailNotificationsUpdating}
-                                className="mt-1"
+                                className="mt-1 cursor-pointer"
                             />
 
                         </div>
@@ -373,10 +369,7 @@ const Preferences = () => {
 
                             <div className="space-y-1 flex-1">
 
-                                <Label
-                                    htmlFor="inapp-notifs"
-                                    className="text-sm font-medium cursor-pointer"
-                                >
+                                <Label className="text-sm font-medium">
                                     In-App Alerts
                                 </Label>
 
@@ -387,11 +380,10 @@ const Preferences = () => {
                             </div>
 
                             <Switch
-                                id="inapp-notifs"
                                 checked={localNotifications.inApp}
                                 onCheckedChange={handleInAppNotificationChange}
                                 disabled={isInAppNotificationsUpdating}
-                                className="mt-1"
+                                className="mt-1 cursor-pointer"
                             />
 
                         </div>
