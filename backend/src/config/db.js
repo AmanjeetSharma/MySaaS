@@ -10,7 +10,7 @@ if (env.NODE_ENV === "development") {
 
 
 const connectDB = async () => {
-    try {
+    try {   
         const conn = await mongoose.connect(`${env.MONGO_URI}/${env.DB_NAME}`);
         console.log(`${chalk.yellowBright("--> MongoDB Connected")} | HOST: ${chalk.gray(conn.connection.host)}`);
     } catch (error) {

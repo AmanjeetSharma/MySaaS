@@ -4,17 +4,9 @@ import { TopNavbar } from './TopNavbar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useEffect } from 'react';
-// import { initializeThemeFromLocalStorage } from '@/theme/themeSync.utils.js';
 
 export function AppLayout() {
     const isMobile = useIsMobile();
-
-    // Initialize theme from localStorage BEFORE rendering
-    // useEffect(() => {
-    //     const { name, mode } = initializeThemeFromLocalStorage();
-    //     console.log(`Theme initialized: ${name} (${mode})`);
-    // }, []);
 
     return (
         <TooltipProvider delayDuration={0}>

@@ -139,7 +139,7 @@ export function DesktopSidebar() {
                             <button
                                 onClick={toggleSidebar}
                                 className={cn(
-                                    "flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent transition-all duration-200",
+                                    "flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent transition-all duration-200 cursor-pointer",
                                     !isCollapsed && "ml-auto"
                                 )}
                             >

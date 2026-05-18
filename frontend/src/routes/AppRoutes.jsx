@@ -62,6 +62,9 @@ import Notifications from '@/pages/notifications/Notifications';
 // Contact imports
 import Contact from '@/pages/public/Contact';
 
+// Not Found Page
+import NotFound from '@/pages/NotFound';
+
 
 export const AppRoutes = () => {
     return (
@@ -127,6 +130,10 @@ export const AppRoutes = () => {
 
                     {/* Contact Route */}
                     <Route path="/support" element={<Contact />} />
+
+                    {/* Catch-all for 404 Not Found */}
+                    <Route path="*" element={<NotFound />} />
+
                 </Route>
             </Route>
         </Routes>
