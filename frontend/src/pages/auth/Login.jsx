@@ -267,11 +267,11 @@ const Login = () => {
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
-                theme="filled_blue"
+                theme="outline"
                 size="large"
-                text="continue_with"
+                text="signin_with"
                 shape="rectangular"
-                // 2. Use the dynamic width here
+                logo_alignment="center"
                 width={containerWidth}
               />
             </div>

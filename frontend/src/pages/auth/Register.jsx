@@ -362,11 +362,13 @@ const Register = () => {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  theme="filled_blue"
+                  theme="outline"
                   size="large"
-                  text="continue_with"
+                  text="signup_with"
                   shape="rectangular"
                   width={containerWidth}
+                  logo_alignment="center"
+
                 />
               </div>
             </GoogleOAuthProvider>
