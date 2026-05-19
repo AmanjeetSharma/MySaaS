@@ -197,7 +197,7 @@ const Appearance = () => {
                                     />
 
                                     {/* Surface */}
-                                    <div className="absolute inset-[1px] rounded-full bg-background/80 backdrop-blur-md" />
+                                    <div className="absolute inset-px rounded-full bg-background/80 backdrop-blur-md" />
 
                                     {/* Knob */}
                                     <span
@@ -327,7 +327,7 @@ const Appearance = () => {
                                                     ${themeOption.value === THEME_IDS.SAKURA && 'bg-pink-400'}
                                                     ${themeOption.value === THEME_IDS.PLATINUM && 'bg-slate-400'}
                                                     ${themeOption.value === THEME_IDS.AZURE_BLUE && 'bg-blue-500'}
-                                                    ${themeOption.value === THEME_IDS.GRAPHITE_GOLD && 'bg-gradient-to-br from-amber-400 to-yellow-500'}
+                                                    ${themeOption.value === THEME_IDS.GRAPHITE_GOLD && 'bg-linear-to-br from-amber-400 to-yellow-500'}
                                                 `}
                                                 />
 
@@ -335,7 +335,7 @@ const Appearance = () => {
                                                 <div className="min-w-0 flex-1 pr-4 sm:pr-6">
 
                                                     <p
-                                                        className={`text-xs sm:text-sm font-medium leading-tight break-words ${isActive
+                                                        className={`text-xs sm:text-sm font-medium leading-tight wrap-break-word ${isActive
                                                             ? 'text-foreground'
                                                             : 'text-foreground/90'
                                                             }`}

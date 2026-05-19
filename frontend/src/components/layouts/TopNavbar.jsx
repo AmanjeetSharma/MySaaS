@@ -38,7 +38,7 @@ export function TopNavbar() {
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate('/notifications')}
-                    className="group relative h-10 w-10 rounded-xl transition-all active:scale-90"
+                    className="group relative h-10 w-10 rounded-xl transition-all active:scale-90 cursor-pointer"
                     aria-label="View notifications"
                 >
                     <Bell className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />

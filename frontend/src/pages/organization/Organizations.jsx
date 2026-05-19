@@ -348,7 +348,7 @@ export default function Organizations() {
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
                 className="h-12 rounded-xl text-lg font-bold"
-                placeholder="please enter a name..."
+                placeholder="Name your workspace..."
               />
             </div>
             <Button disabled={isUpdating} type="submit" className="w-full h-12 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-primary/20 cursor-pointer">
