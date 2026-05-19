@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { timezones } from "../../config/timezone.config.js";
+import { TIMEZONES, DEFAULT_TIMEZONE } from "../../constants/timezone.constants.js";
 
 const timeSlotSchema = new mongoose.Schema({
     startTime: { type: String, required: true, },
@@ -25,8 +25,8 @@ const availabilitySchema = new mongoose.Schema({
 
     timezone: {
         type: String,
-        enum: timezones,
-        default: "Asia/Kolkata",
+        enum: TIMEZONES,
+        default: DEFAULT_TIMEZONE,
     },
 
     monday: {

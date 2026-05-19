@@ -1,7 +1,7 @@
 import { ApiError } from "../../../utils/ApiError.js";
 import { themeValidator, timezoneValidator, notificationValidator } from "./settings.validator.js";
 import { getUserById, updateUserSettingsField } from "../user.repository.js";
-import { THEME_IDS } from "../settings/theme.constant.js";
+import { THEME_IDS } from '../../../constants/theme.constants.js';
 
 
 

@@ -1,4 +1,6 @@
-export const timezones = [
+
+export const DEFAULT_TIMEZONE = 'UTC';
+export const TIMEZONES = [
     // UTC
     'UTC',
 

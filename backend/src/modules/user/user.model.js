@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import { THEME_IDS } from './settings/theme.constant.js';
-import { timezones } from '../../config/timezone.config.js';
+import { THEME_IDS } from '../../constants/theme.constants.js';
+import { TIMEZONES, DEFAULT_TIMEZONE } from '../../constants/timezone.constants.js';
 
 
 const sessionSchema = new mongoose.Schema({
@@ -31,7 +31,7 @@ const settingsSchema = new mongoose.Schema({
             default: "free"
         }
     },
-    timezone: { type: String, enum: timezones, default: "Asia/Kolkata" },
+    timezone: { type: String, enum: TIMEZONES, default: DEFAULT_TIMEZONE },
     notifications: {
         email: { type: Boolean, default: false },
         inApp: { type: Boolean, default: true }

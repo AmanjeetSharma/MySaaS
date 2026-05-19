@@ -1,4 +1,4 @@
-import { PLAN_CONFIG } from "../../config/plan.config.js";
+import { PLAN_LIMITS } from "../../constants/plan.constants.js";
 
 export const getOrganizationMeta = (organization) => {
 
@@ -8,7 +8,7 @@ export const getOrganizationMeta = (organization) => {
         organization.subscription?.plan || "free";
 
     const planConfig =
-        PLAN_CONFIG[planKey] || PLAN_CONFIG.free;
+        PLAN_LIMITS[planKey] || PLAN_LIMITS.free;
 
     return {
         limits: {

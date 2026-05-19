@@ -1,4 +1,4 @@
-export const PLAN_CONFIG = {
+export const PLAN_LIMITS = {
     free: {
         name: "Free",
         limits: {

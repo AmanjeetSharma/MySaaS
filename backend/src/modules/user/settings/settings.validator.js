@@ -1,5 +1,5 @@
-import { THEME_IDS } from "./theme.constant.js";
-import { timezones } from "../../../config/timezone.config.js";
+import { THEME_IDS } from "../../../constants/theme.constants.js";
+import { TIMEZONES } from "../../../constants/timezone.constants.js";
 
 export const themeValidator = (theme) => {
     const errors = [];
@@ -31,7 +31,7 @@ export const timezoneValidator = (timezone) => {
 
     if (!timezone || typeof timezone !== "string") {
         errors.push("Invalid timezone");
-    } else if (!timezones.includes(timezone)) {
+    } else if (!TIMEZONES.includes(timezone)) {
         errors.push("Timezone not supported");
     }
 
