@@ -1,4 +1,5 @@
 import { THEME_IDS } from "./theme.constant.js";
+import { timezones } from "../../../config/timezone.config.js";
 
 export const themeValidator = (theme) => {
     const errors = [];
@@ -17,18 +18,27 @@ export const themeValidator = (theme) => {
     if (theme.mode && !allowedModes.includes(theme.mode)) {
         errors.push("Invalid theme mode");
     }
-    
+
     return {
         valid: errors.length === 0,
         errors
     };
 };
 
+
 export const timezoneValidator = (timezone) => {
+    const errors = [];
+
     if (!timezone || typeof timezone !== "string") {
-        return { valid: false, errors: ["Invalid timezone"] };
+        errors.push("Invalid timezone");
+    } else if (!timezones.includes(timezone)) {
+        errors.push("Timezone not supported");
     }
-    return { valid: true };
+
+    return {
+        valid: errors.length === 0,
+        errors
+    };
 };
 
 export const notificationValidator = (data) => {

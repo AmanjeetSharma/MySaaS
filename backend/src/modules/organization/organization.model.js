@@ -72,31 +72,30 @@ const usageSchema = new Schema({
     }
 }, { _id: false });
 
-const organizationSchema = new Schema(
-    {
-        name: {
-            type: String,
-            required: true,
-            trim: true,
-            minlength: [3, "Organization name must be at least 3 characters"],
-            maxlength: [80, "Organization name must be at most 80 characters"],
-        },
-
-        owner: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-
-        members: [{ type: memberSchema, default: [] }],
-
-        subscription: { type: subscriptionSchema, default: {} },
-
-        integrations: { type: integrationsSchema, default: {} },
-
-        usage: { type: usageSchema, default: {} },
-
+const organizationSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: [3, "Organization name must be at least 3 characters"],
+        maxlength: [80, "Organization name must be at most 80 characters"],
     },
+
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+
+    members: [{ type: memberSchema, default: [] }],
+
+    subscription: { type: subscriptionSchema, default: {} },
+
+    integrations: { type: integrationsSchema, default: {} },
+
+    usage: { type: usageSchema, default: {} },
+
+},
     { timestamps: true }
 );
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { timezones } from "@/config/timezone.config";
 
 import {
     Card,
@@ -167,19 +168,6 @@ const Preferences = () => {
 
         }
     };
-
-    const timezones = [
-        'Asia/Kolkata',
-        'America/New_York',
-        'America/Los_Angeles',
-        'Europe/London',
-        'Europe/Berlin',
-        'Asia/Tokyo',
-        'Asia/Singapore',
-        'Australia/Sydney',
-        'Africa/Johannesburg',
-        'America/Sao_Paulo'
-    ];
 
     if (isLoading) {
         return (

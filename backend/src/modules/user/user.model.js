@@ -1,5 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { THEME_IDS } from './settings/theme.constant.js';
+import { timezones } from '../../config/timezone.config.js';
+
 
 const sessionSchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
@@ -29,7 +31,7 @@ const settingsSchema = new mongoose.Schema({
             default: "free"
         }
     },
-    timezone: { type: String, default: "Asia/Kolkata" },
+    timezone: { type: String, enum: timezones, default: "Asia/Kolkata" },
     notifications: {
         email: { type: Boolean, default: false },
         inApp: { type: Boolean, default: true }
@@ -94,9 +96,18 @@ const userSchema = new Schema(
             default: null
         },
 
-        settings: { type: settingsSchema, default: {} },
-        phone: { type: phoneSchema, default: {} },
-        sessions: [sessionSchema],
+        settings: {
+            type: settingsSchema,
+            default: () => ({})
+        },
+        phone: {
+            type: phoneSchema,
+            default: () => ({})
+        },
+        sessions: {
+            type: [sessionSchema],
+            default: () => ([])
+        },
 
         accountStatus: {
             type: String,
@@ -107,16 +118,17 @@ const userSchema = new Schema(
     }, { timestamps: true }
 );
 
-// Acts as middleware to limit sessions to 6 per user
+// Middleware to limit sessions to 5 per user
 userSchema.pre("save", function (next) {
-    if (this.sessions && this.sessions.length > 6) {
+    if (this.sessions && this.sessions.length > 5) {
         this.sessions.sort((a, b) => new Date(a.latestLogin) - new Date(b.latestLogin));
 
-        this.sessions = this.sessions.slice(-6);
+        this.sessions = this.sessions.slice(-5);
     }
 });
 
 userSchema.index({ "sessions.sessionId": 1 });// index for sessionId to optimize session lookups
 
 export const User =
-    mongoose.models.User || mongoose.model('User', userSchema);
+    mongoose.models.User ||
+    mongoose.model('User', userSchema);
