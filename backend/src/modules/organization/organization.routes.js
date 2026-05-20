@@ -6,7 +6,8 @@ import {
     getOrganizationController,
     updateOrganizationController,
     deleteOrganizationController,
-    switchOrganizationController
+    switchOrganizationController,
+    syncOrganizationSlugController
 } from "./organization.controller.js";
 import {
     getMembersController,
@@ -28,6 +29,7 @@ router.get("/:orgId", verifyToken, getOrganizationController);
 router.patch("/:orgId", verifyToken, updateOrganizationController);
 router.delete("/:orgId", verifyToken, deleteOrganizationController);
 router.post("/:orgId/switch", verifyToken, switchOrganizationController);
+router.post("/:orgId/sync-slug", verifyToken, syncOrganizationSlugController);
 
 
 // member routes

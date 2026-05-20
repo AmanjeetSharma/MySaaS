@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import slugify from "slugify";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../../utils/ApiError.js";
 import env from "../../config/env.config.js";
 import { nameValidator, emailValidator, passwordValidator, avatarValidator } from "../../validations/auth.validators.js";
-import { cleanupAvatar, getTimeDifference } from "./auth.helper.js";
+import { cleanupAvatar, getTimeDifference, generateOrgSlug } from "./auth.helper.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../integrations/cloudinary.integration.js";
 import { generateToken } from "../../utils/token.js";
 import { registerEmailTemplate } from "../../utils/email/registerEmailTemplate.js";
@@ -18,7 +19,7 @@ import {
     createNewUserFromPending,
     deletePendingUser,
     createDefaultOrganization,
-    findUserById,
+    findUserById
 } from "./auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 
@@ -223,6 +224,7 @@ export const verifyEmailService = async (token) => {
 
     const trimmed = user.name.trim();
     const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
+    const orgSlug = await generateOrgSlug(orgName);
 
     // To prevent race condition
     if (!user.activeOrganization) {
@@ -231,6 +233,7 @@ export const verifyEmailService = async (token) => {
             const org = await createDefaultOrganization({
                 name: orgName,
                 owner: user._id,
+                slug: orgSlug
             });
             if (org) {
                 user.activeOrganization = org._id;

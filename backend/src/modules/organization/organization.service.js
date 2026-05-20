@@ -12,6 +12,7 @@ import {
     findOrganizationsByUserId
 } from "./organization.repository.js";
 import { getOrganizationMeta } from "./organization.helper.js";
+import { generateOrgSlug } from "../auth/auth.helper.js";
 
 
 
@@ -37,9 +38,11 @@ export const createOrganizationService = async (userId, orgName) => {
     session.startTransaction();
 
     try {
+        const orgSlug = await generateOrgSlug(cleanedOrgName);
         const org = await createOrganization({
             name: cleanedOrgName[0].toUpperCase() + cleanedOrgName.slice(1),
             owner: userId,
+            slug: orgSlug
         }, session);
         if (!org) {
             throw new ApiError(500, "Failed to create organization - please try again");
@@ -262,3 +265,54 @@ export const switchOrganizationService = async (userId, orgId) => {
         activeOrganization: user.activeOrganization,
     }
 };
+
+
+
+
+
+
+
+
+export const syncOrganizationSlugService = async (userId, orgId) => {
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+
+    // check if user has access to the organization
+    const org = await findOrganizationById(orgId);
+
+    if (!org) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    if (org.owner.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not allowed to change this organization's URL/web address");
+    }
+
+    const newSlug = await generateOrgSlug(org.name);
+
+    if (org.slug === newSlug) {
+        return {
+            message: "Organization slug is already up to date",
+            slug: org.slug
+        };
+    }
+
+    org.slug = newSlug;
+
+    try {
+        await org.save();
+    } catch (err) {
+        if (err.code === 11000) { // Duplicate key error (e.g. unique index violation) to prevent race conditions
+            throw new ApiError(409, "Slug conflict - another organization has the same slug. Please try renaming your organization to something more unique.");
+        }
+        throw new ApiError(500, "Failed to sync organization slug - please try again");
+    }
+
+    console.log(`Organization ${org.name} (ID: ${org._id}) slug synchronized to ${org.slug} by user ID: ${userId}`);
+
+    return {
+        success: true,
+        message: "Organization slug synchronized successfully",
+        slug: org.slug
+    };
+}

@@ -56,3 +56,10 @@ export const findUserById = async (id, selectFields) => {
 export const createUserByGoogle = async (payload) => {
     return await User.create(payload);
 };
+
+
+
+export const findIfSlugExists = async (slug) => {
+    let query = Organization.findOne({ slug });
+    return await query;
+};

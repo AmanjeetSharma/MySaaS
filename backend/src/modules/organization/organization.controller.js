@@ -6,7 +6,8 @@ import {
     getOrganizationService,
     updateOrganizationService,
     deleteOrganizationService,
-    switchOrganizationService
+    switchOrganizationService,
+    syncOrganizationSlugService
 } from "./organization.service.js";
 
 
@@ -78,5 +79,16 @@ export const switchOrganizationController = asyncHandler(async (req, res) => {
             200,
             data,
             "Switched active organization successfully"
+        ));
+});
+
+export const syncOrganizationSlugController = asyncHandler(async (req, res) => {
+    const data = await syncOrganizationSlugService(req.user._id, req.params.orgId);
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Organization slug synchronized successfully"
         ));
 });

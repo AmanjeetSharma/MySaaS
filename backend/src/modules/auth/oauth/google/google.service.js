@@ -5,6 +5,7 @@ import { findUserByEmail, createUserByGoogle, createDefaultOrganization } from "
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../../../utils/token.js";
 import { welcomeEmailTemplate } from "../../../../utils/email/welcomeEmailTemplate.js";
 import { sendEmail } from "../../../../integrations/email.integration.js";
+import { generateOrgSlug } from "../../auth.helper.js";
 
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -57,11 +58,15 @@ export const googleLoginService = async (body) => {
             }
         });
 
+        
+
         // default org creation for new user
         try {
+            const orgSlug = await generateOrgSlug(orgName);
             const org = await createDefaultOrganization({
                 name: orgName,
                 owner: user._id,
+                slug: orgSlug
             });
 
             if (org) {

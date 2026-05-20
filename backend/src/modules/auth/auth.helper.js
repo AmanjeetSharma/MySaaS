@@ -1,4 +1,7 @@
 import fs from "fs";
+import { findIfSlugExists } from "./auth.repository.js";
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 
 const removeLocalFile = (filePath, reason = "unknown") => {
     try {
@@ -43,4 +46,20 @@ export const getTimeDifference = (expiryTime) => {
     return diffMs > 0
         ? `expires in ${timeString}`
         : `expired ${timeString} ago`;
+};
+
+
+
+
+
+export const generateOrgSlug = async (orgName) => {
+    const baseSlug = slugify(orgName, { lower: true, strict: true, trim: true });
+    let orgSlug = baseSlug;
+
+    const slugExists = await findIfSlugExists(orgSlug);
+    if (slugExists) {
+        orgSlug = `${baseSlug}-${nanoid(4).toLowerCase()}`;
+    }
+
+    return orgSlug;
 };

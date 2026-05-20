@@ -80,6 +80,14 @@ const organizationSchema = new Schema({
         minlength: [3, "Organization name must be at least 3 characters"],
         maxlength: [80, "Organization name must be at most 80 characters"],
     },
+    
+    slug: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+    },
 
     owner: {
         type: mongoose.Schema.Types.ObjectId,

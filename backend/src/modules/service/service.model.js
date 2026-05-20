@@ -26,9 +26,8 @@ const serviceSchema = new mongoose.Schema({
     slug: {
         type: String,
         required: true,
-        unique: true,
         lowercase: true,
-        index: true,
+        trim: true,
     },
 
     description: {
@@ -69,7 +68,7 @@ const serviceSchema = new mongoose.Schema({
 
     onlineMeetingProvider: {
         type: String,
-        enum: ["GOOGLE_MEET"],// Future providers can be added here
+        enum: ["GOOGLE_MEET"],
         default: "GOOGLE_MEET",
     },
 
