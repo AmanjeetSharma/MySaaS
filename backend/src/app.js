@@ -20,12 +20,14 @@ app.use(cookieParser());
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import organizationRoutes from "./modules/organization/organization.routes.js";
+import serviceRoutes from "./modules/service/service.routes.js";
 
 
 // Use routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
+app.use("/api/v1/services", serviceRoutes);
 
 
 // Error handling middleware

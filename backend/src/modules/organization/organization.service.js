@@ -164,7 +164,7 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
     }
 
     org.name = cleanedOrgName[0].toUpperCase() + cleanedOrgName.slice(1);
-
+    org.isSlugStale = true;
     try {
         await org.save();
     } catch (err) {
@@ -275,13 +275,14 @@ export const switchOrganizationService = async (userId, orgId) => {
 
 export const syncOrganizationSlugService = async (userId, orgId) => {
     if (!userId) throw new ApiError(401, "Unauthorized access");
-    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
     // check if user has access to the organization
     const org = await findOrganizationById(orgId);
+    if (!org) throw new ApiError(404, "Organization not found");
 
-    if (!org) {
-        throw new ApiError(404, "Organization not found");
+    if (!org.isSlugStale) {
+        throw new ApiError(400, "No syncronization required. Url is already up to date");
     }
 
     if (org.owner.toString() !== userId.toString()) {
@@ -305,7 +306,7 @@ export const syncOrganizationSlugService = async (userId, orgId) => {
         if (err.code === 11000) { // Duplicate key error (e.g. unique index violation) to prevent race conditions
             throw new ApiError(409, "Slug conflict - another organization has the same slug. Please try renaming your organization to something more unique.");
         }
-        throw new ApiError(500, "Failed to sync organization slug - please try again");
+        throw new ApiError(500, "An error occurred while syncing the organization slug. Please try again.");
     }
 
     console.log(`Organization ${org.name} (ID: ${org._id}) slug synchronized to ${org.slug} by user ID: ${userId}`);

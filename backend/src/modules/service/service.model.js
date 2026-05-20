@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const serviceSchema = new mongoose.Schema({
+const addressSchema = new Schema({
+    street: { type: String, trim: true, default: null },
+    city: { type: String, trim: true, default: null },
+    state: { type: String, trim: true, default: null },
+    country: { type: String, trim: true, default: null },
+    zipCode: { type: String, trim: true, default: null },
+},
+    { _id: false }
+);
+
+const serviceSchema = new Schema({
     organization: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Organization",
@@ -28,6 +38,10 @@ const serviceSchema = new mongoose.Schema({
         required: true,
         lowercase: true,
         trim: true,
+    },
+    isSlugStale: { // true when name is changed but slug is not updated yet
+        type: Boolean,
+        default: false,
     },
 
     description: {
@@ -59,11 +73,12 @@ const serviceSchema = new mongoose.Schema({
         type: String,
         enum: ["INR", "USD", "EUR"],
         default: "INR",
+        required: true,
     },
 
-    offlineAddress: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
+    address: {
+        type: addressSchema,
+        default: null,
     },
 
     onlineMeetingProvider: {
@@ -77,43 +92,7 @@ const serviceSchema = new mongoose.Schema({
         default: true,
     },
 
-    maximumAdvanceBookingDays: {
-        type: Number,
-        default: 60,
-    },
-
-    allowCancellation: {
-        type: Boolean,
-        default: true,
-    },
-
-    cancellationDeadlineHours: {
-        type: Number,
-        default: 24,
-    },
-
-    allowReschedule: {
-        type: Boolean,
-        default: true,
-    },
-
     isActive: {
-        type: Boolean,
-        default: true,
-    },
-
-    readinessStatus: {
-        type: String,
-        enum: [
-            "READY", //set isReadyForBooking to true when this is READY
-            "MISSING_ADDRESS",
-            "MISSING_CALENDAR_INTEGRATION",
-            "INCOMPLETE_CONFIGURATION",
-        ],
-        default: "INCOMPLETE_CONFIGURATION",
-    },
-
-    isReadyForBooking: {
         type: Boolean,
         default: false,
     },
