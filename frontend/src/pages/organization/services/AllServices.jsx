@@ -86,7 +86,7 @@ const ServiceCard = ({
   const isOffline = service.mode === 'OFFLINE';
 
   return (
-    <div className={`group relative flex flex-col rounded-2xl border bg-card p-4 transition-all duration-300 hover:shadow-2xl sm:rounded-[1.5rem] sm:p-6 ${service.isActive ? 'border-primary/40 shadow-primary/5' : 'border-border/70'}`}>
+    <div className={`group relative flex flex-col rounded-[2rem] border bg-card p-4 transition-all duration-300 hover:shadow-2xl sm:p-6 ${service.isActive ? 'border-primary/40 shadow-primary/5' : 'border-border/70'}`}>
       <div className="flex items-start justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
           {isOffline ? <MapPin className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
@@ -110,7 +110,7 @@ const ServiceCard = ({
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3">
-          <div className="rounded-xl bg-muted/50 p-3 sm:rounded-2xl">
+          <div className="rounded-2xl bg-muted/50 p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               <CalendarClock className="h-3.5 w-3.5" />
               Duration
@@ -118,7 +118,7 @@ const ServiceCard = ({
             <div className="mt-1 text-sm font-black">{service.durationInMinutes} min</div>
           </div>
 
-          <div className="rounded-xl bg-muted/50 p-3 sm:rounded-2xl">
+          <div className="rounded-2xl bg-muted/50 p-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {service.currency === 'INR' ? <IndianRupee className="h-3.5 w-3.5" /> : <WalletCards className="h-3.5 w-3.5" />}
               Price
@@ -127,7 +127,7 @@ const ServiceCard = ({
           </div>
         </div>
 
-        <div className="mt-3 rounded-xl border border-border/60 p-3 sm:mt-4 sm:rounded-2xl">
+        <div className="mt-3 rounded-2xl border border-border/60 p-3 sm:mt-4">
           <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             {isOffline ? <MapPin className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
             {isOffline ? 'Address' : 'Meeting'}
@@ -176,7 +176,7 @@ const ServiceCard = ({
         >
           <Copy className="h-4 w-4" />
           {actionLoading.copy ? 'Copying' : 'Copy public URL'}
-        </Button> 
+        </Button>
         <Button
           type="button"
           variant="destructive"
