@@ -53,11 +53,11 @@ export function DesktopSidebar() {
         });
     }, [location.pathname]);
 
-    const toggleMenu = (title) => {
+    const setMenuOpen = (title, isOpen) => {
         if (state !== "collapsed") {
             setOpenMenus(prev => ({
                 ...prev,
-                [title]: !prev[title]
+                [title]: isOpen
             }));
         }
     };
@@ -166,8 +166,8 @@ export function DesktopSidebar() {
                                 <SidebarMenuItem key={item.title}>
                                     {item.items && item.items.length > 0 ? (
                                         <Collapsible
-                                            open={openMenus[item.title]}
-                                            onOpenChange={() => toggleMenu(item.title)}
+                                            open={openMenus[item.title] ?? false}
+                                            onOpenChange={(isOpen) => setMenuOpen(item.title, isOpen)}
                                             className="w-full"
                                         >
                                             <CollapsibleTrigger asChild>
@@ -193,7 +193,7 @@ export function DesktopSidebar() {
                                                         <ChevronRight
                                                             className={cn(
                                                                 "h-4 w-4 transition-transform duration-200",
-                                                                openMenus[item.title] && "rotate-90"
+                                                                (openMenus[item.title] ?? false) && "rotate-90"
                                                             )}
                                                         />
                                                     )}

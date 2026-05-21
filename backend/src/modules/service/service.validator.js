@@ -168,7 +168,7 @@
         const requiredFields = ["street", "city", "country"];
 
         for (const field of requiredFields) {
-            if (!address[field].trim() || typeof address[field] !== "string") {
+            if (typeof address[field] !== "string" || !address[field].trim()) {
                 errors.push(`${field} is required in address`);
             }
         }

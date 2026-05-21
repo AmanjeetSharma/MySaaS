@@ -182,7 +182,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         }
     }
 
-    if (address !== undefined) {
+    if (address !== undefined && address !== null) {
         const addressValidation = serviceAddressValidator(address);
         if (!addressValidation.valid) {
             throw new ApiError(400, addressValidation.errors.join(", "));
@@ -209,7 +209,11 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     if (durationInMinutes !== undefined) service.durationInMinutes = durationInMinutes;
     if (price !== undefined) service.price = price;
     if (currency !== undefined) service.currency = currency;
-    if (address !== undefined) service.address = address;
+    if (mode === "ONLINE") {
+        service.address = null;
+    } else if (address !== undefined) {
+        service.address = address;
+    }
 
     try {
         await service.save();
