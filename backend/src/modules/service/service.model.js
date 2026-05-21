@@ -30,7 +30,7 @@ const serviceSchema = new Schema({
         type: String,
         required: true,
         trim: true,
-        maxlength: 120,
+        maxlength: [120, "Service name cannot exceed 120 characters."],
     },
 
     slug: {
@@ -47,7 +47,7 @@ const serviceSchema = new Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: 1000,
+        maxlength: [1000, "Service description cannot exceed 1000 characters."],
     },
 
     mode: {
@@ -59,14 +59,14 @@ const serviceSchema = new Schema({
     durationInMinutes: {
         type: Number,
         required: true,
-        min: 15,
-        max: 999999,// Arbitrary large max to prevent overflow issues for eg: what if travel with me for 1 week straight? :D
+        min: [15, "Duration must be at least 15 minutes."],
+        max: [999999, "Duration cannot exceed 999999 minutes."], // Arbitrary large max to prevent overflow issues for eg: what if travel with me for 1 week straight? :D
     },
 
     price: {
         type: Number,
         required: true,
-        min: 0,
+        min: [0, "Price cannot be negative"],
     },
 
     currency: {

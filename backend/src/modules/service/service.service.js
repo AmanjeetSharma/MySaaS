@@ -10,6 +10,20 @@ import {
     findServiceBySlug,
 } from "./service.repository.js";
 import { generateServiceSlug } from "./service.helper.js";
+import env from "../../config/env.config.js";
+import {
+    serviceNameValidator,
+    serviceDescriptionValidator,
+    serviceModeValidator,
+    serviceDurationValidator,
+    servicePriceValidator,
+    serviceCurrencyValidator,
+    serviceAddressValidator,
+} from "./service.validator.js";
+
+
+
+
 
 
 
@@ -17,14 +31,55 @@ import { generateServiceSlug } from "./service.helper.js";
 
 
 export const createServiceService = async (userId, orgId, payload) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
-    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!userId) {
+        throw new ApiError(400, "Unauthorized access");
+    }
+    if (!orgId) {
+        throw new ApiError(400, "Organization ID is required");
+    }
     const { name, description, mode, durationInMinutes, price, currency, address } = payload;
 
     const requiredFields = { name, mode, durationInMinutes, price, currency };
     for (const [field, value] of Object.entries(requiredFields)) {
         if (!value) {
             throw new ApiError(400, `${field} is required`);
+        }
+    }
+
+    const nameValidation = serviceNameValidator(name);
+    if (!nameValidation.valid) {
+        throw new ApiError(400, nameValidation.errors.join(", "));
+    }
+
+    const descriptionValidation = serviceDescriptionValidator(description);
+    if (!descriptionValidation.valid) {
+        throw new ApiError(400, descriptionValidation.errors.join(", "));
+    }
+
+    const modeValidation = serviceModeValidator(mode);
+    if (!modeValidation.valid) {
+        throw new ApiError(400, modeValidation.errors.join(", "));
+    }
+
+    const durationValidation = serviceDurationValidator(durationInMinutes);
+    if (!durationValidation.valid) {
+        throw new ApiError(400, durationValidation.errors.join(", "));
+    }
+
+    const priceValidation = servicePriceValidator(price);
+    if (!priceValidation.valid) {
+        throw new ApiError(400, priceValidation.errors.join(", "));
+    }
+
+    const currencyValidation = serviceCurrencyValidator(currency);
+    if (!currencyValidation.valid) {
+        throw new ApiError(400, currencyValidation.errors.join(", "));
+    }
+
+    if (mode === "OFFLINE") {
+        const addressValidation = serviceAddressValidator(address);
+        if (!addressValidation.valid) {
+            throw new ApiError(400, addressValidation.errors.join(", "));
         }
     }
 
@@ -69,74 +124,97 @@ export const createServiceService = async (userId, orgId, payload) => {
 
 
 
-export const updateServiceService = async (userId, serviceId, payload) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) throw new ApiError(400, "Invalid service ID");
 
+
+
+export const updateServiceService = async (userId, serviceId, payload) => {
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
+
+    const { name, description, mode, durationInMinutes, price, currency, address } = payload;
+
+    if (name !== undefined) {
+        const nameValidation = serviceNameValidator(name);
+        if (!nameValidation.valid) {
+            throw new ApiError(400, nameValidation.errors.join(", "));
+        }
+    }
+
+    if (description !== undefined) {
+        const descriptionValidation = serviceDescriptionValidator(description);
+        if (!descriptionValidation.valid) {
+            throw new ApiError(400, descriptionValidation.errors.join(", "));
+        }
+    }
+
+    if (mode !== undefined) {
+        if (mode === "OFFLINE" && !address) {
+            throw new ApiError(400, "Address is required to set up offline services");
+        }
+        const modeValidation = serviceModeValidator(mode);
+        if (!modeValidation.valid) {
+            throw new ApiError(400, modeValidation.errors.join(", "));
+        }
+    }
+
+    if (durationInMinutes !== undefined) {
+        const durationValidation = serviceDurationValidator(durationInMinutes);
+        if (!durationValidation.valid) {
+            throw new ApiError(400, durationValidation.errors.join(", "));
+        }
+    }
+
+    if (price !== undefined) {
+        const priceValidation = servicePriceValidator(price);
+        if (!priceValidation.valid) {
+            throw new ApiError(400, priceValidation.errors.join(", "));
+        }
+    }
+
+    if (currency !== undefined) {
+        const currencyValidation = serviceCurrencyValidator(currency);
+        if (!currencyValidation.valid) {
+            throw new ApiError(400, currencyValidation.errors.join(", "));
+        }
+    }
+
+    if (address !== undefined) {
+        const addressValidation = serviceAddressValidator(address);
+        if (!addressValidation.valid) {
+            throw new ApiError(400, addressValidation.errors.join(", "));
+        }
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) throw new ApiError(404, "Service not found");
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
     if (userId.toString() !== service.createdBy.toString()) {
         throw new ApiError(403, "You are not allowed to update this service");
     }
 
-    const { name, description, mode, durationInMinutes, price, currency, address } = payload;
-
     const oldName = service.name;
-    if (name !== undefined) {
-        const cleanedName = name.trim();
-
-        if (!cleanedName) {
-            throw new ApiError(400, "Service name cannot be empty");
-        }
-
-        service.name = cleanedName;
-
-        if (cleanedName !== oldName) {
-            service.isSlugStale = true;
-        }
+    if (name && name !== service.name) {
+        service.name = name;
+        service.isSlugStale = true;
     }
 
-    if (description !== undefined) {
-        service.description = description?.trim() || "";
-    }
-
-    if (mode !== undefined) {
-        if (!["ONLINE", "OFFLINE"].includes(mode)) {
-            throw new ApiError(400, "Invalid service mode");
-        }
-
-        service.mode = mode;
-    }
-
-    if (durationInMinutes !== undefined) {
-        if (durationInMinutes < 15) {
-            throw new ApiError(400, "Duration must be at least 15 minutes");
-        }
-
-        service.durationInMinutes = durationInMinutes;
-    }
-
-    if (price !== undefined) {
-        if (price < 0) {
-            throw new ApiError(400, "Price cannot be negative");
-        }
-
-        service.price = price;
-    }
-
-    if (currency !== undefined) {
-        service.currency = currency;
-    }
-
-    if (address !== undefined) {
-        service.address = address;
-    }
+    if (description !== undefined) service.description = description;
+    if (mode !== undefined) service.mode = mode;
+    if (durationInMinutes !== undefined) service.durationInMinutes = durationInMinutes;
+    if (price !== undefined) service.price = price;
+    if (currency !== undefined) service.currency = currency;
+    if (address !== undefined) service.address = address;
 
     try {
         await service.save();
     } catch (err) {
+        console.error("Error updating service:", err);
         throw new ApiError(500, "An error occurred while updating the service, please try again.");
     }
 
@@ -153,12 +231,18 @@ export const updateServiceService = async (userId, serviceId, payload) => {
 
 
 
+
+
 export const deleteServiceService = async (userId, serviceId) => {
     if (!userId) throw new ApiError(400, "Unauthorized access");
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) throw new ApiError(400, "Invalid service ID");
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) throw new ApiError(404, "Service not found");
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
     if (userId.toString() !== service.createdBy.toString()) {
         throw new ApiError(403, "You are not allowed to delete this service");
@@ -185,10 +269,14 @@ export const deleteServiceService = async (userId, serviceId) => {
 
 
 export const getServiceByIdService = async (serviceId) => {
-    if (!mongoose.Types.ObjectId.isValid(serviceId)) throw new ApiError(400, "Invalid service ID");
+    if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) throw new ApiError(404, "Service not found");
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
     return service;
 };
@@ -200,10 +288,14 @@ export const getServiceByIdService = async (serviceId) => {
 
 
 export const getOrganizationServicesService = async (orgId) => {
-    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Invalid organization ID");
+    }
 
     const organization = await findOrganizationById(orgId);
-    if (!organization) throw new ApiError(404, "Organization not found");
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
 
     const services = await findServicesByOrganizationId(orgId);
 
@@ -245,17 +337,23 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
 
 
 
-export const toggleServiceStatusService = async (orgId, serviceId) => {
-    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) { throw new ApiError(400, "Invalid organization ID"); }
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) { throw new ApiError(400, "Invalid service ID"); }
-
-    const organization = await findOrganizationById(orgId);
-    if (!organization) { throw new ApiError(404, "Organization not found"); }
+export const toggleServiceStatusService = async (serviceId) => {
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) { throw new ApiError(404, "Service not found"); }
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
-    if (service.organization.toString() !== orgId.toString()) {
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+    
+
+    if (service.organization.toString() !== organization._id.toString()) {
         throw new ApiError(403, "This service does not belong to the specified organization");
     }
 
@@ -301,11 +399,17 @@ export const toggleServiceStatusService = async (orgId, serviceId) => {
 
 
 export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) throw new ApiError(400, "Invalid service ID");
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) throw new ApiError(404, "Service not found");
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
     service.autoGenerateMeetingLink = !service.autoGenerateMeetingLink;
 
@@ -328,17 +432,22 @@ export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) =>
 
 
 export const syncServiceSlugService = async (userId, serviceId) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) throw new ApiError(400, "Invalid service ID");
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
 
     const service = await findServiceById(serviceId);
-    if (!service) throw new ApiError(404, "Service not found");
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
 
     if (!service.isSlugStale) {
         throw new ApiError(400, "No syncronization required. Url is already up to date.");
     }
 
-    // ownership check
     if (userId.toString() !== service.createdBy.toString()) {
         throw new ApiError(403, "You are not allowed to change this organization's URL/web address");
     }
@@ -364,4 +473,37 @@ export const syncServiceSlugService = async (userId, serviceId) => {
         message: "Service slug synced successfully",
         newSlug: service.slug,
     }
+};
+
+
+
+
+
+
+
+
+
+export const getPublicServiceUrlService = async (serviceId) => {
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
+
+    const service = await findServiceById(serviceId);
+    if (!service) {
+        throw new ApiError(404, "Service not found")
+    };
+
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    const publicUrl = `${env.CLIENT_URL}/${organization.slug}/${service.slug}`;
+
+    console.log(`Public URL fetched for ${service.name} (ID: ${service._id}) | Public URL: ${publicUrl}`);
+
+    return {
+        success: true,
+        publicUrl: publicUrl,
+    };
 };
