@@ -272,11 +272,11 @@ export default function ServiceModal({
                 </Label>
                 <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 shadow-sm sm:h-12">
                   <div className="min-w-0">
-                    <div className="truncate text-xs font-black uppercase tracking-widest">
-                      Auto Meet
+                    <div className="truncate text-xs font-black tracking-widest">
+                      Auto Generate Link
                     </div>
                     <div className="truncate text-[11px] font-medium text-muted-foreground">
-                      {isEdit ? 'Google Meet' : 'Available after create'}
+                      {isEdit ? 'Google Meet' : 'Available after service creation'}
                     </div>
                   </div>
                   <Switch
@@ -332,7 +332,7 @@ export default function ServiceModal({
                     type="number"
                     min="0"
                     max={MAX_PRICE}
-                    step="0.01"
+                    step="1"
                     value={form.price}
                     onFocus={(event) => {
                       if (event.currentTarget.value === '0') event.currentTarget.select();

@@ -39,7 +39,7 @@ export const createServiceService = async (userId, orgId, payload) => {
     }
     const { name, description, mode, durationInMinutes, price, currency, address } = payload;
 
-    const requiredFields = { name, mode, durationInMinutes, price, currency };
+    const requiredFields = { name, mode, durationInMinutes, currency };
     for (const [field, value] of Object.entries(requiredFields)) {
         if (!value) {
             throw new ApiError(400, `${field} is required`);
@@ -65,10 +65,11 @@ export const createServiceService = async (userId, orgId, payload) => {
     if (!durationValidation.valid) {
         throw new ApiError(400, durationValidation.errors.join(", "));
     }
-
-    const priceValidation = servicePriceValidator(price);
-    if (!priceValidation.valid) {
-        throw new ApiError(400, priceValidation.errors.join(", "));
+    if (price !== undefined) {
+        const priceValidation = servicePriceValidator(price);
+        if (!priceValidation.valid) {
+            throw new ApiError(400, priceValidation.errors.join(", "));
+        }
     }
 
     const currencyValidation = serviceCurrencyValidator(currency);
@@ -383,19 +384,14 @@ export const toggleServiceStatusService = async (serviceId) => {
         throw new ApiError(400, "Invalid service ID");
     }
 
-    const service = await findServiceById(serviceId);
+    const service = await findServiceById(serviceId, "_id name isActive mode address organization");
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
 
-    const organization = await findOrganizationById(service.organization);
+    const organization = await findOrganizationById(service.organization, "integrations");
     if (!organization) {
         throw new ApiError(404, "Organization not found");
-    }
-
-
-    if (service.organization.toString() !== organization._id.toString()) {
-        throw new ApiError(403, "This service does not belong to the specified organization");
     }
 
     if (!service.isActive) {

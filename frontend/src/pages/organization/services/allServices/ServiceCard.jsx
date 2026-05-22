@@ -146,7 +146,7 @@ export default function ServiceCard({
           className="h-10 cursor-pointer rounded-xl text-xs font-black tracking-widest shadow-sm sm:h-11"
         >
           <Copy className="h-4 w-4" />
-          {actionLoading.copy ? 'Copying' : 'Copy public URL'}
+          {actionLoading.copy ? 'Copying...' : 'Copy public URL'}
         </Button>
         <Button
           type="button"
