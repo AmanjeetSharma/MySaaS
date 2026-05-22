@@ -1,19 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  CalendarClock,
-  Copy,
-  Edit3,
-  IndianRupee,
-  Link2,
-  MapPin,
-  Plus,
-  RefreshCw,
-  Trash2,
-  Video,
-  WalletCards,
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceStore, useUserStore } from '@/stores';
+import ServiceCard from './ServiceCard';
 import ServiceModal from './ServiceModal';
 import {
   Dialog,
@@ -23,38 +12,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 
 const getEntityId = (entity) => {
   if (!entity) return null;
   if (typeof entity === 'string') return entity;
   return entity._id || entity.id || null;
-};
-
-const formatPrice = (service) => {
-  const amount = Number(service?.price || 0);
-
-  try {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: service?.currency || 'INR',
-      maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    }).format(amount);
-  } catch {
-    return `${service?.currency || 'INR'} ${amount}`;
-  }
-};
-
-const formatAddress = (address) => {
-  if (!address) return 'No address added';
-
-  return [
-    address.street,
-    address.city,
-    address.state,
-    address.country,
-    address.zipCode,
-  ].filter(Boolean).join(', ') || 'No address added';
 };
 
 const copyToClipboard = async (text) => {
@@ -72,122 +34,6 @@ const copyToClipboard = async (text) => {
   textarea.select();
   document.execCommand('copy');
   document.body.removeChild(textarea);
-};
-
-const ServiceCard = ({
-  service,
-  actionLoading,
-  onEdit,
-  onDelete,
-  onToggleStatus,
-  onCopyUrl,
-  onSyncSlug,
-}) => {
-  const isOffline = service.mode === 'OFFLINE';
-
-  return (
-    <div className={`group relative flex flex-col rounded-[2rem] border bg-card p-4 transition-all duration-300 hover:shadow-2xl sm:p-6 ${service.isActive ? 'border-primary/40 shadow-primary/5' : 'border-border/70'}`}>
-      <div className="flex items-start justify-between gap-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-          {isOffline ? <MapPin className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
-          {service.mode}
-        </span>
-
-        <div className="flex shrink-0 items-center pt-0.5">
-          <Switch
-            checked={!!service.isActive}
-            onCheckedChange={() => onToggleStatus(service)}
-            disabled={actionLoading.status}
-            className="cursor-pointer"
-          />
-        </div>
-      </div>
-
-      <div className="mt-5 flex-1 sm:mt-7">
-        <h3 className="wrap-break-word text-lg font-black uppercase tracking-tight sm:text-2xl">{service.name}</h3>
-        <p className="mt-2 min-h-10 text-xs font-medium leading-relaxed text-muted-foreground line-clamp-2 sm:mt-3 sm:min-h-12 sm:text-sm sm:line-clamp-3">
-          {service.description || 'No description added yet.'}
-        </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3">
-          <div className="rounded-2xl bg-muted/50 p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <CalendarClock className="h-3.5 w-3.5" />
-              Duration
-            </div>
-            <div className="mt-1 text-sm font-black">{service.durationInMinutes} min</div>
-          </div>
-
-          <div className="rounded-2xl bg-muted/50 p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {service.currency === 'INR' ? <IndianRupee className="h-3.5 w-3.5" /> : <WalletCards className="h-3.5 w-3.5" />}
-              Price
-            </div>
-            <div className="mt-1 text-sm font-black">{formatPrice(service)}</div>
-          </div>
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-border/60 p-3 sm:mt-4">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            {isOffline ? <MapPin className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
-            {isOffline ? 'Address' : 'Meeting'}
-          </div>
-          <p className="mt-1 wrap-break-word text-sm font-medium text-foreground/90">
-            {isOffline ? formatAddress(service.address) : service.autoGenerateMeetingLink ? 'Auto Google Meet link enabled' : 'Meeting link will not be auto-generated'}
-          </p>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-border/60 px-3 py-2">
-          <span className="min-w-0 truncate text-xs font-bold text-muted-foreground">
-            /{service.slug}
-          </span>
-          {service.isSlugStale && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onSyncSlug(service)}
-              disabled={actionLoading.sync}
-              className="h-8 shrink-0 cursor-pointer rounded-lg text-[10px] font-black uppercase tracking-widest"
-            >
-              <RefreshCw className="h-3 w-3" />
-              {actionLoading.sync ? 'Syncing' : 'Sync Url'}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-[1fr_1fr_44px]">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => onEdit(service)}
-          className="h-10 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest sm:h-11"
-        >
-          <Edit3 className="h-4 w-4" />
-          Edit
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onCopyUrl(service)}
-          disabled={actionLoading.copy}
-          className="h-10 cursor-pointer rounded-xl text-xs font-black tracking-widest sm:h-11"
-        >
-          <Copy className="h-4 w-4" />
-          {actionLoading.copy ? 'Copying' : 'Copy public URL'}
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={() => onDelete(service)}
-          className="col-span-2 h-10 cursor-pointer rounded-xl sm:col-span-1 sm:h-11"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
 };
 
 export default function AllServices() {
@@ -367,7 +213,7 @@ export default function AllServices() {
         <Button
           type="button"
           onClick={openCreate}
-          className="h-11 cursor-pointer rounded-xl px-4 text-xs font-black uppercase tracking-widest sm:h-12 sm:px-5 sm:text-sm"
+          className="h-11 cursor-pointer rounded-xl px-4 text-xs font-black uppercase tracking-widest shadow-sm sm:h-12 sm:px-5 sm:text-sm"
         >
           <Plus className="h-4 w-4" />
           New Service
@@ -375,7 +221,7 @@ export default function AllServices() {
       </div>
 
       {!activeOrganizationId && (
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm font-medium text-amber-700">
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-medium text-amber-700 shadow-sm">
           Choose an active organization before creating services.
         </div>
       )}
@@ -400,7 +246,7 @@ export default function AllServices() {
       </div>
 
       {activeOrganizationId && services.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
           <h3 className="text-lg font-black uppercase tracking-tight">No Services Yet</h3>
           <p className="mx-auto mt-2 max-w-md text-sm font-medium text-muted-foreground">
             Create your first bookable service from the button above.
@@ -427,7 +273,7 @@ export default function AllServices() {
 
       {deleteTarget && (
         <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-          <DialogContent className="rounded-[1rem] sm:max-w-md">
+          <DialogContent className="rounded-xl sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="font-black uppercase tracking-tight text-destructive">
                 Delete Service

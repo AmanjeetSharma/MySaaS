@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Globe2, Link2, MapPin, Video } from 'lucide-react';
+import { DollarSign, Euro, Globe2, IndianRupee, Link2, MapPin, Video, WalletCards } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,18 +36,38 @@ const DEFAULT_FORM = {
   },
 };
 
-const formatPrice = (service) => {
+const MAX_PRICE = 99999999;
+
+const currencyIcons = {
+  INR: IndianRupee,
+  USD: DollarSign,
+  EUR: Euro,
+};
+
+const normalizeNumberInput = (value) => {
+  if (value === '') return '';
+  if (value.startsWith('0.') || value === '0') return value;
+
+  return value.replace(/^0+(?=\d)/, '');
+};
+
+const normalizePriceInput = (value) => {
+  const normalizedValue = normalizeNumberInput(value);
+  if (normalizedValue === '') return '';
+
+  const numericValue = Number(normalizedValue);
+  if (!Number.isFinite(numericValue)) return MAX_PRICE.toString();
+  if (numericValue > MAX_PRICE) return MAX_PRICE.toString();
+
+  return normalizedValue;
+};
+
+const formatAmount = (service) => {
   const amount = Number(service?.price || 0);
 
-  try {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: service?.currency || 'INR',
-      maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    }).format(amount);
-  } catch {
-    return `${service?.currency || 'INR'} ${amount}`;
-  }
+  return new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+  }).format(amount);
 };
 
 const formatAddress = (address) => {
@@ -110,6 +130,7 @@ const buildPayload = (form, organizationId) => {
 
 const PublicServicePreview = ({ service }) => {
   const isOffline = service.mode === 'OFFLINE';
+  const CurrencyIcon = currencyIcons[service.currency] || IndianRupee;
 
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
@@ -124,7 +145,11 @@ const PublicServicePreview = ({ service }) => {
           </h3>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-xl font-black">{formatPrice(service)}</div>
+          <div className="flex items-center justify-end gap-1.5 text-xl font-black">
+            <WalletCards className="h-4 w-4 text-muted-foreground" />
+            <CurrencyIcon className="h-4 w-4" />
+            {formatAmount(service)}
+          </div>
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             {service.durationInMinutes || 30} min
           </div>
@@ -177,6 +202,14 @@ export default function ServiceModal({
     setForm(current => ({ ...current, [field]: value }));
   };
 
+  const updateNumberField = (field, value) => {
+    setForm(current => ({ ...current, [field]: normalizeNumberInput(value) }));
+  };
+
+  const updatePriceField = (value) => {
+    setForm(current => ({ ...current, price: normalizePriceInput(value) }));
+  };
+
   const updateAddress = (field, value) => {
     setForm(current => ({
       ...current,
@@ -193,6 +226,8 @@ export default function ServiceModal({
   };
 
   const isEdit = mode === 'edit';
+  const CurrencyIcon = currencyIcons[form.currency] || IndianRupee;
+  const fieldClassName = 'h-11 rounded-xl border-border/80 bg-background font-bold shadow-sm transition-shadow focus-visible:shadow-md sm:h-12';
 
   const handleMeetingLinkToggle = async () => {
     if (!service || !onToggleMeetingLink) return;
@@ -228,7 +263,7 @@ export default function ServiceModal({
                   autoFocus
                   value={form.name}
                   onChange={(event) => updateField('name', event.target.value)}
-                  className="h-11 rounded-xl text-base font-bold sm:h-12"
+                  className={`${fieldClassName} text-base`}
                   placeholder="Strategy consultation"
                   required
                 />
@@ -239,7 +274,7 @@ export default function ServiceModal({
                   Mode
                 </Label>
                 <Select value={form.mode} onValueChange={(value) => updateField('mode', value)}>
-                  <SelectTrigger className="h-11 w-full rounded-xl sm:h-12">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -254,7 +289,7 @@ export default function ServiceModal({
                   Currency
                 </Label>
                 <Select value={form.currency} onValueChange={(value) => updateField('currency', value)}>
-                  <SelectTrigger className="h-11 w-full rounded-xl sm:h-12">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -273,8 +308,11 @@ export default function ServiceModal({
                   type="number"
                   min="15"
                   value={form.durationInMinutes}
-                  onChange={(event) => updateField('durationInMinutes', event.target.value)}
-                  className="h-11 rounded-xl font-bold sm:h-12"
+                  onFocus={(event) => {
+                    if (event.currentTarget.value === '0') event.currentTarget.select();
+                  }}
+                  onChange={(event) => updateNumberField('durationInMinutes', event.target.value)}
+                  className={fieldClassName}
                   required
                 />
               </div>
@@ -283,15 +321,23 @@ export default function ServiceModal({
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Price
                 </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(event) => updateField('price', event.target.value)}
-                  className="h-11 rounded-xl font-bold sm:h-12"
-                  required
-                />
+                <div className="relative">
+                  <WalletCards className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <CurrencyIcon className="pointer-events-none absolute left-9 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
+                  <Input
+                    type="number"
+                    min="0"
+                    max={MAX_PRICE}
+                    step="0.01"
+                    value={form.price}
+                    onFocus={(event) => {
+                      if (event.currentTarget.value === '0') event.currentTarget.select();
+                    }}
+                    onChange={(event) => updatePriceField(event.target.value)}
+                    className={`${fieldClassName} pl-16`}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -302,7 +348,7 @@ export default function ServiceModal({
               <Textarea
                 value={form.description}
                 onChange={(event) => updateField('description', event.target.value)}
-                className="min-h-24 rounded-xl sm:min-h-28"
+                className="min-h-24 rounded-xl border-border/80 bg-background shadow-sm focus-visible:shadow-md sm:min-h-28"
                 placeholder="Tell customers what they get from this service."
               />
             </div>
@@ -335,7 +381,7 @@ export default function ServiceModal({
                   <Input
                     value={form.address.street}
                     onChange={(event) => updateAddress('street', event.target.value)}
-                    className="h-11 rounded-xl"
+                    className={fieldClassName}
                     placeholder="Office / building / street"
                     required
                   />
@@ -347,7 +393,7 @@ export default function ServiceModal({
                   <Input
                     value={form.address.city}
                     onChange={(event) => updateAddress('city', event.target.value)}
-                    className="h-11 rounded-xl"
+                    className={fieldClassName}
                     required
                   />
                 </div>
@@ -358,7 +404,7 @@ export default function ServiceModal({
                   <Input
                     value={form.address.state}
                     onChange={(event) => updateAddress('state', event.target.value)}
-                    className="h-11 rounded-xl"
+                    className={fieldClassName}
                   />
                 </div>
                 <div className="space-y-2">
@@ -368,7 +414,7 @@ export default function ServiceModal({
                   <Input
                     value={form.address.country}
                     onChange={(event) => updateAddress('country', event.target.value)}
-                    className="h-11 rounded-xl"
+                    className={fieldClassName}
                     required
                   />
                 </div>
@@ -379,7 +425,7 @@ export default function ServiceModal({
                   <Input
                     value={form.address.zipCode}
                     onChange={(event) => updateAddress('zipCode', event.target.value)}
-                    className="h-11 rounded-xl"
+                    className={fieldClassName}
                   />
                 </div>
               </div>

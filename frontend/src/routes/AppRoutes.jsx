@@ -13,7 +13,6 @@ import Login from '@/pages/auth/Login';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import ResetPassword from '@/pages/auth/ResetPassword';
 
-// Protected Pages (create these files with basic structure)
 import Dashboard from '@/pages/dashboard/Dashboard';
 
 // Organization imports
@@ -28,7 +27,7 @@ import AnalyticsConversion from '@/pages/analytics/AnalyticsConversion';
 
 
 // Service imports
-import AllServices from '@/pages/organization/services/AllServices';
+import AllServices from '@/pages/organization/services/allServices/AllServices';
 import Availability from '@/pages/organization/services/Availability';
 
 // Customer imports
@@ -138,4 +137,4 @@ export const AppRoutes = () => {
             </Route>
         </Routes>
     );
-}
+};
