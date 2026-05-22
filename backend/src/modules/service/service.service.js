@@ -88,8 +88,13 @@ export const createServiceService = async (userId, orgId, payload) => {
         throw new ApiError(404, "Organization not found");
     }
 
-    if (userId.toString() !== organization.owner.toString()) {
-        throw new ApiError(403, "You do not have permission to create a service for this organization");
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
     }
 
     if (mode === "OFFLINE" && !address) {
@@ -194,8 +199,19 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         throw new ApiError(404, "Service not found");
     }
 
-    if (userId.toString() !== service.createdBy.toString()) {
-        throw new ApiError(403, "You are not allowed to update this service");
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    //check  if owner or member can update service details
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
     }
 
     const oldName = service.name;
@@ -209,10 +225,21 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     if (durationInMinutes !== undefined) service.durationInMinutes = durationInMinutes;
     if (price !== undefined) service.price = price;
     if (currency !== undefined) service.currency = currency;
-    if (mode === "ONLINE") {
-        service.address = null;
-    } else if (address !== undefined) {
-        service.address = address;
+    if (address !== undefined) service.address = address;
+
+    const finalMode = mode || service.mode;
+    if (
+        finalMode === "OFFLINE" &&
+        !(address !== undefined ? address : service.address)
+    ) {
+        throw new ApiError(400, "Address is required for offline services");
+    }
+
+    if (
+        finalMode === "ONLINE" &&
+        !organization.integrations?.googleCalendar?.isConnected
+    ) {
+        throw new ApiError(400, "Please complete Google Calendar integration to set up online services");
     }
 
     try {
@@ -248,8 +275,18 @@ export const deleteServiceService = async (userId, serviceId) => {
         throw new ApiError(404, "Service not found");
     }
 
-    if (userId.toString() !== service.createdBy.toString()) {
-        throw new ApiError(403, "You are not allowed to delete this service");
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
     }
 
     try {
@@ -355,7 +392,7 @@ export const toggleServiceStatusService = async (serviceId) => {
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
-    
+
 
     if (service.organization.toString() !== organization._id.toString()) {
         throw new ApiError(403, "This service does not belong to the specified organization");
