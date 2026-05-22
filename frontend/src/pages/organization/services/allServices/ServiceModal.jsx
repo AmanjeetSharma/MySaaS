@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DollarSign, Euro, Globe2, IndianRupee, Link2, MapPin, Video, WalletCards } from 'lucide-react';
+import { ChevronDown, DollarSign, Euro, Globe2, IndianRupee, Link2, MapPin, Video, WalletCards } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -121,8 +121,6 @@ const buildPayload = (form, organizationId) => {
       country: form.address.country.trim(),
       zipCode: form.address.zipCode.trim(),
     };
-  } else {
-    payload.address = null;
   }
 
   return payload;
@@ -228,7 +226,6 @@ export default function ServiceModal({
   const isEdit = mode === 'edit';
   const CurrencyIcon = currencyIcons[form.currency] || IndianRupee;
   const fieldClassName = 'h-11 rounded-xl border-border/80 bg-background font-bold shadow-sm transition-shadow focus-visible:shadow-md sm:h-12';
-
   const handleMeetingLinkToggle = async () => {
     if (!service || !onToggleMeetingLink) return;
 
@@ -271,17 +268,24 @@ export default function ServiceModal({
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Mode
+                  Meeting Link
                 </Label>
-                <Select value={form.mode} onValueChange={(value) => updateField('mode', value)}>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ONLINE">Online</SelectItem>
-                    <SelectItem value="OFFLINE">Offline</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 shadow-sm sm:h-12">
+                  <div className="min-w-0">
+                    <div className="truncate text-xs font-black uppercase tracking-widest">
+                      Auto Meet
+                    </div>
+                    <div className="truncate text-[11px] font-medium text-muted-foreground">
+                      {isEdit ? 'Google Meet' : 'Available after create'}
+                    </div>
+                  </div>
+                  <Switch
+                    checked={meetingLinkEnabled}
+                    onCheckedChange={handleMeetingLinkToggle}
+                    disabled={!isEdit || isMeetingLinkUpdating}
+                    className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -353,24 +357,37 @@ export default function ServiceModal({
               />
             </div>
 
-            {isEdit && (
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-border/70 bg-muted/30 p-3 sm:rounded-2xl sm:p-4">
-                <div className="min-w-0">
-                  <div className="text-xs font-black uppercase tracking-widest">
-                    Meeting Link
-                  </div>
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Auto-generate Google Meet
-                  </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Service Mode
+              </Label>
+              <div className="relative rounded-xl border border-border/80 bg-background p-1 shadow-sm">
+                <div className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-lg bg-primary shadow-sm transition-transform duration-200 ${form.mode === 'ONLINE' ? 'translate-x-full' : 'translate-x-0'}`} />
+                <div className="relative grid grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => updateField('mode', 'OFFLINE')}
+                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${form.mode === 'OFFLINE' ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Offline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField('mode', 'ONLINE')}
+                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${form.mode === 'ONLINE' ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <Video className="h-4 w-4" />
+                    Online
+                  </button>
                 </div>
-                <Switch
-                  checked={meetingLinkEnabled}
-                  onCheckedChange={handleMeetingLinkToggle}
-                  disabled={isMeetingLinkUpdating}
-                  className="cursor-pointer"
-                />
+                {form.mode === 'OFFLINE' && (
+                  <div className="pointer-events-none absolute left-1/4 top-full z-10 flex -translate-x-1/2 -translate-y-1 items-center justify-center rounded-full border border-border bg-background p-1 text-primary shadow-sm">
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {form.mode === 'OFFLINE' && (
               <div className="grid gap-3 rounded-xl border border-border/70 bg-muted/30 p-3 sm:grid-cols-2 sm:gap-4 sm:rounded-2xl sm:p-4">
