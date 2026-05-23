@@ -25,7 +25,10 @@ export const getUserController = asyncHandler(async (req, res) => {
 
 
 export const updateUserController = asyncHandler(async (req, res) => {
-    const data = await updateUserService(req.user._id, req.body);
+    const data = await updateUserService(
+        req.user._id,
+        req.body
+    );
 
     return res
         .status(200)
@@ -38,7 +41,10 @@ export const updateUserController = asyncHandler(async (req, res) => {
 
 
 export const updateUserAvatarController = asyncHandler(async (req, res) => {
-    const data = await updateUserAvatarService(req.user._id, req.file);
+    const data = await updateUserAvatarService(
+        req.user._id,
+        req.file
+    );
 
     return res
         .status(200)

@@ -12,7 +12,10 @@ import {
 
 
 export const createOrganizationController = asyncHandler(async (req, res) => {
-    const data = await createOrganizationService(req.user._id, req.body.orgName);
+    const data = await createOrganizationService(
+        req.user._id,
+        req.body.orgName
+    );
 
     return res.status(201).json(
         new ApiResponse(
@@ -24,7 +27,9 @@ export const createOrganizationController = asyncHandler(async (req, res) => {
 
 
 export const getOrganizationsController = asyncHandler(async (req, res) => {
-    const data = await getOrganizationsService(req.user._id);
+    const data = await getOrganizationsService(
+        req.user._id
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -36,7 +41,10 @@ export const getOrganizationsController = asyncHandler(async (req, res) => {
 
 
 export const getOrganizationController = asyncHandler(async (req, res) => {
-    const data = await getOrganizationService(req.params.orgId, req.user._id);
+    const data = await getOrganizationService(
+        req.params.orgId,
+        req.user._id
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -48,7 +56,11 @@ export const getOrganizationController = asyncHandler(async (req, res) => {
 
 
 export const updateOrganizationController = asyncHandler(async (req, res) => {
-    const data = await updateOrganizationService(req.params.orgId, req.body, req.user._id);
+    const data = await updateOrganizationService(
+        req.params.orgId,
+        req.body,
+        req.user._id
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -60,7 +72,10 @@ export const updateOrganizationController = asyncHandler(async (req, res) => {
 
 
 export const deleteOrganizationController = asyncHandler(async (req, res) => {
-    await deleteOrganizationService(req.user._id, req.params.orgId);
+    await deleteOrganizationService(
+        req.user._id,
+        req.params.orgId
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -72,7 +87,10 @@ export const deleteOrganizationController = asyncHandler(async (req, res) => {
 
 
 export const switchOrganizationController = asyncHandler(async (req, res) => {
-    const data = await switchOrganizationService(req.user._id, req.params.orgId);
+    const data = await switchOrganizationService(
+        req.user._id,
+        req.params.orgId
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -83,7 +101,10 @@ export const switchOrganizationController = asyncHandler(async (req, res) => {
 });
 
 export const syncOrganizationSlugController = asyncHandler(async (req, res) => {
-    const data = await syncOrganizationSlugService(req.user._id, req.params.orgId);
+    const data = await syncOrganizationSlugService(
+        req.user._id,
+        req.params.orgId
+    );
 
     return res.status(200).json(
         new ApiResponse(
