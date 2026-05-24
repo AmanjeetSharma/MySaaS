@@ -30,7 +30,6 @@ import {
     Clock3
 } from 'lucide-react';
 
-import { toast } from 'sonner';
 
 const Preferences = () => {
 
@@ -82,24 +81,11 @@ const Preferences = () => {
         setIsTimezoneUpdating(true);
 
         try {
-
             await updateTimezone(newTimezone);
-
-            toast.success('Timezone updated successfully', {
-                icon: <Globe className="h-4 w-4 text-primary" />,
-                duration: 2000
-            });
-
         } catch (error) {
-
             setLocalTimezone(timezone);
-
-            toast.error(error.message || 'Failed to update timezone');
-
         } finally {
-
             setIsTimezoneUpdating(false);
-
         }
     };
 
@@ -115,24 +101,11 @@ const Preferences = () => {
         setIsEmailNotificationsUpdating(true);
 
         try {
-
             await updateNotifications(updated);
-
-            toast.success('Email notification preference updated', {
-                icon: <Bell className="h-4 w-4 text-primary" />,
-                duration: 2000
-            });
-
         } catch (error) {
-
             setLocalNotifications(notifications);
-
-            toast.error(error.message || 'Failed to update notifications');
-
         } finally {
-
             setIsEmailNotificationsUpdating(false);
-
         }
     };
 
@@ -148,24 +121,11 @@ const Preferences = () => {
         setIsInAppNotificationsUpdating(true);
 
         try {
-
             await updateNotifications(updated);
-
-            toast.success('In-app notification preference updated', {
-                icon: <Bell className="h-4 w-4 text-primary" />,
-                duration: 2000
-            });
-
         } catch (error) {
-
             setLocalNotifications(notifications);
-
-            toast.error(error.message || 'Failed to update notifications');
-
         } finally {
-
             setIsInAppNotificationsUpdating(false);
-
         }
     };
 
