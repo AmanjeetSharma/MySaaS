@@ -29,7 +29,7 @@ export const updateTimezoneController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(
             200,
             data,
-            "Timezone updated successfully."
+            data.message
         ))
 });
 

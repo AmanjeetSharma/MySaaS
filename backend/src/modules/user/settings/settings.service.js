@@ -68,7 +68,10 @@ export const updateTimezoneService = async (userId, timezone) => {
 
     console.log(`Timezone updated for user ${userId}: ${settings.timezone}`);
 
-    return { timezone: settings.timezone };
+    return {
+        timezone: settings.timezone,
+        message: `Timezone updated to ${settings.timezone}`
+    };
 };
 
 
