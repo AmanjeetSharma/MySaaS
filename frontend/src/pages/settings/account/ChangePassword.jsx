@@ -279,14 +279,12 @@ export default function ChangePasswordCard({ className = "" }) {
         </div>
       </div>
 
-      {/* SHADCN SUCCESS DIALOG POPUP */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
           className="max-w-90 sm:max-w-100 rounded-2xl p-6 text-center gap-0 outline-none"
-          onInteractOutside={(e) => e.preventDefault()} // Optional: forces user interaction
+          onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader className="flex flex-col items-center justify-center">
-            {/* Visual feedback circle check */}
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="h-6 w-6 stroke-[2.5]" />
             </div>
