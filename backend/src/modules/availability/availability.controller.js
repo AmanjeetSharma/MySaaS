@@ -46,6 +46,7 @@ export const updateAvailabilityController = asyncHandler(async (req, res) => {
 
 export const getAvailabilityByServiceIdController = asyncHandler(async (req, res) => {
     const data = await getAvailabilityByServiceIdService(
+        req.user._id,
         req.params.serviceId
     );
 

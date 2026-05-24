@@ -21,6 +21,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import organizationRoutes from "./modules/organization/organization.routes.js";
 import serviceRoutes from "./modules/service/service.routes.js";
+import availabilityRoutes from "./modules/availability/availability.routes.js";
 
 
 // Use routes
@@ -28,7 +29,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 app.use("/api/v1/services", serviceRoutes);
-
+app.use("/api/v1/availability", availabilityRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
