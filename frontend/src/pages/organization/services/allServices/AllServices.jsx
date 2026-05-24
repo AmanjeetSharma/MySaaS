@@ -193,7 +193,7 @@ export default function AllServices() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center font-black uppercase tracking-widest text-muted-foreground/50">
-        Loading Services...
+        Synchronizing Workspace...
       </div>
     );
   }

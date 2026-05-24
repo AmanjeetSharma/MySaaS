@@ -270,7 +270,11 @@ export default function Organizations() {
   };
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">Syncing Workspaces...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">
+        Syncronizing Workspace...
+      </div>
+    );
   }
 
   return (

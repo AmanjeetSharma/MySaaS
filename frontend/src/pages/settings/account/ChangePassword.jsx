@@ -15,7 +15,8 @@ import {
 import { usePasswordStore } from "@/stores/passwordStore";
 import passwordImage from "@/assets/password1.png";
 
-// Shadcn UI Dialog Primitives
+// Shadcn UI Components
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -52,7 +53,7 @@ function PasswordField({
           type="button"
           onClick={onToggle}
           aria-label={visible ? "Hide password" : "Show password"}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors duration-150 hover:text-foreground focus:text-foreground focus:outline-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors duration-150 hover:text-foreground focus:text-foreground focus:outline-none cursor-pointer"
         >
           {visible ? (
             <EyeOff className="h-4 w-4 stroke-[1.75]" />
@@ -73,8 +74,8 @@ function Alert({ type, message }) {
   return (
     <div
       className={`mb-6 flex items-start gap-3 rounded-xl border p-3 text-sm animate-in fade-in-50 slide-in-from-top-2 duration-200 ${isSuccess
-        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-        : "border-destructive/20 bg-destructive/10 text-destructive"
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          : "border-destructive/20 bg-destructive/10 text-destructive"
         }`}
     >
       {isSuccess ? (
@@ -109,14 +110,12 @@ export default function ChangePasswordCard({ className = "" }) {
     confirm: false,
   });
 
-  // Controls the visibility of our custom Shadcn success popup
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     return () => clearState();
   }, [clearState]);
 
-  // Sync state machine: triggers popup modal when store success returns true
   useEffect(() => {
     if (isSuccess) {
       setIsDialogOpen(true);
@@ -150,7 +149,6 @@ export default function ChangePasswordCard({ className = "" }) {
     }
   };
 
-  // Resets the screen states cleanly back into a fresh view panel instance
   const handleResetFormPanel = () => {
     setIsDialogOpen(false);
     clearState();
@@ -221,7 +219,6 @@ export default function ChangePasswordCard({ className = "" }) {
               </p>
             </div>
 
-            {/* Display regular errors here; success handled cleanly by Dialog popup below */}
             {!isSuccess && <Alert type="error" message={error} />}
 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -257,10 +254,10 @@ export default function ChangePasswordCard({ className = "" }) {
 
               <div className="pt-2 border-t border-border/60" />
 
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full h-10 rounded-xl font-semibold cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -273,12 +270,13 @@ export default function ChangePasswordCard({ className = "" }) {
                     Update password
                   </>
                 )}
-              </button>
+              </Button>
             </form>
           </div>
         </div>
       </div>
 
+      {/* SUCCESS DIALOG POPUP */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
           className="max-w-90 sm:max-w-100 rounded-2xl p-6 text-center gap-0 outline-none"
@@ -299,14 +297,15 @@ export default function ChangePasswordCard({ className = "" }) {
           </DialogHeader>
 
           <div className="mt-6">
-            <button
+            <Button
               type="button"
+              variant="default"
               onClick={handleResetFormPanel}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-foreground text-sm font-semibold text-background shadow-sm transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
+              className="w-full h-10 rounded-xl font-semibold cursor-pointer"
             >
               <CircleCheck className="h-4 w-4 stroke-2" />
               All done!
-            </button>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

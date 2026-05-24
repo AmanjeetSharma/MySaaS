@@ -260,8 +260,10 @@ export default function OrganizationDetails() {
 
     if (isLoading || !organization) {
         return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="fixed inset-0 flex items-center justify-center bg-background">
+                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground/50">
+                    Synchronizing Workspace...
+                </p>
             </div>
         );
     }
