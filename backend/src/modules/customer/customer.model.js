@@ -8,6 +8,7 @@ const customerSchema = new Schema(
             required: true,
             index: true
         },
+        
         name: {
             type: String,
             required: true,
@@ -31,11 +32,6 @@ const customerSchema = new Schema(
             type: String,
             enum: ["manual", "booking"],// manual for notes, booking for public-link created customers
             default: "manual"
-        },
-
-        latestNoteSummary: {// latest stage summary for quick reference
-            type: String,
-            default: null
         },
 
         latestInteractionAt: {

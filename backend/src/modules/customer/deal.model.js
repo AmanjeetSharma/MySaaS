@@ -24,6 +24,11 @@ const dealSchema = new Schema({
         default: "active"
     },
 
+    latestNoteSummary: {// latest stage summary for quick reference
+        type: String,
+        default: null
+    },
+
     latestInteractionAt: {
         type: Date,
         default: null
