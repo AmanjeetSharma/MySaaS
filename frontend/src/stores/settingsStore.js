@@ -3,7 +3,7 @@ import { http } from '../api/httpClient';
 import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
 import { applyUserTheme } from '../theme/theme.utils.js';
 import { saveThemeToLocalStorage } from '../theme/themeSync.utils.js';
-import { AppToast } from '@/config/toast.config.jsx';
+import { AppToast } from '@/config/toast.config.js';
 
 export const useSettingsStore = create((set, get) => ({
     theme: {

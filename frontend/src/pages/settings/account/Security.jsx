@@ -84,8 +84,8 @@ const Security = () => {
 
   if (isLoading && (!sessions || sessions.length === 0)) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary/80" />
+      <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">
+        Synchronizing Workspace...
       </div>
     );
   }

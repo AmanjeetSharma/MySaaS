@@ -27,7 +27,7 @@ export const themeProfiles = {
                 "--border": "#e4e4e7",
                 "--input": "#e4e4e7",
                 "--ring": "#18181b",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#18181b",
                 "--sidebar-primary": "#18181b",
@@ -67,7 +67,7 @@ export const themeProfiles = {
                 "--input": "#121212",
                 "--ring": "#52525b",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#000000",
                 "--sidebar-foreground": "#fafafa",
@@ -117,7 +117,7 @@ export const themeProfiles = {
                 "--input": "#dff7f3",
                 "--ring": "#14b8a6",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#fcfffe",
                 "--sidebar-foreground": "#102a2a",
@@ -166,7 +166,7 @@ export const themeProfiles = {
 
                 "--ring": "#2dd4bf",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#040808",
@@ -208,7 +208,7 @@ export const themeProfiles = {
                 "--border": "#e4e4e7",
                 "--input": "#e4e4e7",
                 "--ring": "#6d28d9",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#160b2e",
                 "--sidebar-primary": "#6d28d9",
@@ -254,7 +254,7 @@ export const themeProfiles = {
 
                 "--ring": "#8b5cf6",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#06020f",
@@ -296,7 +296,7 @@ export const themeProfiles = {
                 "--border": "#dce5d0",
                 "--input": "#dce5d0",
                 "--ring": "#4a7c2e",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#1a2416",
                 "--sidebar-primary": "#4a7c2e",
@@ -342,7 +342,7 @@ export const themeProfiles = {
 
                 "--ring": "#84cc16",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#0a0f07",
@@ -393,7 +393,7 @@ export const themeProfiles = {
                 "--input": "#e7e5e4",
                 "--ring": "#e11d48",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#f5f5f4",
                 "--sidebar-foreground": "#1c1917",
@@ -435,7 +435,7 @@ export const themeProfiles = {
 
                 "--ring": "#f43f5e",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#161412",
                 "--sidebar-foreground": "#fafaf9",
@@ -473,7 +473,7 @@ export const themeProfiles = {
                 "--border": "#e6d5c0",
                 "--input": "#e6d5c0",
                 "--ring": "#8b5a2b",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#3b2a1f",
                 "--sidebar-primary": "#8b5a2b",
@@ -514,7 +514,7 @@ export const themeProfiles = {
 
                 "--ring": "#fb923c",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#120a06",
                 "--sidebar-foreground": "#fff7ed",
@@ -555,7 +555,7 @@ export const themeProfiles = {
                 "--border": "#fce4ec",
                 "--input": "#fce4ec",
                 "--ring": "#f48fb1",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#4a2c3a",
                 "--sidebar-primary": "#f48fb1",
@@ -601,7 +601,7 @@ export const themeProfiles = {
 
                 "--ring": "#ff80ab",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar depth */
                 "--sidebar": "#1a0f14",
@@ -643,7 +643,7 @@ export const themeProfiles = {
                 "--border": "#cbd5e0",
                 "--input": "#cbd5e0",
                 "--ring": "#4a5568",
-                "--radius": "1rem",
+                "--radius": "0.5rem",
                 "--sidebar": "#ffffff",
                 "--sidebar-foreground": "#1a202c",
                 "--sidebar-primary": "#4a5568",
@@ -688,7 +688,7 @@ export const themeProfiles = {
                 "--input": "#171f2a",
                 "--ring": "#a5b4fc",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#090c10", /* Darker than base for depth */
@@ -744,7 +744,7 @@ export const themeProfiles = {
                 /* Focus ring */
                 "--ring": "#3b82f6",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#ffffff",
@@ -797,7 +797,7 @@ export const themeProfiles = {
                 /* Focus ring */
                 "--ring": "#3b82f6",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 /* Sidebar */
                 "--sidebar": "#0b1220",
@@ -848,7 +848,7 @@ export const themeProfiles = {
                 "--input": "#e4e4e7",
                 "--ring": "#f59e0b",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#fafafa", /* Very light gray sidebar */
                 "--sidebar-foreground": "#121212",
@@ -890,7 +890,7 @@ export const themeProfiles = {
 
                 "--ring": "#fbbf24",
 
-                "--radius": "1rem",
+                "--radius": "0.5rem",
 
                 "--sidebar": "#0a0a0a",
                 "--sidebar-foreground": "#f4f4f5",

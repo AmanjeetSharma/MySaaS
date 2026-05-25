@@ -88,8 +88,8 @@ const Appearance = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-75">
-                <Loader2 className="h-7 w-7 animate-spin text-primary/80" />
+            <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">
+                Synchronizing Workspace...
             </div>
         );
     }
