@@ -1,17 +1,17 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner";
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { useSettingsStore } from "@/stores/settingsStore";
 
 const Toaster = ({
   ...props
 }) => {
-  const { theme = "system" } = useTheme()
+  const themeMode = useSettingsStore((state) => state.theme.mode);
 
   return (
     <Sonner
-      theme={theme}
+      theme={themeMode}
       className="toaster group"
       icons={{
         success: (
@@ -35,6 +35,8 @@ const Toaster = ({
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
+          "--normal-bg-hover": "var(--muted)",
+          "--normal-border-hover": "var(--border)",
           "--border-radius": "var(--radius)"
         }
       }
