@@ -3,7 +3,8 @@ import { http } from '../api/httpClient';
 import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
 import { applyUserTheme } from '../theme/theme.utils.js';
 import { saveThemeToLocalStorage } from '../theme/themeSync.utils.js';
-import { AppToast } from '@/config/toast.config.js';
+import { toast } from 'sonner';
+import { toastIcon } from '../config/toastIcon.config.js';
 
 export const useSettingsStore = create((set, get) => ({
     theme: {
@@ -74,15 +75,16 @@ export const useSettingsStore = create((set, get) => ({
             applyUserTheme(newTheme.name, newTheme.mode);
             saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
-            AppToast.success(data.message || 'Theme updated successfully!', {
-                icon: 'platte',
-            });
+            toast.success(
+                data.message || 'Theme updated successfully!',
+                toastIcon('palette')
+            );
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update theme';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update theme');
+            toast.error(errorMessage || 'Failed to update theme');
             throw error;
         }
     },
@@ -99,13 +101,13 @@ export const useSettingsStore = create((set, get) => ({
                 error: null
             });
 
-            AppToast.success(data.message || 'Timezone updated successfully!');
+            toast.success(data.message || 'Timezone updated successfully!');
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update timezone';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update timezone');
+            toast.error(errorMessage || 'Failed to update timezone');
 
             throw error;
         }
@@ -123,13 +125,13 @@ export const useSettingsStore = create((set, get) => ({
                 error: null
             });
 
-            AppToast.success(data.message || 'Notification settings updated successfully!');
+            toast.success(data.message || 'Notification settings updated successfully!');
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update notifications';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update notifications');
+            toast.error(errorMessage || 'Failed to update notifications');
 
             throw error;
         }

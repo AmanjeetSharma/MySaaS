@@ -48,7 +48,10 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
 
     console.log(`Theme updated for user ${userId}: ${settings.theme}`);
 
-    return { theme: settings.theme };
+    return {
+        theme: settings.theme,
+        message: `Theme updated to ${settings.theme.name} (${settings.theme.mode} mode)`
+    };
 };
 
 
@@ -93,7 +96,8 @@ export const updateNotificationsService = async (userId, notifications) => {
     console.log(`Notification preferences updated for user ${userId}: Email - ${settings.notifications.email}, In-App - ${settings.notifications.inApp}`);
 
     return {
-        notifications: settings.notifications
+        notifications: settings.notifications,
+        message: `Notification preferences updated`
     };
 };
 
@@ -116,5 +120,12 @@ export const getSettingsService = async (userId) => {
         notifications: { email: false, inApp: true }
     };
     const themesAvailable = settings.theme.tier === "free" ? [THEME_IDS.DEFAULT] : Object.values(THEME_IDS);
-    return { settings, themesAvailable };
+
+    console.log(`Settings retrieved for user ${userId}: Theme - ${settings.theme.name} (${settings.theme.mode}), Timezone - ${settings.timezone}, Notifications - Email: ${settings.notifications.email}, In-App: ${settings.notifications.inApp}`);
+
+    return {
+        settings,
+        themesAvailable,
+        message: "User settings retrieved successfully"
+    };
 };
