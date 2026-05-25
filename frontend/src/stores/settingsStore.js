@@ -74,7 +74,9 @@ export const useSettingsStore = create((set, get) => ({
             applyUserTheme(newTheme.name, newTheme.mode);
             saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
-            AppToast.success(data.message || 'Theme updated successfully!');
+            AppToast.success(data.message || 'Theme updated successfully!', {
+                icon: 'platte',
+            });
 
             return data;
         } catch (error) {
