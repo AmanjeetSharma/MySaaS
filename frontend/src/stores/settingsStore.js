@@ -74,17 +74,13 @@ export const useSettingsStore = create((set, get) => ({
             applyUserTheme(newTheme.name, newTheme.mode);
             saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
-            AppToast.success(data.message || 'Theme updated successfully!',{
-                position: 'bottom-right',
-            });
+            AppToast.success(data.message || 'Theme updated successfully!');
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update theme';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update theme', {
-                position: 'bottom-right',
-            });
+            AppToast.error(errorMessage || 'Failed to update theme');
             throw error;
         }
     },
@@ -101,17 +97,14 @@ export const useSettingsStore = create((set, get) => ({
                 error: null
             });
 
-            AppToast.success(data.message || 'Timezone updated successfully!', {
-                position: 'bottom-right',
-            });
+            AppToast.success(data.message || 'Timezone updated successfully!');
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update timezone';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update timezone', {
-                position: 'bottom-right',
-            });
+            AppToast.error(errorMessage || 'Failed to update timezone');
+
             throw error;
         }
     },
@@ -128,17 +121,14 @@ export const useSettingsStore = create((set, get) => ({
                 error: null
             });
 
-            AppToast.success(data.message || 'Notification settings updated successfully!', {
-                position: 'bottom-right',
-            });
+            AppToast.success(data.message || 'Notification settings updated successfully!');
 
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to update notifications';
             set({ isUpdating: false, error: errorMessage });
-            AppToast.error(errorMessage || 'Failed to update notifications', {
-                position: 'bottom-right',
-            });
+            AppToast.error(errorMessage || 'Failed to update notifications');
+
             throw error;
         }
     },

@@ -7,7 +7,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppContent />
-      <Toaster position="top-right" />
+      <Toaster closeButton />
     </BrowserRouter>
   );
 }

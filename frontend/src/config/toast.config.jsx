@@ -1,101 +1,151 @@
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import {
+    CheckCircle2,
+    AlertCircle,
+    AlertTriangle,
+    Info,
+    Palette,
+} from "lucide-react";
 
 /**
- * Modern SaaS Toast Styling Configuration
- * Uses Tailwind CSS classes matching Shadcn's layout patterns.
+ * ICON SYSTEM (design-system layer)
+ */
+const ICON_MAP = {
+    success: {
+        icon: CheckCircle2,
+        className: "text-primary",
+        size: "h-5 w-5",
+    },
+    error: {
+        icon: AlertCircle,
+        className: "text-destructive",
+        size: "h-5 w-5",
+    },
+    warning: {
+        icon: AlertTriangle,
+        className: "text-amber-500",
+        size: "h-4 w-4",
+    },
+    info: {
+        icon: Info,
+        className: "text-muted-foreground",
+        size: "h-5 w-5",
+    },
+    palette: {
+        icon: Palette,
+        className: "text-primary",
+        size: "h-4 w-4",
+    },
+};
+
+/**
+ * DEFAULT CONFIG
  */
 const TOAST_DEFAULT_CONFIG = {
     duration: 4000,
-    position: "bottom-right", // Modern SaaS usually prefers bottom-right or top-right
+    position: "top-center",
     className: "group font-sans antialiased",
     classNames: {
-        toast: "w-full border p-4 flex gap-3 rounded-xl shadow-lg backdrop-blur-md bg-background/95",
+        toast:
+            "w-full border p-4 flex gap-3 rounded-xl shadow-lg backdrop-blur-md bg-background/95",
         title: "text-sm font-semibold tracking-tight text-foreground",
-        description: "text-xs text-muted-foreground font-normal leading-relaxed mt-0.5",
-        actionButton: "bg-primary text-primary-foreground text-xs font-medium px-3 py-1.5 rounded-md transition-colors hover:bg-primary/90",
-        cancelButton: "bg-muted text-muted-foreground text-xs font-medium px-3 py-1.5 rounded-md transition-colors hover:bg-muted/80",
-    }
-};
-
-const TOAST_VARIANTS = {
-    success: {
-        icon: <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />,
-        classNames: {
-            toast: "border-emerald-500/15 dark:border-emerald-500/10 bg-gradient-to-r from-emerald-500/[0.02] to-transparent"
-        }
+        description:
+            "text-xs text-muted-foreground font-normal leading-relaxed mt-0.5",
+        actionButton:
+            "bg-primary text-primary-foreground text-xs font-medium px-3 py-1.5 rounded-md hover:bg-primary/90",
+        cancelButton:
+            "bg-muted text-muted-foreground text-xs font-medium px-3 py-1.5 rounded-md hover:bg-muted/80",
     },
-    error: {
-        icon: <AlertCircle className="h-5 w-5 text-destructive shrink-0" />,
-        classNames: {
-            toast: "border-destructive/15 dark:border-destructive/10 bg-gradient-to-r from-destructive/[0.02] to-transparent"
-        }
-    },
-    warning: {
-        icon: <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />,
-        classNames: {
-            toast: "border-amber-500/15 dark:border-amber-500/10 bg-gradient-to-r from-amber-500/[0.02] to-transparent"
-        }
-    },
-    info: {
-        icon: <Info className="h-5 w-5 text-blue-500 shrink-0" />,
-        classNames: {
-            toast: "border-blue-500/15 dark:border-blue-500/10 bg-gradient-to-r from-blue-500/[0.02] to-transparent"
-        }
-    }
 };
 
 /**
- * Main wrapper function to deeply merge configs and trigger Sonner
+ * VARIANTS (NO JSX HERE)
+ */
+const TOAST_VARIANTS = {
+    success: { icon: "success", classNames: { toast: "border-emerald-500/15 bg-gradient-to-r from-emerald-500/[0.02] to-transparent" } },
+    error: { icon: "error", classNames: { toast: "border-red-500/15 bg-gradient-to-r from-red-500/[0.02] to-transparent" } },
+    warning: { icon: "warning", classNames: { toast: "border-amber-500/15 bg-gradient-to-r from-amber-500/[0.02] to-transparent" } },
+    info: { icon: "info", classNames: { toast: "border-blue-500/15 bg-gradient-to-r from-blue-500/[0.02] to-transparent" } },
+};
+
+/**
+ * 🔥 FIXED ICON RESOLVER (IMPORTANT PART)
+ */
+const resolveIcon = (iconKey) => {
+    if (!iconKey) return null;
+
+    const iconConfig = ICON_MAP[iconKey];
+
+    if (!iconConfig) {
+        console.warn(`[AppToast] Unknown icon key: ${iconKey}`);
+        return null;
+    }
+
+    const Icon = iconConfig.icon;
+
+    return (
+        <Icon
+            className={`${iconConfig.size || "h-5 w-5"} shrink-0 ${iconConfig.className || ""}`}
+        />
+    );
+};
+
+/**
+ * CORE TOAST ENGINE
  */
 const triggerToast = (type, message, options = {}) => {
     const variant = TOAST_VARIANTS[type] || {};
 
-    // Merge deep Tailwind classes smoothly
+    const iconKey = options.icon || variant.icon;
+
+    const icon = resolveIcon(iconKey);
+
     const mergedClassNames = {
         ...TOAST_DEFAULT_CONFIG.classNames,
         ...variant.classNames,
         ...options.classNames,
-        // Safely appends deep sub-classes like toast, description, etc.
-        toast: `${TOAST_DEFAULT_CONFIG.classNames.toast} ${variant.classNames?.toast || ""} ${options.classNames?.toast || ""}`,
+        toast: `${TOAST_DEFAULT_CONFIG.classNames.toast} ${variant.classNames?.toast || ""
+            } ${options.classNames?.toast || ""}`,
     };
 
-    const toastMethod = toast[type] || toast;
+    return toast[type]?.(message, {
+        ...options,
 
-    return toastMethod(message, {
-        duration: options.duration || variant.duration || TOAST_DEFAULT_CONFIG.duration,
+        duration: options.duration || TOAST_DEFAULT_CONFIG.duration,
         position: options.position || TOAST_DEFAULT_CONFIG.position,
-        icon: options.icon !== undefined ? options.icon : variant.icon,
+
+        icon,
+
         description: options.description,
         className: TOAST_DEFAULT_CONFIG.className,
         classNames: mergedClassNames,
-        ...options, // Fallback for promise, action, styles, etc.
+
     });
 };
 
+/**
+ * PUBLIC API
+ */
 export const AppToast = {
-    success: (message, options) => triggerToast("success", message, options),
-    error: (message, options) => triggerToast("error", message, options),
-    warning: (message, options) => triggerToast("warning", message, options),
-    info: (message, options) => triggerToast("info", message, options),
+    success: (msg, opt) => triggerToast("success", msg, opt),
+    error: (msg, opt) => triggerToast("error", msg, opt),
+    warning: (msg, opt) => triggerToast("warning", msg, opt),
+    info: (msg, opt) => triggerToast("info", msg, opt),
 
-    // Clean neutral/custom variant
-    custom: (message, options = {}) => triggerToast("default", message, {
-        classNames: {
-            toast: "border-border"
-        },
-        ...options
-    }),
+    custom: (msg, opt = {}) =>
+        triggerToast("default", msg, {
+            classNames: { toast: "border-border" },
+            ...opt,
+        }),
 
-    // Loader/Promise toast helper for smooth SaaS network states
-    promise: (promise, data) => toast.promise(promise, {
-        loading: data.loading || "Processing...",
-        success: (res) => data.success(res),
-        error: (err) => data.error(err),
-        position: TOAST_DEFAULT_CONFIG.position,
-        classNames: TOAST_DEFAULT_CONFIG.classNames,
-    }),
+    promise: (promise, data) =>
+        toast.promise(promise, {
+            loading: data.loading || "Processing...",
+            success: data.success,
+            error: data.error,
+            position: TOAST_DEFAULT_CONFIG.position,
+            classNames: TOAST_DEFAULT_CONFIG.classNames,
+        }),
 
     dismiss: (id) => toast.dismiss(id),
 };
-

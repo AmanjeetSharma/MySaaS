@@ -28,8 +28,6 @@ import {
     Sun
 } from 'lucide-react';
 
-import { toast } from 'sonner';
-
 const Appearance = () => {
     const {
         theme,
@@ -57,23 +55,14 @@ const Appearance = () => {
         setIsThemeUpdating(true);
 
         try {
-            await updateTheme(themeName, themeMode);
+            const result = await updateTheme(themeName, themeMode);
             setLocalThemeMode(themeMode);
 
             const selectedTheme = availableThemes.find(
                 (t) => t.value === themeName
             );
 
-            toast.success(
-                `Theme changed to ${selectedTheme?.label} (${themeMode})`,
-                {
-                    icon: <Palette className="h-4 w-4 text-primary" />,
-                    duration: 2000,
-                    position: 'top-center'
-                }
-            );
         } catch (error) {
-            toast.error(error.message || 'Failed to update theme');
         } finally {
             setIsThemeUpdating(false);
         }
@@ -90,18 +79,8 @@ const Appearance = () => {
 
         try {
             await updateTheme(theme.name, newMode);
-
-            toast.success(`Switched to ${newMode} mode`, {
-                icon: <Palette className="h-4 w-4 text-primary" />,
-                duration: 2000,
-                position: 'top-center'
-            });
         } catch (error) {
             setLocalThemeMode(null);
-
-            toast.error(
-                error.message || 'Failed to switch theme mode'
-            );
         } finally {
             setIsThemeUpdating(false);
         }
