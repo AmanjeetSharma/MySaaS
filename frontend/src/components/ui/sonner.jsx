@@ -1,7 +1,7 @@
 "use client"
 
 import { Toaster as Sonner } from "sonner";
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, CircleX , LoaderCircle } from "lucide-react"
 import { useSettingsStore } from "@/stores/settingsStore";
 
 const Toaster = ({
@@ -15,19 +15,19 @@ const Toaster = ({
       className="toaster group"
       icons={{
         success: (
-          <CircleCheckIcon className="size-4" />
+          <CircleCheckIcon className="size-4 text-green-500" />
         ),
         info: (
-          <InfoIcon className="size-4" />
+          <InfoIcon className="size-4 text-blue-500" />
         ),
         warning: (
-          <TriangleAlertIcon className="size-4" />
+          <TriangleAlertIcon className="size-4 text-amber-500" />
         ),
         error: (
-          <OctagonXIcon className="size-4" />
+          <CircleX className="size-4 text-red-500" />
         ),
         loading: (
-          <Loader2Icon className="size-4 animate-spin" />
+          <LoaderCircle className="size-4 animate-spin" />
         ),
       }}
       style={
