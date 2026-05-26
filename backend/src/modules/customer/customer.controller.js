@@ -1,12 +1,14 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
-    createCustomerService,
-    updateCustomerService,
-    getCustomerService,
-    removeCustomerService,
-    listAllCustomersService,
-    getCustomerHistoryService,
+    // createCustomerService,
+    // updateCustomerService,
+    // getCustomerService,
+    // removeCustomerService,
+    // getAllCustomersOfOrganizationService
+    // getCustomerHistoryService,
+    // getCustomerDealsService,
+    // getCustomerAppointmentsService
 } from "./customer.service.js";
 
 
@@ -71,8 +73,8 @@ export const removeCustomerController = asyncHandler(async (req, res) => {
 });
 
 
-export const listAllCustomersController = asyncHandler(async (req, res) => {
-    const data = await listAllCustomersService(
+export const getAllCustomersOfOrganizationController = asyncHandler(async (req, res) => {
+    const data = await getAllCustomersOfOrganizationService(
         req.user._id,
         req.query
     );
@@ -98,5 +100,37 @@ export const getCustomerHistoryController = asyncHandler(async (req, res) => {
             200,
             data,
             "Customer history retrieved successfully"
+        ));
+});
+
+
+export const getCustomerDealsController = asyncHandler(async (req, res) => {
+    const data = await getCustomerDealsService(
+        req.user._id,
+        req.params.customerId,
+        req.query
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Customer deals retrieved successfully"
+        ));
+});
+
+
+export const getCustomerAppointmentsController = asyncHandler(async (req, res) => {
+    const data = await getCustomerAppointmentsService(
+        req.user._id,
+        req.params.customerId,
+        req.query
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Customer appointments retrieved successfully"
         ));
 });
