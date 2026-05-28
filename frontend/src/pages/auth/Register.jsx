@@ -42,7 +42,7 @@ import { toast } from 'sonner';
 const registerSchema = z.object({
   name: z
     .string()
-    .min(2, 'Name must be at least 2 characters')
+    .min(2, 'Name must be at least 3 characters')
     .max(50, 'Name must be less than 50 characters'),
 
   email: z.string().email('Please enter a valid email address'),
