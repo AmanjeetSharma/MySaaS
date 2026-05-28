@@ -126,11 +126,12 @@ export const googleLoginService = async (body) => {
     }
 
     const accessToken = generateAccessToken(user, sessionId);
+    const emailHTML = welcomeEmailTemplate(user.name);
 
     if (isNewUser) {
         try {
             if (env.EMAIL_ENABLED) {
-                await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
+                await sendEmail(user.email, "Welcome to MySaaS", emailHTML, true);
             } else {
                 console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
             }
