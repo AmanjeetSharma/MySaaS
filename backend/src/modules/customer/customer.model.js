@@ -8,7 +8,7 @@ const customerSchema = new Schema(
             required: true,
             index: true
         },
-        
+
         name: {
             type: String,
             required: true,
@@ -42,6 +42,16 @@ const customerSchema = new Schema(
         isDeleted: {
             type: Boolean,
             default: false
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            default: null
         }
     },
     { timestamps: true }

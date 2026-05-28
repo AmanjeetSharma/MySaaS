@@ -11,7 +11,7 @@ import {
     getCustomerAppointmentsController,
 } from './customer.controller.js';
 
-
+    
 const router = express.Router();
 
 router.post('/', verifyToken, createCustomerController);

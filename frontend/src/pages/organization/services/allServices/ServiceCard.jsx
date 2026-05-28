@@ -12,6 +12,12 @@ import {
   Video,
   WalletCards,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 
@@ -113,17 +119,31 @@ export default function ServiceCard({
             /{service.slug}
           </span>
           {service.isSlugStale && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onSyncSlug(service)}
-              disabled={actionLoading.sync}
-              className="h-8 shrink-0 cursor-pointer rounded-lg text-[10px] font-black uppercase tracking-widest"
-            >
-              <RefreshCw className="h-3 w-3" />
-              {actionLoading.sync ? 'Syncing' : 'Sync Url'}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onSyncSlug(service)}
+                    disabled={actionLoading.sync}
+                    className="h-8 shrink-0 cursor-pointer rounded-lg text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    {actionLoading.sync ? 'Syncing' : 'Sync Url'}
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent
+                  side="top"
+                  className="max-w-65 text-xs leading-relaxed"
+                >
+                  Note: This action will generate a new public service URL.
+                  The previous link will become deprecated.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>

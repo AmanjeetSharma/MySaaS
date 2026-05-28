@@ -1,7 +1,7 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
-    // createCustomerService,
+    createCustomerService,
     // updateCustomerService,
     // getCustomerService,
     // removeCustomerService,
@@ -14,9 +14,10 @@ import {
 
 
 export const createCustomerController = asyncHandler(async (req, res) => {
+    const { orgId, name, email, phone, source } = req.body;
     const data = await createCustomerService(
         req.user._id,
-        req.body
+        { orgId, name, email, phone, source }
     );
 
     return res.status(201).json(
