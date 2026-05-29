@@ -75,19 +75,10 @@ export const useNavigationConfig = () => {
                 ]
             },
             {
-                title: "Services",
-                icon: Briefcase,
-                items: [
-                    {
-                        title: "All Services",
-                        href: "/services/all",
-                        icon: Briefcase
-                    }, {
-                        title: "Availability / Slots",
-                        href: "/services/availability",
-                        icon: Clock
-                    }
-                ]
+               title: "Services",
+               href: "/services/all",
+               icon: Briefcase,
+               items: []
             },
             {
                 title: "Customers",

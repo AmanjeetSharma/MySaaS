@@ -4,7 +4,6 @@ import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
 import { applyUserTheme } from '../theme/theme.utils.js';
 import { saveThemeToLocalStorage } from '../theme/themeSync.utils.js';
 import { toast } from 'sonner';
-import { toastIcon } from '../config/toastIcon.config.jsx';
 
 export const useSettingsStore = create((set, get) => ({
     theme: {
