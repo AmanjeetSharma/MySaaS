@@ -5,7 +5,7 @@ import {
     findCustomerByName,
     findCustomerByEmail,
     findCustomerByPhone,
-    CreateCustomer
+    createCustomer
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 
@@ -16,7 +16,7 @@ export const createCustomerService = async (userId, payload) => {
         throw new ApiError(401, "Unauthorized access");
     }
 
-    const { orgId, name, email, phone, source } = payload;
+    const { orgId, name, email, phone } = payload;
 
     if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
         throw new ApiError(400, "Invalid organization ID");
@@ -36,9 +36,8 @@ export const createCustomerService = async (userId, payload) => {
     const normalizedPhone = phone?.trim();
 
     if (normalizedEmail) {
-        const emailError = emailValidator(normalizedEmail);
-        if (!emailError.valid) {
-            throw new ApiError(400, `${emailError.errors.join(", ")}`);
+        if (!emailValidator(normalizedEmail)) {
+            throw new ApiError(400, "Please enter a valid email address");
         }
     }
 
@@ -49,34 +48,40 @@ export const createCustomerService = async (userId, payload) => {
         }
     }
 
-    if (!["manual", "booking"].includes(source)) {
-        throw new ApiError(400, "Invalid source value");
-    }
-
     //check if customer exists
     const existingCustomer = await findCustomerByName(orgId, name);
     if (existingCustomer) {
         throw new ApiError(409, "Customer with the same name already exists, want to update it instead?");// then we redirect them to update flow
     }
 
-    const existingEmailCustomer = await findCustomerByEmail(orgId, normalizedEmail);
-    if (existingEmailCustomer) {
-        throw new ApiError(409, "Customer with the same email already exists, want to update it instead?");// then we redirect them to update flow
+    if (normalizedEmail) {
+        const existingEmailCustomer = await findCustomerByEmail(orgId, normalizedEmail);
+        if (existingEmailCustomer) {
+            throw new ApiError(409, "Customer with the same email already exists, want to update it instead?");// then we redirect them to update flow
+        }
     }
 
-    const existingPhoneCustomer = await findCustomerByPhone(orgId, normalizedPhone);
-    if (existingPhoneCustomer) {
-        throw new ApiError(409, "Customer with the same phone number already exists, want to update it instead?");// then we redirect them to update flow
+    if (normalizedPhone) {
+        const existingPhoneCustomer = await findCustomerByPhone(orgId, normalizedPhone);
+        if (existingPhoneCustomer) {
+            throw new ApiError(409, "Customer with the same phone number already exists, want to update it instead?");// then we redirect them to update flow
+        }
     }
 
-    const customer = await CreateCustomer({
-        orgId,
+    const customer = await createCustomer({
+        organization: orgId,
         name,
         email: normalizedEmail,
         phone: normalizedPhone,
-        source,
+        source: "manual",
         createdBy: userId
     });
+
+    if (!customer) {
+        throw new ApiError(500, "Failed to create customer");
+    }
+
+    console.log(`Customer created | ID: ${customer._id} | Name: ${customer.name} | Source: ${customer.source} | Organization: ${orgId} | CreatedBy: ${userId}`);
 
     return {
         customer,

@@ -1,6 +1,11 @@
 export const nameValidator = (name) => {
   const errors = [];
 
+  if (!name || typeof name !== "string" || !name.trim()) {
+    errors.push("Name is required");
+    return { valid: false, errors };
+  }
+
   if (typeof name !== "string") {
     errors.push("Name must be a string");
     return { valid: false, errors };
@@ -30,6 +35,9 @@ export const nameValidator = (name) => {
 
 
 export const emailValidator = (email) => {
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return false;
+  }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -38,6 +46,11 @@ export const emailValidator = (email) => {
 
 export const passwordValidator = (password) => {
   const errors = [];
+
+  if (!password || typeof password !== "string") {
+    errors.push("Password is required");
+    return { valid: false, errors };
+  }
 
   if (password.length < 8) {
     errors.push("Password must be at least 8 characters");
@@ -100,6 +113,11 @@ export const avatarValidator = (file) => {
 
 export const phoneNumberValidator = (phoneNumber) => {
   const errors = [];
+
+  if (!phoneNumber || typeof phoneNumber !== "string") {
+    errors.push("Phone number is required");
+    return { valid: false, errors };
+  }
 
   const cleaned = phoneNumber.trim();
   if (!cleaned) {

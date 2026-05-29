@@ -58,13 +58,18 @@ const customerSchema = new Schema(
 );
 
 customerSchema.index(
+    { organization: 1, name: 1 },
+    { unique: true, partialFilterExpression: { isDeleted: false } }
+)
+
+customerSchema.index(
     { organization: 1, email: 1 },
-    { unique: true, sparse: true, partialFilterExpression: { email: { $type: "string", $ne: "" } } }
+    { unique: true, sparse: true, partialFilterExpression: { email: { $type: "string", $ne: "" }, isDeleted: false } }
 );
 
 customerSchema.index(
     { organization: 1, phone: 1 },
-    { unique: true, sparse: true, partialFilterExpression: { phone: { $type: "string", $ne: "" } } }
+    { unique: true, sparse: true, partialFilterExpression: { phone: { $type: "string", $ne: "" }, isDeleted: false } }
 );
 export const Customer =
     mongoose.models.Customer || mongoose.model('Customer', customerSchema);

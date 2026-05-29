@@ -1,42 +1,45 @@
-import { Organization } from "../organization/organization.model";
-import { Customer } from "./customer.model";
+import { Organization } from "../organization/organization.model.js";
+import { Customer } from "./customer.model.js";
 
 
-export const checkUserOrganizationMembership = async (userId, orgId) => {
-    return await Organization.findOne({
+export const checkUserOrganizationMembership = (userId, orgId) => {
+    return Organization.exists({
         _id: orgId,
         $or: [
             { owner: userId },
             { "members.user": userId }
         ]
-    }).lean();
+    });
 }
 
 
-export const findCustomerByName = async (orgId, name) => {
-    return await Customer.findOne({
+export const findCustomerByName = (orgId, name) => {
+    return Customer.findOne({
         organization: orgId,
-        name: name,
+        name,
         isDeleted: false
     }).lean();
 }
 
-export const findCustomerByEmail = async (orgId, email) => {
-    return await Customer.findOne({
+
+export const findCustomerByEmail = (orgId, email) => {
+    return Customer.findOne({
         organization: orgId,
         email: email,
         isDeleted: false
     }).lean();
 }
 
-export const findCustomerByPhone = async (orgId, phone) => {
-    return await Customer.findOne({
+
+export const findCustomerByPhone = (orgId, phone) => {
+    return Customer.findOne({
         organization: orgId,
         phone: phone,
         isDeleted: false
     }).lean();
 }
 
-export const CreateCustomer = async (payload) => {
-    return await Customer.create(payload);
+
+export const createCustomer = (payload) => {
+    return Customer.create(payload);
 }
