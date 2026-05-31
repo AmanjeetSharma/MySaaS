@@ -17,7 +17,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { useNavigationConfig } from '@/config/navigation.config';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
     Tooltip,
@@ -36,31 +36,6 @@ export function DesktopSidebar() {
     const { state, toggleSidebar } = useSidebar();
     const navigationConfig = useNavigationConfig();
     const [openMenus, setOpenMenus] = useState({});
-
-    // Auto close menus when collapsed
-    useEffect(() => {
-        if (state === "collapsed") {
-            setOpenMenus({});
-        }
-    }, [state]);
-
-    // Auto-open parent menu if child is active
-    useEffect(() => {
-        navigationConfig.mainNav.forEach((item) => {
-            if (item.items && item.items.some(subItem => isItemActive(subItem))) {
-                setOpenMenus(prev => ({ ...prev, [item.title]: true }));
-            }
-        });
-    }, [location.pathname]);
-
-    const setMenuOpen = (title, isOpen) => {
-        if (state !== "collapsed") {
-            setOpenMenus(prev => ({
-                ...prev,
-                [title]: isOpen
-            }));
-        }
-    };
 
     const isActive = (item) => {
         if (!item.href) return false;
@@ -107,6 +82,15 @@ export function DesktopSidebar() {
             return item.items.some(subItem => isActive(subItem));
         }
         return false;
+    };
+
+    const setMenuOpen = (title, isOpen) => {
+        if (state !== "collapsed") {
+            setOpenMenus(prev => ({
+                ...prev,
+                [title]: isOpen
+            }));
+        }
     };
 
     const isCollapsed = state === "collapsed";
@@ -166,7 +150,7 @@ export function DesktopSidebar() {
                                 <SidebarMenuItem key={item.title}>
                                     {item.items && item.items.length > 0 ? (
                                         <Collapsible
-                                            open={openMenus[item.title] ?? false}
+                                            open={!isCollapsed && (openMenus[item.title] ?? isItemActive(item))}
                                             onOpenChange={(isOpen) => setMenuOpen(item.title, isOpen)}
                                             className="w-full"
                                         >
@@ -175,9 +159,9 @@ export function DesktopSidebar() {
                                                     tooltip={item.title}
                                                     onClick={handleNavClick}
                                                     className={cn(
-                                                        "h-11 w-full justify-between transition-all duration-200",
+                                                        "h-11 w-full cursor-pointer justify-between rounded-lg hover:bg-accent/70",
                                                         isItemActive(item) &&
-                                                        "bg-accent text-accent-foreground font-medium"
+                                                        "bg-accent text-accent-foreground font-semibold shadow-sm"
                                                     )}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -192,8 +176,8 @@ export function DesktopSidebar() {
                                                     {!isCollapsed && (
                                                         <ChevronRight
                                                             className={cn(
-                                                                "h-4 w-4 transition-transform duration-200",
-                                                                (openMenus[item.title] ?? false) && "rotate-90"
+                                                                "h-4 w-4",
+                                                                (openMenus[item.title] ?? isItemActive(item)) && "rotate-90"
                                                             )}
                                                         />
                                                     )}
@@ -204,13 +188,13 @@ export function DesktopSidebar() {
                                                     <SidebarMenu className="ml-6 mt-1 border-l border-border/50 pl-3 space-y-1">
                                                         {item.items.map((subItem) => (
                                                             <SidebarMenuItem key={subItem.title}>
-                                                                <NavLink to={subItem.href} className="block">
+                                                                <NavLink to={subItem.href} className="block cursor-pointer">
                                                                     <SidebarMenuButton
                                                                         tooltip={subItem.title}
                                                                         className={cn(
-                                                                            "h-10 w-full transition-all duration-200",
+                                                                            "h-10 w-full cursor-pointer rounded-lg hover:bg-accent/60",
                                                                             isActive(subItem) &&
-                                                                            "bg-accent/50 text-accent-foreground font-medium"
+                                                                            "bg-accent/60 text-accent-foreground font-semibold"
                                                                         )}
                                                                     >
                                                                         <div className="flex items-center gap-3">
@@ -226,14 +210,14 @@ export function DesktopSidebar() {
                                             )}
                                         </Collapsible>
                                     ) : (
-                                        <NavLink to={item.href} className="block">
+                                        <NavLink to={item.href} className="block cursor-pointer">
                                             <SidebarMenuButton
                                                 tooltip={item.title}
                                                 onClick={handleNavClick}
                                                 className={cn(
-                                                    "h-11 w-full transition-all duration-200",
+                                                    "h-11 w-full cursor-pointer rounded-lg hover:bg-accent/70",
                                                     isActive(item) &&
-                                                    "bg-accent text-accent-foreground font-medium shadow-sm"
+                                                    "bg-accent text-accent-foreground font-semibold shadow-sm"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3">

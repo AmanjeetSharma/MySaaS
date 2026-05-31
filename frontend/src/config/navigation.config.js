@@ -2,7 +2,6 @@ import {
     LayoutDashboard,
     Users,
     Briefcase,
-    Clock,
     Shield,
     CheckCircle2,
     Star,
@@ -27,11 +26,18 @@ import {
 import { useUserStore } from '@/stores/userStore';
 // import { useOrganizationStore } from '@/stores/organizationStore';
 
+const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === 'string') return entity;
+    return entity._id || entity.id || null;
+};
+
 export const useNavigationConfig = () => {
 
     const activeOrganization = useUserStore(
         (state) => state.userProfile?.activeOrganization
     );
+    const activeOrganizationId = getEntityId(activeOrganization);
 
     // const currentOrganization = useOrganizationStore((state) => state.currentOrganization);
 
@@ -57,8 +63,8 @@ export const useNavigationConfig = () => {
                     },
                     {
                         title: "Organization Details",
-                        href: activeOrganization
-                            ? `/organizations/${activeOrganization}`
+                        href: activeOrganizationId
+                            ? `/organizations/${activeOrganizationId}`
                             : "/organizations",
                         icon: Info,
                         // Active only on exact org details page, not sub-routes
@@ -66,8 +72,8 @@ export const useNavigationConfig = () => {
                     },
                     {
                         title: "Members",
-                        href: activeOrganization
-                            ? `/organizations/${activeOrganization}/members`
+                        href: activeOrganizationId
+                            ? `/organizations/${activeOrganizationId}/members`
                             : "/organizations",
                         icon: Users,
                         pattern: '/organizations/:orgId/members'
