@@ -5,9 +5,9 @@ import {
     updateCustomerService,
     getCustomerService,
     removeCustomerService,
-    // getAllCustomersOfOrganizationService
-    // getCustomerHistoryService,
-    // getCustomerDealsService,
+    getAllCustomersOfOrganizationService,
+    getCustomerTimelineService,
+    getCustomerDealsService,
     // getCustomerAppointmentsService
 } from "./customer.service.js";
 
@@ -79,6 +79,7 @@ export const removeCustomerController = asyncHandler(async (req, res) => {
 export const getAllCustomersOfOrganizationController = asyncHandler(async (req, res) => {
     const data = await getAllCustomersOfOrganizationService(
         req.user._id,
+        req.params.orgId,
         req.query
     );
 
@@ -91,8 +92,8 @@ export const getAllCustomersOfOrganizationController = asyncHandler(async (req, 
 });
 
 
-export const getCustomerHistoryController = asyncHandler(async (req, res) => {
-    const data = await getCustomerHistoryService(
+export const getCustomerTimelineController = asyncHandler(async (req, res) => {
+    const data = await getCustomerTimelineService(
         req.user._id,
         req.params.customerId,
         req.query
@@ -102,7 +103,7 @@ export const getCustomerHistoryController = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             data,
-            "Customer history retrieved successfully"
+            "Customer timeline retrieved successfully"
         ));
 });
 

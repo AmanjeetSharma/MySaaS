@@ -7,6 +7,15 @@ import {
     findCustomerByPhone,
     createCustomer,
     findCustomerById,
+    findCustomers,
+    countCustomers,
+    findActivities,
+    countActivities,
+    getActivitySummary,
+    findDeals,
+    countDeals,
+    getDealStatistics,
+    findLatestActivityForDeal,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 
@@ -288,4 +297,281 @@ export const removeCustomerService = async (userId, customerId) => {
     console.log(`Customer removed | ID: ${customer._id} | UpdatedBy: ${userId}`);
 
     return;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const getAllCustomersOfOrganizationService = async (userId, orgId, query) => {
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+
+    const {
+        page = 1,
+        limit = 10,
+        search,
+        sortBy = "createdAt",
+        sortOrder = "desc"
+    } = query;
+
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Invalid organization ID");
+    }
+
+    const isPartOfOrg = await checkUserOrganizationMembership(userId, orgId);
+    if (!isPartOfOrg) {
+        throw new ApiError(403, "Access denied: You are not a member of this organization");
+    }
+
+    const filter = {
+        organization: orgId,
+        isDeleted: false
+    };
+
+    if (search) {
+        filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { phone: { $regex: search, $options: "i" } }
+        ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    const sort = {};
+    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    try {
+        const customers = await findCustomers({
+            filter,
+            sort,
+            skip,
+            limit: limitNum
+        });
+
+        const total = await countCustomers(filter);
+
+        return {
+            customers,
+            pagination: {
+                page: parseInt(page),
+                limit: limitNum,
+                total,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        };
+    } catch (err) {
+        console.error("Failed to fetch customers:", err);
+        throw new ApiError(500, "Failed to retrieve customers, please try again");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const getCustomerTimelineService = async (userId, customerId, query) => {
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+        throw new ApiError(400, "Invalid customer ID");
+    }
+
+    const customer = await findCustomerById(customerId);
+    if (!customer) {
+        throw new ApiError(404, "Customer not found");
+    }
+
+    const isPartOfOrg = await checkUserOrganizationMembership(userId, customer.organization);
+    if (!isPartOfOrg) {
+        throw new ApiError(403, "Access denied: You are not a member of this organization");
+    }
+
+    const { page = 1, limit = 20, type, startDate, endDate } = query;
+
+    const filter = {
+        organization: customer.organization,
+        customer: customerId
+    };
+
+    if (type) filter.type = type;
+
+    if (startDate || endDate) {
+        filter.createdAt = {};
+        if (startDate) filter.createdAt.$gte = new Date(startDate);
+        if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    try {
+        const activities = await findActivities({
+            filter,
+            skip,
+            limit: limitNum
+        });
+
+        const total = await countActivities(filter);
+        const summary = await getActivitySummary(filter);
+
+        return {
+            customer: {
+                _id: customer._id,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone
+            },
+            summary: summary[0] || {
+                totalActivities: 0,
+                uniqueDealsCount: 0,
+                activityTypes: []
+            },
+            activities,
+            pagination: {
+                page: parseInt(page),
+                limit: limitNum,
+                total,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        };
+    } catch (err) {
+        console.error("Failed to fetch customer timeline:", err);
+        throw new ApiError(500, "Failed to retrieve customer timeline, please try again");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const getCustomerDealsService = async (userId, customerId, query) => {
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access");
+    }
+
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+        throw new ApiError(400, "Invalid customer ID");
+    }
+
+    const customer = await findCustomerById(customerId);
+    if (!customer) {
+        throw new ApiError(404, "Customer not found");
+    }
+
+    const isPartOfOrg = await checkUserOrganizationMembership(userId, customer.organization);
+    if (!isPartOfOrg) {
+        throw new ApiError(403, "Access denied: You are not a member of this organization");
+    }
+
+    const {
+        status,
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = "desc"
+    } = query;
+
+    const filter = {
+        organization: customer.organization,
+        customer: customerId
+    };
+
+    if (status && ["active", "won", "lost"].includes(status)) {
+        filter.status = status;
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    const sort = {};
+    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    try {
+        const deals = await findDeals({
+            filter,
+            sort,
+            skip,
+            limit: limitNum
+        });
+
+        const total = await countDeals(filter);
+
+        const statistics = await getDealStatistics(filter);
+
+        const statsMap = {
+            active: 0,
+            won: 0,
+            lost: 0,
+            total
+        };
+
+        statistics.forEach(stat => {
+            if (stat._id === "active") statsMap.active = stat.count;
+            if (stat._id === "won") statsMap.won = stat.count;
+            if (stat._id === "lost") statsMap.lost = stat.count;
+        });
+
+        const dealsWithLatestActivity = await Promise.all(
+            deals.map(async (deal) => {
+                const latestActivity = await findLatestActivityForDeal({
+                    organization: customer.organization,
+                    customerId,
+                    dealId: deal._id
+                });
+
+                return {
+                    ...deal.toObject(),
+                    latestActivity: latestActivity || null
+                };
+            })
+        );
+
+        return {
+            customer: {
+                _id: customer._id,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone
+            },
+            statistics: statsMap,
+            deals: dealsWithLatestActivity,
+            pagination: {
+                page: parseInt(page),
+                limit: limitNum,
+                total,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        };
+    } catch (err) {
+        console.error("Failed to fetch customer deals:", err);
+        throw new ApiError(500, "Failed to retrieve customer deals, please try again");
+    }
 };

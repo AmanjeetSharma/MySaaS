@@ -5,9 +5,9 @@ import {
     updateCustomerController,
     getCustomerController,
     removeCustomerController,
-    // getAllCustomersOfOrganizationController,
-    // getCustomerHistoryController,
-    // getCustomerDealsController,
+    getAllCustomersOfOrganizationController,
+    getCustomerTimelineController,
+    getCustomerDealsController,
     // getCustomerAppointmentsController,
 } from './customer.controller.js';
 
@@ -18,9 +18,9 @@ router.post('/', verifyToken, createCustomerController);
 router.patch('/:customerId', verifyToken, updateCustomerController);
 router.get('/:customerId', verifyToken, getCustomerController);
 router.delete('/:customerId', verifyToken, removeCustomerController);
-// router.get('/', verifyToken, getAllCustomersOfOrganizationController);
-// router.get('/:customerId/history', verifyToken, getCustomerHistoryController);
-// router.get('/:customerId/deals', verifyToken, getCustomerDealsController);
+router.get('/organization/:orgId', verifyToken, getAllCustomersOfOrganizationController);
+router.get('/:customerId/timeline', verifyToken, getCustomerTimelineController);
+router.get('/:customerId/deals', verifyToken, getCustomerDealsController);
 // router.get('/:customerId/appointments', verifyToken, getCustomerAppointmentsController);
 
 
