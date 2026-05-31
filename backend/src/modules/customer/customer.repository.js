@@ -43,3 +43,11 @@ export const findCustomerByPhone = (orgId, phone) => {
 export const createCustomer = (payload) => {
     return Customer.create(payload);
 }
+
+
+export const findCustomerById = (customerId) => {
+    return Customer.findOne({
+        _id: customerId,
+        isDeleted: false
+    });
+}

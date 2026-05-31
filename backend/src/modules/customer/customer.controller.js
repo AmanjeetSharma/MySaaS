@@ -2,9 +2,9 @@ import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
     createCustomerService,
-    // updateCustomerService,
-    // getCustomerService,
-    // removeCustomerService,
+    updateCustomerService,
+    getCustomerService,
+    removeCustomerService,
     // getAllCustomersOfOrganizationService
     // getCustomerHistoryService,
     // getCustomerDealsService,
@@ -14,10 +14,10 @@ import {
 
 
 export const createCustomerController = asyncHandler(async (req, res) => {
-    const { orgId, name, email, phone, source } = req.body;
+    const { orgId, name, email, phone } = req.body;
     const data = await createCustomerService(
         req.user._id,
-        { orgId, name, email, phone, source }
+        { orgId, name, email, phone }
     );
 
     return res.status(201).json(
@@ -30,9 +30,11 @@ export const createCustomerController = asyncHandler(async (req, res) => {
 
 
 export const updateCustomerController = asyncHandler(async (req, res) => {
+    const { name, email, phone } = req.body;
     const data = await updateCustomerService(
         req.user._id,
-        req.body
+        req.params.customerId,
+        { name, email, phone }
     );
 
     return res.status(200).json(
