@@ -5,6 +5,7 @@ export { useSettingsStore } from './settingsStore';
 export { useOrganizationStore } from './organizationStore';
 export { useMemberStore } from './memberStore';
 export { useServiceStore } from './serviceStore';
+export { useAvailabilityStore } from './availabilityStore';
 
 
 

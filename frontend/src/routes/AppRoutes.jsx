@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
@@ -73,9 +73,9 @@ export const AppRoutes = () => {
                 <Route path="/" element={<Home />} />
 
                 {/* Auth Routes */}
-                <Route path="/register" element={<Register />} />
+                <Route path="/signup" element={<Register />} />
                 <Route path="/verify/:token" element={<Verify />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/signin" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
@@ -92,7 +92,7 @@ export const AppRoutes = () => {
 
                     {/* Service Routes */}
                     <Route path="/services/all" element={<AllServices />} />
-                    <Route path="/services/availability" element={<Availability />} />
+                    <Route path="/services/all/:serviceId/availability" element={<Availability />} />
 
                     {/* Analytics Routes */}
                     <Route path="/analytics/bookings" element={<AnalyticsBookings />} />

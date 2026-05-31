@@ -29,7 +29,7 @@ const Verify = () => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            navigate('/login');
+            navigate('/signin');
             return 0;
           }
           return prev - 1;
@@ -43,7 +43,7 @@ const Verify = () => {
     try {
       await verifyEmail(token);
       setVerificationStatus('success');
-      toast.success('Email verified successfully! Redirecting to login...');
+      toast.success('Email verified successfully! Redirecting to sign in...');
     } catch (err) {
       setVerificationStatus('error');
       toast.error(error || 'Verification failed. Please try again.');
@@ -91,9 +91,9 @@ const Verify = () => {
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={() => navigate('/login')} className="gap-2">
+            <Button onClick={() => navigate('/signin')} className="gap-2">
               <Mail className="h-4 w-4" />
-              Go to Login Now
+              Go to Sign In Now
             </Button>
           </CardFooter>
         </Card>
@@ -118,16 +118,16 @@ const Verify = () => {
         <CardContent>
           <Alert variant="destructive">
             <AlertDescription>
-              {error || 'The verification link is invalid or has expired. Please try registering again.'}
+              {error || 'The verification link is invalid or has expired. Please try signing up again.'}
             </AlertDescription>
           </Alert>
         </CardContent>
         <CardFooter className="flex justify-center gap-2">
-          <Button onClick={() => navigate('/register')}>
-            Register Again
+          <Button onClick={() => navigate('/signup')} className="cursor-pointer">
+            Sign Up Again
           </Button>
-          <Button variant="outline" onClick={() => navigate('/login')}>
-            Back to Login
+          <Button variant="outline" onClick={() => navigate('/signin')} className="cursor-pointer">
+            Back to Sign In
           </Button>
         </CardFooter>
       </Card>

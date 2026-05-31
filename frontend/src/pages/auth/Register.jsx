@@ -378,7 +378,7 @@ const Register = () => {
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
-                to="/login"
+                to="/signin"
                 className="text-primary hover:underline"
               >
                 Sign in
@@ -417,8 +417,8 @@ const Register = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <Button onClick={() => navigate('/login')}>
-            Go to Login
+          <Button onClick={() => navigate('/signin')}>
+            Go to Sign In
           </Button>
         </DialogContent>
       </Dialog>

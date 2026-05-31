@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useServiceStore, useUserStore } from '@/stores';
 import ServiceCard from './ServiceCard';
@@ -37,6 +38,7 @@ const copyToClipboard = async (text) => {
 };
 
 export default function AllServices() {
+  const navigate = useNavigate();
   const {
     services,
     getOrganizationServices,
@@ -190,6 +192,11 @@ export default function AllServices() {
     }
   };
 
+  const handleConfigureAvailability = (service) => {
+    if (!service?._id) return;
+    navigate(`/services/all/${service._id}/availability`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center font-black uppercase tracking-widest text-muted-foreground/50">
@@ -241,6 +248,7 @@ export default function AllServices() {
             onToggleStatus={handleToggleStatus}
             onCopyUrl={handleCopyUrl}
             onSyncSlug={handleSyncSlug}
+            onConfigureAvailability={handleConfigureAvailability}
           />
         ))}
       </div>

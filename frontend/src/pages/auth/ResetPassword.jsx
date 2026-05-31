@@ -131,7 +131,7 @@ const ResetPassword = () => {
   useEffect(() => {
     if (isSuccess) {
       const timer = setTimeout(() => {
-        navigate('/login');
+        navigate('/signin');
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -149,7 +149,7 @@ const ResetPassword = () => {
       );
 
       toast.success(
-        'Password reset successful! Redirecting to login...'
+        'Password reset successful! Redirecting to sign in...'
       );
     } catch (err) {
       // handled by store
@@ -327,11 +327,11 @@ const ResetPassword = () => {
 
         <CardFooter className="flex justify-center">
           <Link
-            to="/login"
+            to="/signin"
             className="text-sm text-primary hover:underline inline-flex items-center gap-1"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Login
+            Back to Sign In
           </Link>
         </CardFooter>
       </Card>

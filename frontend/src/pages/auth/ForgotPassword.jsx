@@ -170,11 +170,11 @@ const ForgotPassword = () => {
 
         <CardFooter className="flex justify-center">
           <Link
-            to="/login"
+            to="/signin"
             className="text-sm text-primary hover:underline inline-flex items-center gap-1"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Login
+            Back to Sign In
           </Link>
         </CardFooter>
       </Card>

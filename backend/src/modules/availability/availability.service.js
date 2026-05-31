@@ -39,7 +39,7 @@ export const createAvailabilityService = async (userId, serviceId, payload) => {
         throw new ApiError(409, "Availability already exists for this service");
     }
 
-    const service = await findServiceById(serviceId, "organization");
+    const service = await findServiceById(serviceId, "organization name");
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
@@ -104,7 +104,7 @@ export const updateAvailabilityService = async (userId, serviceId, payload) => {
         throw new ApiError(404, "Availability not found");
     }
 
-    const service = await findServiceById(serviceId, "organization");
+    const service = await findServiceById(serviceId, "organization name");
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
@@ -169,7 +169,7 @@ export const getAvailabilityByServiceIdService = async (userId, serviceId) => {
         throw new ApiError(404, "Availability not found");
     }
 
-    const service = await findServiceById(serviceId, "organization");
+    const service = await findServiceById(serviceId, "organization name");
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
@@ -212,7 +212,7 @@ export const deleteAvailabilityService = async (userId, serviceId) => {
         throw new ApiError(400, "Invalid service ID");
     }
 
-    const service = await findServiceById(serviceId, "organization");
+    const service = await findServiceById(serviceId, "organization name");
     if (!service) {
         throw new ApiError(404, "Service not found");
     }

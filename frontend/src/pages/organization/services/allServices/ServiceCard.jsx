@@ -1,5 +1,6 @@
 import {
   CalendarClock,
+  CalendarCog,
   Copy,
   DollarSign,
   Edit3,
@@ -55,6 +56,7 @@ export default function ServiceCard({
   onToggleStatus,
   onCopyUrl,
   onSyncSlug,
+  onConfigureAvailability,
 }) {
   const isOffline = service.mode === 'OFFLINE';
   const CurrencyIcon = currencyIcons[service.currency] || IndianRupee;
@@ -67,13 +69,34 @@ export default function ServiceCard({
           {service.mode}
         </span>
 
-        <div className="flex shrink-0 items-center rounded-full border border-border bg-background p-1 shadow-sm">
-          <Switch
-            checked={!!service.isActive}
-            onCheckedChange={() => onToggleStatus(service)}
-            disabled={actionLoading.status}
-            className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
-          />
+        <div className="flex shrink-0 items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onConfigureAvailability(service)}
+                  className="h-9 w-9 cursor-pointer rounded-full border-border bg-background shadow-sm"
+                >
+                  <CalendarCog className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs font-bold">
+                Configure availability
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div className="flex items-center rounded-full border border-border bg-background p-1 shadow-sm">
+            <Switch
+              checked={!!service.isActive}
+              onCheckedChange={() => onToggleStatus(service)}
+              disabled={actionLoading.status}
+              className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
+            />
+          </div>
         </div>
       </div>
 

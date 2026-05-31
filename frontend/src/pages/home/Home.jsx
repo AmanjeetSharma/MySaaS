@@ -29,7 +29,7 @@ const Home = () => {
           {/* Desktop Navigation */}
           <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl">
             <a
-              href="/login"
+              href="/signin"
               className="px-5 py-2 text-[13px] font-medium text-slate-400 hover:text-white transition-all rounded-full hover:bg-white/5"
             >
               Sign In
@@ -37,7 +37,7 @@ const Home = () => {
 
             {/* CTA Button: Darker slate with a crisp border */}
             <Button className="rounded-full bg-slate-100 text-black hover:bg-white/90 px-5 py-4 h-9 text-xs font-bold hover:scale-103 cursor-pointer"
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/signup")}
             >
               {/* <Sparkles className="w-3.5 h-3.5 mr-2 fill-current" /> */}
               Get Started
@@ -61,14 +61,14 @@ const Home = () => {
 
                 <nav className="flex flex-col gap-6 items-center">
                   <SheetClose asChild>
-                    <a href="/login" className="text-xl font-medium text-white hover:text-white transition-colors">Sign In</a>
+                    <a href="/signin" className="text-xl font-medium text-white hover:text-white transition-colors">Sign In</a>
                   </SheetClose>
 
                   <div className="pt-6 w-full px-4">
                     <SheetClose asChild>
                       <Button
                         className="w-full rounded-2xl bg-white text-black py-7 text-lg font-bold hover:bg-slate-200 transition-all shadow-xl shadow-white/5"
-                        onClick={() => navigate("/register")}
+                        onClick={() => navigate("/signup")}
                       >
                         Get Started
                       </Button>
@@ -112,7 +112,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-4">
             <Button size="lg"
               className="h-16 px-12 text-xl rounded-2xl bg-white text-black hover:bg-slate-200 cursor-pointer transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95"
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/signup")}
             >
               Start Free Trial
             </Button>

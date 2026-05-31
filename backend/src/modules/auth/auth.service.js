@@ -292,7 +292,7 @@ export const loginService = async (body) => {
 
     // Check if user registered via Google
     if (user.providers?.google?.enabled) {
-        throw new ApiError(403, "This email is registered via Google. Please login with Google");
+        throw new ApiError(403, "This email is registered via Google. Please continue with Google or set up a password to enable email sign-in.");
     }
 
     if (user.accountStatus !== "active") {
