@@ -28,7 +28,6 @@ import {
 
 
 export const getMembersService = async (userId, orgId) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -79,7 +78,6 @@ export const getMembersService = async (userId, orgId) => {
 
 
 export const inviteMemberService = async (userId, inviterName, orgId, email) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!email) throw new ApiError(400, "Email is required");
     if (!inviterName) throw new ApiError(400, "Inviter name is required");
@@ -179,7 +177,6 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
 
 export const acceptInvitationService = async (userId, token) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!token) throw new ApiError(400, "Invitation token is missing");
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
@@ -266,7 +263,6 @@ export const acceptInvitationService = async (userId, token) => {
 
 
 export const getPendingInvitationsService = async (userId, orgId) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -302,7 +298,6 @@ export const getPendingInvitationsService = async (userId, orgId) => {
 
 
 export const removeMemberService = async (userId, orgId, memberId) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!memberId) throw new ApiError(400, "Member ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
@@ -360,7 +355,6 @@ export const removeMemberService = async (userId, orgId, memberId) => {
 
 
 export const leaveOrganizationService = async (userId, orgId) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 

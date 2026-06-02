@@ -31,9 +31,6 @@ import {
 
 
 export const createServiceService = async (userId, orgId, payload) => {
-    if (!userId) {
-        throw new ApiError(400, "Unauthorized access");
-    }
     if (!orgId) {
         throw new ApiError(400, "Organization ID is required");
     }
@@ -134,9 +131,6 @@ export const createServiceService = async (userId, orgId, payload) => {
 
 
 export const updateServiceService = async (userId, serviceId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -266,7 +260,6 @@ export const updateServiceService = async (userId, serviceId, payload) => {
 
 
 export const deleteServiceService = async (userId, serviceId) => {
-    if (!userId) throw new ApiError(400, "Unauthorized access");
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -436,9 +429,6 @@ export const toggleServiceStatusService = async (serviceId) => {
 
 
 export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -469,9 +459,6 @@ export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) =>
 
 
 export const syncServiceSlugService = async (userId, serviceId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }

@@ -9,10 +9,6 @@ import { THEME_IDS } from '../../../constants/theme.constants.js';
 
 // helper func
 const updateSettings = async (userId, updateObj) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     const updatedUser = await updateUserSettingsField(userId, updateObj);
     if (!updatedUser) {
         throw new ApiError(404, "User not found or update failed");
@@ -109,8 +105,6 @@ export const updateNotificationsService = async (userId, notifications) => {
 
 
 export const getSettingsService = async (userId) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
-
     const user = await getUserById(userId);
     if (!user) throw new ApiError(404, "User not found");
 

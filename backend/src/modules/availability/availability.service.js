@@ -26,10 +26,6 @@ const DAYS = [
 
 
 export const createAvailabilityService = async (userId, serviceId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -91,10 +87,6 @@ export const createAvailabilityService = async (userId, serviceId, payload) => {
 
 
 export const updateAvailabilityService = async (userId, serviceId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -204,10 +196,6 @@ export const getAvailabilityByServiceIdService = async (userId, serviceId) => {
 
 
 export const deleteAvailabilityService = async (userId, serviceId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }

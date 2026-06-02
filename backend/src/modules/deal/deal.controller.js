@@ -13,9 +13,10 @@ import {
 
 
 export const createDealController = asyncHandler(async (req, res) => {
+    const { orgId, customerId, title } = req.body;
     const data = await createDealService(
         req.user._id,
-        req.body
+        { orgId, customerId, title }
     );
 
     return res.status(200).json(

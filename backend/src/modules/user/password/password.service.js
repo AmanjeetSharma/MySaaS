@@ -17,18 +17,12 @@ import env from "../../../config/env.config.js";
 
 
 
-export const changePasswordService = async (
-    userId,
-    currentSessionId,
+export const changePasswordService = async (userId, currentSessionId,
     {
         currentPassword,
         newPassword,
         confirmNewPassword
     }) => {
-
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
 
     if (!currentPassword) {
         throw new ApiError(400, "Current password is required");

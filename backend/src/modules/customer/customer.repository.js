@@ -60,8 +60,8 @@ export const findCustomers = ({ filter, sort, skip, limit }) => {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email');
+        .populate('createdBy', 'name email') // Populate createdBy with name and email
+        .populate('updatedBy', 'name email'); // to get the details of the user who last updated the customer
 };
 
 

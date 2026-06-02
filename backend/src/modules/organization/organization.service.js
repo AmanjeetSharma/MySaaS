@@ -19,7 +19,6 @@ import { generateOrgSlug } from "../auth/auth.helper.js";
 
 
 export const createOrganizationService = async (userId, orgName) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
     if (!orgName) { throw new ApiError(400, "Organization name is required"); }
 
     const cleanedOrgName = orgName.trim();
@@ -86,8 +85,6 @@ export const createOrganizationService = async (userId, orgName) => {
 
 
 export const getOrganizationsService = async (userId) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
-
     const organizations = await findOrganizationsByUserId(userId);
     if (!organizations || organizations.length === 0) {
         throw new ApiError(404, "No organizations found");
@@ -110,7 +107,6 @@ export const getOrganizationsService = async (userId) => {
 
 
 export const getOrganizationService = async (orgId, userId) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
     if (!orgId) throw new ApiError(400, "Organization ID is required");
 
     const org = await findOrganizationById(orgId);
@@ -144,7 +140,6 @@ export const getOrganizationService = async (orgId, userId) => {
 
 
 export const updateOrganizationService = async (orgId, updateData, userId) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
     if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
     if (!updateData) { throw new ApiError(400, "Data is required to update organization"); }
 
@@ -182,7 +177,6 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
 
 
 export const deleteOrganizationService = async (userId, orgId) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
     if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
 
     const session = await mongoose.startSession();
@@ -234,7 +228,6 @@ export const deleteOrganizationService = async (userId, orgId) => {
 
 
 export const switchOrganizationService = async (userId, orgId) => {
-    if (!userId) { throw new ApiError(400, "Unauthorized access"); }
     if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
 
     const org = await findOrganizationsByUserId(userId);
@@ -274,7 +267,6 @@ export const switchOrganizationService = async (userId, orgId) => {
 
 
 export const syncOrganizationSlugService = async (userId, orgId) => {
-    if (!userId) throw new ApiError(401, "Unauthorized access");
     if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
     // check if user has access to the organization

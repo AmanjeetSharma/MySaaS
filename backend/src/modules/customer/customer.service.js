@@ -22,10 +22,6 @@ import { nameValidator, emailValidator, phoneNumberValidator } from '../../valid
 
 
 export const createCustomerService = async (userId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     const { orgId, name, email, phone } = payload;
 
     if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
@@ -116,10 +112,6 @@ export const createCustomerService = async (userId, payload) => {
 
 
 export const updateCustomerService = async (userId, customerId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }
@@ -234,10 +226,6 @@ export const updateCustomerService = async (userId, customerId, payload) => {
 
 
 export const getCustomerService = async (userId, customerId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }
@@ -265,10 +253,6 @@ export const getCustomerService = async (userId, customerId) => {
 
 
 export const removeCustomerService = async (userId, customerId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }
@@ -311,10 +295,6 @@ export const removeCustomerService = async (userId, customerId) => {
 
 
 export const getAllCustomersOfOrganizationService = async (userId, orgId, query) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     const {
         page = 1,
         limit = 10,
@@ -388,10 +368,6 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
 
 
 export const getCustomerTimelineService = async (userId, customerId, query) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }
@@ -413,7 +389,9 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
         customer: customerId
     };
 
-    if (type) filter.type = type;
+    if (type) {
+        filter.type = type;
+    }
 
     if (startDate || endDate) {
         filter.createdAt = {};
@@ -473,10 +451,6 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
 
 
 export const getCustomerDealsService = async (userId, customerId, query) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }

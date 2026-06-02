@@ -6,10 +6,6 @@ import { cleanupAvatar } from "../../auth/auth.helper.js";
 
 
 export const getUserService = async (userId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     const user = await getUserById(userId);
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -27,10 +23,6 @@ export const getUserService = async (userId) => {
 
 
 export const updateUserService = async (userId, payload) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     if (!payload.name.trim()) {
         throw new ApiError(400, "Name is required");
     }
@@ -67,9 +59,6 @@ export const updateUserService = async (userId, payload) => {
 
 
 export const updateUserAvatarService = async (userId, avatarFile) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     if (!avatarFile) {
         throw new ApiError(400, "Avatar image is required");
     }
@@ -141,10 +130,6 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
 
 
 export const deleteUserAvatarService = async (userId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-
     const user = await getUserById(userId);
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -188,8 +173,6 @@ export const deleteUserAvatarService = async (userId) => {
 
 
 export const deleteUserService = async (userId) => {
-    if (!userId) { throw new ApiError(401, "Unauthorized access"); }
-
     const user = await getUserById(userId, "+password");
     if (!user) { throw new ApiError(404, "User not found"); }
 
@@ -208,6 +191,7 @@ export const deleteUserService = async (userId) => {
     //     refreshToken: null,
     // }));
 
+    // or remove all sessions to force logout from all devices immediately
     user.sessions = [];
 
     user.password = null;

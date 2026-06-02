@@ -1,12 +1,9 @@
+import mongoose from "mongoose";
 import { ApiError } from "../../../utils/ApiError.js";
 import { getUserById } from "../user.repository.js";
 
 
-
 export const getUserSessionsService = async (userId, currentSessionId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     const user = await getUserById(userId);
 
     if (!user) {
@@ -29,11 +26,10 @@ export const getUserSessionsService = async (userId, currentSessionId) => {
 
 
 export const logoutSessionByIdService = async (userId, sessionId) => {
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
+    if (!sessionId && !mongoose.Types.ObjectId.isValid(sessionId)) {
+        throw new ApiError(400, "Session ID is Invalid");
     }
     const user = await getUserById(userId);
-
     if (!user) {
         throw new ApiError(404, "User not found");
     }
@@ -81,10 +77,6 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
 
 
 export const logoutAllSessionsService = async (userId, currentSessionId) => {
-
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
     if (!currentSessionId) {
         throw new ApiError(400, "Session ID is required");
     }
