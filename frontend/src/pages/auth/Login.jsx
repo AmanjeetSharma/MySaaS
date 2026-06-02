@@ -74,7 +74,7 @@ const Login = () => {
       const timer = setTimeout(() => {
         setShowError(false);
         clearError();
-      }, 5000);
+      }, 12000);
 
       return () => clearTimeout(timer);
     }
@@ -234,7 +234,7 @@ const Login = () => {
             {/* SUBMIT */}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? (
