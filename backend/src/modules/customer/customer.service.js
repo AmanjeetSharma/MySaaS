@@ -15,7 +15,6 @@ import {
     findDeals,
     countDeals,
     getDealStatistics,
-    findLatestActivityForDeal,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 
@@ -241,6 +240,8 @@ export const getCustomerService = async (userId, customerId) => {
         throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
+    console.log(`Customer retrieved | ID: ${customer._id} | Name: ${customer.name} | Organization: ${customer.organization} | RequestedBy: ${userId}`);
+
     return customer;
 };
 
@@ -270,6 +271,7 @@ export const removeCustomerService = async (userId, customerId) => {
 
     customer.isDeleted = true;
     customer.updatedBy = userId;
+    customer.deletedAt = new Date();
 
     try {
         await customer.save();
@@ -340,6 +342,8 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
         });
 
         const total = await countCustomers(filter);
+
+        console.log(`Customers retrieved | Organization: ${orgId} | RequestedBy: ${userId} | Count: ${customers.length} | Total: ${total}`);
 
         return {
             customers,
@@ -412,6 +416,8 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
         const total = await countActivities(filter);
         const summary = await getActivitySummary(filter);
 
+        console.log(`Customer timeline retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${activities.length} | Total: ${total}`);
+
         return {
             customer: {
                 _id: customer._id,
@@ -475,18 +481,31 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
 
     const filter = {
         organization: customer.organization,
-        customer: customerId
+        customer: customerId,
+        isDeleted: false
     };
 
-    if (status && ["active", "won", "lost"].includes(status)) {
-        filter.status = status;
+    const normalizedStatus = status?.trim().toLowerCase();
+    if (normalizedStatus && ["active", "won", "lost"].includes(normalizedStatus)) {
+        filter.status = normalizedStatus;
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const limitNum = parseInt(limit);
 
+    const allowedSortFields = [
+        "createdAt",
+        "updatedAt",
+        "latestInteractionAt",
+        "closedAt",
+        "title"
+    ];
+
+    const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
     const sort = {};
-    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+    sort[finalSortField] =
+        sortOrder === "desc" ? -1 : 1;
 
     try {
         const deals = await findDeals({
@@ -513,20 +532,7 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             if (stat._id === "lost") statsMap.lost = stat.count;
         });
 
-        const dealsWithLatestActivity = await Promise.all(
-            deals.map(async (deal) => {
-                const latestActivity = await findLatestActivityForDeal({
-                    organization: customer.organization,
-                    customerId,
-                    dealId: deal._id
-                });
-
-                return {
-                    ...deal.toObject(),
-                    latestActivity: latestActivity || null
-                };
-            })
-        );
+        console.log(`Customer deals retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${deals.length} | Total: ${total}`);
 
         return {
             customer: {
@@ -535,8 +541,11 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
                 email: customer.email,
                 phone: customer.phone
             },
+
             statistics: statsMap,
-            deals: dealsWithLatestActivity,
+
+            deals,
+
             pagination: {
                 page: parseInt(page),
                 limit: limitNum,

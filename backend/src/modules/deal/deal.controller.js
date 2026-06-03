@@ -1,7 +1,7 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
-    // createDealService,
+    createDealService,
     // getAllDealsService,
     // getDealByIdService,
     // updateDealService,
@@ -28,18 +28,35 @@ export const createDealController = asyncHandler(async (req, res) => {
 });
 
 
-export const getAllDealsController = asyncHandler(async (req, res) => {
-    const data = await getAllDealsService(
+export const updateDealController = asyncHandler(async (req, res) => {
+    const { title, customerId } = req.body;
+    const data = await updateDealService(
         req.user._id,
-        req.query,
-        req.body.orgId
+        req.params.dealId,
+        req.body.title,
     );
 
     return res.status(200).json(
         new ApiResponse(
             200,
             data,
-            "Deals retrieved successfully"
+            "Deal updated successfully"
+        ));
+});
+
+
+export const updateDealStatusController = asyncHandler(async (req, res) => {
+    const data = await updateDealStatusService(
+        req.user._id,
+        req.params.dealId,
+        req.body.status
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Deal status updated successfully"
         ));
 });
 
@@ -59,22 +76,6 @@ export const getDealByIdController = asyncHandler(async (req, res) => {
 });
 
 
-export const updateDealController = asyncHandler(async (req, res) => {
-    const data = await updateDealService(
-        req.user._id,
-        req.params.dealId,
-        req.body
-    );
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Deal updated successfully"
-        ));
-});
-
-
 export const deleteDealController = asyncHandler(async (req, res) => {
     await deleteDealService(
         req.user._id,
@@ -89,19 +90,19 @@ export const deleteDealController = asyncHandler(async (req, res) => {
         ));
 });
 
-
-export const updateDealStatusController = asyncHandler(async (req, res) => {
-    const data = await updateDealStatusService(
+// all deals of
+export const getAllDealsController = asyncHandler(async (req, res) => {
+    const data = await getAllDealsService(
         req.user._id,
-        req.params.dealId,
-        req.body.status
+        req.query,
+        req.body.orgId
     );
 
     return res.status(200).json(
         new ApiResponse(
             200,
             data,
-            "Deal status updated successfully"
+            "Deals retrieved successfully"
         ));
 });
 

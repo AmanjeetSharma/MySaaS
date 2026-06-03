@@ -75,8 +75,6 @@ export const findActivities = ({ filter, skip, limit, sort = { createdAt: -1 } }
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .populate('createdBy', 'name email')
-        .populate('deal', 'title status');
 };
 
 
@@ -107,23 +105,12 @@ export const getActivitySummary = (filter) => {
 };
 
 
-export const findLatestActivityForDeal = ({ organization, customerId, dealId }) => {
-    return Activity.findOne({
-        organization,
-        customer: customerId,
-        deal: dealId
-    })
-        .sort({ createdAt: -1 })
-        .select('event description createdAt');
-};
-
-
 export const findDeals = ({ filter, sort, skip, limit }) => {
     return Deal.find(filter)
         .sort(sort)
         .skip(skip)
         .limit(limit);
-};
+    };
 
 
 export const countDeals = (filter) => {

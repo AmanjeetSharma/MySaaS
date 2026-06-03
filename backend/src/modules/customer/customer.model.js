@@ -39,10 +39,6 @@ const customerSchema = new Schema(
             default: null
         },
 
-        isDeleted: {
-            type: Boolean,
-            default: false
-        },
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
@@ -52,7 +48,16 @@ const customerSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
             default: null
-        }
+        },
+
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
+        deletedAt: {
+            type: Date,
+            default: null
+        },
     },
     { timestamps: true }
 );

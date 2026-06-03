@@ -15,7 +15,10 @@ const dealSchema = new Schema({
 
     title: {
         type: String,
-        default: "General"
+        default: "New Deal",
+        trim: true,
+        minlength: [1, "Title cannot be empty"],
+        maxlength: [255, "Title cannot exceed 255 characters"]
     },
 
     status: {
@@ -24,25 +27,41 @@ const dealSchema = new Schema({
         default: "active"
     },
 
-    latestNoteSummary: {// latest stage summary for quick reference
+    latestActivitySummary: {// latest stage summary for quick reference
         type: String,
         default: null
     },
-
     latestInteractionAt: {
         type: Date,
         default: null
     },
 
-    startedAt: {
-        type: Date,
-        default: Date.now
-    },
-
     closedAt: {
         type: Date,
         default: null
+    },
+
+
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
     }
+
 }, { timestamps: true });
 
 dealSchema.index({ organization: 1, customer: 1 });
