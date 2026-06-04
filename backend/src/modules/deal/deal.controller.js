@@ -93,7 +93,7 @@ export const deleteDealController = asyncHandler(async (req, res) => {
 export const getAllDealsForOrganizationController = asyncHandler(async (req, res) => {
     const data = await getAllDealsForOrganizationService(
         req.user._id,
-        req.body?.orgId,
+        req.query?.orgId || req.body?.orgId,
         req.query,
     );
 

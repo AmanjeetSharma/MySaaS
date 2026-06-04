@@ -14,4 +14,4 @@ router.patch("/:activityId", verifyToken, updateActivityController);
 router.delete("/:activityId", verifyToken, deleteActivityController);
 router.get("/", verifyToken, getAllActivitiesController);// for dashboard feeds(only)
 
-export default router;
+export default router; 

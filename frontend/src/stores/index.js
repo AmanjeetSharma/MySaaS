@@ -6,6 +6,9 @@ export { useOrganizationStore } from './organizationStore';
 export { useMemberStore } from './memberStore';
 export { useServiceStore } from './serviceStore';
 export { useAvailabilityStore } from './availabilityStore';
+export { useCustomerStore } from './customerStore';
+export { useDealStore } from './dealStore';
+export { useActivityStore } from './activityStore';
 
 
 
