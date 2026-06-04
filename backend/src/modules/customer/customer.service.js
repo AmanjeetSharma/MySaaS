@@ -19,6 +19,10 @@ import { nameValidator, emailValidator, phoneNumberValidator } from '../../valid
 
 
 
+
+
+
+
 export const createCustomerService = async (userId, payload) => {
     const { orgId, name, email, phone } = payload;
 
@@ -536,7 +540,7 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             if (stat._id === "won") statsMap.won = stat.count;
             if (stat._id === "lost") statsMap.lost = stat.count;
         });
-        
+
         statsMap.total = statsMap.active + statsMap.won + statsMap.lost;
 
         console.log(`Customer deals retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${deals.length} | Total: ${statsMap.total}`);

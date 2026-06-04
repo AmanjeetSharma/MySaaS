@@ -107,10 +107,11 @@ export const getAllDealsForOrganizationController = asyncHandler(async (req, res
 
 
 export const getDealActivitiesController = asyncHandler(async (req, res) => {
+    const { cursor } = req.query;
     const data = await getDealActivitiesService(
         req.user._id,
         req.params.dealId,
-        req.body?.cursor,
+        { cursor }
     );
 
     return res.status(200).json(

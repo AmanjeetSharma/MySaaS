@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { ACTIVITY_TYPES } from "../../constants/activityTypes.constants.js";
 
 const activitySchema = new Schema(
     {
@@ -25,8 +26,20 @@ const activitySchema = new Schema(
             type: String,
             trim: true,
             lowercase: true,
+            enum: {
+                values: [...ACTIVITY_TYPES, "custom"],
+                message: "Invalid activity type"
+            },
+            required: true,
             default: "note"
         },
+        customType: {
+            type: String,
+            trim: true,
+            maxlength: 50,
+            default: null
+        },
+
         event: {
             type: String,
             required: true,

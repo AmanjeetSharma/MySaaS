@@ -5,15 +5,13 @@ import {
     updateActivityController,
     deleteActivityController,
     getAllActivitiesController,
-    getActivityByIdController,
 } from "./activity.controller.js";
 
 const router = Router();
 
 router.post("/", verifyToken, createActivityController);
-router.patch("/:activityId", verifyToken, updateActivityController);// for re editing activity notes, like discord messages edit
-router.delete("/:activityId", verifyToken, deleteActivityController);// for deleting activity notes, like discord messages delete
-
-router.get("/", verifyToken, getAllActivitiesController);// only for dashboard feeds
+router.patch("/:activityId", verifyToken, updateActivityController);
+router.delete("/:activityId", verifyToken, deleteActivityController);
+router.get("/", verifyToken, getAllActivitiesController);// for dashboard feeds(only)
 
 export default router;

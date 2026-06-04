@@ -1,16 +1,19 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
-    // createActivityService,
-    // updateActivityService,
-    // deleteActivityService
-    // getAllActivitiesService,
-    // getActivityByIdService,
+    createActivityService,
+    updateActivityService,
+    deleteActivityService,
+    getAllActivitiesService,
 } from "./activity.service.js";
 
 
 export const createActivityController = asyncHandler(async (req, res) => {
-    const data = await createActivityService(req.user._id, req.body);
+    const { dealId, type, event, description, customType } = req.body;
+    const data = await createActivityService(
+        req.user._id,
+        { dealId, type, event, description, customType }
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -22,7 +25,12 @@ export const createActivityController = asyncHandler(async (req, res) => {
 
 
 export const updateActivityController = asyncHandler(async (req, res) => {
-    const data = await updateActivityService(req.user._id, req.params.activityId, req.body);
+    const { type, event, description, customType } = req.body;
+    const data = await updateActivityService(
+        req.user._id,
+        req.params.activityId,
+        { type, event, description, customType }
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -34,19 +42,26 @@ export const updateActivityController = asyncHandler(async (req, res) => {
 
 
 export const deleteActivityController = asyncHandler(async (req, res) => {
-    await deleteActivityService(req.user._id, req.params.activityId);
+    const data = await deleteActivityService(
+        req.user._id,
+        req.params.activityId
+    );
 
     return res.status(200).json(
         new ApiResponse(
             200,
-            null,
+            data,
             "Activity deleted successfully"
         ));
 });
 
 
 export const getAllActivitiesController = asyncHandler(async (req, res) => {
-    const data = await getAllActivitiesService(req.user._id, req.query);
+    const { cursor } = req.query;
+    const data = await getAllActivitiesService(
+        req.user._id,
+        { cursor }
+    );
 
     return res.status(200).json(
         new ApiResponse(
@@ -55,17 +70,3 @@ export const getAllActivitiesController = asyncHandler(async (req, res) => {
             "Activities fetched successfully"
         ));
 });
-
-
-export const getActivityByIdController = asyncHandler(async (req, res) => {
-    const data = await getActivityByIdService(req.user._id, req.params.activityId);
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Activity fetched successfully"
-        ));
-});
-
-
