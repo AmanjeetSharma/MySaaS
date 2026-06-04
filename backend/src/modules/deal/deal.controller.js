@@ -7,8 +7,7 @@ import {
     getDealByIdService,
     deleteDealService,
     getAllDealsForOrganizationService,
-    // getDealTimelineService,
-    // getDealActivitiesService
+    getDealActivitiesService
 } from "./deal.service.js";
 
 
@@ -107,25 +106,11 @@ export const getAllDealsForOrganizationController = asyncHandler(async (req, res
 });
 
 
-export const getDealTimelineController = asyncHandler(async (req, res) => {
-    const data = await getDealTimelineService(
-        req.user._id,
-        req.params.dealId
-    );
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Deal timeline retrieved successfully"
-        ));
-});
-
-
 export const getDealActivitiesController = asyncHandler(async (req, res) => {
     const data = await getDealActivitiesService(
         req.user._id,
-        req.params.dealId
+        req.params.dealId,
+        req.body?.cursor,
     );
 
     return res.status(200).json(

@@ -20,6 +20,7 @@ const activitySchema = new Schema(
             default: null,
             index: true
         },
+
         type: {
             type: String,
             trim: true,
@@ -31,20 +32,26 @@ const activitySchema = new Schema(
             required: true,
             default: null,
             trim: true,
+            minlength: [1, 'Activity event cannot be empty'],
             maxlength: [250, 'Activity event cannot exceed 250 characters']
         },
         description: {
             type: String,
-            required: true,
             trim: true,
-            minlength: [1, 'Activity description cannot be empty'],
-            maxlength: [2000, 'Activity description cannot exceed 2000 characters']
+            maxlength: [2000, 'Activity description cannot exceed 2000 characters'],
+            default: null
         },
+
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            default: null
+        }
     },
     {
         timestamps: true

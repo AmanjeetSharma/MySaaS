@@ -10,6 +10,7 @@ import {
     findDeals,
     countDeals,
     getDealStatistics,
+    findDealActivities,
 } from "./deal.repository.js";
 
 
@@ -363,5 +364,48 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
 
 
 
+
+
+
+
+
+
+
+export const getDealActivitiesService = async (userId, dealId, cursor) => {
+    if (!dealId || !mongoose.Types.ObjectId.isValid(dealId)) {
+        throw new ApiError(400, "Deal ID is required and must be valid");
+    }
+
+    const deal = await findDealById(dealId);
+    if (!deal) {
+        throw new ApiError(404, "Deal not found");
+    }
+
+    const isMember = await checkUserOrganizationMembership(userId, deal.organization);
+    if (!isMember) {
+        throw new ApiError(403, "Access denied: You are not a member of the organization");
+    }
+
+    try {
+        const results = await findDealActivities(dealId, cursor);
+
+        const hasMore = results.length > 10;
+
+        const activities = hasMore ? results.slice(0, 10) : results;
+
+        const nextCursor = hasMore ? activities[activities.length - 1].createdAt : null;
+
+        console.log(`Deal activities retrieved | Deal ID: ${dealId} | Retrieved By: ${userId} | Activities Returned: ${activities.length} | Has More: ${hasMore}`);
+
+        return {
+            activities,
+            hasMore,
+            nextCursor
+        };
+    } catch (error) {
+        console.error("Failed to fetch deal activities:", error);
+        throw new ApiError(500, error.message || "Failed to retrieve deal activities, please try again");
+    };
+};
 
 
