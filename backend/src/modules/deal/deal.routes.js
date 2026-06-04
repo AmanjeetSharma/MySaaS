@@ -6,7 +6,7 @@ import {
     updateDealStatusController,
     getDealByIdController,
     deleteDealController,
-    // getAllDealsController,
+    getAllDealsForOrganizationController,
     // getDealTimelineController,
     // getDealActivitiesController
 } from "./deal.controller.js";
@@ -19,7 +19,7 @@ router.patch("/:dealId", verifyToken, updateDealController);
 router.patch("/:dealId/status", verifyToken, updateDealStatusController);
 router.get("/:dealId", verifyToken, getDealByIdController);
 router.delete("/:dealId", verifyToken, deleteDealController);
-// router.get("/", verifyToken, getAllDealsController);
+router.get("/", verifyToken, getAllDealsForOrganizationController);
 // router.get("/:dealId/timeline", verifyToken, getDealTimelineController);
 // router.get("/:dealId/activities", verifyToken, getDealActivitiesController);
 

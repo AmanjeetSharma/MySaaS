@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Organization } from "../organization/organization.model.js";
 import { Customer } from "./customer.model.js";
 import { Deal } from "../deal/deal.model.js";
@@ -109,21 +110,28 @@ export const findDeals = ({ filter, sort, skip, limit }) => {
     return Deal.find(filter)
         .sort(sort)
         .skip(skip)
-        .limit(limit);
-    };
-
-
-export const countDeals = (filter) => {
-    return Deal.countDocuments(filter);
+        .limit(limit)
+        .populate('createdBy', 'name email')
+        .populate('updatedBy', 'name email');
 };
 
 
+// Aggregation does not cast plain ids to ObjectId, so we need to convert them manually (its a common pitfall, spent hours debugging this)
+// This was done to optimize the performance of the endpoint by reducing the number of queries to the database.
 export const getDealStatistics = (filter) => {
+    const aggregationFilter = {
+        ...filter,
+        organization: new mongoose.Types.ObjectId(filter.organization),
+        customer: new mongoose.Types.ObjectId(filter.customer)
+    };
+
     return Deal.aggregate([
-        { $match: filter },
+        { $match: aggregationFilter },
         {
             $group: {
-                _id: "$status",
+                _id: {
+                    $toLower: { $trim: { input: "$status" } }
+                },
                 count: { $sum: 1 }
             }
         }

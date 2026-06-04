@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 import { ApiError } from "../../utils/ApiError.js";
 import {
-    hasOrganizationAccess,
+    getOrganizationAccessStatus,
     createDeal,
     findCustomerByIdInOrg,
     checkUserOrganizationMembership,
     findDealById,
+    findDealByIdWithPopulate,
+    findDeals,
+    countDeals,
+    getDealStatistics,
 } from "./deal.repository.js";
 
 
@@ -23,9 +27,12 @@ export const createDealService = async (userId, payload) => {
     }
 
     // this will be checking for org existence and user membership in one go
-    const isOrgExistAndAccessible = await hasOrganizationAccess(userId, orgId);
-    if (!isOrgExistAndAccessible) {
-        throw new ApiError(403, "Organization not found or access denied");
+    const { exists, hasAccess } = await getOrganizationAccessStatus(userId, orgId);
+    if (!exists) {
+        throw new ApiError(404, "Organization not found");
+    }
+    if (!hasAccess) {
+        throw new ApiError(403, "Access denied: You are not a member of the organization");
     }
 
     const customerExists = await findCustomerByIdInOrg(customerId, orgId);
@@ -65,7 +72,7 @@ export const updateDealService = async (userId, dealId, title) => {
     if (!dealId || !mongoose.Types.ObjectId.isValid(dealId)) {
         throw new ApiError(400, "Deal ID is required and must be valid");
     }
-
+    console.log(dealId, title);
     const deal = await findDealById(dealId);
     if (!deal) {
         throw new ApiError(404, "Deal not found");
@@ -83,6 +90,9 @@ export const updateDealService = async (userId, dealId, title) => {
     if (deal.title === normalizedTitle) {
         throw new ApiError(400, "No changes detected");
     }
+    if (normalizedTitle.length > 255) {
+        throw new ApiError(400, "Title cannot exceed 255 characters");
+    }
 
     deal.title = normalizedTitle;
     deal.updatedBy = userId;
@@ -91,7 +101,7 @@ export const updateDealService = async (userId, dealId, title) => {
         await deal.save();
     } catch (error) {
         console.error("Error updating deal:", error);
-        throw new ApiError(500, "Failed to update deal, please try again");
+        throw new ApiError(500, error.message || "Failed to update deal, please try again");
     }
 
     console.log(`Deal updated | Deal ID: ${deal._id} | Organization ID: ${deal.organization} | Updated By: ${userId}`);
@@ -143,7 +153,7 @@ export const updateDealStatusService = async (userId, dealId, status) => {
     } else {
         deal.closedAt = null;
     }
-    
+
     deal.updatedBy = userId;
 
     try {
@@ -169,7 +179,7 @@ export const getDealByIdService = async (userId, dealId) => {
         throw new ApiError(400, "Deal ID is required and must be valid");
     }
 
-    const deal = await findDealById(dealId);
+    const deal = await findDealByIdWithPopulate(dealId);
     if (!deal) {
         throw new ApiError(404, "Deal not found");
     }
@@ -220,7 +230,7 @@ export const deleteDealService = async (userId, dealId) => {
     console.log(`Deal deleted | Deal ID: ${deal._id} | Organization ID: ${deal.organization} | Deleted By: ${userId}`);
 
     return {
-        message: "Deal deleted successfully",
+        message: `Deal with title '${deal.title.length > 20 ? deal.title.slice(0, 20) + "..." : deal.title}' has been deleted`,
         deletedDealId: deal._id,
         deletedAt: deal.deletedAt,
         deletedBy: userId
@@ -228,6 +238,129 @@ export const deleteDealService = async (userId, dealId) => {
 };
 
 
+
+
+
+
+
+
+
+export const getAllDealsForOrganizationService = async (userId, orgId, query) => {
+
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Organization ID is required and must be valid");
+    }
+
+    const { exists, hasAccess } = await getOrganizationAccessStatus(userId, orgId);
+    if (!exists) {
+        throw new ApiError(404, "Organization not found");
+    }
+    if (!hasAccess) {
+        throw new ApiError(403, "Access denied: You are not a member of the organization");
+    }
+
+    const {
+        page = 1,
+        limit = 20,
+        status,
+        search
+    } = query;
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {
+        organization: orgId,
+        isDeleted: false
+    };
+
+    if (status) {
+        const normalizedStatus = status.trim().toLowerCase();
+
+        const allowedStatuses = ["active", "won", "lost"];
+        if (!allowedStatuses.includes(normalizedStatus)) {
+            throw new ApiError(400, `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`);
+        }
+
+        filter.status = normalizedStatus;
+    }
+
+    if (search?.trim()) {
+        filter.$or = [
+            {
+                title: {
+                    $regex: search.trim(),
+                    $options: "i"
+                }
+            },
+            {
+                latestActivitySummary: {
+                    $regex: search.trim(),
+                    $options: "i"
+                }
+            }
+        ];
+    }
+
+    try {
+        const sort = {
+            latestInteractionAt: -1,
+            createdAt: -1
+        };
+
+        const [deals, total, statistics] = await Promise.all([// execute in parallel for minimized response time
+            findDeals({
+                filter,
+                sort,
+                skip,
+                limit: limitNum
+            }),
+            countDeals(filter),
+            getDealStatistics(filter)
+        ]);
+
+        const statsMap = {
+            active: 0,
+            won: 0,
+            lost: 0,
+            total
+        };
+
+        statistics.forEach((stat) => {
+            if (stat._id === "active") {
+                statsMap.active = stat.count;
+            }
+
+            if (stat._id === "won") {
+                statsMap.won = stat.count;
+            }
+
+            if (stat._id === "lost") {
+                statsMap.lost = stat.count;
+            }
+        });
+
+        console.log(`Deals retrieved | Organization ID: ${orgId} | Retrieved By: ${userId} | Total Deals: ${total}`);
+
+        return {
+            statistics: statsMap,
+
+            deals,
+
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        };
+
+    } catch (error) {
+        console.error("Failed to fetch organization deals:", error);
+        throw new ApiError(500, error.message || "Failed to retrieve deals, please try again");
+    }
+};
 
 
 

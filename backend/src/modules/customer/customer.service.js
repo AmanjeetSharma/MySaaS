@@ -13,7 +13,6 @@ import {
     countActivities,
     getActivitySummary,
     findDeals,
-    countDeals,
     getDealStatistics,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
@@ -472,9 +471,9 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
     }
 
     const {
-        status,
         page = 1,
         limit = 10,
+        status,
         sortBy = "createdAt",
         sortOrder = "desc"
     } = query;
@@ -485,13 +484,19 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
         isDeleted: false
     };
 
-    const normalizedStatus = status?.trim().toLowerCase();
-    if (normalizedStatus && ["active", "won", "lost"].includes(normalizedStatus)) {
+    if (status) {
+        const normalizedStatus = status.trim().toLowerCase();
+        const allowedStatuses = ["active", "won", "lost"];
+        if (!allowedStatuses.includes(normalizedStatus)) {
+            throw new ApiError(400, `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`);
+        }
+
         filter.status = normalizedStatus;
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 10));
+    const skip = (pageNum - 1) * limitNum;
 
     const allowedSortFields = [
         "createdAt",
@@ -508,22 +513,22 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
         sortOrder === "desc" ? -1 : 1;
 
     try {
-        const deals = await findDeals({
-            filter,
-            sort,
-            skip,
-            limit: limitNum
-        });
-
-        const total = await countDeals(filter);
-
-        const statistics = await getDealStatistics(filter);
+        // running these in parallel to optimize performance
+        const [deals, statistics] = await Promise.all([
+            findDeals({
+                filter,
+                sort,
+                skip,
+                limit: limitNum
+            }),
+            getDealStatistics(filter)
+        ]);
 
         const statsMap = {
             active: 0,
             won: 0,
             lost: 0,
-            total
+            total: 0
         };
 
         statistics.forEach(stat => {
@@ -531,8 +536,10 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             if (stat._id === "won") statsMap.won = stat.count;
             if (stat._id === "lost") statsMap.lost = stat.count;
         });
+        
+        statsMap.total = statsMap.active + statsMap.won + statsMap.lost;
 
-        console.log(`Customer deals retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${deals.length} | Total: ${total}`);
+        console.log(`Customer deals retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${deals.length} | Total: ${statsMap.total}`);
 
         return {
             customer: {
@@ -547,14 +554,14 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             deals,
 
             pagination: {
-                page: parseInt(page),
+                page: pageNum,
                 limit: limitNum,
-                total,
-                totalPages: Math.ceil(total / limitNum)
+                total: statsMap.total,
+                totalPages: Math.ceil(statsMap.total / limitNum)
             }
         };
-    } catch (err) {
-        console.error("Failed to fetch customer deals:", err);
-        throw new ApiError(500, "Failed to retrieve customer deals, please try again");
+    } catch (error) {
+        console.error("Failed to fetch customer deals:", error);
+        throw new ApiError(500, error.message || "Failed to retrieve customer deals, please try again");
     }
 };

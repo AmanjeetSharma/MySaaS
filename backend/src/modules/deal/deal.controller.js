@@ -2,11 +2,11 @@ import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import {
     createDealService,
-    // getAllDealsService,
-    // getDealByIdService,
-    // updateDealService,
-    // deleteDealService,
-    // updateDealStatusService,
+    updateDealService,
+    updateDealStatusService,
+    getDealByIdService,
+    deleteDealService,
+    getAllDealsForOrganizationService,
     // getDealTimelineService,
     // getDealActivitiesService
 } from "./deal.service.js";
@@ -77,7 +77,7 @@ export const getDealByIdController = asyncHandler(async (req, res) => {
 
 
 export const deleteDealController = asyncHandler(async (req, res) => {
-    await deleteDealService(
+    const data = await deleteDealService(
         req.user._id,
         req.params.dealId
     );
@@ -85,17 +85,17 @@ export const deleteDealController = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(
             200,
-            null,
+            data,
             "Deal deleted successfully"
         ));
 });
 
-// all deals of
-export const getAllDealsController = asyncHandler(async (req, res) => {
-    const data = await getAllDealsService(
+
+export const getAllDealsForOrganizationController = asyncHandler(async (req, res) => {
+    const data = await getAllDealsForOrganizationService(
         req.user._id,
+        req.body?.orgId,
         req.query,
-        req.body.orgId
     );
 
     return res.status(200).json(

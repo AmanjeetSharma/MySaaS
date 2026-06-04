@@ -111,7 +111,7 @@ export const getCustomerTimelineController = asyncHandler(async (req, res) => {
 export const getCustomerDealsController = asyncHandler(async (req, res) => {
     const data = await getCustomerDealsService(
         req.user._id,
-        req.params.customerId,
+        req.params?.customerId,
         req.query
     );
 
