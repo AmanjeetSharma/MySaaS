@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { User } from "../user/user.model.js";
 import { Organization } from "../organization/organization.model.js";
 import { Customer } from "../customer/customer.model.js";
@@ -93,8 +94,13 @@ export const countDeals = (filter) => {
 
 
 export const getDealStatistics = (filter) => {
+    const aggregationFilter = {
+        ...filter,
+        organization: new mongoose.Types.ObjectId(filter.organization)
+    };
+
     return Deal.aggregate([
-        { $match: filter },
+        { $match: aggregationFilter },
         {
             $group: {
                 _id: "$status",

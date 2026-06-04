@@ -246,7 +246,6 @@ export const deleteDealService = async (userId, dealId) => {
 
 
 export const getAllDealsForOrganizationService = async (userId, orgId, query) => {
-
     if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
         throw new ApiError(400, "Organization ID is required and must be valid");
     }
@@ -310,12 +309,12 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
         };
 
         const [deals, total, statistics] = await Promise.all([// execute in parallel for minimized response time
-            findDeals({
+            findDeals(
                 filter,
                 sort,
                 skip,
-                limit: limitNum
-            }),
+                limitNum
+            ),
             countDeals(filter),
             getDealStatistics(filter)
         ]);
