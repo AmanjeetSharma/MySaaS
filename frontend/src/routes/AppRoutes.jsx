@@ -31,12 +31,12 @@ import AllServices from '@/pages/organization/services/allServices/AllServices';
 import Availability from '@/pages/organization/services/Availability';
 
 // Customer imports
-import Customers from '@/pages/customers/Customers';
+import Customers from '@/pages/crm/customers/Customers';
 
 // Deals imports
-import ActiveDeals from '@/pages/deals/ActiveDeals';
-import WonDeals from '@/pages/deals/WonDeals';
-import LostDeals from '@/pages/deals/LostDeals';
+import ActiveDeals from '@/pages/crm/deals/ActiveDeals';
+import WonDeals from '@/pages/crm/deals/WonDeals';
+import LostDeals from '@/pages/crm/deals/LostDeals';
 
 // Bookings imports
 import Bookings from '@/pages/bookings/Bookings';
