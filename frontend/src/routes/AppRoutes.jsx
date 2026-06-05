@@ -34,9 +34,8 @@ import Availability from '@/pages/organization/services/Availability';
 import Customers from '@/pages/crm/customers/Customers';
 
 // Deals imports
-import ActiveDeals from '@/pages/crm/deals/ActiveDeals';
-import WonDeals from '@/pages/crm/deals/WonDeals';
-import LostDeals from '@/pages/crm/deals/LostDeals';
+import Deals from '@/pages/crm/deals/Deals';
+import DealDetails from '@/pages/crm/deals/DealDetails';
 
 // Bookings imports
 import Bookings from '@/pages/bookings/Bookings';
@@ -103,9 +102,8 @@ export const AppRoutes = () => {
                     <Route path="/customers" element={<Customers />} />
 
                     {/* Deals Routes */}
-                    <Route path="/deals/active" element={<ActiveDeals />} />
-                    <Route path="/deals/won" element={<WonDeals />} />
-                    <Route path="/deals/lost" element={<LostDeals />} />
+                    <Route path="/deals" element={<Deals />} />
+                    <Route path="/deals/:dealId" element={<DealDetails />} />
 
                     {/* Bookings Route */}
                     <Route path="/bookings" element={<Bookings />} />

@@ -81,10 +81,10 @@ export const useNavigationConfig = () => {
                 ]
             },
             {
-               title: "Services",
-               href: "/services/all",
-               icon: Briefcase,
-               items: []
+                title: "Services",
+                href: "/services/all",
+                icon: Briefcase,
+                items: []
             },
             {
                 title: "Customers",
@@ -94,24 +94,9 @@ export const useNavigationConfig = () => {
             },
             {
                 title: "Deals",
+                href: "/deals",
                 icon: Handshake,
-                items: [
-                    {
-                        title: "Active Deals",
-                        href: "/deals/active",
-                        icon: TrendingUp
-                    },
-                    {
-                        title: "Won Deals",
-                        href: "/deals/won",
-                        icon: Star
-                    },
-                    {
-                        title: "Lost Deals",
-                        href: "/deals/lost",
-                        icon: TrendingDown
-                    }
-                ]
+                items: []
             },
             {
                 title: "Bookings",
