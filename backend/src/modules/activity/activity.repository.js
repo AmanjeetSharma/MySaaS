@@ -77,6 +77,6 @@ export const getActivityFeed = async ({
         )
         .populate("customer", "name")
         .populate("deal", "title")
-        .populate("createdBy", "name avatar")
+        .populate("createdBy", "name avatar.url")
         .lean();
 };
