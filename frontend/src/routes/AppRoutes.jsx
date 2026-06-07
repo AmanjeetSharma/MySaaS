@@ -32,6 +32,8 @@ import Availability from '@/pages/organization/services/Availability';
 
 // Customer imports
 import Customers from '@/pages/crm/customers/Customers';
+import CustomerDetails from '@/pages/crm/customers/CustomerDetails';
+import CustomerTimeline from '@/pages/crm/customers/CustomerTimeline';
 
 // Deals imports
 import Deals from '@/pages/crm/deals/Deals';
@@ -100,6 +102,8 @@ export const AppRoutes = () => {
 
                     {/* Customer Routes */}
                     <Route path="/customers" element={<Customers />} />
+                    <Route path="/customers/:customerId" element={<CustomerDetails />} />
+                    <Route path="/customers/:customerId/timeline" element={<CustomerTimeline />} />
 
                     {/* Deals Routes */}
                     <Route path="/deals" element={<Deals />} />
