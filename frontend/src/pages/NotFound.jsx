@@ -73,7 +73,6 @@ const NotFound = () => {
             <div
                 className="min-h-full flex items-center justify-center p-4 pt-8 md:pt-12 relative overflow-hidden"
                 style={{
-                    background: "linear-gradient(to bottom, var(--color-background), color-mix(in srgb, var(--color-background) 85%, var(--color-secondary) 15%))",
                     color: "var(--color-foreground)",
                     fontFamily: "var(--font-sans)"
                 }}
