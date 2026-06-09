@@ -41,6 +41,9 @@ export const useNavigationConfig = () => {
 
     // const currentOrganization = useOrganizationStore((state) => state.currentOrganization);
 
+    const userProfile = useUserStore((state) => state.userProfile);
+    const isGoogleUser = userProfile?.providers.google.enabled;
+
     return {
         mainNav: [
             {
@@ -156,11 +159,17 @@ export const useNavigationConfig = () => {
                         href: "/settings/account/security",
                         icon: Shield
                     },
-                    {
-                        title: "Change Password",
-                        href: "/settings/account/change-password",
-                        icon: CheckCircle2
-                    }
+                    isGoogleUser
+                        ? {
+                            title: "Set Password",
+                            href: "/settings/account/set-password",
+                            icon: CheckCircle2
+                        }
+                        : {
+                            title: "Change Password",
+                            href: "/settings/account/change-password",
+                            icon: CheckCircle2
+                        }
                 ]
             },
         ]

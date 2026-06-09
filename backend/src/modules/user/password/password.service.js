@@ -109,6 +109,10 @@ export const forgotPasswordService = async (email) => {
     const user = await getUserByEmail(normalizedEmail);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    if (user.providers.google.enabled) {
+        throw new ApiError(400, "This account is currently using Google Sign-In. Please sign in with Google, or setup a password in your account settings to enable password reset.");
+    }
+
     if (!user) {
         await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
         console.log(`User with email ${normalizedEmail} does not exist.`);

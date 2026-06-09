@@ -288,7 +288,7 @@ export default function ChangePasswordCard({ className = "" }) {
             </div>
 
             <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-              Password Updated!
+              Password Changed!
             </DialogTitle>
 
             <DialogDescription className="pt-2 text-sm text-muted-foreground leading-relaxed">

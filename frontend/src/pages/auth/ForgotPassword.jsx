@@ -61,7 +61,7 @@ const ForgotPassword = () => {
       const timer = setTimeout(() => {
         setShowError(false);
         clearState();
-      }, 5000);
+      }, 8000);
 
       return () => clearTimeout(timer);
     }
