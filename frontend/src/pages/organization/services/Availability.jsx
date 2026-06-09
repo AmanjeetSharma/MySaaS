@@ -623,8 +623,9 @@ export default function Availability() {
               </div>
             </div>
 
-            <div className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-xs font-bold text-muted-foreground">
-              This updates the draft schedule only. Use Save Changes to publish it.
+            <div className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground space-y-1 leading-relaxed">
+              <p>• Use 24-hour format (00:00–23:59) for all time inputs.</p>
+              <p>• Draft schedule only — changes are not published immediately, click “Save Changes” to publish updates.</p>
             </div>
           </div>
 

@@ -137,3 +137,8 @@ export const getDealStatistics = (filter) => {
         }
     ]);
 };
+
+
+export const getOrgDetails = (orgId) => {
+    return Organization.findById(orgId).select('name');
+}

@@ -24,7 +24,7 @@ export const useUserStore = create((set, get) => ({
         try {
             const response = await http.get('/users/me');
             const { data } = response.data;
-            console.log('Fetched user profile:', data);// debug log
+            // console.log('Fetched user profile:', data);// debug log
 
             set({
                 userProfile: data,

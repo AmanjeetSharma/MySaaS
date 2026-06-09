@@ -14,8 +14,10 @@ import {
     getActivitySummary,
     findDeals,
     getDealStatistics,
+    getOrgDetails,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
+import { ACTIVITY_TYPES } from '../../constants/activityTypes.constants.js';
 
 
 
@@ -317,41 +319,67 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
         throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
+    const orgDetails = await getOrgDetails(orgId);
+
     const filter = {
         organization: orgId,
         isDeleted: false
     };
 
-    if (search) {
+    if (search?.trim()) {
+        const searchTerm = search.trim().replace(/\s+/g, " ");
         filter.$or = [
-            { name: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { phone: { $regex: search, $options: "i" } }
+            { name: { $regex: searchTerm, $options: "i" } },
+            { email: { $regex: searchTerm, $options: "i" } },
+            { phone: { $regex: searchTerm, $options: "i" } }
         ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
+    // pagination
+    let pageNum = Number(page) || 1; // if invalid type then use default page 1 & preventing garbage value for page
+    let limitNum = Number(limit) || 10; // if invalid type then use default limit 10 & preventing garbage value for limit
+    pageNum = Math.max(1, pageNum);
+    if (pageNum > 100) {
+        throw new ApiError(400, "Page number exceeds maximum allowed limit");
+    }
+    limitNum = Math.min(50, Math.max(1, limitNum));
+    const skip = (pageNum - 1) * limitNum;
 
-    const sort = {};
-    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+    console.log(`page: ${pageNum} | limit: ${limitNum} | skip: ${skip}`); // debug log 
+
+    // sorting
+    const allowedSortFields = [
+        "createdAt",
+        "updatedAt",
+        "name",
+        "email",
+        "phone"
+    ];
+
+    const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
+    const sort = {
+        [finalSortField]: sortOrder === "desc" ? -1 : 1
+    };
 
     try {
-        const customers = await findCustomers({
-            filter,
-            sort,
-            skip,
-            limit: limitNum
-        });
+        const [customers, total] = await Promise.all([
+            findCustomers({
+                filter,
+                sort,
+                skip,
+                limit: limitNum
+            }),
+            countCustomers(filter)
+        ]);
 
-        const total = await countCustomers(filter);
-
-        console.log(`Customers retrieved | Organization: ${orgId} | RequestedBy: ${userId} | Count: ${customers.length} | Total: ${total}`);
+        console.log(`Customers retrieved | Organization: ${orgId} | RequestedBy: ${userId} \nCount: ${customers.length} | Total: ${total} | Search: ${search || "N/A"} | Sort: ${finalSortField} ${sortOrder}`);
 
         return {
             customers,
+            organization: orgDetails,
             pagination: {
-                page: parseInt(page),
+                page: pageNum,
                 limit: limitNum,
                 total,
                 totalPages: Math.ceil(total / limitNum)
@@ -389,25 +417,62 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
         throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
-    const { page = 1, limit = 20, type, startDate, endDate } = query;
+    const {
+        page = 1,
+        limit = 10,
+        type,
+        startDate,
+        endDate
+    } = query;
 
     const filter = {
         organization: customer.organization,
         customer: customerId
     };
 
-    if (type) {
-        filter.type = type;
+    if (type?.trim()) {
+        const normalizedType = type.trim().toLowerCase();
+        if (!ACTIVITY_TYPES.includes(normalizedType)) {
+            throw new ApiError(400, `Invalid activity type filter. Allowed values are: ${ACTIVITY_TYPES.join(", ")}`);
+        }
+        filter.type = normalizedType;
     }
 
+    // date range filtering
     if (startDate || endDate) {
         filter.createdAt = {};
-        if (startDate) filter.createdAt.$gte = new Date(startDate);
-        if (endDate) filter.createdAt.$lte = new Date(endDate);
+
+        if (startDate) {
+            const parsedStartDate = new Date(startDate);
+            if (isNaN(parsedStartDate.getTime())) {
+                throw new ApiError(400, "Invalid start date");
+            }
+            filter.createdAt.$gte = parsedStartDate;
+        }
+
+        if (endDate) {
+            const parsedEndDate = new Date(endDate);
+            if (isNaN(parsedEndDate.getTime())) {
+                throw new ApiError(400, "Invalid end date");
+            }
+            filter.createdAt.$lte = parsedEndDate;
+        }
+
+        if (
+            filter.createdAt.$gte && filter.createdAt.$lte && filter.createdAt.$gte > filter.createdAt.$lte) {
+            throw new ApiError(400, "Start date cannot be later than end date");
+        }
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
+    // pagination
+    let pageNum = Number(page) || 1;
+    let limitNum = Number(limit) || 20;
+    pageNum = Math.max(1, pageNum);
+    if (pageNum > 100) {
+        throw new ApiError(400, "Page number exceeds maximum allowed limit");
+    }
+    limitNum = Math.min(50, Math.max(1, limitNum));
+    const skip = (pageNum - 1) * limitNum;
 
     try {
         const activities = await findActivities({
@@ -497,11 +562,17 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
 
         filter.status = normalizedStatus;
     }
-
-    const pageNum = Math.max(1, Number(page) || 1);
-    const limitNum = Math.min(50, Math.max(1, Number(limit) || 10));
+    // pagination
+    let pageNum = Number(page) || 1; // if invalid type then use default page 1 & preventing garbage value for page
+    let limitNum = Number(limit) || 10; // if invalid type then use default limit 10 & preventing garbage value for limit
+    pageNum = Math.max(1, pageNum);
+    if (pageNum > 100) {
+        throw new ApiError(400, "Page number exceeds maximum allowed limit");
+    }
+    limitNum = Math.min(50, Math.max(1, limitNum));
     const skip = (pageNum - 1) * limitNum;
 
+    // sorting
     const allowedSortFields = [
         "createdAt",
         "updatedAt",

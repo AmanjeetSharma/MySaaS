@@ -15,12 +15,14 @@ import {
 } from '../utils/crmStore.utils';
 
 const getCustomerFromPayload = (payload) => payload?.customer || payload;
+let customersController = null;
 
 export const useCustomerStore = create((set) => ({
     customers: [],
     currentCustomer: null,
     currentOrganizationId: null,
     pagination: DEFAULT_PAGINATION,
+    organization: null,
 
     timeline: {
         customer: null,
@@ -54,6 +56,7 @@ export const useCustomerStore = create((set) => ({
             set({
                 customers: [],
                 currentOrganizationId: null,
+                organization: null,
                 pagination: DEFAULT_PAGINATION,
                 isLoading: false,
                 error: null,
@@ -67,23 +70,50 @@ export const useCustomerStore = create((set) => ({
         });
 
         try {
+            if (customersController) {
+                console.log("🟡 ABORTING PREVIOUS REQUEST");
+            }
+
+            customersController?.abort();
+
+            customersController = new AbortController();
+
+            // console.log("🟢 API REQUEST START");
+            // await sleep(4000); // Simulate network delay for testing
+
             const response = await http.get(
                 `/customers/organization/${organizationId}`,
-                { params: compactObject(query) }
+                {
+                    params: compactObject(query),
+                }
             );
             const data = response.data.data || {};
+
+            // console.log("🟢 API SUCCESS");
 
             set({
                 customers: data.customers || [],
                 currentOrganizationId: organizationId,
+                organization: data.organization || null,
                 pagination: normalizePagination(data.pagination),
                 isLoading: false,
                 error: null,
             });
 
+            customersController = null;
+
             return data;
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to fetch customers');
+            // Ignore aborted/cancelled requests
+            if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+                console.log("🔴 REQUEST CANCELLED");
+                return;
+            }
+
+            const errorMessage = getErrorMessage(
+                error,
+                "Failed to fetch customers"
+            );
 
             set({
                 isLoading: false,
@@ -91,8 +121,9 @@ export const useCustomerStore = create((set) => ({
             });
 
             toast.error(errorMessage, {
-                icon: toastIcon('error'),
+                icon: toastIcon("error"),
             });
+
             throw error;
         }
     },
@@ -380,6 +411,7 @@ export const useCustomerStore = create((set) => ({
             customers: [],
             currentCustomer: null,
             currentOrganizationId: null,
+            organization: null,
             pagination: DEFAULT_PAGINATION,
             timeline: {
                 customer: null,
