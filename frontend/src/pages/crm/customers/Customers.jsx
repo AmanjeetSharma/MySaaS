@@ -158,8 +158,6 @@ function CustomerCreateDialog({ open, onOpenChange, organizationId, onCreated })
             />
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <DialogFooter>
             <Button type="submit" disabled={isUpdating} className="w-full sm:w-auto">
               {isUpdating ? (
