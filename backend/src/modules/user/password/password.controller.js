@@ -2,8 +2,9 @@ import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
 import {
     changePasswordService,
+    setupPasswordService,
     forgotPasswordService,
-    resetPasswordService
+    resetPasswordService,
 } from "./password.service.js";
 
 
@@ -16,6 +17,20 @@ export const changePasswordController = asyncHandler(async (req, res) => {
             200,
             data,
             "Password changed successfully. You have been logged out from all other devices."
+        ));
+});
+
+
+export const setupPasswordController = asyncHandler(async (req, res) => {
+    const { newPassword, confirmNewPassword } = req.body;
+    const data = await setupPasswordService(req.user._id, { newPassword, confirmNewPassword });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "Password set up successfully."
         ));
 });
 

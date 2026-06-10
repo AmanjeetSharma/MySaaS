@@ -109,6 +109,62 @@ export const changePasswordService = async (userId, currentSessionId,
 
 
 
+export const setupPasswordService = async (userId, { newPassword, confirmNewPassword }) => {
+    if (!newPassword) {
+        throw new ApiError(400, "New password is required");
+    }
+    if (!confirmNewPassword) {
+        throw new ApiError(400, "Confirm new password is required");
+    }
+
+    const passwordError = passwordValidator(newPassword);
+    if (!passwordError.valid) {
+        throw new ApiError(400, `Password is invalid: ${passwordError.errors.join(", ")}`);
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        throw new ApiError(400, "New password and confirm new password do not match");
+    }
+
+    const user = await getUserById(userId, "+password");
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.providers.local.enabled) {
+        throw new ApiError(400, "Password is already set for this account");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.providers.local.enabled = true;
+
+    try {
+        await user.save();
+    } catch (err) {
+        console.error("Error setting up password:", err);
+        throw new ApiError(500, "Error setting up password");
+    }
+
+    console.log(`Password setup successful for email: ${user.email}`);
+
+    return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
 export const forgotPasswordService = async (email) => {
     if (!email) {
         throw new ApiError(400, "Email is required");

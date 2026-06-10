@@ -18,8 +18,9 @@ import {
 
 import {
     changePasswordController,
+    setupPasswordController,
     forgotPasswordController,
-    resetPasswordController
+    resetPasswordController,
 } from "./password/password.controller.js";
 
 import {
@@ -53,6 +54,7 @@ router.post("/sessions/logout", verifyToken, logoutAllSessionsController);
 
 // Password routes
 router.post("/password/change", verifyToken, changePasswordController);
+router.post("/password/setup", verifyToken, setupPasswordController);
 router.post("/password/forgot", forgotPasswordController);
 router.post("/password/reset", resetPasswordController);
 
