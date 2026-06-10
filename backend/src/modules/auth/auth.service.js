@@ -83,8 +83,8 @@ export const registerService = async (body, avatarFile) => {
             );
         }
 
-        if (existingUser.providers?.google?.enabled) {
-            throw new ApiError(409, "Account exists with Google");
+        if (!existingUser.providers?.local?.enabled) {
+            throw new ApiError(409, "This email is registered via Google. Please continue with Google or set up a password to enable email sign-in.");
         }
 
         throw new ApiError(409, "Account already exists");
