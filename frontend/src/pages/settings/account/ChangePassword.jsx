@@ -1,5 +1,3 @@
-// src/components/account/ChangePasswordCard.jsx
-
 import { useEffect, useState } from "react";
 import {
   Eye,
@@ -11,6 +9,9 @@ import {
   CheckCircle2,
   CircleCheck,
 } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { useUserStore } from "@/stores/userStore";
+import { toast } from 'sonner';
 
 import { usePasswordStore } from "@/stores/passwordStore";
 import passwordImage from "@/assets/password1.png";
@@ -74,8 +75,8 @@ function Alert({ type, message }) {
   return (
     <div
       className={`mb-6 flex items-start gap-3 rounded-xl border p-3 text-sm animate-in fade-in-50 slide-in-from-top-2 duration-200 ${isSuccess
-          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-          : "border-destructive/20 bg-destructive/10 text-destructive"
+        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        : "border-destructive/20 bg-destructive/10 text-destructive"
         }`}
     >
       {isSuccess ? (
@@ -89,6 +90,15 @@ function Alert({ type, message }) {
 }
 
 export default function ChangePasswordCard({ className = "" }) {
+  const user = useUserStore((state) => state.userProfile);
+  const hasLocalAuth = user?.providers?.local?.enabled;
+  if (!hasLocalAuth) {
+    toast.error("Password change is not available for your account. Please set a password first.");
+    return (
+      <Navigate to="/settings/account/set-password" replace />
+    );
+  }
+
   const {
     changePassword,
     isLoading,

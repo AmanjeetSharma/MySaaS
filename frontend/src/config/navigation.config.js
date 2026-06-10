@@ -160,14 +160,15 @@ export const useNavigationConfig = () => {
                         icon: Shield
                     },
                     isCredentialUser
-                        ? {
-                            title: "Set Password",
-                            href: "/settings/account/set-password",
-                            icon: CheckCircle2
-                        }
-                        : {
+                        ?
+                        {
                             title: "Change Password",
                             href: "/settings/account/change-password",
+                            icon: CheckCircle2
+                        } :
+                        {
+                            title: "Set Password",
+                            href: "/settings/account/set-password",
                             icon: CheckCircle2
                         }
                 ]
