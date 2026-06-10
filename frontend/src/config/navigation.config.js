@@ -42,7 +42,7 @@ export const useNavigationConfig = () => {
     // const currentOrganization = useOrganizationStore((state) => state.currentOrganization);
 
     const userProfile = useUserStore((state) => state.userProfile);
-    const isGoogleUser = userProfile?.providers.google.enabled;
+    const isCredentialUser = userProfile?.providers.local?.enabled;
 
     return {
         mainNav: [
@@ -159,7 +159,7 @@ export const useNavigationConfig = () => {
                         href: "/settings/account/security",
                         icon: Shield
                     },
-                    isGoogleUser
+                    isCredentialUser
                         ? {
                             title: "Set Password",
                             href: "/settings/account/set-password",
