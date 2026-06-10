@@ -39,10 +39,39 @@ export const usePasswordStore = create((set, get) => ({
         }
     },
 
+    setupPassword: async (newPassword, confirmNewPassword) => {
+        set({ isLoading: true, error: null, isSuccess: false, successMessage: null });
+        try {
+            const response = await http.post('/users/password/setup', {
+                newPassword,
+                confirmNewPassword
+            });
+            const { data, message } = response.data;
+            set({
+                isLoading: false,
+                isSuccess: true,
+                successMessage: message || data.message,
+                error: null
+            });
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to set up password';
+            set({
+                isLoading: false,
+                error: errorMessage,
+                isSuccess: false,
+                successMessage: null
+            });
+            throw error;
+        }
+    },
+
     forgotPassword: async (email) => {
         set({ isLoading: true, error: null, isSuccess: false, successMessage: null });
         try {
-            const response = await http.post('/users/password/forgot', { email });
+            const response = await http.post('/users/password/forgot', {
+                email
+            });
             const { data, message } = response.data;
 
             set({

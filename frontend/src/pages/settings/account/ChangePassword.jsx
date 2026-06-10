@@ -9,9 +9,6 @@ import {
   CheckCircle2,
   CircleCheck,
 } from "lucide-react";
-import { Navigate } from "react-router-dom";
-import { useUserStore } from "@/stores/userStore";
-import { toast } from 'sonner';
 
 import { usePasswordStore } from "@/stores/passwordStore";
 import passwordImage from "@/assets/password1.png";
@@ -90,15 +87,6 @@ function Alert({ type, message }) {
 }
 
 export default function ChangePasswordCard({ className = "" }) {
-  const user = useUserStore((state) => state.userProfile);
-  const hasLocalAuth = user?.providers?.local?.enabled;
-  if (!hasLocalAuth) {
-    toast.error("Password change is not available for your account. Please set a password first.");
-    return (
-      <Navigate to="/settings/account/set-password" replace />
-    );
-  }
-
   const {
     changePassword,
     isLoading,

@@ -53,7 +53,7 @@ export const changePasswordService = async (userId, currentSessionId,
         throw new ApiError(
             400,
             // "This account currently uses Google Sign-In only. Please set a password first from account settings."
-            "OMG for fk sake dont try to change password if you dont have one, its just common sense..."
+            "OMG can you please dont try to change password if you dont have one, its just common sense..."
         );
     }
 
