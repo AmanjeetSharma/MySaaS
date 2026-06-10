@@ -208,6 +208,9 @@ export const deleteUserService = async (userId) => {
         user.providers.google.enabled = false;
         user.providers.google.googleId = null;
     }
+    if(user.providers?.local) {
+        user.providers.local.enabled = false;
+    }
 
     user.accountStatus = "deleted";
 

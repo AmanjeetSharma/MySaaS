@@ -51,6 +51,7 @@ import Appearance from '@/pages/settings/system/Appearance';
 import Preferences from '@/pages/settings/system/Preferences';
 import Security from '@/pages/settings/account/Security';
 import ChangePassword from '@/pages/settings/account/ChangePassword';
+import SetPassword from '@/pages/settings/account/SetPassword';
 
 // Integrations imports
 import GoogleCalendar from '@/pages/organization/integrations/GoogleCalendar';
@@ -125,6 +126,7 @@ export const AppRoutes = () => {
                     <Route path="/settings/system/preferences" element={<Preferences />} />
                     <Route path="/settings/account/security" element={<Security />} />
                     <Route path="/settings/account/change-password" element={<ChangePassword />} />
+                    <Route path="/settings/account/set-password" element={<SetPassword />} />
 
                     {/* Notifications Route */}
                     <Route path="/notifications" element={<Notifications />} />

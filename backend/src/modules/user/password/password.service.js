@@ -23,6 +23,7 @@ export const changePasswordService = async (userId, currentSessionId,
         newPassword,
         confirmNewPassword
     }) => {
+    console.log(currentPassword, newPassword, confirmNewPassword)
 
     if (!currentPassword) {
         throw new ApiError(400, "Current password is required");
@@ -46,6 +47,14 @@ export const changePasswordService = async (userId, currentSessionId,
     const user = await getUserById(userId, "+password +sessions.refreshToken");
     if (!user) {
         throw new ApiError(404, "User not found");
+    }
+
+    if (!user.providers.local.enabled) {
+        throw new ApiError(
+            400,
+            // "This account currently uses Google Sign-In only. Please set a password first from account settings."
+            "OMG for fk sake dont try to change password if you dont have one, its just common sense..."
+        );
     }
 
     const currentSession = user.sessions.find((session) =>
@@ -109,7 +118,7 @@ export const forgotPasswordService = async (email) => {
     const user = await getUserByEmail(normalizedEmail);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    if (user.providers.google.enabled) {
+    if (!user.providers.local.enabled) {
         throw new ApiError(400, "This account is currently using Google Sign-In. Please sign in with Google, or setup a password in your account settings to enable password reset.");
     }
 
