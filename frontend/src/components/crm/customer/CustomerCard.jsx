@@ -66,9 +66,9 @@ const CustomerCard = ({ customer, onOpen, onTimeline, onCreateDeal }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-5 text-muted-foreground/70 hover:text-foreground hover:bg-muted cursor-pointer"
+                  className="h-8 w-8 md:h-5 md:w-5 text-muted-foreground/70 cursor-pointer"
                 >
-                  <MoreHorizontal className="size-3.5" />
+                  <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40 text-xs">

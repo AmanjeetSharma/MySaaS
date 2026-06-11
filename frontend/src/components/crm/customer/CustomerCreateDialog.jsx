@@ -21,7 +21,7 @@ const INITIAL_FORM = {
   phone: "",
 };
 
-const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated }) => {
+const CustomerCreateDialog = ({ open, onOpenChange, organizationId }) => {
   const { createCustomer, isUpdating } = useCustomerStore();
   const [form, setForm] = useState(INITIAL_FORM);
 
@@ -31,8 +31,12 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
     }
   }, [open]);
 
+  // Updated Validation Logic: Only name is strictly required. 
+  // If a phone number is provided, it must be exactly 10 digits.
   const isValid = useMemo(() => {
-    return form.name.trim().length > 0 && form.phone.trim().length === 10;
+    const isNameValid = form.name.trim().length > 0;
+    const isPhoneValid = form.phone.trim().length === 0 || form.phone.trim().length === 10;
+    return isNameValid && isPhoneValid;
   }, [form]);
 
   const handleChange = (field) => (event) => {
@@ -58,8 +62,12 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
     const payload = {
       orgId: organizationId,
       name: form.name.trim(),
-      phone: form.phone.trim(),
     };
+
+    // Dynamically add optional values to request payload if provided
+    if (form.phone.trim()) {
+      payload.phone = form.phone.trim();
+    }
 
     if (form.email.trim()) {
       payload.email = form.email.trim();
@@ -68,7 +76,6 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
     try {
       const response = await createCustomer(payload);
       const customer = response?.customer || response;
-      onCreated?.(customer);
       onOpenChange(false);
     } catch (error) {
       console.error(error);
@@ -88,6 +95,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {/* REQUIRED FIELD: FULL NAME */}
           <div className="space-y-1">
             <Label htmlFor="customer-name" className="text-xs font-medium text-muted-foreground">
               Full Name <span className="text-destructive">*</span>
@@ -103,10 +111,11 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
             />
           </div>
 
+          {/* OPTIONAL FIELD: PHONE NUMBER */}
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <Label htmlFor="customer-phone" className="text-xs font-medium text-muted-foreground">
-                Phone Number <span className="text-destructive">*</span>
+                Phone Number <span className="text-muted-foreground/40 font-normal">(Optional)</span>
               </Label>
               <span className="text-[10px] text-muted-foreground/60 font-mono select-none">
                 {form.phone.length}/10
@@ -121,13 +130,13 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
               value={form.phone}
               onChange={handleChange("phone")}
               disabled={isUpdating}
-              max={10}
             />
           </div>
 
+          {/* OPTIONAL FIELD: EMAIL ADDRESS */}
           <div className="space-y-1">
             <Label htmlFor="customer-email" className="text-xs font-medium text-muted-foreground">
-              Email Address
+              Email Address <span className="text-muted-foreground/40 font-normal">(Optional)</span>
             </Label>
             <Input
               id="customer-email"
@@ -140,7 +149,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
             />
           </div>
 
-          {/* Adjusted footer alignment to safely support explicit layout separation rules */}
+          {/* Footer Component Actions */}
           <DialogFooter className="pt-2 flex flex-row items-center justify-end gap-x-2 border-t border-border/40 mt-4 sm:space-x-0">
             <Button
               type="button"
@@ -152,10 +161,10 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              size="sm" 
-              className="h-8 text-xs gap-1 px-3 cursor-pointer hover:bg-primary/80" 
+            <Button
+              type="submit"
+              size="sm"
+              className="h-8 text-xs gap-1 px-3 cursor-pointer hover:bg-primary/90"
               disabled={!isValid || isUpdating}
             >
               {isUpdating ? (
@@ -167,7 +176,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onCreated })
                 <>
                   <Plus className="size-3" />
                   <span>Save Contact</span>
-                </> 
+                </>
               )}
             </Button>
           </DialogFooter>

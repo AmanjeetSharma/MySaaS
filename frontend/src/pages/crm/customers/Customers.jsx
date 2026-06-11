@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
-import { Building2, Plus, Search, Users } from "lucide-react";
-
+import { Building2, Plus, Search, Users, ArrowRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle
+} from "@/components/ui/empty";
 import {
   Pagination,
   PaginationContent,
@@ -204,14 +212,43 @@ const Customer = () => {
   const isFirstPage = pagination?.page === 1;
   const isLastPage = pagination?.page === pagination?.totalPages;
 
-  if (!organizationId) {
+  if (!organizationId && !isLoading) {
     return (
-      <div className="flex min-h-55 max-w-screen-2xl mx-auto px-4 py-3 flex-col items-center justify-center rounded-lg border border-border bg-background text-center">
-        <Building2 className="size-8 text-muted-foreground/70" />
-        <h2 className="mt-3 text-sm font-medium text-foreground">No Organization Selected</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Select an organization before managing customers.
-        </p>
+      <div className="max-w-screen-2xl mx-auto px-4 py-3">
+        <Card className="max-w-md mx-auto my-8 border border-border border-dashed bg-muted/10 shadow-sm animate-in fade-in-50 duration-200">
+          <CardContent className="p-6">
+            <Empty>
+              <EmptyHeader className="space-y-1.5">
+                <EmptyMedia
+                  variant="icon"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-background border border-border text-muted-foreground/80 shadow-inner mx-auto mb-2 select-none"
+                >
+                  <Building2 className="size-5 stroke-[1.75]" />
+                </EmptyMedia>
+
+                <EmptyTitle className="text-sm font-semibold tracking-tight text-foreground text-center">
+                  No Active Organization
+                </EmptyTitle>
+
+                <EmptyDescription className="text-xs text-muted-foreground leading-normal font-normal text-center max-w-xs mx-auto">
+                  Please create or switch to an active workspace to access and manage your customers.
+                </EmptyDescription>
+              </EmptyHeader>
+
+              <EmptyContent className="mt-5 flex items-center justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => navigate("/organizations")}
+                  className="h-8 text-xs font-medium px-4 shadow-sm group transition-all cursor-pointer hover:bg-primary/80"
+                >
+                  <span>Go to Organizations</span>
+                  <ArrowRight className="ml-1.5 size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+                </Button>
+              </EmptyContent>
+            </Empty>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -387,26 +424,46 @@ const Customer = () => {
           )}
         </div>
       ) : (
-        <div className="flex min-h-55 flex-col items-center justify-center rounded-lg border border-border border-dashed p-6 text-center">
-          <Users className="size-7 text-muted-foreground/40" />
-          <h2 className="mt-2.5 text-sm font-medium text-foreground">No customers found</h2>
-          <p className="mt-1 text-xs text-muted-foreground max-w-xs">
-            Start expanding your workflow database by adding your primary customer contact.
-          </p>
-          <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)} className="mt-3.5 h-8 gap-1">
-            <Plus className="size-3.5" />
-            Create Customer
-          </Button>
-        </div>
+        <Card className="border border-border border-dashed bg-muted/10 shadow-sm animate-in fade-in-50 duration-200">
+          <CardContent className="p-6">
+            <Empty>
+              <EmptyHeader className="space-y-1.5">
+                <EmptyMedia
+                  variant="icon"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-background border border-border text-muted-foreground/40 shadow-inner mx-auto mb-2 select-none"
+                >
+                  <Users className="size-5 stroke-[1.75]" />
+                </EmptyMedia>
+
+                <EmptyTitle className="text-sm font-semibold tracking-tight text-foreground text-center">
+                  No Customers Found
+                </EmptyTitle>
+
+                <EmptyDescription className="text-xs text-muted-foreground leading-normal font-normal text-center max-w-xs mx-auto">
+                  It looks like you haven't added any customers yet. Start building your customer base by adding a new customer profile.
+                </EmptyDescription>
+              </EmptyHeader>
+
+              <EmptyContent className="mt-5 flex items-center justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsCreateOpen(true)}
+                  className="h-8 text-xs font-medium px-4 shadow-sm border-border bg-background hover:bg-muted gap-1.5 group cursor-pointer transition-all"
+                >
+                  <Plus className="size-3.5 stroke-[2.5]" />
+                  <span>Create Customer</span>
+                </Button>
+              </EmptyContent>
+            </Empty>
+          </CardContent>
+        </Card>
       )}
 
       <CustomerCreateDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         organizationId={organizationId}
-        onCreated={(customer) => {
-          navigate(`/customers/${customer._id}`);
-        }}
       />
     </div>
   );
