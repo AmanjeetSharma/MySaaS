@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
-import { Building2, Plus, Search, Users, ArrowRight } from "lucide-react";
+import { Building2, Plus, Search, Users, ArrowRight, SkipForward  } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Empty,
@@ -55,9 +55,13 @@ const Customer = () => {
     sortOrder: "desc",
   });
 
+  // Dynamic local state for the manual page input jumper
+  const [pageInput, setPageInput] = useState(String(query.page));
+
   const organizationId = userProfile?.activeOrganization || null;
   const totalCustomers = pagination?.total || 0;
   const organizationName = organization?.name || "Your Workspace";
+  const totalPages = pagination?.totalPages || 1;
 
   const fetchCustomers = useCallback(async () => {
     if (!organizationId) return;
@@ -71,6 +75,11 @@ const Customer = () => {
   useEffect(() => {
     fetchCustomers();
   }, [fetchCustomers]);
+
+  // Keep manual page input field synchronized if page changes via arrows or clicks
+  useEffect(() => {
+    setPageInput(String(query.page));
+  }, [query.page]);
 
   const debouncedSearch = useMemo(
     () =>
@@ -119,6 +128,20 @@ const Customer = () => {
     navigate(`/customers/${customer._id}`);
   }, [navigate]);
 
+  // Logic to process manual typed page submission
+  const handlePageSubmit = (e) => {
+    e.preventDefault();
+    const targetPage = Math.max(1, window.parseInt(pageInput, 10));
+
+    if (!isNaN(targetPage)) {
+      const validPage = Math.min(targetPage, totalPages);
+      handlePageChange(validPage);
+      setPageInput(String(validPage));
+    } else {
+      setPageInput(String(query.page));
+    }
+  };
+
   const renderPaginationItems = useMemo(() => {
     if (!pagination) return null;
     const { page, totalPages } = pagination;
@@ -130,7 +153,7 @@ const Customer = () => {
           <PaginationItem key={pageNum}>
             <PaginationLink
               href="#"
-              className="h-8 w-8 text-xs font-medium"
+              className="h-8 w-8 text-xs font-medium select-none"
               isActive={page === pageNum}
               onClick={(e) => {
                 e.preventDefault();
@@ -183,7 +206,7 @@ const Customer = () => {
         <PaginationItem key={item}>
           <PaginationLink
             href="#"
-            className="h-8 w-8 text-xs font-medium"
+            className="h-8 w-8 text-xs font-medium select-none"
             isActive={page === item}
             onClick={(e) => {
               e.preventDefault();
@@ -369,21 +392,48 @@ const Customer = () => {
             </table>
           </div>
 
-          {/* Table Bottom Meta Control Pagination Footer */}
-          {pagination?.totalPages > 1 && (
-            <div className="pt-1 flex flex-col sm:flex-row gap-3 items-center justify-between">
-              <div className="text-xs text-muted-foreground text-center sm:text-left">
+          {/* Table Bottom Control Pagination Footer */}
+          {totalPages > 1 && (
+            <div className="pt-1 flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="text-xs text-muted-foreground text-center md:text-left">
                 Showing <span className="font-medium text-foreground">{startItem}-{endItem}</span> of{" "}
                 <span className="font-medium text-foreground">{totalCustomers}</span> customers
                 <span className="mx-1.5 hidden sm:inline">•</span>
                 <span className="block sm:inline mt-0.5 sm:mt-0">
                   Page <span className="font-medium text-foreground">{pagination.page}</span> of{" "}
-                  <span className="font-medium text-foreground">{pagination.totalPages}</span>
+                  <span className="font-medium text-foreground">{totalPages}</span>
                 </span>
               </div>
 
-              <div className="w-full sm:w-auto flex justify-center sm:justify-end">
-                <Pagination>
+              {/* Integrated Manual Input Page Jumper and Controls Container */}
+              <div className="w-full md:w-auto flex flex-col sm:flex-row items-center justify-center md:justify-end gap-3.5">
+                <form onSubmit={handlePageSubmit} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <label htmlFor="page-jumper" className="whitespace-nowrap select-none text-[11px]">Go to page</label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      id="page-jumper"
+                      type="number"
+                      min="1"
+                      max={totalPages}
+                      value={pageInput}
+                      onChange={(e) => setPageInput(e.target.value)}
+                      className="h-7 w-12 text-center text-xs p-0 font-medium font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="outline"
+                      className="group/btn h-7 gap-1 px-2 text-[10px] font-medium text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 border-border/60 hover:border-border cursor-pointer shadow-sm transition-all duration-150 rounded-md"
+                    >
+                      <SkipForward className="size-3 text-muted-foreground/60 transition-transform duration-150 group-hover/btn:translate-x-0.5 group-hover/btn:text-foreground" />
+                      <span>Jump</span>
+                    </Button>
+                  </div>
+                </form>
+
+                <div className="h-4 w-px bg-border/60 hidden sm:block" />
+
+                <Pagination className="w-auto mx-0">
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious

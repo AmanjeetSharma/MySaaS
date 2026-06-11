@@ -58,7 +58,7 @@ const CustomerRow = React.memo(({ customer, onOpen }) => {
                                 </Badge>
                             )}
                         </div>
-
+                                        
                         {/* Row 2: Inline Email & Phone metadata */}
                         <div className="flex items-center gap-1.5 text-muted-foreground/90 text-[11px] truncate">
                             <span className="truncate">{customer?.email || EMPTY}</span>
