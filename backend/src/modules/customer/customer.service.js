@@ -342,10 +342,10 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
     if (pageNum > 100) {
         throw new ApiError(400, "Page number exceeds maximum allowed limit");
     }
-    limitNum = Math.min(50, Math.max(1, limitNum));
+    limitNum = Math.min(100, Math.max(1, limitNum));
     const skip = (pageNum - 1) * limitNum;
 
-    console.log(`page: ${pageNum} | limit: ${limitNum} | skip: ${skip}`); // debug log 
+    console.log(`--------\npage: ${pageNum} | limit: ${limitNum} | skip: ${skip}`); // debug log 
 
     // sorting
     const allowedSortFields = [

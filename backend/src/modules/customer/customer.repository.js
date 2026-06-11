@@ -58,11 +58,13 @@ export const findCustomerById = (customerId) => {
 
 export const findCustomers = ({ filter, sort, skip, limit }) => {
     return Customer.find(filter)
+        .collation({ locale: 'en', strength: 2 })// to make the sorting case-insensitive as in mongoDB, the default collation is case-sensitive which can lead to unexpected sorting results. By setting strength to 2, we ensure that the sorting is done in a case-insensitive manner. This means that "apple" and "Apple" will be considered equal for sorting purposes, and their order will be determined by their original order in the database.
         .sort(sort)
         .skip(skip)
         .limit(limit)
         .populate('createdBy', 'name email') // Populate createdBy with name and email
-        .populate('updatedBy', 'name email'); // to get the details of the user who last updated the customer
+        .populate('updatedBy', 'name email') // to get the details of the user who last updated the customer
+        .lean();
 };
 
 

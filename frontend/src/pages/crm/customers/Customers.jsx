@@ -33,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import CustomerCard from "@/components/crm/customer/CustomerCard";
+import CustomerRow from "@/components/crm/customer/CustomerRow";
 import CustomerCreateDialog from "@/components/crm/customer/CustomerCreateDialog";
 
 import {
@@ -107,25 +107,17 @@ const Customer = () => {
     }
   };
 
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     setQuery((prev) => ({ ...prev, page }));
-  };
+  }, []);
 
   const handleLimitChange = (value) => {
     setQuery((prev) => ({ ...prev, page: 1, limit: Number(value) }));
   };
 
-  const handleCustomerOpen = (customer) => {
+  const handleCustomerOpen = useCallback((customer) => {
     navigate(`/customers/${customer._id}`);
-  };
-
-  const handleTimelineOpen = (customer) => {
-    navigate(`/customers/${customer._id}/timeline`);
-  };
-
-  const handleCreateDeal = (customer) => {
-    navigate(`/customers/${customer._id}?action=create-deal`);
-  };
+  }, [navigate]);
 
   const renderPaginationItems = useMemo(() => {
     if (!pagination) return null;
@@ -138,7 +130,7 @@ const Customer = () => {
           <PaginationItem key={pageNum}>
             <PaginationLink
               href="#"
-              className="h-8 w-8 text-xs"
+              className="h-8 w-8 text-xs font-medium"
               isActive={page === pageNum}
               onClick={(e) => {
                 e.preventDefault();
@@ -153,7 +145,6 @@ const Customer = () => {
     }
 
     const items = [];
-
     items.push(1);
 
     let startPage = Math.max(2, page - 1);
@@ -192,7 +183,7 @@ const Customer = () => {
         <PaginationItem key={item}>
           <PaginationLink
             href="#"
-            className="h-8 w-8 text-xs"
+            className="h-8 w-8 text-xs font-medium"
             isActive={page === item}
             onClick={(e) => {
               e.preventDefault();
@@ -204,7 +195,7 @@ const Customer = () => {
         </PaginationItem>
       );
     });
-  }, [pagination]);
+  }, [pagination, handlePageChange]);
 
   const startItem = (query.page - 1) * query.limit + 1;
   const endItem = Math.min(query.page * query.limit, totalCustomers);
@@ -258,25 +249,19 @@ const Customer = () => {
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between border-b border-border pb-4">
         <div className="space-y-1 min-w-0">
-          {/* Micro Category Breadcrumb */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground select-none">
             <span className="truncate font-medium max-w-45" title={organizationName}>
               Organization: {organizationName}
             </span>
           </div>
-
-          {/* Primary Page Action Title */}
           <h1 className="text-xl font-semibold tracking-tight text-foreground leading-none">
             Customers
           </h1>
-
-          {/* Secondary Context Description */}
           <p className="text-xs text-muted-foreground font-normal max-w-md">
-            Manage relationships and track active deals.
+            Manage relationships and track customer data parameters.
           </p>
         </div>
 
-        {/* Primary Interaction Component Button */}
         <Button
           size="sm"
           onClick={() => setIsCreateOpen(true)}
@@ -287,7 +272,7 @@ const Customer = () => {
         </Button>
       </div>
 
-      {/* Stats & Filters Control Bar */}
+      {/* Control Utility Filter Bar */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border py-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border bg-muted/20 p-1.5">
           <div className="flex items-center gap-1.5 px-2 py-0.5 text-muted-foreground">
@@ -315,8 +300,11 @@ const Customer = () => {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+              <span className="text-[11px] whitespace-nowrap text-muted-foreground">
+                Sort by
+              </span>
               <Select onValueChange={handleSortChange} defaultValue="newest">
-                <SelectTrigger className="h-8 w-32.5 text-xs">
+                <SelectTrigger className="h-8 w-32.5 text-xs cursor-pointer">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -329,16 +317,17 @@ const Customer = () => {
 
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] whitespace-nowrap text-muted-foreground">
-                  Customers per page
+                  Rows per page
                 </span>
                 <Select value={String(query.limit)} onValueChange={handleLimitChange}>
-                  <SelectTrigger className="h-8 w-16 text-xs">
+                  <SelectTrigger className="h-8 w-16 text-xs cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="10" className="text-xs">10</SelectItem>
                     <SelectItem value="20" className="text-xs">20</SelectItem>
                     <SelectItem value="50" className="text-xs">50</SelectItem>
+                    <SelectItem value="100" className="text-xs">100</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -347,34 +336,42 @@ const Customer = () => {
         </div>
       </div>
 
-      {/* Main Content Listing Area */}
+      {/* CRM Database Listing Structure */}
       {isLoading ? (
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {Array.from({ length: query.limit || 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-40 rounded-lg border border-border" />
+        <div className="space-y-2 pt-1">
+          {Array.from({ length: query.limit || 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-11 w-full rounded-md border border-border/40" />
           ))}
         </div>
       ) : customers.length > 0 ? (
         <div className="space-y-4">
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {customers.map((customer) => (
-              <div
-                key={customer._id}
-                className="transition-shadow duration-200 hover:shadow-sm border border-border rounded-lg"
-              >
-                <CustomerCard
-                  customer={customer}
-                  onOpen={handleCustomerOpen}
-                  onTimeline={handleTimelineOpen}
-                  onCreateDeal={handleCreateDeal}
-                />
-              </div>
-            ))}
+          <div className="overflow-x-auto rounded-lg border border-border/60 bg-background shadow-none">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-muted/30 text-[11px] font-medium text-muted-foreground select-none uppercase tracking-wider">
+                  <th className="py-2 pl-4 pr-3 font-medium">Customer</th>
+                  <th className="py-2 px-3 font-medium">Email</th>
+                  <th className="py-2 px-3 font-medium hidden sm:table-cell">Phone</th>
+                  <th className="py-2 px-3 font-medium hidden md:table-cell">Latest Interaction</th>
+                  <th className="py-2 px-3 font-medium hidden lg:table-cell">Created</th>
+                  <th className="py-2 pl-3 pr-4 text-right font-medium w-10"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {customers.map((customer) => (
+                  <CustomerRow
+                    key={customer._id}
+                    customer={customer}
+                    onOpen={handleCustomerOpen}
+                  />
+                ))}
+              </tbody>
+            </table>
           </div>
 
+          {/* Table Bottom Meta Control Pagination Footer */}
           {pagination?.totalPages > 1 && (
-            <div className="pt-2 border-t border-border/40 flex flex-col sm:flex-row gap-2 items-center justify-between">
-              {/* Informative pagination meta row */}
+            <div className="pt-1 flex flex-col sm:flex-row gap-3 items-center justify-between">
               <div className="text-xs text-muted-foreground text-center sm:text-left">
                 Showing <span className="font-medium text-foreground">{startItem}-{endItem}</span> of{" "}
                 <span className="font-medium text-foreground">{totalCustomers}</span> customers
@@ -391,10 +388,7 @@ const Customer = () => {
                     <PaginationItem>
                       <PaginationPrevious
                         href="#"
-                        className={`h-8 px-2.5 text-xs ${isFirstPage
-                          ? "pointer-events-none opacity-40 select-none"
-                          : ""
-                          }`}
+                        className={`h-8 px-2.5 text-xs ${isFirstPage ? "pointer-events-none opacity-40 select-none" : ""}`}
                         onClick={(e) => {
                           e.preventDefault();
                           if (!isFirstPage) handlePageChange(pagination.page - 1);
@@ -407,10 +401,7 @@ const Customer = () => {
                     <PaginationItem>
                       <PaginationNext
                         href="#"
-                        className={`h-8 px-2.5 text-xs ${isLastPage
-                          ? "pointer-events-none opacity-40 select-none"
-                          : ""
-                          }`}
+                        className={`h-8 px-2.5 text-xs ${isLastPage ? "pointer-events-none opacity-40 select-none" : ""}`}
                         onClick={(e) => {
                           e.preventDefault();
                           if (!isLastPage) handlePageChange(pagination.page + 1);
