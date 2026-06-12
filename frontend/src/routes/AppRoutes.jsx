@@ -1,7 +1,11 @@
 import { Routes, Route } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { ProtectedRoute } from './ProtectedRoute';
-import { PublicRoute } from './PublicRoute';
+
+// Route Guards
+import { ProtectedRoute } from './routeGuard/ProtectedRoute';
+import { PublicRoute } from './routeGuard/PublicRoute';
+import { ChangePasswordRouteGuard } from './routeGuard/ChangePasswordRouteGuard';
+import { SetPasswordRouteGuard } from './routeGuard/SetPasswordRouteGuard';
 
 // Public Pages
 import Home from '@/pages/home/Home';
@@ -125,8 +129,14 @@ export const AppRoutes = () => {
                     <Route path="/settings/system/appearance" element={<Appearance />} />
                     <Route path="/settings/system/preferences" element={<Preferences />} />
                     <Route path="/settings/account/security" element={<Security />} />
-                    <Route path="/settings/account/change-password" element={<ChangePassword />} />
-                    <Route path="/settings/account/set-password" element={<SetPassword />} />
+
+                    <Route element={<ChangePasswordRouteGuard />}>
+                        <Route path="/settings/account/change-password" element={<ChangePassword />} />
+                    </Route>
+
+                    <Route element={<SetPasswordRouteGuard />}>
+                        <Route path="/settings/account/set-password" element={<SetPassword />} />
+                    </Route>
 
                     {/* Notifications Route */}
                     <Route path="/notifications" element={<Notifications />} />
