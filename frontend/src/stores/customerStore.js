@@ -81,7 +81,7 @@ export const useCustomerStore = create((set) => ({
             controller = new AbortController();
 
             customersController = controller;
-            await sleep(3000);// Simulate slow network for testing
+            // await sleep(3000);// Simulate slow network for testing
 
             const response = await http.get(
                 `/customers/organization/${organizationId}`,

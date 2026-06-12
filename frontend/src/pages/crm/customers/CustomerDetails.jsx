@@ -77,6 +77,7 @@ const CustomerDetails = () => {
     isCustomerDealsLoading,
   } = useCustomerStore();
 
+  console.log("Current Customer:", currentCustomer);
   const [editOpen, setEditOpen] =
     useState(false);
 
