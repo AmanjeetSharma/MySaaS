@@ -13,13 +13,10 @@ export function SetPasswordRouteGuard() {
 
     useEffect(() => {
         if (hasLocalAuth) {
-            toast.info(
-                "Your account already has a password configured.",
-                {
-                    id: "password-already-exists",
-                    duration: 5000,
-                }
-            );
+            toast.info("Your account already has a password configured.", {
+                id: "password-already-exists",
+                duration: 5000,
+            });
         }
     }, [hasLocalAuth]);
 

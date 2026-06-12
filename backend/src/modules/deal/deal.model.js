@@ -65,7 +65,7 @@ const dealSchema = new Schema({
 }, { timestamps: true });
 
 dealSchema.index({ organization: 1, customer: 1 });
-dealSchema.index({ organization: 1, status: 1 });
+dealSchema.index({ organization: 1, customer: 1, status: 1 });
 
 export const Deal =
     mongoose.models.Deal || mongoose.model('Deal', dealSchema);

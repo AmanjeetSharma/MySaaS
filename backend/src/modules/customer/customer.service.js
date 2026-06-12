@@ -7,6 +7,7 @@ import {
     findCustomerByPhone,
     createCustomer,
     findCustomerById,
+    findCustomerByIdFull,
     findCustomers,
     countCustomers,
     findActivities,
@@ -234,7 +235,7 @@ export const getCustomerService = async (userId, customerId) => {
         throw new ApiError(400, "Invalid customer ID");
     }
 
-    const customer = await findCustomerById(customerId);
+    const customer = await findCustomerByIdFull(customerId);
     if (!customer) {
         throw new ApiError(404, "Customer not found");
     }
@@ -245,7 +246,7 @@ export const getCustomerService = async (userId, customerId) => {
         throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
-    console.log(`Customer retrieved | ID: ${customer._id} | Name: ${customer.name} | Organization: ${customer.organization} | RequestedBy: ${userId}`);
+    console.log(`Customer retrieved | ID: ${customer._id} | Name: ${customer.name} | Organization: ${customer.organization}`);
 
     return customer;
 };
@@ -258,7 +259,7 @@ export const getCustomerService = async (userId, customerId) => {
 
 
 
-export const removeCustomerService = async (userId, customerId) => {
+export const deleteCustomerService = async (userId, customerId) => {
     if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
         throw new ApiError(400, "Invalid customer ID");
     }
@@ -281,13 +282,16 @@ export const removeCustomerService = async (userId, customerId) => {
     try {
         await customer.save();
     } catch (err) {
-        console.error("Customer removal failed:", err);
-        throw new ApiError(500, "Failed to remove customer, please try again");
+        console.error("Customer deletion failed:", err);
+        throw new ApiError(500, "Failed to delete customer, please try again");
     }
 
-    console.log(`Customer removed | ID: ${customer._id} | UpdatedBy: ${userId}`);
+    console.log(`Customer deleted | ID: ${customer._id} | UpdatedBy: ${userId}`);
 
-    return;
+    return {
+        customerId: customer._id,
+        message: "Customer has been deleted"
+    };
 };
 
 
@@ -542,6 +546,7 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
     const {
         page = 1,
         limit = 10,
+        search,
         status,
         sortBy = "createdAt",
         sortOrder = "desc"
@@ -562,6 +567,20 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
 
         filter.status = normalizedStatus;
     }
+
+    if (search && search.trim()) {
+        const safeSearch = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            .split(/\s+/)
+            .join('.*'); // allows "crm pro" → "crm.*pro"
+
+        filter.title = {
+            $regex: safeSearch,
+            $options: "i"
+        };
+    }
+
     // pagination
     let pageNum = Number(page) || 1; // if invalid type then use default page 1 & preventing garbage value for page
     let limitNum = Number(limit) || 10; // if invalid type then use default limit 10 & preventing garbage value for limit
@@ -584,8 +603,9 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
     const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     const sort = {};
-    sort[finalSortField] =
-        sortOrder === "desc" ? -1 : 1;
+    sort[finalSortField] = sortOrder === "desc" ? -1 : 1;
+
+    console.log(`--------\nPage: ${pageNum} | limit: ${limitNum} | skip: ${skip} | sort: ${finalSortField || "createdAt"} ${sortOrder || "asc"}\nSearch: ${search || "N/A"}`); // debug log
 
     try {
         // running these in parallel to optimize performance

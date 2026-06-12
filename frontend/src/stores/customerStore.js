@@ -15,7 +15,10 @@ import {
 } from '../utils/crmStore.utils';
 
 const getCustomerFromPayload = (payload) => payload?.customer || payload;
+
+let sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let customersController = null;
+let customerDealsController = null;
 
 export const useCustomerStore = create((set) => ({
     customers: [],
@@ -69,44 +72,38 @@ export const useCustomerStore = create((set) => ({
             error: null,
         });
 
+        let controller = null;
+
         try {
-            if (customersController) {
-                console.log("🟡 ABORTING PREVIOUS REQUEST");
-            }
 
             customersController?.abort();
 
-            customersController = new AbortController();
+            controller = new AbortController();
 
-            // console.log("🟢 API REQUEST START");
-            // await sleep(4000); // Simulate network delay for testing
+            customersController = controller;
+            await sleep(3000);// Simulate slow network for testing
 
             const response = await http.get(
                 `/customers/organization/${organizationId}`,
                 {
                     params: compactObject(query),
+                    signal: controller.signal,
                 }
             );
             const data = response.data.data || {};
-
-            // console.log("🟢 API SUCCESS");
 
             set({
                 customers: data.customers || [],
                 currentOrganizationId: organizationId,
                 organization: data.organization || null,
                 pagination: normalizePagination(data.pagination),
-                isLoading: false,
                 error: null,
             });
 
-            customersController = null;
-
             return data;
+
         } catch (error) {
-            // Ignore aborted/cancelled requests
             if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
-                console.log("🔴 REQUEST CANCELLED");
                 return;
             }
 
@@ -125,6 +122,14 @@ export const useCustomerStore = create((set) => ({
             });
 
             throw error;
+        } finally {
+            if (customersController === controller) {
+                customersController = null;
+            }
+
+            set({
+                isLoading: false,
+            });
         }
     },
 
@@ -243,7 +248,7 @@ export const useCustomerStore = create((set) => ({
         }
     },
 
-    removeCustomer: async (customerId, options = {}) => {
+    deleteCustomer: async (customerId, options = {}) => {
         set({
             isUpdating: true,
             error: null,
@@ -262,14 +267,14 @@ export const useCustomerStore = create((set) => ({
             }));
 
             if (!options.silent) {
-                toast.success(getApiMessage(response, 'Customer removed'), {
+                toast.success(getApiMessage(response, 'Customer deleted'), {
                     icon: toastIcon('delete'),
                 });
             }
 
             return true;
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to remove customer');
+            const errorMessage = getErrorMessage(error, 'Failed to delete customer');
 
             set({
                 isUpdating: false,
@@ -330,43 +335,80 @@ export const useCustomerStore = create((set) => ({
         }
     },
 
-    getCustomerDeals: async (customerId, query = {}) => {
+    getCustomerDeals: async (
+        customerId,
+        query = {}
+    ) => {
+
         set({
             isCustomerDealsLoading: true,
             error: null,
         });
 
+        let controller = null;
+
         try {
-            const response = await http.get(
-                `/customers/${customerId}/deals`,
-                { params: compactObject(query) }
-            );
+            customerDealsController?.abort();
+
+            controller = new AbortController();
+
+            customerDealsController = controller;
+
+            // await sleep(3000);// Simulate slow network for testing
+
+            const response =
+                await http.get(
+                    `/customers/${customerId}/deals`,
+                    {
+                        params: compactObject(query),
+
+                        signal: controller.signal,
+                    }
+                );
+
             const data = response.data.data || {};
 
             set({
                 customerDeals: {
+
                     customer: data.customer || null,
+
                     statistics: data.statistics || DEFAULT_DEAL_STATISTICS,
+
                     deals: data.deals || [],
+
                     pagination: normalizePagination(data.pagination),
                 },
-                isCustomerDealsLoading: false,
+
                 error: null,
             });
 
             return data;
+
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to fetch customer deals');
+            if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+                return;
+            }
+
+            const errorMessage = getErrorMessage(error, "Failed to fetch customer deals");
 
             set({
-                isCustomerDealsLoading: false,
                 error: errorMessage,
             });
 
             toast.error(errorMessage, {
-                icon: toastIcon('error'),
+                icon: toastIcon("error"),
             });
+
             throw error;
+        } finally {
+            if (customerDealsController === controller) {
+                customerDealsController = null;
+            }
+
+            set({
+                isCustomerDealsLoading: false,
+            });
         }
     },
 

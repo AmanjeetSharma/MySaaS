@@ -89,7 +89,7 @@ const Customer = () => {
           search: value,
           page: 1,
         }));
-      }, 500),
+      }, 300),
     []
   );
 
@@ -324,7 +324,7 @@ const Customer = () => {
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-[11px] whitespace-nowrap text-muted-foreground">
-                Sort by
+                Filter by:
               </span>
               <Select onValueChange={handleSortChange} defaultValue="newest">
                 <SelectTrigger className="h-8 w-32.5 text-xs cursor-pointer">
@@ -340,7 +340,7 @@ const Customer = () => {
 
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] whitespace-nowrap text-muted-foreground">
-                  Rows per page
+                  Rows per page:
                 </span>
                 <Select value={String(query.limit)} onValueChange={handleLimitChange}>
                   <SelectTrigger className="h-8 w-16 text-xs cursor-pointer">

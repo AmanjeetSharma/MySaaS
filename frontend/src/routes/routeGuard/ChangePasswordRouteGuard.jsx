@@ -13,13 +13,10 @@ export function ChangePasswordRouteGuard() {
 
     useEffect(() => {
         if (!hasLocalAuth) {
-            toast.warning(
-                "OMG brooooo fr, can't you even set a password? And don't even try to access this page again.",
-                {
-                    id: "set-password-required",// to prevent duplicate toasts if user navigates back and forth
-                    duration: 5000,
-                }
-            );
+            toast.warning("OMG brooooo fr, can't you even set a password? And don't even try to access this page again.", {
+                id: "set-password-required",// to prevent duplicate toasts if user navigates back and forth
+                duration: 5000,
+            });
         }
     }, [hasLocalAuth]);
 
