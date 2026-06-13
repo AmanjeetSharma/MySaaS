@@ -1,5 +1,3 @@
-// FORGOT PASSWORD PAGE
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -53,6 +51,12 @@ const ForgotPassword = () => {
   } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
   });
+
+  // FIX: Reset global store state on page mount and unmount to keep the view fresh
+  useEffect(() => {
+    clearState();
+    return () => clearState();
+  }, [clearState]);
 
   useEffect(() => {
     if (error) {

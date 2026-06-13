@@ -19,7 +19,9 @@ export const createPendingUser = async (payload) => {
     return await PendingUser.create(payload);
 };
 
-
+export const createUser = async (payload) => {
+    return User.create(payload);
+}
 
 export const findPendingUserByVerificationToken = async (token, selectFields) => {
     let query = PendingUser.findOne({ verificationToken: token });

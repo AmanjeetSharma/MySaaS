@@ -91,7 +91,7 @@ const Verify = () => {
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={() => navigate('/signin')} className="gap-2">
+            <Button onClick={() => navigate('/signin')} className="gap-2 cursor-pointer">
               <Mail className="h-4 w-4" />
               Go to Sign In Now
             </Button>

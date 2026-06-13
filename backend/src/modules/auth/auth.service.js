@@ -19,7 +19,8 @@ import {
     createNewUserFromPending,
     deletePendingUser,
     createDefaultOrganization,
-    findUserById
+    findUserById,
+    createUser,
 } from "./auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 
@@ -92,8 +93,6 @@ export const registerService = async (body, avatarFile) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const { rawToken, hashedToken, expiry } = generateToken();
-
     let avatarUrl = "";
     let avatarPublicId = "";
 
@@ -106,9 +105,39 @@ export const registerService = async (body, avatarFile) => {
         if (!result) {
             throw new ApiError(500, "Avatar upload failed");
         }
+
         avatarUrl = result.url;
         avatarPublicId = result.publicId;
     }
+
+    const userData = {
+        avatar: {
+            url: avatarUrl,
+            publicId: avatarPublicId
+        },
+        name: name.trim(),
+        email: normalizedEmail,
+        password: hashedPassword
+    };
+
+    // Development true: bypass email verification
+
+    if (!env.VERIFICATION_REQUIRED) {
+        await createUser({
+            ...userData,
+        });
+
+        console.log(`User created without email verification | email: ${normalizedEmail}`);
+
+        return {
+            name: userData.name,
+            email: userData.email
+        };
+    }
+
+    // Development false: normal flow with email verification
+
+    const { rawToken, hashedToken, expiry } = generateToken();
 
     const existingPendingUser = await findPendingUserByEmail(normalizedEmail);
 
@@ -122,50 +151,48 @@ export const registerService = async (body, avatarFile) => {
             console.error(`Failed to remove old avatar from Cloudinary for existing pending user | email: ${normalizedEmail} | error: ${err.message}`);
         }
 
-        existingPendingUser.avatar.url = avatarUrl;
-        existingPendingUser.avatar.publicId = avatarPublicId;
-        existingPendingUser.name = name.trim();
-        existingPendingUser.password = hashedPassword;
+        existingPendingUser.avatar = userData.avatar;
+        existingPendingUser.name = userData.name;
+        existingPendingUser.password = userData.password;
         existingPendingUser.verificationToken = hashedToken;
         existingPendingUser.verificationTokenExpiry = expiry;
 
         try {
             await existingPendingUser.save();
-        } catch (err) {
+        } catch {
             throw new ApiError(500, "Failed to update pending user");
         }
 
         // console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
     } else {
         await createPendingUser({
-            avatar: {
-                url: avatarUrl,
-                publicId: avatarPublicId
-            },
-            name: name.trim(),
-            email: normalizedEmail,
-            password: hashedPassword,
+            ...userData,
             verificationToken: hashedToken,
             verificationTokenExpiry: expiry
         });
     }
 
-    console.log(`${existingPendingUser ? "Existing" : "New"} pendingUser ${existingPendingUser ? "updated" : "created"} for ${normalizedEmail} | Token ${rawToken} (duration: 10 mins)`);
+    console.log(`${existingPendingUser ? "Existing" : "New"} pending user ${existingPendingUser ? "updated" : "created"} for ${normalizedEmail}`);
 
     const verificationLink = `${env.CLIENT_URL}/verify/${rawToken}`;
 
-    const emailHTML = registerEmailTemplate(name.trim(), verificationLink);
+    const emailHTML = registerEmailTemplate(userData.name, verificationLink);
 
     if (env.EMAIL_ENABLED) {
-        await sendEmail(normalizedEmail, "Kindly Verify Your Email Address - Complete Your Registration", emailHTML, true);
-        console.log(`Verification email sent to ${normalizedEmail} | verificationLink: ${verificationLink}`);
+        await sendEmail(
+            normalizedEmail,
+            "Kindly Verify Your Email Address - Complete Your Registration",
+            emailHTML,
+            true
+        );
+        console.log(`Verification email sent to ${normalizedEmail}`);
     } else {
-        console.log(`Email service is disabled. Skipping verification email for ${normalizedEmail} | verificationLink: ${verificationLink}`);
+        console.log(`Email service disabled. Verification link: ${verificationLink}`);
     }
 
     return {
-        name: name.trim(),
-        email: normalizedEmail
+        name: userData.name,
+        email: userData.email
     };
 };
 
@@ -561,13 +588,9 @@ export const refreshTokenService = async (refreshToken) => {
 //     if (!env.EMAIL_VERIFICATION_REQUIRED) {
 //         await createUser({
 //             ...userData,
-//             isEmailVerified: true,
-//             accountStatus: "active",
 //         });
 
-//         console.log(
-//             `User created without email verification | email: ${normalizedEmail}`
-//         );
+//         console.log(`User created without email verification | email: ${normalizedEmail}`);
 
 //         return {
 //             name: userData.name,
@@ -585,6 +608,7 @@ export const refreshTokenService = async (refreshToken) => {
 //         try {
 //             if (existingPendingUser.avatar?.publicId) {
 //                 await deleteFromCloudinary(existingPendingUser.avatar.publicId);
+//                 // console.log(`Removed old avatar from Cloudinary for existing pending user | email: ${normalizedEmail}`);
 //             }
 //         } catch (err) {
 //             console.error(`Failed to remove old avatar from Cloudinary for existing pending user | email: ${normalizedEmail} | error: ${err.message}`);
@@ -601,6 +625,8 @@ export const refreshTokenService = async (refreshToken) => {
 //         } catch {
 //             throw new ApiError(500, "Failed to update pending user");
 //         }
+
+//         // console.log(`Updated existing pending user with new verification token | email: ${normalizedEmail}`);
 //     } else {
 //         await createPendingUser({
 //             ...userData,

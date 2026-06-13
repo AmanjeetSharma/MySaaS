@@ -39,6 +39,9 @@ import { UAParser } from 'ua-parser-js';
 
 import { toast } from 'sonner';
 
+// Parse the environment variable (defaults to true if not explicitly set to 'false')
+const IS_VERIFICATION_ENABLED = import.meta.env.VITE_VERIFICATION_REQUIRED !== 'false';
+
 const registerSchema = z.object({
   name: z
     .string()
@@ -69,6 +72,8 @@ const Register = () => {
   } = useAuthStore();
 
   const [showDialog, setShowDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [showError, setShowError] = useState(false);
@@ -84,7 +89,6 @@ const Register = () => {
   } = useForm({
     resolver: zodResolver(registerSchema),
   });
-
 
   const getDeviceName = () => {
     const parser = new UAParser();
@@ -133,8 +137,25 @@ const Register = () => {
         avatar: data.avatar,
       });
 
-      setRegisteredEmail(data.email);
-      setShowDialog(true);
+      // Conditional Workflow Routing
+      if (IS_VERIFICATION_ENABLED) {
+        setRegisteredEmail(data.email);
+        setShowDialog(true);
+      } else {
+        // Verification disabled: open countdown modal
+        setShowSuccessDialog(true);
+        
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              navigate('/signin');
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
     } catch (err) {
       // handled by store
     }
@@ -159,7 +180,6 @@ const Register = () => {
     toast.error('Google registration failed. Please try again.');
   };
 
-
   const googleWrapperRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -174,8 +194,6 @@ const Register = () => {
     window.addEventListener('resize', updateWidth);
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
-
-
 
   return (
     <>
@@ -223,7 +241,7 @@ const Register = () => {
                   <Input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Your full name"
                     className="pl-9"
                     {...register('name')}
                   />
@@ -280,7 +298,7 @@ const Register = () => {
                     onClick={() =>
                       setShowPassword(!showPassword)
                     }
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -299,38 +317,59 @@ const Register = () => {
 
               {/* AVATAR */}
               <div className="space-y-2">
-                <Label htmlFor="avatar">
-                  Avatar (Optional)
+                <Label htmlFor="avatar" className="text-sm font-medium tracking-wide text-foreground/90">
+                  Profile Avatar <span className="text-xs text-muted-foreground/70 font-normal">(Optional)</span>
                 </Label>
 
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
-                    <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-
-                    <Input
-                      id="avatar"
-                      type="file"
-                      accept="image/*"
-                      className="pl-9"
-                      onChange={handleAvatarChange}
-                    />
+                <div className="group relative flex items-center gap-4 rounded-xl border border-input bg-background/50 p-3 transition-all duration-200 hover:bg-accent/20 hover:border-muted-foreground/30 focus-within:ring-1 focus-within:ring-ring">
+                  {/* Preview Circle */}
+                  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 bg-muted/30 transition-all group-hover:border-muted-foreground/50 overflow-hidden">
+                    {avatarPreview ? (
+                      <img
+                        src={avatarPreview}
+                        alt="Avatar preview"
+                        className="h-full w-full object-cover transition-scale duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <Image className="h-5 w-5 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground" />
+                    )}
                   </div>
 
-                  {avatarPreview && (
-                    <img
-                      src={avatarPreview}
-                      alt="Avatar preview"
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                  )}
+                  {/* Text Context & Interactive Area */}
+                  <div className="flex flex-col space-y-1 text-left flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground/80 truncate">
+                      {avatar ? avatar.name : 'Choose your profile picture'}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground tracking-tight">
+                      {avatar ? `${(avatar.size / 1024 / 1024).toFixed(2)} MB` : 'PNG, JPG or WEBP up to 5MB'}
+                    </p>
+                  </div>
+
+                  {/* Hidden native input overlaying the premium container layout */}
+                  <Input
+                    id="avatar"
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    onChange={handleAvatarChange}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="text-xs font-medium pointer-events-none group-hover:bg-accent h-8 px-3"
+                  >
+                    Browse
+                  </Button>
                 </div>
               </div>
 
               {/* SUBMIT */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer"
                 disabled={isLoading}
+                className="w-full cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -368,7 +407,6 @@ const Register = () => {
                   shape="rectangular"
                   width={containerWidth}
                   logo_alignment="center"
-
                 />
               </div>
             </GoogleOAuthProvider>
@@ -388,7 +426,7 @@ const Register = () => {
         </Card>
       </div>
 
-      {/* DIALOG */}
+      {/* STANDARD VERIFICATION DIALOG */}
       <Dialog
         open={showDialog}
         onOpenChange={setShowDialog}
@@ -417,8 +455,61 @@ const Register = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <Button onClick={() => navigate('/signin')}>
+          <Button onClick={() => navigate('/signin')} className="mt-2 cursor-pointer">
             Go to Sign In
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* BYPASS SUCCESS DIALOG (When Verification is Disabled) */}
+      <Dialog
+        open={showSuccessDialog}
+        onOpenChange={(open) => {
+          // Block closure by clicking backdrop or ESC key during countdown redirect
+          if (!open) return;
+          setShowSuccessDialog(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md text-center p-8 space-y-6">
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-800/30">
+              <svg
+                className="h-6 w-6 animate-in zoom-in-50 duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            <DialogTitle className="text-2xl font-semibold tracking-tight">
+              Account Created!
+            </DialogTitle>
+            
+            <DialogDescription className="text-sm text-muted-foreground pt-1">
+              Your account has been configured successfully. Bypassing email verification for development mode.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-muted/40 rounded-xl p-4 border border-border/50 flex flex-col items-center justify-center space-y-1">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              Redirecting to Sign In
+            </span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold font-mono tracking-tight text-foreground transition-all duration-300 animate-pulse">
+                {countdown}
+              </span>
+              <span className="text-sm text-muted-foreground">seconds</span>
+            </div>
+          </div>
+
+          <Button 
+            className="w-full cursor-pointer" 
+            onClick={() => navigate('/signin')}
+          >
+            Go to Sign In Now
           </Button>
         </DialogContent>
       </Dialog>

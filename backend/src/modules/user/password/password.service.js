@@ -171,17 +171,17 @@ export const forgotPasswordService = async (email) => {
     }
     const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await getUserByEmail(normalizedEmail);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    if (!user.providers.local.enabled) {
-        throw new ApiError(400, "This account is currently using Google Sign-In. Please sign in with Google, or setup a password in your account settings to enable password reset.");
-    }
+    const user = await getUserByEmail(normalizedEmail);
 
     if (!user) {
         await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
         console.log(`User with email ${normalizedEmail} does not exist.`);
         return null;
+    }
+
+    if (!user.providers?.local?.enabled) {
+        throw new ApiError(400, "This account is currently using Google Sign-In. Please sign in with Google, or setup a password in your account settings to enable password reset.");
     }
 
     const { rawToken, hashedToken, expiry } = generateToken();
@@ -192,6 +192,7 @@ export const forgotPasswordService = async (email) => {
     try {
         await user.save();
     } catch (err) {
+        console.error("Failed to save password reset token:", err);
         throw new ApiError(500, "Error generating password reset token");
     }
 
@@ -200,7 +201,12 @@ export const forgotPasswordService = async (email) => {
     const emailContent = resetEmailTemplate(user.name, resetLink);
 
     if (env.EMAIL_ENABLED) { // Only send email if enabled
-        await sendEmail(user.email, "Reset Your Password - MySaaS", emailContent, true);
+        await sendEmail(
+            user.email,
+            "Reset Your Password - MySaaS",
+            emailContent,
+            true
+        );
     }
 
     console.log(`[sendEmail] for password reset: ${env.EMAIL_ENABLED ? 'Email sent' : 'Email sending disabled, skipping...'}`);

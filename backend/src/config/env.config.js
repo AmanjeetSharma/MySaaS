@@ -1,5 +1,6 @@
 const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
+    VERIFICATION_REQUIRED: process.env.VERIFICATION_REQUIRED === 'true', // Converting to boolean
     MONGO_URI: process.env.MONGO_URI,
     DB_NAME: process.env.DB_NAME,
     PORT: process.env.PORT || 3000,
