@@ -73,7 +73,7 @@ const Register = () => {
 
   const [showDialog, setShowDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(5);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [showError, setShowError] = useState(false);
@@ -489,7 +489,7 @@ const Register = () => {
             </DialogTitle>
             
             <DialogDescription className="text-sm text-muted-foreground pt-1">
-              Your account has been configured successfully. Bypassing email verification for development mode.
+              Your account has been created.
             </DialogDescription>
           </DialogHeader>
 
