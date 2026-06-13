@@ -9,7 +9,8 @@ import {
     deleteOrganizationById,
     setActiveOrganization,
     unsetActiveOrganizationForUsers,
-    findOrganizationsByUserId
+    findOrganizationsByUserId,
+    countCustomersInOrganization,
 } from "./organization.repository.js";
 import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
@@ -127,11 +128,13 @@ export const getOrganizationService = async (orgId, userId) => {
         );
     }
 
+    // const customerCount = await countCustomersInOrganization(orgId);
+
     console.log(`User ID: ${userId} requested details for Organization: ${org.name}`);
 
     return {
         ...org.toObject(),
-        meta: getOrganizationMeta(org)
+        meta: getOrganizationMeta(org),
     };
 };
 

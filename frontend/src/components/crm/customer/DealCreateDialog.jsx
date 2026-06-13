@@ -13,21 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import {
-  useDealStore,
-  useCustomerStore,
-} from "@/stores";
+import { useDealStore, useCustomerStore } from "@/stores";
 
-const DealCreateDialog = ({
-  open,
-  onOpenChange,
-  customer,
-}) => {
+const DealCreateDialog = ({ open, onOpenChange, customer }) => {
   const { createDeal, isUpdating } = useDealStore();
-
-  const {
-    getCustomerDeals,
-  } = useCustomerStore();
+  const { getCustomerDeals } = useCustomerStore();
 
   const [title, setTitle] = useState("");
 
@@ -50,13 +40,10 @@ const DealCreateDialog = ({
         title: title.trim(),
       });
 
-      await getCustomerDeals(
-        customer._id,
-        {
-          page: 1,
-          limit: 10,
-        }
-      );
+      await getCustomerDeals(customer._id, {
+        page: 1,
+        limit: 10,
+      });
 
       setTitle("");
       onOpenChange(false);
@@ -66,53 +53,38 @@ const DealCreateDialog = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleClose}
-    >
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            Create Deal
-          </DialogTitle>
-
+          <DialogTitle>Create Deal</DialogTitle>
           <DialogDescription>
             Create a new deal for{" "}
-            <span className="font-medium">
+            <span className="font-medium text-foreground">
               {customer?.name}
             </span>
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          {/* Customer */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Customer (Read-only reference) */}
           <div className="space-y-2">
-            <Label>
-              Customer
-            </Label>
-
+            <Label htmlFor="customer-readonly">Customer</Label>
             <Input
+              id="customer-readonly"
               value={customer?.name || ""}
               disabled
+              className="bg-muted/50"
             />
           </div>
 
           {/* Deal Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">
-              Deal Title
-            </Label>
-
+            <Label htmlFor="title">Deal Title</Label>
             <Input
               id="title"
               placeholder="Website Development"
               value={title}
-              onChange={(e) =>
-                setTitle(e.target.value)
-              }
+              onChange={(e) => setTitle(e.target.value)}
               disabled={isUpdating}
               required
             />
@@ -125,17 +97,12 @@ const DealCreateDialog = ({
               variant="outline"
               onClick={handleClose}
               disabled={isUpdating}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
 
-            <Button
-              type="submit"
-              disabled={
-                isUpdating ||
-                !title.trim()
-              }
-            >
+            <Button type="submit" disabled={isUpdating || !title.trim()} className="cursor-pointer">
               {isUpdating ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />

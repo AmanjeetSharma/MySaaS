@@ -3,9 +3,10 @@ import { format } from "date-fns";
 import {
     ArrowRight,
     Clock3,
-    CheckCircle2,
+    TrendingUp,
     Trophy,
     XCircle,
+    TrendingDown,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import { cn } from "@/lib/utils";
 const statusConfig = {
     active: {
         label: "Active",
-        icon: Clock3,
+        icon: TrendingUp,
         badgeClass:
             "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
     },
@@ -28,7 +29,7 @@ const statusConfig = {
 
     lost: {
         label: "Lost",
-        icon: XCircle,
+        icon: TrendingDown,
         badgeClass:
             "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400",
     },
@@ -84,7 +85,7 @@ const DealRow = ({ deal }) => {
                 </div>
 
                 {/* Status */}
-                <div className="flex min-w-[120px] justify-start lg:justify-center">
+                <div className="flex min-w-30 justify-start lg:justify-center">
                     <Badge
                         variant="outline"
                         className={status.badgeClass}
@@ -95,7 +96,7 @@ const DealRow = ({ deal }) => {
                 </div>
 
                 {/* Latest Interaction */}
-                <div className="min-w-[140px] text-left lg:text-center">
+                <div className="min-w-35 text-left lg:text-center">
                     <p className="text-xs text-muted-foreground">
                         Last Interaction
                     </p>
@@ -110,7 +111,7 @@ const DealRow = ({ deal }) => {
                 </div>
 
                 {/* Created Date */}
-                <div className="min-w-[120px] text-left lg:text-center">
+                <div className="min-w-30 text-left lg:text-center">
                     <p className="text-xs text-muted-foreground">
                         Created
                     </p>
@@ -121,7 +122,7 @@ const DealRow = ({ deal }) => {
                 </div>
 
                 {/* Closed Date */}
-                <div className="min-w-[120px] text-left lg:text-center">
+                <div className="min-w-30 text-left lg:text-center">
                     <p className="text-xs text-muted-foreground">
                         Closed
                     </p>

@@ -1,5 +1,6 @@
 import { User } from "../user/user.model.js";
 import { Organization } from "./organization.model.js";
+import { Customer } from "../customer/customer.model.js";
 
 export const findUserById = async (userId, selectFields, session) => {
     let query = User.findById(userId);
@@ -80,4 +81,12 @@ export const findOrganizationsByUserId = async (userId) => {
             { "members.user": userId }
         ]
     }).select("-__v").sort({ createdAt: -1 });
+};
+
+
+export const countCustomersInOrganization = async (orgId) => {
+    return await Customer.countDocuments({
+        organization: orgId,
+        isDeleted: false
+    });
 };

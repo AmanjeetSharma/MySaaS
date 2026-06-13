@@ -1,24 +1,20 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { debounce } from "lodash";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useMemo } from "react";
 import {
+  Search,
   ArrowLeft,
   Building2,
   Plus,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Trophy,
 } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
-import {
-  Button,
-} from "@/components/ui/button";
-
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -26,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import {
   Pagination,
   PaginationContent,
@@ -35,11 +30,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-import {
-  Skeleton,
-} from "@/components/ui/skeleton";
-
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,10 +42,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import {
-  useCustomerStore,
-} from "@/stores";
-
+import { useCustomerStore } from "@/stores";
 import CustomerDetailsCard from "@/components/crm/customer/CustomerDetailsCard";
 import CustomerEditDialog from "@/components/crm/customer/CustomerEditDialog";
 import DealCreateDialog from "@/components/crm/customer/DealCreateDialog";
@@ -67,25 +55,17 @@ const CustomerDetails = () => {
   const {
     currentCustomer,
     customerDeals,
-
     getCustomer,
     getCustomerDeals,
     deleteCustomer,
-
     isLoading,
     isUpdating,
     isCustomerDealsLoading,
   } = useCustomerStore();
 
-  console.log("Current Customer:", currentCustomer);
-  const [editOpen, setEditOpen] =
-    useState(false);
-
-  const [createDealOpen, setCreateDealOpen] =
-    useState(false);
-
-  const [deleteOpen, setDeleteOpen] =
-    useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [createDealOpen, setCreateDealOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [query, setQuery] = useState({
     page: 1,
@@ -96,34 +76,23 @@ const CustomerDetails = () => {
     sortOrder: "desc",
   });
 
-  const fetchCustomer =
-    useCallback(async () => {
-      if (!customerId) return;
+  const fetchCustomer = useCallback(async () => {
+    if (!customerId) return;
+    try {
+      await getCustomer(customerId);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [customerId, getCustomer]);
 
-      try {
-        await getCustomer(customerId);
-      } catch (error) {
-        console.error(error);
-      }
-    }, [customerId, getCustomer]);
-
-  const fetchDeals =
-    useCallback(async () => {
-      if (!customerId) return;
-
-      try {
-        await getCustomerDeals(
-          customerId,
-          query
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }, [
-      customerId,
-      query,
-      getCustomerDeals,
-    ]);
+  const fetchDeals = useCallback(async () => {
+    if (!customerId) return;
+    try {
+      await getCustomerDeals(customerId, query);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [customerId, query, getCustomerDeals]);
 
   useEffect(() => {
     fetchCustomer();
@@ -157,25 +126,10 @@ const CustomerDetails = () => {
 
   const handleSortChange = (value) => {
     const sortMap = {
-      newest: {
-        sortBy: "createdAt",
-        sortOrder: "desc",
-      },
-
-      oldest: {
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-
-      titleAsc: {
-        sortBy: "title",
-        sortOrder: "asc",
-      },
-
-      titleDesc: {
-        sortBy: "title",
-        sortOrder: "desc",
-      },
+      newest: { sortBy: "createdAt", sortOrder: "desc" },
+      oldest: { sortBy: "createdAt", sortOrder: "asc" },
+      titleAsc: { sortBy: "title", sortOrder: "asc" },
+      titleDesc: { sortBy: "title", sortOrder: "desc" },
     };
 
     setQuery((prev) => ({
@@ -185,47 +139,43 @@ const CustomerDetails = () => {
     }));
   };
 
-  const handleDeleteCustomer =
-    async () => {
-      try {
-        await deleteCustomer(customerId);
+  const handleDeleteCustomer = async () => {
+    try {
+      await deleteCustomer(customerId);
+      navigate("/customers");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-        navigate("/customers");
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-  const handleStatusChange = (
-    status
-  ) => {
+  const handleStatusChange = (status) => {
     setQuery((prev) => ({
       ...prev,
       page: 1,
-      status:
-        status === "all"
-          ? ""
-          : status,
+      status: status === "all" ? "" : status,
     }));
   };
 
-  const handlePageChange = (
-    page
-  ) => {
+  const handleLimitChange = (value) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      limit: parseInt(value, 10),
+    }));
+  };
+
+  const handlePageChange = (page) => {
     setQuery((prev) => ({
       ...prev,
       page,
     }));
   };
 
-  if (
-    isLoading &&
-    !currentCustomer
-  ) {
+  if (isLoading && !currentCustomer) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" aria-busy="true" aria-live="polite">
         <Skeleton className="h-10 w-52" />
-        <Skeleton className="h-52 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
         <Skeleton className="h-96 rounded-xl" />
       </div>
     );
@@ -233,228 +183,199 @@ const CustomerDetails = () => {
 
   if (!currentCustomer) {
     return (
-      <Card>
+      <Card className="border-dashed">
         <CardContent className="flex min-h-[300px] flex-col items-center justify-center gap-3">
-          <Building2 className="size-8 text-muted-foreground" />
-
-          <h2 className="text-lg font-medium">
-            Customer Not Found
-          </h2>
-
-          <Button
-            onClick={() =>
-              navigate("/customers")
-            }
-          >
-            Back
+          <Building2 className="size-8 text-muted-foreground opacity-60" />
+          <h2 className="text-lg font-medium tracking-tight">Customer Not Found</h2>
+          <Button variant="outline" size="sm" onClick={() => navigate("/customers")}>
+            Back to Directory
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const {
-    deals,
-    statistics,
-    pagination,
-  } = customerDeals;
+  const { deals, statistics, pagination } = customerDeals;
 
   return (
-    <div className="space-y-6">
-      {/* Back */}
-
-      <Button
-        variant="ghost"
-        className="gap-2 px-0"
-        onClick={() =>
-          navigate("/customers")
-        }
-      >
-        <ArrowLeft className="size-4" />
-        Back to Customers
-      </Button>
-
-      {/* Customer Card */}
-
-      <CustomerDetailsCard
-        customer={currentCustomer}
-        onEdit={() =>
-          setEditOpen(true)
-        }
-        onCreateDeal={() =>
-          setCreateDealOpen(true)
-        }
-        onDelete={() =>
-          setDeleteOpen(true)
-        }
-      />
-
-      {/* Statistics */}
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">
-              Active
-            </p>
-
-            <h3 className="text-2xl font-bold">
-              {statistics.active}
-            </h3>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">
-              Won
-            </p>
-
-            <h3 className="text-2xl font-bold">
-              {statistics.won}
-            </h3>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">
-              Lost
-            </p>
-
-            <h3 className="text-2xl font-bold">
-              {statistics.lost}
-            </h3>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">
-              Total
-            </p>
-
-            <h3 className="text-2xl font-bold">
-              {statistics.total}
-            </h3>
-          </CardContent>
-        </Card>
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      {/* Action Header Line */}
+      <div>
+        <Button
+          variant="ghost"
+          className="gap-2 px-2 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => navigate("/customers")}
+        >
+          <ArrowLeft className="size-4" />
+          <span className="text-sm font-medium">Back to Customers</span>
+        </Button>
       </div>
 
-      {/* Deals */}
+      {/* Customer Master Details Card */}
+      <CustomerDetailsCard
+        customer={currentCustomer}
+        onEdit={() => setEditOpen(true)}
+        onCreateDeal={() => setCreateDealOpen(true)}
+        onDelete={() => setDeleteOpen(true)}
+      />
 
-      <Card>
-        <CardContent className="space-y-4 p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      {/* Compact High-Density Scoreboard */}
+      {statistics && (
+        <section 
+          className="bg-background border border-border rounded-xl p-3 shadow-sm"
+          aria-labelledby="metrics-summary-heading"
+        >
+          <h2 id="metrics-summary-heading" className="sr-only">Customer Deal Performance Metrics</h2>
+          <div className="grid grid-cols-2 divide-x divide-y-0 sm:grid-cols-4 divide-border">
 
-            <h2 className="text-lg font-semibold">
-              Deals
-            </h2>
+            {/* Active Deals Metric */}
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  Active
+                </span>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                    {statistics.active || 0}
+                  </span>
+                  <TrendingUp className="size-3.5 text-blue-600/70 dark:text-blue-400/70" />
+                </div>
+              </div>
+            </div>
 
-            <div className="flex flex-wrap gap-2">
+            {/* Won Deals Metric */}
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  Won
+                </span>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                    {statistics.won || 0}
+                  </span>
+                  <Trophy className="size-3.5 text-emerald-600/70 dark:text-emerald-400/70" />
+                </div>
+              </div>
+            </div>
 
-              {/* Search */}
+            {/* Lost Deals Metric */}
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  Lost
+                </span>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold tracking-tight text-destructive">
+                    {statistics.lost || 0}
+                  </span>
+                  <TrendingDown className="size-3.5 text-destructive/70" />
+                </div>
+              </div>
+            </div>
 
-              <div className="relative w-62.5">
-                <Search
-                  className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                />
+            {/* Total Deals Metric */}
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  Total
+                </span>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold tracking-tight text-foreground">
+                    {statistics.total || 0}
+                  </span>
+                  <BarChart3 className="size-3.5 text-muted-foreground/70" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
+      {/* Deals Datatable Wrapper Component */}
+      <Card className="border-border shadow-sm">
+        <CardContent className="space-y-4 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-border/40 pb-4">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">Deal Management</h2>
+              <p className="text-xs text-muted-foreground">Monitor and lifecycle track your deals</p>
+            </div>
+
+            {/* Realigned Sequence Grid from Left to Right */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* 1. Search Element */}
+              <div className="relative w-full sm:w-60">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
                 <Input
                   placeholder="Search by title..."
-                  className="pl-9"
+                  className="pl-9 h-9 text-sm"
                   onChange={handleSearch}
                 />
               </div>
 
-              {/* Status */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
+                {/* 2. Status Control */}
+                <Select onValueChange={handleStatusChange} defaultValue="all">
+                  <SelectTrigger className="h-9 w-full sm:w-32 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="won">Won</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select
-                onValueChange={handleStatusChange}
-                defaultValue="all"
-              >
-                <SelectTrigger className="w-37.5 cursor-pointer">
-                  <SelectValue />
-                </SelectTrigger>
+                {/* 3. Sort Control */}
+                <Select onValueChange={handleSortChange} defaultValue="newest">
+                  <SelectTrigger className="h-9 w-full sm:w-40 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Date Created (New)</SelectItem>
+                    <SelectItem value="oldest">Date Created (Old)</SelectItem>
+                    <SelectItem value="titleAsc">Alphabetical (A-Z)</SelectItem>
+                    <SelectItem value="titleDesc">Alphabetical (Z-A)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Status
-                  </SelectItem>
-
-                  <SelectItem value="active">
-                    Active
-                  </SelectItem>
-
-                  <SelectItem value="won">
-                    Won
-                  </SelectItem>
-
-                  <SelectItem value="lost">
-                    Lost
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Sort */}
-
-              <Select
-                onValueChange={handleSortChange}
-                defaultValue="newest"
-              >
-                <SelectTrigger className="w-45 cursor-pointer">
-                  <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-
-                  <SelectItem value="newest">
-                    Newest
-                  </SelectItem>
-
-                  <SelectItem value="oldest">
-                    Oldest
-                  </SelectItem>
-
-                  <SelectItem value="titleAsc">
-                    A-Z
-                  </SelectItem>
-
-                  <SelectItem value="titleDesc">
-                    Z-A
-                  </SelectItem>
-
-                </SelectContent>
-              </Select>
-
+              {/* 4. Rows per page Control */}
+              <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground whitespace-nowrap min-w-fit">
+                <span>Rows per page:</span>
+                <Select onValueChange={handleLimitChange} defaultValue="10">
+                  <SelectTrigger className="h-9 w-20 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
           </div>
 
+          {/* Deals Content Stream */}
           {isCustomerDealsLoading ? (
-            <div className="space-y-3">
-              {Array.from({
-                length: 5,
-              }).map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-24 rounded-lg"
-                />
+            <div className="space-y-3" aria-busy="true">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton key={index} className="h-16 rounded-lg" />
               ))}
             </div>
           ) : deals?.length > 0 ? (
             <>
-              <div className="space-y-3">
+              <div className="divide-y divide-border/40 border rounded-lg overflow-hidden bg-muted/10">
                 {deals.map((deal) => (
-                  <DealRow
-                    key={deal._id}
-                    deal={deal}
-                  />
+                  <div key={deal._id} className="p-1 bg-background hover:bg-muted/30 transition-colors">
+                    <DealRow deal={deal} />
+                  </div>
                 ))}
               </div>
 
-              {pagination?.totalPages >
-                1 && (
+              {pagination?.totalPages > 1 && (
+                <div className="pt-2">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -462,142 +383,70 @@ const CustomerDetails = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-
-                            if (
-                              pagination.page >
-                              1
-                            ) {
-                              handlePageChange(
-                                pagination.page -
-                                1
-                              );
-                            }
+                            if (pagination.page > 1) handlePageChange(pagination.page - 1);
                           }}
                         />
                       </PaginationItem>
-
-                      {Array.from({
-                        length:
-                          pagination.totalPages,
-                      }).map(
-                        (_, index) => (
-                          <PaginationItem
-                            key={index}
+                      {Array.from({ length: pagination.totalPages }).map((_, index) => (
+                        <PaginationItem key={index}>
+                          <PaginationLink
+                            href="#"
+                            isActive={pagination.page === index + 1}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(index + 1);
+                            }}
                           >
-                            <PaginationLink
-                              href="#"
-                              isActive={
-                                pagination.page ===
-                                index + 1
-                              }
-                              onClick={(
-                                e
-                              ) => {
-                                e.preventDefault();
-
-                                handlePageChange(
-                                  index + 1
-                                );
-                              }}
-                            >
-                              {index + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )
-                      )}
-
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
                       <PaginationItem>
                         <PaginationNext
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-
-                            if (
-                              pagination.page <
-                              pagination.totalPages
-                            ) {
-                              handlePageChange(
-                                pagination.page +
-                                1
-                              );
-                            }
+                            if (pagination.page < pagination.totalPages) handlePageChange(pagination.page + 1);
                           }}
                         />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                )}
+                </div>
+              )}
             </>
           ) : (
-            <div className="flex min-h-[180px] flex-col items-center justify-center gap-3">
-              <p className="text-sm text-muted-foreground">
-                No deals found
-              </p>
-
-              <Button
-                size="sm"
-                onClick={() =>
-                  setCreateDealOpen(true)
-                }
-              >
-                <Plus className="mr-2 size-4" />
-                Create Deal
+            <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-6">
+              <p className="text-sm text-muted-foreground">No active deals match current parameters</p>
+              <Button size="sm" variant="secondary" onClick={() => setCreateDealOpen(true)}>
+                <Plus className="mr-1.5 size-4" />
+                Initialize First Deal
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Dialogs */}
+      {/* Dialog Context Engines */}
+      <CustomerEditDialog open={editOpen} onOpenChange={setEditOpen} customer={currentCustomer} />
+      <DealCreateDialog open={createDealOpen} onOpenChange={setCreateDealOpen} customer={currentCustomer} />
 
-      <CustomerEditDialog
-        open={editOpen}
-        onOpenChange={
-          setEditOpen
-        }
-        customer={currentCustomer}
-      />
-
-      <DealCreateDialog
-        open={createDealOpen}
-        onOpenChange={
-          setCreateDealOpen
-        }
-        customer={currentCustomer}
-      />
-
-      <AlertDialog
-        open={deleteOpen}
-        onOpenChange={
-          setDeleteOpen
-        }
-      >
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Customer
-            </AlertDialogTitle>
-
+            <AlertDialogTitle>Are you absolutely certain?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot
-              be undone.
+              This structural layout modification soft-deletes or completely drops the customer reference profile. This operational method is non-reversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              Cancel
-            </AlertDialogCancel>
-
+            <AlertDialogCancel>Abort Action</AlertDialogCancel>
             <AlertDialogAction
-              disabled={
-                isUpdating
-              }
-              onClick={
-                handleDeleteCustomer
-              }
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              disabled={isUpdating}
+              onClick={handleDeleteCustomer}
             >
-              Delete
+              Confirm Deprecate
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

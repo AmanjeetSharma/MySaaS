@@ -155,3 +155,13 @@ export const getDealStatistics = (filter) => {
 export const getOrgDetails = (orgId) => {
     return Organization.findById(orgId).select('name');
 }
+
+
+export const updateCustomerUsageStats = async (orgId, value) => {
+    return Organization.updateOne(
+        { _id: orgId },
+        {
+            $inc: { "usage.customerCount": value }
+        }
+    );
+}

@@ -41,6 +41,10 @@ export const createDealService = async (userId, payload) => {
         throw new ApiError(404, "Customer not found in the organization");
     }
 
+    if(title && title.trim().length > 255) {
+        throw new ApiError(400, "Title length cannot exceed 255 characters");
+    }
+
     let deal;
     try {
         deal = await createDeal(

@@ -16,6 +16,7 @@ import {
     findDeals,
     getDealStatistics,
     getOrgDetails,
+    updateCustomerUsageStats,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 import { ACTIVITY_TYPES } from '../../constants/activityTypes.constants.js';
@@ -89,6 +90,9 @@ export const createCustomerService = async (userId, payload) => {
             source: "manual",
             createdBy: userId
         });
+
+        await updateCustomerUsageStats(orgId, 1);
+
     } catch (err) {
         console.error("Customer creation failed:", err);
         if (err.code === 11000) {
@@ -286,6 +290,8 @@ export const deleteCustomerService = async (userId, customerId) => {
         throw new ApiError(500, "Failed to delete customer, please try again");
     }
 
+    await updateCustomerUsageStats(customer.organization, -1);
+    
     console.log(`Customer deleted | ID: ${customer._id} | UpdatedBy: ${userId}`);
 
     return {
