@@ -69,7 +69,7 @@ const DealRow = ({ deal }) => {
             className={cn(
                 "group w-full rounded-lg border border-border bg-card text-left transition-all",
                 "hover:border-primary/30 hover:bg-accent/30",
-                "focus:outline-none focus:ring-2 focus:ring-ring"
+                "focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer",
             )}
         >
             <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center">

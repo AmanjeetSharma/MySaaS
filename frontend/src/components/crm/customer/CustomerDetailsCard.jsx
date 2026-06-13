@@ -46,7 +46,7 @@ const CustomerDetailsCard = ({
                                     </h1>
                                     {customer.source && (
                                         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-primary uppercase">
-                                            <Waypoints  className="size-3" /> {customer.source}
+                                            <Waypoints className="size-3" /> {customer.source}
                                         </span>
                                     )}
                                 </div>
@@ -83,7 +83,7 @@ const CustomerDetailsCard = ({
                                         <span>by</span>
                                         <a
                                             href={`/members/${customer.createdBy._id}`}
-                                            className="inline-flex items-center gap-0.5 font-semibold text-foreground hover:text-primary transition-colors hover:underline"
+                                            className="inline-flex items-center gap-0.5 font-semibold text-foreground hover:underline"
                                         >
                                             {customer.createdBy.name || "System"}
                                             <ArrowUpRight className="size-2.5 opacity-50" />
@@ -105,7 +105,7 @@ const CustomerDetailsCard = ({
                                         <span>by</span>
                                         <a
                                             href={`/members/${customer.updatedBy._id}`}
-                                            className="inline-flex items-center gap-0.5 font-semibold text-foreground hover:text-primary transition-colors hover:underline"
+                                            className="inline-flex items-center gap-0.5 font-semibold text-foreground hover:underline"
                                         >
                                             {customer.updatedBy.name || "System"}
                                             <ArrowUpRight className="size-2.5 opacity-50" />
