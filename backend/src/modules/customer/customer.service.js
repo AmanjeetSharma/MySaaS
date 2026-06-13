@@ -17,6 +17,7 @@ import {
     getDealStatistics,
     getOrgDetails,
     updateCustomerUsageStats,
+    countDeals,
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 import { ACTIVITY_TYPES } from '../../constants/activityTypes.constants.js';
@@ -291,7 +292,7 @@ export const deleteCustomerService = async (userId, customerId) => {
     }
 
     await updateCustomerUsageStats(customer.organization, -1);
-    
+
     console.log(`Customer deleted | ID: ${customer._id} | UpdatedBy: ${userId}`);
 
     return {
@@ -331,10 +332,13 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
 
     const orgDetails = await getOrgDetails(orgId);
 
-    const filter = {
+    const basefilter = {
         organization: orgId,
         isDeleted: false
     };
+
+    const filter = { ...basefilter };
+
 
     if (search?.trim()) {
         const searchTerm = search.trim().replace(/\s+/g, " ");
@@ -373,14 +377,15 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
     };
 
     try {
-        const [customers, total] = await Promise.all([
+        const [customers, total, overallTotal] = await Promise.all([
             findCustomers({
                 filter,
                 sort,
                 skip,
                 limit: limitNum
             }),
-            countCustomers(filter)
+            countCustomers(filter),
+            countCustomers(basefilter)
         ]);
 
         console.log(`Customers retrieved | Organization: ${orgId} | RequestedBy: ${userId} \nCount: ${customers.length} | Total: ${total} | Search: ${search || "N/A"} | Sort: ${finalSortField} ${sortOrder}`);
@@ -392,6 +397,7 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
                 page: pageNum,
                 limit: limitNum,
                 total,
+                overallTotal,
                 totalPages: Math.ceil(total / limitNum)
             }
         };
@@ -558,11 +564,13 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
         sortOrder = "desc"
     } = query;
 
-    const filter = {
+    const baseFilter = {
         organization: customer.organization,
         customer: customerId,
         isDeleted: false
     };
+
+    const filter = { ...baseFilter };
 
     if (status) {
         const normalizedStatus = status.trim().toLowerCase();
@@ -615,14 +623,15 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
 
     try {
         // running these in parallel to optimize performance
-        const [deals, statistics] = await Promise.all([
+        const [deals, statistics, filteredTotal] = await Promise.all([
             findDeals({
                 filter,
                 sort,
                 skip,
                 limit: limitNum
             }),
-            getDealStatistics(filter)
+            getDealStatistics(baseFilter),
+            countDeals(filter)
         ]);
 
         const statsMap = {
@@ -657,8 +666,9 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             pagination: {
                 page: pageNum,
                 limit: limitNum,
-                total: statsMap.total,
-                totalPages: Math.ceil(statsMap.total / limitNum)
+                total: filteredTotal,
+                overallTotal: statsMap.total,
+                totalPages: Math.ceil(filteredTotal / limitNum)
             }
         };
     } catch (error) {

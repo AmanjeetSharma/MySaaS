@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 import {
@@ -13,25 +13,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useDealStore, useCustomerStore } from "@/stores";
+import { useDealStore } from "@/stores";
 
-const DealCreateDialog = ({ open, onOpenChange, customer }) => {
+const DealCreateDialog = ({ open, onOpenChange, customer, onSuccess }) => {
   const { createDeal, isUpdating } = useDealStore();
-  const { getCustomerDeals } = useCustomerStore();
-
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setTitle("");
+    }
+  }, [open]);
 
   const handleClose = () => {
     if (isUpdating) return;
-
     setTitle("");
     onOpenChange(false);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!customer?._id) return;
+    if (!customer?._id || !title.trim()) return;
 
     try {
       await createDeal({
@@ -40,12 +42,11 @@ const DealCreateDialog = ({ open, onOpenChange, customer }) => {
         title: title.trim(),
       });
 
-      await getCustomerDeals(customer._id, {
-        page: 1,
-        limit: 10,
-      });
+      // Triggers immediate live parent component layout sync hooks safely
+      if (typeof onSuccess === "function") {
+        await onSuccess();
+      }
 
-      setTitle("");
       onOpenChange(false);
     } catch (error) {
       console.error(error);
@@ -87,6 +88,7 @@ const DealCreateDialog = ({ open, onOpenChange, customer }) => {
               onChange={(e) => setTitle(e.target.value)}
               disabled={isUpdating}
               required
+              autoFocus
             />
           </div>
 

@@ -21,7 +21,8 @@ const INITIAL_FORM = {
   phone: "",
 };
 
-const CustomerCreateDialog = ({ open, onOpenChange, organizationId }) => {
+// Added onSuccess parameter into destructuring arguments definition
+const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess }) => {
   const { createCustomer, isUpdating } = useCustomerStore();
   const [form, setForm] = useState(INITIAL_FORM);
 
@@ -31,8 +32,6 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId }) => {
     }
   }, [open]);
 
-  // Updated Validation Logic: Only name is strictly required. 
-  // If a phone number is provided, it must be exactly 10 digits.
   const isValid = useMemo(() => {
     const isNameValid = form.name.trim().length > 0;
     const isPhoneValid = form.phone.trim().length === 0 || form.phone.trim().length === 10;
@@ -64,7 +63,6 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId }) => {
       name: form.name.trim(),
     };
 
-    // Dynamically add optional values to request payload if provided
     if (form.phone.trim()) {
       payload.phone = form.phone.trim();
     }
@@ -74,8 +72,13 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId }) => {
     }
 
     try {
-      const response = await createCustomer(payload);
-      const customer = response?.customer || response;
+      await createCustomer(payload);
+
+      // Execute the sync callback hook if provided by parent container
+      if (typeof onSuccess === "function") {
+        onSuccess();
+      }
+
       onOpenChange(false);
     } catch (error) {
       console.error(error);

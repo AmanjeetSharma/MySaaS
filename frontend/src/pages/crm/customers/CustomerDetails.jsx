@@ -10,6 +10,8 @@ import {
   TrendingDown,
   BarChart3,
   Trophy,
+  Briefcase,
+  RefreshCw,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -171,6 +173,19 @@ const CustomerDetails = () => {
     }));
   };
 
+  const resetFilters = () => {
+    setQuery({
+      page: 1,
+      limit: query.limit,
+      search: "",
+      status: "",
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
+    const searchInput = document.getElementById("deal-search-input");
+    if (searchInput) searchInput.value = "";
+  };
+
   if (isLoading && !currentCustomer) {
     return (
       <div className="space-y-4" aria-busy="true" aria-live="polite">
@@ -195,7 +210,9 @@ const CustomerDetails = () => {
     );
   }
 
-  const { deals, statistics, pagination } = customerDeals;
+  const { deals = [], statistics, pagination } = customerDeals || {};
+  const totalDeals = pagination?.total || 0;
+  const overallTotal = pagination?.overallTotal || 0;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -219,70 +236,46 @@ const CustomerDetails = () => {
         onDelete={() => setDeleteOpen(true)}
       />
 
-      {/* Compact High-Density Scoreboard */}
+      {/* Scoreboard Metrics */}
       {statistics && (
-        <section
-          className="bg-background border border-border rounded-xl p-3 shadow-sm"
-          aria-labelledby="metrics-summary-heading"
-        >
+        <section className="bg-background border border-border rounded-xl p-3 shadow-sm" aria-labelledby="metrics-summary-heading">
           <h2 id="metrics-summary-heading" className="sr-only">Customer Deal Performance Metrics</h2>
           <div className="grid grid-cols-2 divide-x divide-y-0 sm:grid-cols-4 divide-border">
-
-            {/* Active Deals Metric */}
             <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
               <div className="flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Active
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Active</span>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-                    {statistics.active || 0}
-                  </span>
+                  <span className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">{statistics.active || 0}</span>
                   <TrendingUp className="size-3.5 text-blue-600/70 dark:text-blue-400/70" />
                 </div>
               </div>
             </div>
 
-            {/* Won Deals Metric */}
             <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
               <div className="flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Won
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Won</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                    {statistics.won || 0}
-                  </span>
+                  <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">{statistics.won || 0}</span>
                   <Trophy className="size-3.5 text-emerald-600/70 dark:text-emerald-400/70" />
                 </div>
               </div>
             </div>
 
-            {/* Lost Deals Metric */}
             <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
               <div className="flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Lost
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Lost</span>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-2xl font-bold tracking-tight text-destructive">
-                    {statistics.lost || 0}
-                  </span>
+                  <span className="text-2xl font-bold tracking-tight text-destructive">{statistics.lost || 0}</span>
                   <TrendingDown className="size-3.5 text-destructive/70" />
                 </div>
               </div>
             </div>
 
-            {/* Total Deals Metric */}
             <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
               <div className="flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Total
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Total</span>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-2xl font-bold tracking-tight text-foreground">
-                    {statistics.total || 0}
-                  </span>
+                  <span className="text-2xl font-bold tracking-tight text-foreground">{statistics.total || 0}</span>
                   <BarChart3 className="size-3.5 text-muted-foreground/70" />
                 </div>
               </div>
@@ -300,74 +293,78 @@ const CustomerDetails = () => {
               <p className="text-xs text-muted-foreground">Monitor and lifecycle track your deals</p>
             </div>
 
-            {/* Realigned Sequence Grid from Left to Right */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* 1. Search Element */}
-              <div className="relative w-full sm:w-60">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
-                <Input
-                  placeholder="Search by title..."
-                  className="pl-9 h-9 text-sm"
-                  onChange={handleSearch}
-                />
-              </div>
+            {/* Render filter controls only if the customer has ever had deals created */}
+            {(!isCustomerDealsLoading && overallTotal > 0) && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative w-full sm:w-60">
+                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Input
+                    id="deal-search-input"
+                    placeholder="Search by title..."
+                    className="pl-9 h-9 text-sm"
+                    onChange={handleSearch}
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
-                <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Status:</span>
-                {/* 2. Status Control */}
-                <Select onValueChange={handleStatusChange} defaultValue="all">
-                  <SelectTrigger className="h-9 w-full sm:w-32 text-sm cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
+                  <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Status:</span>
+                  <Select onValueChange={handleStatusChange} value={query.status || "all"}>
+                    <SelectTrigger className="h-9 w-full sm:w-32 text-sm cursor-pointer">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="won">Won</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                {/* 3. Sort Control */}
-                <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Filter by:</span>
-                <Select onValueChange={handleSortChange} defaultValue="newest">
-                  <SelectTrigger className="h-9 w-full sm:w-40 text-sm cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">New</SelectItem>
-                    <SelectItem value="oldest">Old</SelectItem>
-                    <SelectItem value="titleAsc">A-Z</SelectItem>
-                    <SelectItem value="titleDesc">Z-A</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Filter by:</span>
+                  <Select onValueChange={handleSortChange} value={query.sortBy === "title" ? (query.sortOrder === "asc" ? "titleAsc" : "titleDesc") : (query.sortOrder === "asc" ? "oldest" : "newest")}>
+                    <SelectTrigger className="h-9 w-full sm:w-40 text-sm cursor-pointer">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">New</SelectItem>
+                      <SelectItem value="oldest">Old</SelectItem>
+                      <SelectItem value="titleAsc">A-Z</SelectItem>
+                      <SelectItem value="titleDesc">Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* 4. Rows per page Control */}
-              <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground whitespace-nowrap min-w-fit">
-                <span>Rows per page:</span>
-                <Select onValueChange={handleLimitChange} defaultValue="10">
-                  <SelectTrigger className="h-9 w-20 text-sm cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground whitespace-nowrap min-w-fit">
+                  <span>Rows:</span>
+                  <Select onValueChange={handleLimitChange} value={String(query.limit)}>
+                    <SelectTrigger className="h-9 w-20 text-sm cursor-pointer">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Deals Content Stream */}
+          {/* Dynamic Content Stream */}
           {isCustomerDealsLoading ? (
             <div className="space-y-3" aria-busy="true">
               {Array.from({ length: 3 }).map((_, index) => (
                 <Skeleton key={index} className="h-16 rounded-lg" />
               ))}
             </div>
-          ) : deals?.length > 0 ? (
+          ) : deals.length > 0 ? (
             <>
+              {/* Filter Subheading Match Count */}
+              <div className="text-xs font-medium text-muted-foreground select-none pb-1">
+                Found {totalDeals} {totalDeals === 1 ? 'matching deal' : 'matching deals'}
+              </div>
+
               <div className="divide-y divide-border/40 border rounded-lg overflow-hidden bg-muted/10">
                 {deals.map((deal) => (
                   <div key={deal._id} className="p-1 bg-background hover:bg-muted/30 transition-colors">
@@ -383,6 +380,7 @@ const CustomerDetails = () => {
                       <PaginationItem>
                         <PaginationPrevious
                           href="#"
+                          className={pagination.page === 1 ? "pointer-events-none opacity-40 select-none" : ""}
                           onClick={(e) => {
                             e.preventDefault();
                             if (pagination.page > 1) handlePageChange(pagination.page - 1);
@@ -406,6 +404,7 @@ const CustomerDetails = () => {
                       <PaginationItem>
                         <PaginationNext
                           href="#"
+                          className={pagination.page === pagination.totalPages ? "pointer-events-none opacity-40 select-none" : ""}
                           onClick={(e) => {
                             e.preventDefault();
                             if (pagination.page < pagination.totalPages) handlePageChange(pagination.page + 1);
@@ -417,12 +416,38 @@ const CustomerDetails = () => {
                 </div>
               )}
             </>
+          ) : overallTotal === 0 ? (
+            /* WORKSPACE STATE: ZERO DEALS EXIST AT ALL */
+            <div className="flex min-h-60 flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 bg-muted/5 max-w-md mx-auto text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20 shadow-xs">
+                <Briefcase Plus className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold tracking-tight">No Deals Registered</h3>
+                <p className="text-xs text-muted-foreground leading-normal max-w-xs">
+                  It looks like you haven't created any deals for this customer yet. Click the button below to create your first deal and start tracking your sales!
+                </p>
+              </div>
+              <Button size="sm" onClick={() => setCreateDealOpen(true)} className="h-8 gap-1.5 text-xs font-medium cursor-pointer">
+                <Plus className="size-3.5 stroke-[2.5]" />
+                <span>Create New Deal</span>
+              </Button>
+            </div>
           ) : (
-            <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-6">
-              <p className="text-sm text-muted-foreground">No active deals match current parameters</p>
-              <Button size="sm" variant="secondary" onClick={() => setCreateDealOpen(true)}>
-                <Plus className="mr-1.5 size-4" />
-                Initialize First Deal
+            /* WORKSPACE STATE: ACTIVE FILTERS MATCHED ZERO ROWS */
+            <div className="flex min-h-60 flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 bg-muted/5 max-w-md mx-auto text-center animate-in fade-in-50">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted border text-muted-foreground/60 shadow-inner">
+                <Search className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold tracking-tight">No Matches Found</h3>
+                <p className="text-xs text-muted-foreground leading-normal max-w-xs">
+                  We couldn't find any deals matching the applied filters. Try adjusting or clearing your filters to get results.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={resetFilters} className="h-8 gap-1.5 text-xs font-medium cursor-pointer">
+                <RefreshCw className="size-3.5" />
+                <span>Clear Active Filters</span>
               </Button>
             </div>
           )}
@@ -430,15 +455,13 @@ const CustomerDetails = () => {
       </Card>
 
       {/* Dialog Context Engines */}
-      <CustomerEditDialog open={editOpen} onOpenChange={setEditOpen} customer={currentCustomer} />
-      <DealCreateDialog open={createDealOpen} onOpenChange={setCreateDealOpen} customer={currentCustomer} />
+      <CustomerEditDialog open={editOpen} onOpenChange={setEditOpen} customer={currentCustomer} onSaveSuccess={fetchCustomer} />
+      <DealCreateDialog open={createDealOpen} onOpenChange={setCreateDealOpen} customer={currentCustomer} onSuccess={fetchDeals} />
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the customer and all associated deals.
             </AlertDialogDescription>

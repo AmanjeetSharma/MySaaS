@@ -83,6 +83,11 @@ export const countCustomers = (filter) => {
 };
 
 
+export const countDeals = (filter) => {
+    return Deal.countDocuments(filter);
+};
+
+
 export const findActivities = ({ filter, skip, limit, sort = { createdAt: -1 } }) => {
     return Activity.find(filter)
         .sort(sort)
