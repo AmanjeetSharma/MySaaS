@@ -221,7 +221,7 @@ const CustomerDetails = () => {
 
       {/* Compact High-Density Scoreboard */}
       {statistics && (
-        <section 
+        <section
           className="bg-background border border-border rounded-xl p-3 shadow-sm"
           aria-labelledby="metrics-summary-heading"
         >
@@ -436,19 +436,21 @@ const CustomerDetails = () => {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely certain?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to delete this?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This structural layout modification soft-deletes or completely drops the customer reference profile. This operational method is non-reversible.
+              This action cannot be undone. This will permanently delete the customer and all associated deals.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abort Action</AlertDialogCancel>
+            <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground cursor-pointer"
               disabled={isUpdating}
               onClick={handleDeleteCustomer}
             >
-              Confirm Deprecate
+              {isUpdating ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
