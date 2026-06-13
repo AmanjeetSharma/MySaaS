@@ -489,7 +489,7 @@ const Register = () => {
             </DialogTitle>
             
             <DialogDescription className="text-sm text-muted-foreground pt-1">
-              Your account has been created.
+              Now you can sign in and start using your account. Redirecting you to the sign in page shortly.
             </DialogDescription>
           </DialogHeader>
 
