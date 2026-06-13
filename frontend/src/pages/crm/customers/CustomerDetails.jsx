@@ -313,13 +313,14 @@ const CustomerDetails = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
+                <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Status:</span>
                 {/* 2. Status Control */}
                 <Select onValueChange={handleStatusChange} defaultValue="all">
-                  <SelectTrigger className="h-9 w-full sm:w-32 text-sm">
+                  <SelectTrigger className="h-9 w-full sm:w-32 text-sm cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="won">Won</SelectItem>
                     <SelectItem value="lost">Lost</SelectItem>
@@ -327,15 +328,16 @@ const CustomerDetails = () => {
                 </Select>
 
                 {/* 3. Sort Control */}
+                <span className="hidden sm:inline-flex text-sm text-muted-foreground whitespace-nowrap">Filter by:</span>
                 <Select onValueChange={handleSortChange} defaultValue="newest">
-                  <SelectTrigger className="h-9 w-full sm:w-40 text-sm">
+                  <SelectTrigger className="h-9 w-full sm:w-40 text-sm cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Date Created (New)</SelectItem>
-                    <SelectItem value="oldest">Date Created (Old)</SelectItem>
-                    <SelectItem value="titleAsc">Alphabetical (A-Z)</SelectItem>
-                    <SelectItem value="titleDesc">Alphabetical (Z-A)</SelectItem>
+                    <SelectItem value="newest">New</SelectItem>
+                    <SelectItem value="oldest">Old</SelectItem>
+                    <SelectItem value="titleAsc">A-Z</SelectItem>
+                    <SelectItem value="titleDesc">Z-A</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -344,7 +346,7 @@ const CustomerDetails = () => {
               <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground whitespace-nowrap min-w-fit">
                 <span>Rows per page:</span>
                 <Select onValueChange={handleLimitChange} defaultValue="10">
-                  <SelectTrigger className="h-9 w-20 text-sm">
+                  <SelectTrigger className="h-9 w-20 text-sm cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
