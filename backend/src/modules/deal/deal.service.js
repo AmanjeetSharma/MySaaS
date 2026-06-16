@@ -110,7 +110,7 @@ export const updateDealService = async (userId, dealId, title) => {
     }
 
     console.log(`Deal updated | Deal ID: ${deal._id} | Organization ID: ${deal.organization} | Updated By: ${userId}`);
-
+    
     return deal;
 };
 

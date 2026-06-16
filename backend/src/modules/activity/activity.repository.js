@@ -21,11 +21,16 @@ export const findDealById = (dealId) => {
 }
 
 
-export const createActivity = (userId, payload) => {
-    return Activity.create({
+export const createActivity = async (userId, payload) => {
+    const activity = await Activity.create({
         ...payload,
         createdBy: userId
     });
+
+    return activity.populate([
+        { path: "createdBy", select: "name email" },
+        { path: "customer", select: "name email" }
+    ]);
 };
 
 

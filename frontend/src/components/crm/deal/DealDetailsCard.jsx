@@ -1,221 +1,264 @@
+import { useNavigate } from "react-router-dom";
 import {
-    CalendarDays,
-    Mail,
-    Phone,
-    User,
-    Clock3,
-    Pencil,
-    Flag,
-    Trash2,
+  CalendarDays,
+  Mail,
+  Phone,
+  User,
+  Clock3,
+  Pencil,
+  ArrowUpRight,
+  Flag,
+  Trash2,
 } from "lucide-react";
-
 import { format } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-const STATUS_VARIANTS = {
-    active: "default",
-    won: "success",
-    lost: "destructive",
+const STATUS_STYLES = {
+  active: {
+    variant: "secondary",
+    className:
+      "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  },
+  won: {
+    variant: "default",
+    className:
+      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  },
+  lost: {
+    variant: "destructive",
+    className:
+      "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+  },
 };
 
-const DealDetailsCard = ({
-    deal,
-    onEdit,
-    onStatus,
-    onDelete,
-}) => {
-    if (!deal) return null;
+const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
+  if (!deal) return null;
 
-    const status =
-        deal.status?.toLowerCase() || "active";
+  const status = deal.status?.toLowerCase() || "active";
+  const navigate = useNavigate();
+  const statusConfig = STATUS_STYLES[status] || STATUS_STYLES.active;
 
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-4 pb-4">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-semibold tracking-tight">
-                            {deal.title}
-                        </h1>
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    try {
+      return format(new Date(dateString), "dd MMM yyyy");
+    } catch {
+      return "—";
+    }
+  };
 
-                        <Badge
-                            variant={
-                                STATUS_VARIANTS[status] || "secondary"
-                            }
-                        >
-                            {status}
-                        </Badge>
-                    </div>
+  return (
+    <Card className="border-muted/80 shadow-lg rounded-xl overflow-hidden bg-gradient-to-b from-card to-background text-card-foreground max-w-none h-full transition-all duration-300 hover:shadow-xl hover:border-muted-foreground/20 flex flex-col">
 
-                    <p className="text-sm text-muted-foreground">
-                        Deal created and managed inside CRM.
-                    </p>
+      {/* Header */}
+      <CardHeader className="px-6 pt-6 pb-3 space-y-0 flex flex-row items-center justify-between gap-4 shrink-0">
+        <div className="flex flex-col gap-1 truncate max-w-[70%]">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+            Deal Overview
+          </span>
+
+          <h1 className="text-lg font-semibold tracking-tight text-foreground/90 truncate">
+            {deal.title || "Untitled Deal"}
+          </h1>
+        </div>
+
+        <Badge
+          variant={statusConfig.variant}
+          className={`capitalize px-3 py-0.5 text-[11px] font-medium tracking-wide shadow-sm shrink-0 border border-solid ${statusConfig.className}`}
+        >
+          {status}
+        </Badge>
+      </CardHeader>
+
+      {/* Separator */}
+      <div className="px-6">
+        <Separator className="bg-muted/60" />
+      </div>
+
+      {/* Body */}
+      <CardContent className="px-6 pt-4 pb-6 space-y-4 text-xs flex-1 overflow-y-auto">
+
+        {/* Customer Profile */}
+        <div className="space-y-2.5">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-2">
+            <User className="h-3.5 w-3.5 text-muted-foreground/50" />
+            Customer Profile
+          </div>
+
+          <div className="space-y-2">
+            <div className="font-semibold text-foreground text-sm tracking-tight">
+              {deal.customer?.name || "Unknown Customer"}
+            </div>
+
+            <div className="space-y-2">
+              {deal.customer?.email && (
+                <div className="flex items-center gap-2.5 text-muted-foreground/90">
+                  <Mail className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                  <a
+                    href={`mailto:${deal.customer.email}`}
+                    className="group inline-flex items-center hover:text-primary underline-offset-4 hover:underline truncate transition-colors font-medium"
+                  >
+                    <span className="truncate">
+                      {deal.customer.email}
+                    </span>
+                    <ArrowUpRight className="h-3 w-3 ml-0.5 text-muted-foreground/40 group-hover:text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
                 </div>
+              )}
 
-                <div className="flex items-center gap-2">
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={onEdit}
-                    >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={onStatus}
-                    >
-                        <Flag className="mr-2 h-4 w-4" />
-                        Status
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={onDelete}
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                    </Button>
+              {deal.customer?.phone && (
+                <div className="flex items-center gap-2.5 text-muted-foreground/90">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                  <a
+                    href={`tel:${deal.customer.phone}`}
+                    className="hover:text-primary transition-colors font-medium"
+                  >
+                    {deal.customer.phone}
+                  </a>
                 </div>
-            </CardHeader>
+              )}
+            </div>
+          </div>
+        </div>
 
-            <CardContent>
-                <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Customer Section */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Customer
-                        </h3>
+        <Separator className="bg-muted/60" />
 
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <User className="h-4 w-4 text-muted-foreground" />
+        {/* Timeline */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground/90">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground/40" />
+              <span>Created on</span>
+            </div>
+            <span className="font-medium text-foreground/80">
+              {formatDate(deal.createdAt)}
+            </span>
+          </div>
 
-                                <div>
-                                    <p className="text-sm font-medium">
-                                        {deal.customer?.name || "Unknown"}
-                                    </p>
-                                </div>
-                            </div>
+          <div className="flex items-center justify-between text-muted-foreground/90">
+            <div className="flex items-center gap-2">
+              <Clock3 className="h-3.5 w-3.5 text-muted-foreground/40" />
+              <span>Latest Interaction</span>
+            </div>
+            <span className="font-medium text-foreground/80">
+              {formatDate(deal.latestInteractionAt)}
+            </span>
+          </div>
 
-                            {deal.customer?.email && (
-                                <div className="flex items-center gap-3">
-                                    <Mail className="h-4 w-4 text-muted-foreground" />
+          {deal.closedAt && (
+            <div
+              className={`flex items-center justify-between p-2 rounded-xl border mt-2 ${
+                status === "lost"
+                  ? "bg-rose-500/5 text-rose-600 border-rose-500/10 dark:text-rose-400"
+                  : status === "won"
+                  ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/10 dark:text-emerald-400"
+                  : "bg-muted/40 text-muted-foreground border-muted/60"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-3.5 w-3.5 opacity-80" />
+                <span className="font-medium capitalize">
+                  Closed ({status})
+                </span>
+              </div>
+              <span className="font-semibold">
+                {formatDate(deal.closedAt)}
+              </span>
+            </div>
+          )}
+        </div>
 
-                                    <p className="text-sm">
-                                        {deal.customer.email}
-                                    </p>
-                                </div>
-                            )}
+        <Separator className="bg-muted/60" />
 
-                            {deal.customer?.phone && (
-                                <div className="flex items-center gap-3">
-                                    <Phone className="h-4 w-4 text-muted-foreground" />
+        {/* Audit */}
+        <div className="space-y-2 text-[11px]">
+          <div className="flex items-center justify-between text-muted-foreground/90">
+            <div className="flex items-center gap-2">
+              <User className="h-3.5 w-3.5 text-muted-foreground/40" />
+              <span>Owner</span>
+            </div>
+            {deal.createdBy?._id ? (
+              <Button
+                variant="link"
+                className="h-auto p-0 text-[11px] cursor-pointer"
+                onClick={() =>
+                  navigate(`/members/${deal.createdBy._id}`)
+                }
+              >
+                {deal.createdBy.name}
+                <ArrowUpRight className="h-3 w-3 ml-1" />
+              </Button>
+            ) : (
+              <span className="italic text-muted-foreground/60">
+                System Base
+              </span>
+            )}
+          </div>
 
-                                    <p className="text-sm">
-                                        {deal.customer.phone}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+          <div className="flex items-center justify-between text-muted-foreground/90">
+            <div className="flex items-center gap-2">
+              <Clock3 className="h-3.5 w-3.5 text-muted-foreground/40" />
+              <span>Updated By</span>
+            </div>
+            {deal.updatedBy?._id ? (
+              <Button
+                variant="link"
+                className="h-auto p-0 text-[11px] cursor-pointer"
+                onClick={() =>
+                  navigate(`/members/${deal.updatedBy._id}`)
+                }
+              >
+                {deal.updatedBy.name}
+                <ArrowUpRight className="h-3 w-3 ml-1" />
+              </Button>
+            ) : (
+              <span className="italic text-muted-foreground/60">
+                System Process
+              </span>
+            )}
+          </div>
+        </div>
 
-                    {/* Deal Metadata */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Deal Information
-                        </h3>
+        {/* Actions */}
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEdit}
+            className="h-9 text-xs rounded-xl"
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Edit Details
+          </Button>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onStatus}
+            className="h-9 text-xs rounded-xl"
+          >
+            <Flag className="mr-1.5 h-3.5 w-3.5" />
+            Status
+          </Button>
 
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Created
-                                    </p>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onDelete}
+            className="h-9 text-xs rounded-xl"
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+            Delete
+          </Button>
+        </div>
 
-                                    <p className="text-sm">
-                                        {deal.createdAt
-                                            ? format(
-                                                new Date(deal.createdAt),
-                                                "dd MMM yyyy"
-                                            )
-                                            : "-"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <Clock3 className="h-4 w-4 text-muted-foreground" />
-
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Latest Interaction
-                                    </p>
-
-                                    <p className="text-sm">
-                                        {deal.latestInteractionAt
-                                            ? format(
-                                                new Date(
-                                                    deal.latestInteractionAt
-                                                ),
-                                                "dd MMM yyyy"
-                                            )
-                                            : "No interaction yet"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <User className="h-4 w-4 text-muted-foreground" />
-
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Created By
-                                    </p>
-
-                                    <p className="text-sm">
-                                        {deal.createdBy?.name ||
-                                            "Unknown User"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {deal.closedAt && (
-                                <div className="flex items-center gap-3">
-                                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">
-                                            Closed At
-                                        </p>
-
-                                        <p className="text-sm">
-                                            {format(
-                                                new Date(deal.closedAt),
-                                                "dd MMM yyyy"
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
+      </CardContent>
+    </Card>
+  );
 };
 
 export default DealDetailsCard;

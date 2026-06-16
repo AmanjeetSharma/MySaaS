@@ -140,29 +140,38 @@ export const useDealStore = create((set, get) => ({
         });
 
         try {
-            const response = await http.patch(`/deals/${dealId}`, payload);
-            const deal = response.data.data;
+            const response = await http.patch(
+                `/deals/${dealId}`,
+                payload
+            );
 
-            set(state => ({
-                deals: mergeEntityById(state.deals, deal),
-                currentDeal: getEntityId(state.currentDeal) === getEntityId(deal)
-                    ? { ...state.currentDeal, ...deal }
-                    : state.currentDeal,
+            // Fetch fully hydrated deal
+            const freshDeal = await get().getDealById(dealId);
+
+            useCustomerStore
+                .getState()
+                .upsertDealInCustomerDeals(freshDeal);
+
+            set({
                 isUpdating: false,
                 error: null,
-            }));
-
-            useCustomerStore.getState().upsertDealInCustomerDeals(deal);
+            });
 
             if (!options.silent) {
-                toast.success(getApiMessage(response, 'Deal updated'), {
-                    icon: toastIcon('success'),
-                });
+                toast.success(
+                    getApiMessage(response, "Deal updated"),
+                    {
+                        icon: toastIcon("success"),
+                    }
+                );
             }
 
-            return deal;
+            return freshDeal;
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to update deal');
+            const errorMessage = getErrorMessage(
+                error,
+                "Failed to update deal"
+            );
 
             set({
                 isUpdating: false,
@@ -170,42 +179,59 @@ export const useDealStore = create((set, get) => ({
             });
 
             toast.error(errorMessage, {
-                icon: toastIcon('error'),
+                icon: toastIcon("error"),
             });
+
             throw error;
         }
     },
 
-    updateDealStatus: async (dealId, status, options = {}) => {
+    updateDealStatus: async (
+        dealId,
+        status,
+        options = {}
+    ) => {
         set({
             isUpdating: true,
             error: null,
         });
 
         try {
-            const response = await http.patch(`/deals/${dealId}/status`, { status });
-            const deal = response.data.data;
+            const response = await http.patch(
+                `/deals/${dealId}/status`,
+                { status }
+            );
 
-            set(state => ({
-                deals: mergeEntityById(state.deals, deal),
-                currentDeal: getEntityId(state.currentDeal) === getEntityId(deal)
-                    ? { ...state.currentDeal, ...deal }
-                    : state.currentDeal,
+            // Fetch fully hydrated deal
+            const freshDeal = await get().getDealById(dealId);
+
+            useCustomerStore
+                .getState()
+                .upsertDealInCustomerDeals(freshDeal);
+
+            set({
                 isUpdating: false,
                 error: null,
-            }));
-
-            useCustomerStore.getState().upsertDealInCustomerDeals(deal);
+            });
 
             if (!options.silent) {
-                toast.success(getApiMessage(response, 'Deal status updated'), {
-                    icon: toastIcon('success'),
-                });
+                toast.success(
+                    getApiMessage(
+                        response,
+                        "Deal status updated"
+                    ),
+                    {
+                        icon: toastIcon("success"),
+                    }
+                );
             }
 
-            return deal;
+            return freshDeal;
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to update deal status');
+            const errorMessage = getErrorMessage(
+                error,
+                "Failed to update deal status"
+            );
 
             set({
                 isUpdating: false,
@@ -213,8 +239,9 @@ export const useDealStore = create((set, get) => ({
             });
 
             toast.error(errorMessage, {
-                icon: toastIcon('error'),
+                icon: toastIcon("error"),
             });
+
             throw error;
         }
     },

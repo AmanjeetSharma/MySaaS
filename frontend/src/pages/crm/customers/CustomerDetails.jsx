@@ -199,11 +199,11 @@ const CustomerDetails = () => {
   if (!currentCustomer) {
     return (
       <Card className="border-dashed">
-        <CardContent className="flex min-h-[300px] flex-col items-center justify-center gap-3">
+        <CardContent className="flex min-h-75 flex-col items-center justify-center gap-3">
           <Building2 className="size-8 text-muted-foreground opacity-60" />
           <h2 className="text-lg font-medium tracking-tight">Customer Not Found</h2>
           <Button variant="outline" size="sm" onClick={() => navigate("/customers")}>
-            Back to Directory
+            Back to Customers
           </Button>
         </CardContent>
       </Card>
@@ -360,7 +360,7 @@ const CustomerDetails = () => {
             </div>
           ) : deals.length > 0 ? (
             <>
-              {/* Filter Subheading Match Count */};;
+              {/* Filter Subheading Match Count */}
               <div className="text-xs font-medium text-muted-foreground select-none pb-1">
                 Found {totalDeals} {totalDeals === 1 ? 'matching deal' : 'matching deals'}
               </div>

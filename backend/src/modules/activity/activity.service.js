@@ -153,9 +153,20 @@ export const updateActivityService = async (
 
     try {
         await activity.save();
+
+        await activity.populate([ 
+            {
+                path: "createdBy",
+                select: "name email"
+            },
+            {
+                path: "updatedBy",
+                select: "name email"
+            }
+        ]);
     } catch (error) {
         console.error("Activity update failed:", error);
-        throw new ApiError(500, "An error occurred while updating the activity, please try again");
+        throw new ApiError(500, "Failed to update activity");
     }
 
     console.log(`Activity updated | Type: '${activity.type}' | Event: '${activity.event}' | ID: '${activity._id}'`);
