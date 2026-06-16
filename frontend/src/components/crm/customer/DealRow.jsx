@@ -150,7 +150,7 @@ const DealRow = ({ deal }) => {
           </p>
         </div>
 
-        <div className="min-w-[120px] justify-center">
+        <div className="min-w-30 justify-center">
           <Badge
             variant="outline"
             className={status.badgeClass}
@@ -160,7 +160,7 @@ const DealRow = ({ deal }) => {
           </Badge>
         </div>
 
-        <div className="min-w-[140px] text-center">
+        <div className="min-w-35 text-center">
           <p className="text-xs text-muted-foreground">
             Last Interaction
           </p>
@@ -172,7 +172,7 @@ const DealRow = ({ deal }) => {
           </p>
         </div>
 
-        <div className="min-w-[120px] text-center">
+        <div className="min-w-30 text-center">
           <p className="text-xs text-muted-foreground">
             Created
           </p>
@@ -182,7 +182,7 @@ const DealRow = ({ deal }) => {
           </p>
         </div>
 
-        <div className="min-w-[120px] text-center">
+        <div className="min-w-30 text-center">
           <p className="text-xs text-muted-foreground">
             Closed
           </p>

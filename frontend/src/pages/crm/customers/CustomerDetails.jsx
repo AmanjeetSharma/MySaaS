@@ -360,7 +360,7 @@ const CustomerDetails = () => {
             </div>
           ) : deals.length > 0 ? (
             <>
-              {/* Filter Subheading Match Count */}
+              {/* Filter Subheading Match Count */};;
               <div className="text-xs font-medium text-muted-foreground select-none pb-1">
                 Found {totalDeals} {totalDeals === 1 ? 'matching deal' : 'matching deals'}
               </div>

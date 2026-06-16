@@ -12,7 +12,7 @@ import {
     getDealStatistics,
     findDealActivities,
 } from "./deal.repository.js";
-
+import { encodeCursor } from "../../utils/cursor.js";
 
 
 
@@ -364,8 +364,9 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
 
 
 
+const PAGE_SIZE = 10;
 
-export const getDealActivitiesService = async (userId, dealId, cursor) => {
+export const getDealActivitiesService = async (userId, dealId, cursor = null) => {
     if (!dealId || !mongoose.Types.ObjectId.isValid(dealId)) {
         throw new ApiError(400, "Deal ID is required and must be valid");
     }
@@ -381,25 +382,31 @@ export const getDealActivitiesService = async (userId, dealId, cursor) => {
     }
 
     try {
-        const results = await findDealActivities(dealId, cursor);
+        const results = await findDealActivities(dealId, cursor, PAGE_SIZE + 1);
 
-        const hasMore = results.length > 10;
+        const hasMore = results.length > PAGE_SIZE;
 
-        const activities = hasMore ? results.slice(0, 10) : results;
+        const activities = hasMore ? results.slice(0, PAGE_SIZE) : results;
 
-        const nextCursor = hasMore ? activities[activities.length - 1].createdAt : null;
-
-        console.log(`Deal activities retrieved | Deal ID: ${dealId} | Retrieved By: ${userId} | Activities Returned: ${activities.length} | Has More: ${hasMore}`);
+        const lastActivity = activities.length > 0 ? activities[activities.length - 1] : null;
 
         return {
             activities,
             hasMore,
-            nextCursor
+            nextCursor: hasMore ?
+                encodeCursor({
+                    createdAt: lastActivity.createdAt,
+                    _id: lastActivity._id
+                })
+                : null
         };
     } catch (error) {
         console.error("Failed to fetch deal activities:", error);
-        throw new ApiError(500, error.message || "Failed to retrieve deal activities, please try again");
-    };
+        throw new ApiError(
+            500,
+            "Failed to retrieve deal activities, please try again"
+        );
+    }
 };
 
 

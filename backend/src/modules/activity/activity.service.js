@@ -66,6 +66,8 @@ export const createActivityService = async (
         throw new ApiError(500, "An error occurred while creating the activity, please try again");
     }
 
+    console.log(`Activity created | Type: '${type}' | Event: '${event}' | Deal: '${deal.title.substring(0, 20)}...'`);
+
     return {
         activity,
         message: `Activity of type '${type}' created successfully for deal '${deal.title.substring(0, 20)}...'`
@@ -156,6 +158,8 @@ export const updateActivityService = async (
         throw new ApiError(500, "An error occurred while updating the activity, please try again");
     }
 
+    console.log(`Activity updated | Type: '${activity.type}' | Event: '${activity.event}' | ID: '${activity._id}'`);
+
     return {
         activity,
         message: `Activity updated successfully`
@@ -192,6 +196,8 @@ export const deleteActivityService = async (userId, activityId) => {
         throw new ApiError(500, "An error occurred while deleting the activity, please try again");
     }
 
+    console.log(`Activity deleted | Type: '${activity.type}' | Event: '${activity.event}' | ID: '${activity._id}'`);
+
     return {
         message: `Activity deleted | Type: '${activity.type}' | Event: '${activity.event}'`
     }
@@ -223,13 +229,12 @@ export const getAllActivitiesService = async (userId, { cursor = null }) => {
 
     const nextCursor = activities.length > 0 ? activities[activities.length - 1].createdAt : null;
 
+    console.log(`Fetched ${activities.length} activities for user ${user.email} with cursor ${cursor}`);
+
     return {
         activities,
         nextCursor,
         hasMore: activities.length === 10,
         message: activities.length > 0 ? "Activities retrieved successfully" : "No more activities to display"
     }
-
-
-
 };

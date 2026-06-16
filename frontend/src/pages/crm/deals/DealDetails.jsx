@@ -1,179 +1,467 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Clock3, ExternalLink, User } from 'lucide-react';
-import { useDealStore } from '@/stores';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-const getEntityId = (entity) => {
-  if (!entity) return null;
-  if (typeof entity === 'string') return entity;
-  return entity._id || entity.id || null;
-};
+import {
+  ArrowLeft,
+  Plus,
+  Loader2,
+} from "lucide-react";
 
-const formatDateTime = (value) => {
-  if (!value) return 'Not available';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not available';
-  return date.toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-};
+import { Button } from "@/components/ui/button";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { Skeleton } from "@/components/ui/skeleton";
+
+import DealDetailsCard from "@/components/crm/deal/DealDetailsCard";
+import DealEditDialog from "@/components/crm/deal/DealEditDialog";
+import DealStatusDialog from "@/components/crm/deal/DealStatusDialog";
+import DealActivity from "@/components/crm/deal/DealActivity";
+import ActivityFormDialog from "@/components/crm/deal/ActivityFormDialog";
+
+import {
+  useDealStore,
+  useActivityStore,
+} from "@/stores";
 
 const DealDetails = () => {
-  const { dealId } = useParams();
   const navigate = useNavigate();
-  const { currentDeal, getDealById, isLoading } = useDealStore();
-  const [deal, setDeal] = useState(null);
+
+  const { dealId } = useParams();
+
+  const {
+    currentDeal,
+    activitiesByDealId,
+
+    getDealById,
+    getDealActivities,
+
+    deleteDeal,
+
+    isLoading,
+    isActivitiesLoading,
+    isUpdating,
+  } = useDealStore();
+
+  const {
+    deleteActivity,
+  } = useActivityStore();
+
+  const [isEditOpen, setIsEditOpen] =
+    useState(false);
+
+  const [isStatusOpen, setIsStatusOpen] =
+    useState(false);
+
+  const [isActivityOpen, setIsActivityOpen] =
+    useState(false);
+
+  const [editingActivity, setEditingActivity] =
+    useState(null);
+
+  const [activityDialogMode, setActivityDialogMode] =
+    useState("create");
+
+  const [deleteDealOpen, setDeleteDealOpen] =
+    useState(false);
+
+  const [deleteActivityOpen, setDeleteActivityOpen] =
+    useState(false);
+
+  const [selectedActivity, setSelectedActivity] =
+    useState(null);
+
+  const activityFeed =
+    activitiesByDealId?.[dealId];
+
+  const activities =
+    activityFeed?.activities || [];
+
+  const hasMore =
+    activityFeed?.hasMore || false;
+
+  const nextCursor =
+    activityFeed?.nextCursor || null;
 
   useEffect(() => {
-    const loadDeal = async () => {
+    if (!dealId) return;
+
+    const loadData = async () => {
       try {
-        const data = await getDealById(dealId);
-        setDeal(data);
-      } catch {
-        navigate('/deals');
+        await Promise.all([
+          getDealById(dealId),
+          getDealActivities(dealId),
+        ]);
+      } catch (error) {
+        console.error(error);
       }
     };
 
-    loadDeal();
-  }, [dealId, getDealById, navigate]);
+    loadData();
+  }, [
+    dealId,
+    getDealById,
+    getDealActivities,
+  ]);
 
-  useEffect(() => {
-    if (currentDeal && getEntityId(currentDeal) === dealId) {
-      setDeal(currentDeal);
-    }
-  }, [currentDeal, dealId]);
+  const handleLoadMore =
+    async () => {
+      try {
+        await getDealActivities(
+          dealId,
+          {
+            cursor: nextCursor,
+            append: true,
+          }
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-  const statusTone = useMemo(() => {
-    if (!deal?.status || deal.status === 'active') return 'outline';
-    if (deal.status === 'won') return 'default';
-    return 'destructive';
-  }, [deal?.status]);
+  const handleDeleteDeal =
+    async () => {
+      try {
+        await deleteDeal(dealId);
 
-  if (isLoading && !deal) {
-    return <div className="h-72 animate-pulse rounded-3xl border border-border/70 bg-muted/30" />;
+        navigate("/customers");
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const handleDeleteActivity =
+    async () => {
+      if (!selectedActivity) return;
+
+      try {
+        await deleteActivity(
+          selectedActivity._id,
+          {
+            activity:
+              selectedActivity,
+            dealId,
+          }
+        );
+
+        setDeleteActivityOpen(
+          false
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const openCreateActivity =
+    () => {
+      setEditingActivity(null);
+
+      setActivityDialogMode(
+        "create"
+      );
+
+      setIsActivityOpen(true);
+    };
+
+  const openEditActivity =
+    (activity) => {
+      setEditingActivity(
+        activity
+      );
+
+      setActivityDialogMode(
+        "edit"
+      );
+
+      setIsActivityOpen(true);
+    };
+
+  const openDeleteActivity =
+    (activity) => {
+      setSelectedActivity(
+        activity
+      );
+
+      setDeleteActivityOpen(
+        true
+      );
+    };
+
+  if (
+    isLoading &&
+    !currentDeal
+  ) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-40" />
+
+        <Skeleton className="h-56 w-full" />
+
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
   }
 
-  if (!deal) {
-    return null;
+  if (!currentDeal) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        Deal not found.
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <button
-        type="button"
-        onClick={() => navigate('/deals')}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        Back to deals
-      </button>
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* Header */}
 
-            <section className="rounded-3xl border border-border/70 bg-linear-to-br from-background via-background to-muted/35 p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              <Clock3 className="size-3.5" />
-              Deal record
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{deal.title}</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-              This page is backed by <span className="font-medium text-foreground">getDealById</span> and is ready for your deeper deal workflow.
-            </p>
-          </div>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          onClick={() =>
+            navigate(-1)
+          }
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
 
-          <Badge variant={statusTone}>{deal.status || 'active'}</Badge>
-        </div>
+          Back
+        </Button>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Customer</p>
-            <p className="mt-2 text-sm font-medium">
-              {deal.customer?.name ? (
-                <Link to={`/customers/${getEntityId(deal.customer)}`} className="inline-flex items-center gap-1 hover:underline">
-                  {deal.customer.name}
-                  <ExternalLink className="size-3.5" />
-                </Link>
-              ) : 'Not populated'}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Created</p>
-            <p className="mt-2 text-sm font-medium">{formatDateTime(deal.createdAt)}</p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Updated</p>
-            <p className="mt-2 text-sm font-medium">{formatDateTime(deal.updatedAt)}</p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Closed at</p>
-            <p className="mt-2 text-sm font-medium">{formatDateTime(deal.closedAt)}</p>
-          </div>
-        </div>
-      </section>
+        <Button
+          onClick={
+            openCreateActivity
+          }
+        >
+          <Plus className="mr-2 h-4 w-4" />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
-        <Card className="overflow-hidden border-border/70">
-          <CardHeader className="border-b border-border/60">
-            <CardTitle>Deal details</CardTitle>
-            <CardDescription>Core fields returned from the deal API.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  <User className="size-3.5" />
-                  Assigned customer
-                </div>
-                <p className="mt-2 text-sm font-medium">{deal.customer?.name || 'Not populated'}</p>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  <CalendarDays className="size-3.5" />
-                  Latest interaction
-                </div>
-                <p className="mt-2 text-sm font-medium">{formatDateTime(deal.latestInteractionAt)}</p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                Use this page as the landing screen after creating a new deal from the customer workflow.
-              </p>
-              <p>
-                The next step is usually to add pipeline stages, notes, and activities around the deal itself.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-border/70">
-          <CardHeader className="border-b border-border/60">
-            <CardTitle>Related links</CardTitle>
-            <CardDescription>Jump back to the customer or deal list.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-4">
-            <Button variant="outline" className="w-full justify-start gap-2" asChild>
-              <Link to={deal.customer?.name ? `/customers/${getEntityId(deal.customer)}` : '/customers'}>
-                <User className="size-4" />
-                Open customer
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" asChild>
-              <Link to="/deals">
-                <ExternalLink className="size-4" />
-                Back to deals
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+          Add Activity
+        </Button>
       </div>
+
+      {/* Deal Details */}
+
+      <DealDetailsCard
+        deal={currentDeal}
+        onEdit={() =>
+          setIsEditOpen(true)
+        }
+        onStatus={() =>
+          setIsStatusOpen(true)
+        }
+        onDelete={() =>
+          setDeleteDealOpen(
+            true
+          )
+        }
+      />
+
+      {/* Activities */}
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold">
+            Activity Timeline
+          </h2>
+
+          <p className="text-sm text-muted-foreground">
+            Complete history of
+            customer interactions.
+          </p>
+        </div>
+
+        {activities.length ===
+          0 ? (
+          <div className="rounded-lg border border-dashed p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              No activities yet.
+            </p>
+
+            <Button
+              size="sm"
+              className="mt-4"
+              onClick={
+                openCreateActivity
+              }
+            >
+              Create First
+              Activity
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activities.map(
+              (
+                activity
+              ) => (
+                <DealActivity
+                  key={
+                    activity._id
+                  }
+                  activity={
+                    activity
+                  }
+                  onEdit={() =>
+                    openEditActivity(
+                      activity
+                    )
+                  }
+                  onDelete={() =>
+                    openDeleteActivity(
+                      activity
+                    )
+                  }
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={
+                handleLoadMore
+              }
+              disabled={
+                isActivitiesLoading
+              }
+            >
+              {isActivitiesLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load More"
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Deal */}
+
+      <DealEditDialog
+        open={isEditOpen}
+        onOpenChange={
+          setIsEditOpen
+        }
+        deal={currentDeal}
+      />
+
+      {/* Status */}
+
+      <DealStatusDialog
+        open={isStatusOpen}
+        onOpenChange={
+          setIsStatusOpen
+        }
+        deal={currentDeal}
+      />
+
+      {/* Activity */}
+
+      <ActivityFormDialog
+        open={
+          isActivityOpen
+        }
+        onOpenChange={
+          setIsActivityOpen
+        }
+        mode={
+          activityDialogMode
+        }
+        dealId={dealId}
+        activity={
+          editingActivity
+        }
+      />
+
+      {/* Delete Deal */}
+
+      <AlertDialog
+        open={
+          deleteDealOpen
+        }
+        onOpenChange={
+          setDeleteDealOpen
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete Deal
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={
+                handleDeleteDeal
+              }
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Activity */}
+
+      <AlertDialog
+        open={
+          deleteActivityOpen
+        }
+        onOpenChange={
+          setDeleteActivityOpen
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete Activity
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This activity will
+              be permanently
+              removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={
+                handleDeleteActivity
+              }
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -112,20 +112,24 @@ export const getDealStatistics = (filter) => {
 }
 
 
-export const findDealActivities = async (dealId, cursor = null) => {
-    const filter = {
-        deal: dealId
-    };
+export const findDealActivities = async (dealId, cursor = null, limit = 11) => {
+    const filter = { deal: dealId };
 
-    if (cursor) {
-        filter.createdAt = {
-            $lt: new Date(cursor)
-        };
+    if (cursor?.createdAt && cursor?._id) {
+        filter.$or = [
+            {
+                createdAt: { $lt: new Date(cursor.createdAt) }
+            },
+            {
+                createdAt: new Date(cursor.createdAt),
+                _id: { $lt: cursor._id }
+            }
+        ];
     }
 
     return Activity.find(filter)
-        .sort({ createdAt: -1 })
-        .limit(11) // fetching 1 extra to determine hasMore
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(limit)
         .populate("createdBy", "name email")
         .populate("updatedBy", "name email")
         .lean();

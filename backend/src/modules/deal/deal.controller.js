@@ -1,4 +1,5 @@
 import { ApiResponse } from "../../utils/ApiResponse.js";
+import { ApiError } from "../../utils/ApiError.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import {
     createDealService,
@@ -9,6 +10,7 @@ import {
     getAllDealsForOrganizationService,
     getDealActivitiesService
 } from "./deal.service.js";
+import { decodeCursor } from "../../utils/cursor.js";
 
 
 export const createDealController = asyncHandler(async (req, res) => {
@@ -108,10 +110,18 @@ export const getAllDealsForOrganizationController = asyncHandler(async (req, res
 
 export const getDealActivitiesController = asyncHandler(async (req, res) => {
     const { cursor } = req.query;
+    let decodedCursor = null;
+
+    if (cursor) {
+        decodedCursor = decodeCursor(cursor);
+        if (!decodedCursor) {
+            throw new ApiError(400, "Invalid cursor value");
+        }
+    }
     const data = await getDealActivitiesService(
         req.user._id,
         req.params.dealId,
-        { cursor }
+        decodedCursor
     );
 
     return res.status(200).json(

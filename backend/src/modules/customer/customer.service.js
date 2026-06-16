@@ -341,11 +341,16 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
 
 
     if (search?.trim()) {
-        const searchTerm = search.trim().replace(/\s+/g, " ");
+        const safeSearch = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            .split(/\s+/)
+            .join('.*');
+
         filter.$or = [
-            { name: { $regex: searchTerm, $options: "i" } },
-            { email: { $regex: searchTerm, $options: "i" } },
-            { phone: { $regex: searchTerm, $options: "i" } }
+            { name: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+            { phone: { $regex: safeSearch, $options: "i" } }
         ];
     }
 

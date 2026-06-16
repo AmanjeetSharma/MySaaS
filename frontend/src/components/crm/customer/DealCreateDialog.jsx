@@ -83,7 +83,7 @@ const DealCreateDialog = ({ open, onOpenChange, customer, onSuccess }) => {
             <Label htmlFor="title">Deal Title</Label>
             <Input
               id="title"
-              placeholder="Website Development"
+              placeholder="Enter deal title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isUpdating}
