@@ -88,7 +88,7 @@ const Customer = () => {
           search: value,
           page: 1,
         }));
-      }, 300),
+      }, 400),
     []
   );
 
@@ -458,10 +458,10 @@ const Customer = () => {
                           type="submit"
                           size="sm"
                           variant="outline"
-                          className="group/btn h-7 gap-1 px-2 text-[10px] font-medium text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 border-border/60 hover:border-border cursor-pointer shadow-sm transition-all duration-150 rounded-md"
+                          className="group/btn h-7 gap-1 px-2 text-[10px] font-semibold text-foreground border-border hover:text-foreground/70 hover:border-border/70 cursor-pointer shadow-sm transition-all duration-200 rounded-md"
                         >
-                          <SkipForward className="size-3 text-muted-foreground/60 transition-transform duration-150 group-hover/btn:translate-x-0.5 group-hover/btn:text-foreground" />
-                          <span>Jump</span>
+                          <SkipForward className="size-3 text-foreground transition-all duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:text-foreground/70" />
+                          <span className="transition-all duration-200">Jump</span>
                         </Button>
                       </div>
                     </form>
