@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ import {
     getActivityColor
 } from "@/config/activityTypes.config";
 
-const DealActivity = ({ activity, onEdit, onDelete, isLast = false }) => {
+const DealActivity = ({ activity, onViewDetails, onEdit, onDelete, isLast = false }) => {
     if (!activity) return null;
 
     const typeConfig = getActivityType(activity.type);
@@ -72,12 +72,16 @@ const DealActivity = ({ activity, onEdit, onDelete, isLast = false }) => {
                                         variant="ghost"
                                         size="icon"
                                         className="h-6 w-6 sm:h-7 sm:w-7 opacity-100 sm:opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity -mt-1 -mr-1.5 cursor-pointer hover:bg-muted/50 rounded-md"
-                                    >   
+                                    >
                                         <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/70" />
                                         <span className="sr-only">Open actions</span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="text-xs min-w-[140px]">
+                                    <DropdownMenuItem onClick={() => onViewDetails?.(activity)} className="cursor-pointer">
+                                        <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                        View details
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onEdit?.(activity)} className="cursor-pointer">
                                         <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                                         Edit activity
@@ -98,11 +102,21 @@ const DealActivity = ({ activity, onEdit, onDelete, isLast = false }) => {
                             {activity.event}
                         </p>
 
-                        {/* Detailed Description Sub-Text Block */}
+                        {/* Detailed Description Sub-Text Block (Line Clamped) */}
+                        {/* Detailed Description Sub-Text Block (Line Clamped & Safe Word Break) */}
                         {activity.description && (
-                            <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap mb-2.5 max-w-3xl broken-words">
-                                {activity.description}
-                            </p>
+                            <div className="space-y-1.5 mb-2.5 min-w-0 w-full overflow-hidden">
+                                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap max-w-full line-clamp-3 break-all sm:break-words">
+                                    {activity.description}
+                                </p>
+                                {/* Read More */}
+                                <button
+                                    onClick={() => onViewDetails?.(activity)}
+                                    className="hidden sm:inline-block text-[11px] font-semibold text-primary hover:underline cursor-pointer focus:outline-none"
+                                >
+                                    Read more
+                                </button>
+                            </div>
                         )}
 
                         {/* Operational Context Metadata Line */}

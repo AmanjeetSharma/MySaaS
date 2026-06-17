@@ -18,7 +18,8 @@ import DealDetailsCard from "@/components/crm/deal/DealDetailsCard";
 import DealEditDialog from "@/components/crm/deal/DealEditDialog";
 import DealStatusDialog from "@/components/crm/deal/DealStatusDialog";
 import DealActivity from "@/components/crm/deal/DealActivity";
-import ActivityFormDialog from "@/components/crm/deal/ActivityFormDialog";
+import ActivityCreateDialog from "@/components/crm/deal/ActivityCreateDialog";
+import ActivityDetailsDialog from "@/components/crm/deal/ActivityDetailsDialog";
 
 import { useDealStore, useActivityStore } from "@/stores";
 
@@ -54,14 +55,18 @@ const DealDetails = () => {
 
   const { deleteActivity } = useActivityStore();
 
+  // Primary state configs
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(false);
-  const [editingActivity, setEditingActivity] = useState(null);
-  const [activityDialogMode, setActivityDialogMode] = useState("create");
   const [deleteDealOpen, setDeleteDealOpen] = useState(false);
   const [deleteActivityOpen, setDeleteActivityOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+  // New Unified Details & Edit Dialog States
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [detailsDialogMode, setDetailsDialogMode] = useState("view");
+  const [activeActivityId, setActiveActivityId] = useState(null);
 
   const activityFeed = activitiesByDealId?.[dealId];
   const activities = activityFeed?.activities || [];
@@ -108,15 +113,20 @@ const DealDetails = () => {
   };
 
   const openCreateActivity = () => {
-    setEditingActivity(null);
-    setActivityDialogMode("create");
     setIsActivityOpen(true);
   };
 
-  const openEditActivity = (activity) => {
-    setEditingActivity(activity);
-    setActivityDialogMode("edit");
-    setIsActivityOpen(true);
+  // Callback mapping from truncated DealActivity cards
+  const handleViewDetails = (activity) => {
+    setActiveActivityId(activity._id);
+    setDetailsDialogMode("view");
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEditActivity = (activity) => {
+    setActiveActivityId(activity._id);
+    setDetailsDialogMode("edit");
+    setDetailsDialogOpen(true);
   };
 
   const openDeleteActivity = (activity) => {
@@ -126,7 +136,6 @@ const DealDetails = () => {
 
   if (isLoading && !currentDeal) {
     return (
-      // Changed px-4 to px-2 on mobile devices
       <div className="px-2 md:px-6 py-4 md:py-8 max-w-360 mx-auto w-full">
         <Skeleton className="h-9 w-40 mb-6 md:mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4 sm:gap-6">
@@ -194,7 +203,6 @@ const DealDetails = () => {
           <CardContent className="p-0 flex-1 overflow-hidden flex flex-col">
             <ScrollArea className="h-full px-4 py-4 sm:px-6 sm:py-6">
               {activities.length === 0 ? (
-                /* Empty State */
                 <div className="flex flex-col items-center justify-center h-full py-12">
                   <div className="relative flex flex-col items-center">
                     <div className="w-px h-12 sm:h-16 bg-border" />
@@ -219,7 +227,6 @@ const DealDetails = () => {
                     const isLastGroup = gi === groups.length - 1;
                     return (
                       <div key={group.label} className="space-y-3">
-                        {/* Date Separator */}
                         <div className="flex items-center gap-2 sm:gap-4">
                           <div className="flex-1 h-px bg-border/60" />
                           <Badge
@@ -231,7 +238,6 @@ const DealDetails = () => {
                           <div className="flex-1 h-px bg-border/60" />
                         </div>
 
-                        {/* Activities */}
                         <div className="space-y-1">
                           {group.items.map((activity, ai) => {
                             const isLast = isLastGroup && ai === group.items.length - 1;
@@ -240,8 +246,9 @@ const DealDetails = () => {
                                 key={activity._id}
                                 activity={activity}
                                 isLast={isLast}
-                                onEdit={() => openEditActivity(activity)}
-                                onDelete={() => openDeleteActivity(activity)}
+                                onViewDetails={handleViewDetails}
+                                onEdit={handleEditActivity}
+                                onDelete={openDeleteActivity}
                               />
                             );
                           })}
@@ -274,7 +281,7 @@ const DealDetails = () => {
         </Card>
       </div>
 
-      {/* Dialogs */}
+      {/* Shared Dialogs Matrix */}
       <DealEditDialog
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
@@ -289,14 +296,23 @@ const DealDetails = () => {
         isUpdating={isUpdating}
         onSubmit={handleStatusUpdate}
       />
-      <ActivityFormDialog
+
+      {/* Creation Mode Only Form Dialog */}
+      <ActivityCreateDialog
         open={isActivityOpen}
         onOpenChange={setIsActivityOpen}
-        mode={activityDialogMode}
         dealId={dealId}
-        activity={editingActivity}
       />
 
+      {/* New Unified Details View & Edit Mode Dialog */}
+      <ActivityDetailsDialog
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        activityId={activeActivityId}
+        initialMode={detailsDialogMode}
+      />
+
+      {/* Delete Deal Confirmation */}
       <AlertDialog open={deleteDealOpen} onOpenChange={setDeleteDealOpen}>
         <AlertDialogContent className="max-w-[90vw] sm:max-w-lg rounded-xl">
           <AlertDialogHeader>
@@ -314,6 +330,7 @@ const DealDetails = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Delete Activity Confirmation */}
       <AlertDialog open={deleteActivityOpen} onOpenChange={setDeleteActivityOpen}>
         <AlertDialogContent className="max-w-[90vw] sm:max-w-lg rounded-xl">
           <AlertDialogHeader>
