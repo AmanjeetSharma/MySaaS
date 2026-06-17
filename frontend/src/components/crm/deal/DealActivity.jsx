@@ -84,14 +84,14 @@ const DealActivity = ({ activity, onViewDetails, onEdit, onDelete, isLast = fals
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onEdit?.(activity)} className="cursor-pointer">
                                         <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                                        Edit activity
+                                        Edit
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
                                         onClick={() => onDelete?.(activity)}
                                     >
                                         <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                        Delete activity
+                                        Delete
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>

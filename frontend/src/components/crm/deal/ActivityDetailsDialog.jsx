@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Loader2, Pencil, Calendar, User, Building, Briefcase, FileText } from "lucide-react";
+import { Loader2, Pencil, Calendar, User, Building, Briefcase, FileText, Sparkles } from "lucide-react";
 
 import {
     Dialog,
@@ -16,8 +16,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,6 +41,7 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
         event: "",
         description: "",
     });
+    const [charCount, setCharCount] = useState(0);
 
     useEffect(() => {
         if (open && activityId) {
@@ -56,21 +55,28 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
 
     useEffect(() => {
         if (selectedActivity) {
+            const descriptionText = selectedActivity.description || "";
             setForm({
                 type: selectedActivity.type || "note",
                 customType: selectedActivity.customType || "",
                 event: selectedActivity.event || "",
-                description: selectedActivity.description || "",
+                description: descriptionText,
             });
+            setCharCount(descriptionText.length);
         }
     }, [selectedActivity, mode]);
 
     const handleChange = (field, value) => {
         setForm(prev => ({ ...prev, [field]: value }));
+        if (field === "description") {
+            setCharCount(value.length);
+        }
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        if (!form.event.trim()) return;
+
         try {
             const payload = {
                 type: form.type,
@@ -96,7 +102,7 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-3xl p-0 gap-0 rounded-xl overflow-hidden shadow-xl border-border/50 bg-background flex flex-col max-h-[90vh]">
+            <DialogContent className="max-w-[95vw] md:max-w-3xl lg:max-w-4xl p-0 gap-0 rounded-2xl overflow-hidden shadow-2xl border-border/40 bg-background flex flex-col h-[85vh] transition-all duration-300">
 
                 {/* Global Loading View */}
                 {isLoadingActivityDetails && !selectedActivity ? (
@@ -116,32 +122,69 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
                     </div>
                 ) : (
                     <>
-                        {/* Header Area */}
-                        <DialogHeader className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border/40 bg-background/30 shrink-0">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1.5 flex-1 min-w-0">
+                        {/* Immersive Top Toolbar Rail Header */}
+                        <DialogHeader className="px-5 sm:px-7 py-3.5 border-b border-border/40 bg-muted/20 backdrop-blur-sm shrink-0 w-full flex flex-row items-center justify-between space-y-0 text-left">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 pr-4">
+                                <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0">
+                                    <FileText className="h-4 w-4" />
+                                </div>
+                                <div className="min-w-0 flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase whitespace-nowrap">
+                                        Workspace
+                                    </span>
+                                    <span className="text-muted-foreground/30 hidden xs:inline">/</span>
+                                    <span className="text-xs text-muted-foreground/60 truncate font-mono hidden xs:inline">
+                                        {mode === "view" ? `Log Details` : `Modify Context`}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Options Action Tray - padded right layout block (pr-8) prevents collision with shadcn close button overlay */}
+                            <div className="flex items-center gap-2 shrink-0 pr-8 sm:pr-10">
+                                {mode === "view" ? (
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <Badge variant="secondary" className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 bg-muted/60 text-foreground/80 border-0">
+                                        <Badge variant="secondary" className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 bg-muted/60 text-foreground/80 border-0 max-w-[140px] truncate">
                                             {activityLabel}
                                         </Badge>
-                                        <span className="text-xs text-muted-foreground/60 tabular-nums">
+                                        <span className="text-[11px] font-mono text-muted-foreground/40 hidden sm:inline">
                                             ID: {selectedActivity?._id}
                                         </span>
                                     </div>
-                                    <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-foreground truncate">
-                                        {mode === "view" ? selectedActivity?.event : "Edit Activity Details"}
-                                    </DialogTitle>
-                                </div>
+                                ) : (
+                                    <Select value={form.type} onValueChange={(value) => handleChange("type", value)}>
+                                        <SelectTrigger className="h-8 w-[120px] sm:w-[145px] rounded-lg border-border/50 text-xs font-medium cursor-pointer bg-background hover:bg-muted/50 transition-colors focus:ring-1 focus:ring-primary/20">
+                                            <SelectValue placeholder="Log Type" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-lg border-border/40">
+                                            {ACTIVITY_TYPES.map((t) => (
+                                                <SelectItem key={t.value} value={t.value} className="py-2 text-xs cursor-pointer rounded-md">
+                                                    <div className="flex items-center gap-2">
+                                                        <t.icon className="h-3.5 w-3.5 text-muted-foreground/70" />
+                                                        <span>{t.label}</span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             </div>
                         </DialogHeader>
 
-                        {/* Middle Content Wrapper */}
-                        <div className="flex-1 overflow-hidden flex flex-col">
+                        {/* Interactive Canvas Workspace Content Window */}
+                        <div className="flex-1 overflow-hidden flex flex-col min-w-0">
                             {mode === "view" ? (
-                                <ScrollArea className="h-full px-5 sm:px-6 py-4 sm:py-5">
-                                    <div className="space-y-5">
-                                        {/* Context Cards Split */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <ScrollArea className="h-full w-full">
+                                    <div className="max-w-3xl mx-auto px-6 sm:px-12 pt-6 sm:pt-8 pb-6 space-y-6">
+                                        
+                                        {/* Primary Read Header View */}
+                                        <div className="space-y-1 min-w-0">
+                                            <DialogTitle className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground break-all leading-tight">
+                                                {selectedActivity?.event}
+                                            </DialogTitle>
+                                        </div>
+
+                                        {/* Meta Connection Information Badges */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                                             <div className="p-3 rounded-xl border border-border/40 bg-card/40 flex items-center gap-2.5 min-w-0">
                                                 <User className="h-4 w-4 text-muted-foreground/60 shrink-0" />
                                                 <div className="min-w-0">
@@ -165,22 +208,22 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
                                             </div>
                                         </div>
 
-                                        {/* Full Text Content Area */}
-                                        <div className="space-y-1.5 min-w-0 w-full">
-                                            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Detailed Description</h4>
-                                            <div className="p-4 rounded-xl border border-border/50 bg-muted/20 min-h-[120px] max-h-[300px] overflow-y-auto w-full overflow-x-hidden">
+                                        <Separator className="bg-border/30" />
+
+                                        {/* Immersive Scroll View Description Canvas */}
+                                        <div className="space-y-2 min-w-0 w-full">
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 select-none">Detailed Description</h4>
+                                            <div className="text-sm sm:text-base text-foreground/90 leading-relaxed whitespace-pre-wrap break-all sm:break-words pt-1">
                                                 {selectedActivity?.description ? (
-                                                    <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap break-all sm:break-words">
-                                                        {selectedActivity.description}
-                                                    </p>
+                                                    selectedActivity.description
                                                 ) : (
-                                                    <p className="text-xs italic text-muted-foreground/50">No detailed description provided for this log window.</p>
+                                                    <span className="text-xs italic text-muted-foreground/40 font-normal">No descriptive details loaded for this timestamp node.</span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Beautiful System Metadata Footer Track */}
-                                        <div className="p-3 rounded-xl bg-muted/30 border border-border/30 grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-muted-foreground/80 font-medium">
+                                        {/* Beautiful System Trace Auditing Logs Track */}
+                                        <div className="p-3.5 rounded-xl bg-muted/30 border border-border/30 grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-muted-foreground/80 font-medium">
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar className="h-3.5 w-3.5 opacity-60" />
@@ -188,7 +231,7 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
                                                 </div>
                                                 <div className="flex items-center gap-1.5">
                                                     <User className="h-3.5 w-3.5 opacity-60" />
-                                                    <span className="truncate">By: {selectedActivity?.createdBy?.name} ({selectedActivity?.createdBy?.email})</span>
+                                                    <span className="truncate">By: {selectedActivity?.createdBy?.name}</span>
                                                 </div>
                                             </div>
                                             <div className="space-y-1 sm:border-l sm:border-border/40 sm:pl-4">
@@ -205,64 +248,60 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
                                     </div>
                                 </ScrollArea>
                             ) : (
-                                <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-                                    <ScrollArea className="flex-1 px-5 sm:px-6 py-4">
-                                        <div className="space-y-4">
-                                            {/* Type Selection */}
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">Activity Type</label>
-                                                <Select value={form.type} onValueChange={(v) => handleChange("type", v)}>
-                                                    <SelectTrigger className="h-10 rounded-lg border-border/60 text-sm cursor-pointer bg-background/50">
-                                                        <SelectValue placeholder="Select activity type" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="rounded-lg">
-                                                        {ACTIVITY_TYPES.map((t) => (
-                                                            <SelectItem key={t.value} value={t.value} className="py-2 text-sm cursor-pointer">
-                                                                <div className="flex items-center gap-2.5">
-                                                                    <t.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                    <span>{t.label}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
+                                <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 min-w-0 w-full overflow-hidden">
+                                    <ScrollArea className="flex-1 w-full">
+                                        <div className="max-w-3xl mx-auto px-6 sm:px-12 pt-8 sm:pt-10 pb-6 min-w-0 space-y-6 sm:space-y-7">
+                                            
+                                            {/* Dynamic Form Custom Input Sub-Track */}
                                             {form.type === "custom" && (
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">Custom Type</label>
-                                                    <Input
-                                                        placeholder="e.g., LinkedIn Outreach"
-                                                        value={form.customType}
-                                                        onChange={(e) => handleChange("customType", e.target.value)}
-                                                        className="h-10 rounded-lg border-border/60 text-sm bg-background/50"
-                                                    />
+                                                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="flex items-center gap-2 border-b border-border/30 pb-1 w-full max-w-xs focus-within:border-primary/40 transition-colors">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/40 select-none shrink-0">Custom Type Focus:</span>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g., LinkedIn Outreach"
+                                                            value={form.customType}
+                                                            onChange={(e) => handleChange("customType", e.target.value)}
+                                                            className="bg-transparent border-0 outline-none p-0 text-xs font-semibold text-foreground placeholder:text-muted-foreground/40 w-full break-all focus:ring-0"
+                                                        />
+                                                    </div>
                                                 </div>
                                             )}
 
-                                            {/* Event Input */}
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">Event Title <span className="text-destructive">*</span></label>
-                                                <Input
-                                                    placeholder="e.g., Sent proposal"
+                                            {/* Unified Document-Style Header Input Canvas */}
+                                            <div className="space-y-1 min-w-0">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Untitled Interaction Event..."
                                                     value={form.event}
                                                     onChange={(e) => handleChange("event", e.target.value)}
                                                     required
-                                                    className="h-10 rounded-lg border-border/60 text-sm bg-background/50"
+                                                    className="w-full bg-transparent border-0 outline-none p-0 text-xl sm:text-2xl font-bold tracking-tight text-foreground placeholder:text-muted-foreground/25 font-sans break-all focus:ring-0"
                                                 />
+                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground/40 font-medium select-none uppercase tracking-widest pt-1">
+                                                    <span>Primary Event Title</span>
+                                                    <span className="text-destructive font-bold">* Required</span>
+                                                </div>
                                             </div>
 
-                                            {/* Description Input */}
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">Description (Max 2000 characters)</label>
-                                                <Textarea
-                                                    rows={6}
-                                                    maxLength={2000}
-                                                    placeholder="Add structural description updates here..."
+                                            <Separator className="bg-border/30" />
+
+                                            {/* Frameless Digital Notepad Editor Workspace Surface */}
+                                            <div className="min-w-0 w-full relative group">
+                                                <textarea
                                                     value={form.description}
                                                     onChange={(e) => handleChange("description", e.target.value)}
-                                                    className="rounded-lg border-border/60 text-sm resize-none bg-background/50 min-h-[140px]"
+                                                    maxLength={2000}
+                                                    placeholder="Modify activity tracking notes, timeline metrics, or descriptions here..."
+                                                    className="w-full bg-transparent border-0 outline-none p-0 text-sm sm:text-base text-foreground/90 placeholder:text-muted-foreground/30 font-sans leading-relaxed resize-none focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[260px] sm:min-h-[320px] break-all sm:break-words"
                                                 />
+                                                
+                                                {charCount === 0 && (
+                                                    <div className="absolute right-0 bottom-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none text-muted-foreground/30 text-[11px] font-medium tracking-wide select-none">
+                                                        <Sparkles className="h-3 w-3" />
+                                                        <span>Focus canvas view</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </ScrollArea>
@@ -270,35 +309,52 @@ const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "
                             )}
                         </div>
 
-                        {/* Interactive Sticky Footer Area */}
-                        <div className="shrink-0 flex justify-end items-center gap-2 sm:gap-3 px-5 sm:px-6 py-3.5 border-t border-border/30 bg-muted/20 rounded-b-xl">
-                            {mode === "view" ? (
-                                <>
-                                    <Button variant="outline" onClick={() => onOpenChange(false)} className="h-9 px-4 rounded-lg text-xs sm:text-sm font-medium border-border/60">
-                                        Close
-                                    </Button>
-                                    <Button onClick={() => setMode("edit")} className="h-9 px-4 rounded-lg text-xs sm:text-sm font-medium shadow-sm gap-1.5">
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        Edit Activity
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button type="button" variant="outline" onClick={() => setMode("view")} disabled={isUpdating} className="h-9 px-4 rounded-lg text-xs sm:text-sm font-medium border-border/60">
-                                        Cancel
-                                    </Button>
-                                    <Button onClick={handleSubmit} disabled={isUpdating} className="h-9 px-5 rounded-lg text-xs sm:text-sm font-medium shadow-sm">
-                                        {isUpdating ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            "Save Changes"
-                                        )}
-                                    </Button>
-                                </>
-                            )}
+                        {/* Sticky Control Action Footer Rail */}
+                        <div className="shrink-0 flex items-center justify-between px-5 sm:px-7 py-3.5 border-t border-border/30 bg-muted/10 w-full">
+                            {/* Word Metric Counters vs Mode Tracks */}
+                            <div className="text-xs font-mono text-muted-foreground/50 select-none">
+                                {mode === "edit" ? (
+                                    <div className="flex items-center gap-1">
+                                        <span className={charCount > 1800 ? "text-warning font-bold" : "text-muted-foreground/70"}>
+                                            {charCount}
+                                        </span>
+                                        <span>/ 2000 chars</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-[11px] font-sans text-muted-foreground/40">Read-Only</span>
+                                )}
+                            </div>
+
+                            {/* Operational Button Control Clusters */}
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                {mode === "view" ? (
+                                    <>
+                                        <Button variant="ghost" onClick={() => onOpenChange(false)} className="h-9 px-4 rounded-xl text-xs sm:text-sm font-medium text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 cursor-pointer">
+                                            Close
+                                        </Button>
+                                        <Button onClick={() => setMode("edit")} className="h-9 px-5 rounded-xl text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg gap-1.5 cursor-pointer">
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            Edit
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button type="button" variant="ghost" onClick={() => setMode("view")} disabled={isUpdating} className="h-9 px-4 rounded-xl text-xs sm:text-sm font-medium text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 cursor-pointer">
+                                            Cancel
+                                        </Button>
+                                        <Button onClick={handleSubmit} disabled={isUpdating || !form.event.trim()} className="h-9 px-5 rounded-xl text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transition-all cursor-pointer">
+                                            {isUpdating ? (
+                                                <>
+                                                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                "Save Changes"
+                                            )}
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </>
                 )}
