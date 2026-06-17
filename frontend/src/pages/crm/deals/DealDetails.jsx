@@ -126,11 +126,12 @@ const DealDetails = () => {
 
   if (isLoading && !currentDeal) {
     return (
-      <div className="px-6 py-8 max-w-[1440px] mx-auto">
-        <Skeleton className="h-9 w-40 mb-8" />
-        <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-6">
-          <Skeleton className="h-[400px] rounded-xl" />
-          <Skeleton className="h-[600px] rounded-xl" />
+      // Changed px-4 to px-2 on mobile devices
+      <div className="px-2 md:px-6 py-4 md:py-8 max-w-360 mx-auto w-full">
+        <Skeleton className="h-9 w-40 mb-6 md:mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4 sm:gap-6">
+          <Skeleton className="h-75 lg:h-100 rounded-xl" />
+          <Skeleton className="h-125 lg:h-150 rounded-xl" />
         </div>
       </div>
     );
@@ -145,22 +146,22 @@ const DealDetails = () => {
   }
 
   return (
-    <div className="px-6 py-8 max-w-[1440px] mx-auto h-screen flex flex-col">
+    <div className="px-4 py-4 sm:px-6 sm:py-6 lg:py-8 max-w-360 mx-auto min-h-screen lg:h-screen flex flex-col">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between shrink-0 mb-6">
+      <div className="flex items-center justify-between shrink-0 mb-4 sm:mb-6">
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 px-3 text-muted-foreground hover:text-foreground -ml-2"
+          className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm text-muted-foreground hover:text-foreground -ml-2"
           onClick={() => navigate(`/customers/${currentDeal.customer._id}`)}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1.5 sm:mr-2 h-4 w-4" />
           Back to customer
         </Button>
       </div>
 
       {/* Main Content Grid - 40/60 Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4 sm:gap-6 flex-1 min-h-0">
         {/* Left Column - Deal Info (40%) */}
         <div className="min-h-0">
           <DealDetailsCard
@@ -172,57 +173,58 @@ const DealDetails = () => {
         </div>
 
         {/* Right Column - Activity Timeline (60%) */}
-        <Card className="flex flex-col border-border/50 shadow-sm rounded-xl overflow-hidden min-h-0">
-          <CardHeader className="border-b bg-background/50 py-4 px-6 flex flex-row items-center justify-between space-y-0 shrink-0">
-            <div className="space-y-0.5">
-              <h2 className="text-sm font-semibold tracking-tight">Activity Timeline</h2>
-              <p className="text-xs text-muted-foreground hidden sm:block">
+        <Card className="flex flex-col border-border/50 shadow-sm rounded-xl overflow-hidden min-h-[400px] lg:min-h-0">
+          <CardHeader className="border-b bg-background/50 py-3 px-4 sm:py-4 sm:px-6 flex flex-row items-center justify-between space-y-0 shrink-0">
+            <div className="space-y-0.5 max-w-[60%] sm:max-w-none">
+              <h2 className="text-xs sm:text-sm font-semibold tracking-tight">Activity Timeline</h2>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden xs:block">
                 Track interactions and milestones
               </p>
             </div>
-            <Button 
-              size="sm" 
-              className="h-8 text-xs font-medium cursor-pointer shrink-0" 
+            <Button
+              size="sm"
+              className="h-7 sm:h-8 text-[11px] sm:text-xs font-medium cursor-pointer shrink-0 px-2.5 sm:px-3"
               onClick={openCreateActivity}
             >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              <Plus className="mr-1 sm:mr-1.5 h-3.5 w-3.5" />
               Add activity
             </Button>
           </CardHeader>
 
-          <CardContent className="p-0 flex-1 overflow-hidden">
-            <ScrollArea className="h-full px-6 py-6">
+          <CardContent className="p-0 flex-1 overflow-hidden flex flex-col">
+            <ScrollArea className="h-full px-4 py-4 sm:px-6 sm:py-6">
               {activities.length === 0 ? (
                 /* Empty State */
                 <div className="flex flex-col items-center justify-center h-full py-12">
                   <div className="relative flex flex-col items-center">
-                    <div className="w-px h-16 bg-border" />
+                    <div className="w-px h-12 sm:h-16 bg-border" />
                     <div className="h-3 w-3 rounded-full border-2 border-border bg-background absolute top-2" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-6 mb-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-6 mb-4">
                     No activities logged yet
                   </p>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 text-xs" 
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 sm:h-8 text-[11px] sm:text-xs cursor-pointer"
                     onClick={openCreateActivity}
                   >
+                    <Plus className="mr-1 sm:mr-1.5 h-3.5 w-3.5" />
                     Log first activity
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {groups.map((group, gi) => {
                     const isLastGroup = gi === groups.length - 1;
                     return (
                       <div key={group.label} className="space-y-3">
                         {/* Date Separator */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
                           <div className="flex-1 h-px bg-border/60" />
                           <Badge
                             variant="outline"
-                            className="text-[10px] font-medium text-muted-foreground rounded-full px-3 py-0.5 shrink-0 bg-background"
+                            className="text-[9px] sm:text-[10px] font-medium text-muted-foreground rounded-full px-2.5 sm:px-3 py-0.5 shrink-0 bg-background"
                           >
                             {group.label}
                           </Badge>
@@ -251,11 +253,11 @@ const DealDetails = () => {
               )}
 
               {hasMore && (
-                <div className="flex justify-center pt-6 pb-2">
+                <div className="flex justify-center pt-4 sm:pt-6 pb-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs font-medium cursor-pointer"
+                    className="h-7 sm:h-8 text-[11px] sm:text-xs font-medium cursor-pointer"
                     onClick={handleLoadMore}
                     disabled={isActivitiesLoading}
                   >
@@ -273,39 +275,39 @@ const DealDetails = () => {
       </div>
 
       {/* Dialogs */}
-      <DealEditDialog 
-        open={isEditOpen} 
-        onOpenChange={setIsEditOpen} 
-        deal={currentDeal} 
-        isUpdating={isUpdating} 
-        onSubmit={handleDealUpdate} 
+      <DealEditDialog
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        deal={currentDeal}
+        isUpdating={isUpdating}
+        onSubmit={handleDealUpdate}
       />
-      <DealStatusDialog 
-        open={isStatusOpen} 
-        onOpenChange={setIsStatusOpen} 
-        deal={currentDeal} 
-        isUpdating={isUpdating} 
-        onSubmit={handleStatusUpdate} 
+      <DealStatusDialog
+        open={isStatusOpen}
+        onOpenChange={setIsStatusOpen}
+        deal={currentDeal}
+        isUpdating={isUpdating}
+        onSubmit={handleStatusUpdate}
       />
-      <ActivityFormDialog 
-        open={isActivityOpen} 
-        onOpenChange={setIsActivityOpen} 
-        mode={activityDialogMode} 
-        dealId={dealId} 
-        activity={editingActivity} 
+      <ActivityFormDialog
+        open={isActivityOpen}
+        onOpenChange={setIsActivityOpen}
+        mode={activityDialogMode}
+        dealId={dealId}
+        activity={editingActivity}
       />
 
       <AlertDialog open={deleteDealOpen} onOpenChange={setDeleteDealOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-lg rounded-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               This will permanently delete this deal and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteDeal}>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="text-xs sm:text-sm h-9 rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-xs sm:text-sm h-9 rounded-xl" onClick={handleDeleteDeal}>
               Delete deal
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -313,16 +315,16 @@ const DealDetails = () => {
       </AlertDialog>
 
       <AlertDialog open={deleteActivityOpen} onOpenChange={setDeleteActivityOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-lg rounded-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete activity</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Delete activity</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               This activity log entry cannot be recovered.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDeleteActivity}>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="text-xs sm:text-sm h-9 rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-xs sm:text-sm h-9 rounded-xl" onClick={handleDeleteActivity}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -19,13 +19,13 @@ export const ACTIVITY_TYPES = [
         value: "note",
         label: "Note",
         icon: FileText,
-        color: "bg-gray-500/15 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
+        color: "bg-blue-500/15 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
     },
     {
         value: "call",
         label: "Call",
         icon: Phone,
-        color: "bg-blue-500/15 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+        color: "bg-cyan-500/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
     },
     {
         value: "email",

@@ -19,12 +19,14 @@ const getActivityFromPayload = (payload) => payload?.activity || payload;
 export const useActivityStore = create((set, get) => ({
     activityTypes: ACTIVITY_TYPES,
     activities: [],
+    selectedActivity: null,
     nextCursor: null,
     hasMore: true,
     lastDeletedActivity: null,
 
     isLoading: false,
     isUpdating: false,
+    isLoadingActivityDetails: false,
     error: null,
 
     getActivities: async (options = {}) => {
@@ -121,6 +123,10 @@ export const useActivityStore = create((set, get) => ({
 
             set(state => ({
                 activities: mergeEntityById(state.activities, activity),
+                selectedActivity:
+                    getEntityId(state.selectedActivity) === activityId
+                        ? activity
+                        : state.selectedActivity,
                 isUpdating: false,
                 error: null,
             }));
@@ -168,6 +174,10 @@ export const useActivityStore = create((set, get) => ({
 
             set(state => ({
                 activities: removeEntityById(state.activities, activityId),
+                selectedActivity:
+                    getEntityId(state.selectedActivity) === activityId
+                        ? null
+                        : state.selectedActivity,
                 lastDeletedActivity: existingActivity,
                 isUpdating: false,
                 error: null,
@@ -198,17 +208,66 @@ export const useActivityStore = create((set, get) => ({
         }
     },
 
+    getActivityById: async (activityId, options = {}) => {
+        set({
+            isLoadingActivityDetails: true,
+            error: null,
+        });
+        try {
+            const response = await http.get(`/activities/${activityId}`);
+            const data = response.data.data;
+            const activity = getActivityFromPayload(data);
+
+            set(state => ({
+                selectedActivity: activity,
+                activities: mergeEntityById(state.activities, activity),
+                isLoadingActivityDetails: false,
+                error: null,
+            }));
+            return activity;
+        } catch (error) {
+            const errorMessage = getErrorMessage(
+                error,
+                'Failed to fetch activity details'
+            );
+
+            set({
+                isLoadingActivityDetails: false,
+                error: errorMessage,
+            });
+
+            if (!options.silent) {
+                toast.error(errorMessage, {
+                    icon: toastIcon('error'),
+                });
+            }
+
+            throw error;
+        }
+    },
+
     resetActivityFeed: () => {
         set({
             activities: [],
+            selectedActivity: null,
+
             nextCursor: null,
             hasMore: true,
             lastDeletedActivity: null,
+            
             isLoading: false,
             isUpdating: false,
+            isLoadingActivityDetails: false,
+
             error: null,
         });
     },
+
+    clearSelectedActivity: () =>
+        set({
+            selectedActivity: null,
+            isLoadingActivityDetails: false,
+        }),
 
     clearError: () => set({ error: null }),
 }));

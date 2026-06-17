@@ -4,6 +4,7 @@ import {
     createActivityService,
     updateActivityService,
     deleteActivityService,
+    getActivityByIdService,
     getAllActivitiesService,
 } from "./activity.service.js";
 
@@ -52,6 +53,21 @@ export const deleteActivityController = asyncHandler(async (req, res) => {
             200,
             data,
             "Activity deleted successfully"
+        ));
+});
+
+
+export const getActivityByIdController = asyncHandler(async (req, res) => {
+    const data = await getActivityByIdService(
+        req.user._id,
+        req.params.activityId
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Activity retrieved successfully"
         ));
 });
 

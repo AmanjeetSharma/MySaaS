@@ -5,6 +5,7 @@ import {
     findDealById,
     createActivity,
     findActivityById,
+    findActivityByIdWithDetails,
     deleteActivity,
     findUserById,
     getActivityFeed,
@@ -154,7 +155,7 @@ export const updateActivityService = async (
     try {
         await activity.save();
 
-        await activity.populate([ 
+        await activity.populate([
             {
                 path: "createdBy",
                 select: "name email"
@@ -214,6 +215,35 @@ export const deleteActivityService = async (userId, activityId) => {
     }
 };
 
+
+
+
+
+
+
+
+
+export const getActivityByIdService = async (userId, activityId) => {
+
+    if (!activityId || !Types.ObjectId.isValid(activityId)) {
+        throw new ApiError(400, "Activity ID is required and must be a valid ObjectId");
+    }
+
+    const activity = await findActivityByIdWithDetails(activityId);
+    if (!activity) {
+        throw new ApiError(404, "Activity not found");
+    }
+
+    const isMember = await checkUserOrganizationMembership(userId, activity.organization._id);
+    if (!isMember) {
+        throw new ApiError(403, "Access denied: You do not belong to the organization");
+    }
+
+    return {
+        activity,
+        message: "Activity retrieved successfully"
+    }
+};
 
 
 

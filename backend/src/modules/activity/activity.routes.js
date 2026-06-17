@@ -4,6 +4,7 @@ import {
     createActivityController,
     updateActivityController,
     deleteActivityController,
+    getActivityByIdController,
     getAllActivitiesController,
 } from "./activity.controller.js";
 
@@ -12,6 +13,7 @@ const router = Router();
 router.post("/", verifyToken, createActivityController);
 router.patch("/:activityId", verifyToken, updateActivityController);
 router.delete("/:activityId", verifyToken, deleteActivityController);
+router.get("/:activityId", verifyToken, getActivityByIdController);
 router.get("/", verifyToken, getAllActivitiesController);// for dashboard feeds(only)
 
 export default router; 

@@ -47,6 +47,15 @@ export const findActivityById = (activityId) => {
     return Activity.findById(activityId);
 }
 
+export const findActivityByIdWithDetails = (activityId) => {
+    return Activity.findById(activityId)
+        .populate("organization", "name")
+        .populate("customer", "name email")
+        .populate("deal", "title")
+        .populate("createdBy", "name email")
+        .populate("updatedBy", "name email");
+}
+
 
 export const deleteActivity = (activityId) => {
     return Activity.findByIdAndDelete({ _id: activityId });

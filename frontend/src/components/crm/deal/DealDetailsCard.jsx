@@ -55,46 +55,46 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
     <Card className="border-muted/80 shadow-lg rounded-xl overflow-hidden bg-gradient-to-b from-card to-background text-card-foreground max-w-none h-full transition-all duration-300 hover:shadow-xl hover:border-muted-foreground/20 flex flex-col">
 
       {/* Header */}
-      <CardHeader className="px-6 pt-6 pb-3 space-y-0 flex flex-row items-center justify-between gap-4 shrink-0">
-        <div className="flex flex-col gap-1 truncate max-w-[70%]">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+      <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3 space-y-0 flex flex-row items-center justify-between gap-2 sm:gap-4 shrink-0">
+        <div className="flex flex-col gap-0.5 sm:gap-1 truncate max-w-[65%] sm:max-w-[70%]">
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
             Deal Overview
           </span>
 
-          <h1 className="text-lg font-semibold tracking-tight text-foreground/90 truncate">
+          <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground/90 truncate">
             {deal.title || "Untitled Deal"}
           </h1>
         </div>
 
         <Badge
           variant={statusConfig.variant}
-          className={`capitalize px-3 py-0.5 text-[11px] font-medium tracking-wide shadow-sm shrink-0 border border-solid ${statusConfig.className}`}
+          className={`capitalize px-2 sm:px-3 py-0.5 text-[10px] sm:text-[11px] font-medium tracking-wide shadow-sm shrink-0 border border-solid ${statusConfig.className}`}
         >
           {status}
         </Badge>
       </CardHeader>
 
       {/* Separator */}
-      <div className="px-6">
+      <div className="px-4 sm:px-6">
         <Separator className="bg-muted/60" />
       </div>
 
       {/* Body */}
-      <CardContent className="px-6 pt-4 pb-6 space-y-4 text-xs flex-1 overflow-y-auto">
+      <CardContent className="px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6 space-y-3 sm:space-y-4 text-xs flex-1 overflow-y-auto">
 
         {/* Customer Profile */}
-        <div className="space-y-2.5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-2">
+        <div className="space-y-2">
+          <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-2">
             <User className="h-3.5 w-3.5 text-muted-foreground/50" />
             Customer Profile
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="font-semibold text-foreground text-sm tracking-tight">
               {deal.customer?.name || "Unknown Customer"}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {deal.customer?.email && (
                 <div className="flex items-center gap-2.5 text-muted-foreground/90">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
@@ -102,7 +102,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
                     href={`mailto:${deal.customer.email}`}
                     className="group inline-flex items-center hover:text-primary underline-offset-4 hover:underline truncate transition-colors font-medium"
                   >
-                    <span className="truncate">
+                    <span className="truncate max-w-[180px] xs:max-w-xs sm:max-w-none">
                       {deal.customer.email}
                     </span>
                     <ArrowUpRight className="h-3 w-3 ml-0.5 text-muted-foreground/40 group-hover:text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -128,7 +128,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
         <Separator className="bg-muted/60" />
 
         {/* Timeline */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-between text-muted-foreground/90">
             <div className="flex items-center gap-2">
               <CalendarDays className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -161,11 +161,11 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
             >
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-3.5 w-3.5 opacity-80" />
-                <span className="font-medium capitalize">
+                <span className="font-medium capitalize text-[11px] sm:text-xs">
                   Closed ({status})
                 </span>
               </div>
-              <span className="font-semibold">
+              <span className="font-semibold text-[11px] sm:text-xs">
                 {formatDate(deal.closedAt)}
               </span>
             </div>
@@ -175,7 +175,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
         <Separator className="bg-muted/60" />
 
         {/* Audit */}
-        <div className="space-y-2 text-[11px]">
+        <div className="space-y-1.5 sm:space-y-2 text-[11px]">
           <div className="flex items-center justify-between text-muted-foreground/90">
             <div className="flex items-center gap-2">
               <User className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -224,35 +224,35 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-3 gap-2 pt-1">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
           <Button
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="h-9 text-xs rounded-xl"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
           >
-            <Pencil className="mr-1.5 h-3.5 w-3.5" />
-            Edit Details
+            <Pencil className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+            <span className="truncate">Edit Details</span>
           </Button>
 
           <Button
             variant="outline"
             size="sm"
             onClick={onStatus}
-            className="h-9 text-xs rounded-xl"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
           >
-            <Flag className="mr-1.5 h-3.5 w-3.5" />
-            Status
+            <Flag className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+            <span className="truncate">Status</span>
           </Button>
 
           <Button
             variant="destructive"
             size="sm"
             onClick={onDelete}
-            className="h-9 text-xs rounded-xl"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
           >
-            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-            Delete
+            <Trash2 className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+            <span className="truncate">Delete</span>
           </Button>
         </div>
 
