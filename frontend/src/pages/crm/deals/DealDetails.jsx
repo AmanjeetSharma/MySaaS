@@ -336,7 +336,7 @@ const DealDetails = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base sm:text-lg">Delete activity</AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm">
-              This activity log entry cannot be recovered.
+              This will permanently delete this activity and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
