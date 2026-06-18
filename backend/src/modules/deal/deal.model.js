@@ -27,6 +27,19 @@ const dealSchema = new Schema({
         default: "active"
     },
 
+    amount: {
+        type: Number,
+        min: [0, "Amount cannot be negative"],
+        max: [1000000, "ohhh so you are Ambani's son or what?"],
+        default: 0
+    },
+
+    currency: {
+        type: String,
+        enum: ["INR", "USD", "EUR"],
+        default: "INR"
+    },
+
     latestActivitySummary: {// latest stage summary for quick reference
         type: String,
         default: null
