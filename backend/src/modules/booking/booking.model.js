@@ -1,5 +1,65 @@
 import mongoose, { Schema } from "mongoose";
 
+const bookerSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: [100, "Name cannot exceed 100 characters"],
+    },
+
+    email: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true,
+    },
+
+    phone: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+}, { _id: false });
+
+const serviceSnapshotSchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+
+    slug: {
+        type: String,
+        required: true,
+    },
+
+    durationInMinutes: {
+        type: Number,
+        required: true,
+    },
+
+    price: {
+        type: Number,
+        required: true,
+    },
+
+    currency: {
+        type: String,
+        required: true,
+    },
+
+    mode: {
+        type: String,
+        enum: ["ONLINE", "OFFLINE"],
+        required: true,
+    },
+
+    address: {
+        type: Object,
+        default: null,
+    },
+}, { _id: false });
+
 const bookingSchema = new Schema({
     organization: {
         type: mongoose.Schema.Types.ObjectId,
@@ -16,58 +76,13 @@ const bookingSchema = new Schema({
     },
 
     booker: {
-        name: {
-            type: String,
-            required: true,
-            trim: true,
-            maxlength: [100, "Name cannot exceed 100 characters"],
-        },
-
-        email: {
-            type: String,
-            required: true,
-            lowercase: true,
-            trim: true,
-        },
-
-        phone: {
-            type: String,
-            default: null,
-            trim: true,
-        },
+        type: bookerSchema,
+        required: true,
     },
 
     serviceSnapshot: {
-        name: {
-            type: String,
-            required: true,
-        },
-
-        slug: {
-            type: String,
-            required: true,
-        },
-
-        durationInMinutes: {
-            type: Number,
-            required: true,
-        },
-
-        price: {
-            type: Number,
-            required: true,
-        },
-
-        currency: {
-            type: String,
-            required: true,
-        },
-
-        mode: {
-            type: String,
-            enum: ["ONLINE", "OFFLINE"],
-            required: true,
-        },
+        type: serviceSnapshotSchema,
+        required: true,
     },
 
     startTime: {
@@ -139,15 +154,23 @@ const bookingSchema = new Schema({
     }
 );
 
-bookingSchema.index({ organization: 1, startTime: 1, });
+bookingSchema.pre("validate", function validateBookingTimes(next) {
+    if (this.startTime && this.endTime && this.endTime <= this.startTime) {
+        return next(new Error("End time must be after start time"));
+    }
 
-bookingSchema.index({ booker: 1, startTime: -1, });
+    return next();
+});
 
-bookingSchema.index({ service: 1, startTime: -1, });
+bookingSchema.index({ organization: 1, startTime: 1 });
 
-bookingSchema.index({ organization: 1, status: 1, });
+bookingSchema.index({ "booker.email": 1, startTime: -1 });
 
-bookingSchema.index({ organization: 1, startTime: 1, endTime: 1, });
+bookingSchema.index({ service: 1, startTime: -1 });
+
+bookingSchema.index({ organization: 1, status: 1 });
+
+bookingSchema.index({ organization: 1, startTime: 1, endTime: 1 });
 
 export const Booking =
     mongoose.models.Booking ||
