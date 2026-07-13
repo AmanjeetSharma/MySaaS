@@ -85,6 +85,22 @@ export const createBookingService = async (userId, payload) => {
     return newBooking;
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const getBookingByIdService = async (userId, bookingId) => {
     validateObjectId(bookingId, "booking ID");
 
@@ -99,6 +115,14 @@ export const getBookingByIdService = async (userId, bookingId) => {
 
     return booking;
 };
+
+
+
+
+
+
+
+
 
 export const getOrganizationBookingsService = async (userId, orgId, query) => {
     validateObjectId(orgId, "organization ID");
@@ -131,6 +155,15 @@ export const getOrganizationBookingsService = async (userId, orgId, query) => {
 
     return result;
 };
+
+
+
+
+
+
+
+
+
 
 export const getServiceBookingsService = async (userId, serviceId, query) => {
     validateObjectId(serviceId, "service ID");
@@ -169,6 +202,19 @@ export const getServiceBookingsService = async (userId, serviceId, query) => {
 
     return result;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const updateBookingService = async (userId, bookingId, payload) => {
     validateObjectId(bookingId, "booking ID");
@@ -213,6 +259,16 @@ export const updateBookingService = async (userId, bookingId, payload) => {
 
     return updatedBooking;
 };
+
+
+
+
+
+
+
+
+
+
 
 export const updateBookingStatusService = async (userId, bookingId, status) => {
     validateObjectId(bookingId, "booking ID");
@@ -268,6 +324,15 @@ export const cancelBookingService = async (userId, bookingId, cancellationReason
     return cancelledBooking;
 };
 
+
+
+
+
+
+
+
+
+
 export const deleteBookingService = async (userId, bookingId) => {
     validateObjectId(bookingId, "booking ID");
 
@@ -282,6 +347,15 @@ export const deleteBookingService = async (userId, bookingId) => {
 
     console.log(`Booking deleted| Booking ID: ${bookingId}`);
 };
+
+
+
+
+
+
+
+
+
 
 // Helper function to check organization access
 const checkOrganizationAccess = async (orgId, userId) => {
