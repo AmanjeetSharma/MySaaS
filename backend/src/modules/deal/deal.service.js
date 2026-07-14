@@ -110,7 +110,7 @@ export const updateDealService = async (userId, dealId, title) => {
     }
 
     console.log(`Deal updated | Deal ID: ${deal._id} | Organization ID: ${deal.organization} | Updated By: ${userId}`);
-    
+
     return deal;
 };
 
@@ -252,92 +252,127 @@ export const deleteDealService = async (userId, dealId) => {
 
 export const getAllDealsForOrganizationService = async (userId, orgId, query) => {
     if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
-        throw new ApiError(400, "Organization ID is required and must be valid");
+        throw new ApiError(400, "Invalid organization ID");
     }
 
-    const { exists, hasAccess } = await getOrganizationAccessStatus(userId, orgId);
-    if (!exists) {
-        throw new ApiError(404, "Organization not found");
-    }
-    if (!hasAccess) {
-        throw new ApiError(403, "Access denied: You are not a member of the organization");
+    const isPartOfOrg = await checkUserOrganizationMembership(userId, orgId);
+    if (!isPartOfOrg) {
+        throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
     const {
         page = 1,
-        limit = 20,
+        limit = 10,
+        search,
         status,
-        search
+        sortBy = "latestInteractionAt",
+        sortOrder = "desc"
     } = query;
 
-    const pageNum = Math.max(1, Number(page) || 1);
-    const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
-    const skip = (pageNum - 1) * limitNum;
-
-    const filter = {
+    const baseFilter = {
         organization: orgId,
         isDeleted: false
     };
+
+    const filter = { ...baseFilter };
 
     if (status) {
         const normalizedStatus = status.trim().toLowerCase();
 
         const allowedStatuses = ["active", "won", "lost"];
+
         if (!allowedStatuses.includes(normalizedStatus)) {
-            throw new ApiError(400, `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`);
+            throw new ApiError(
+                400,
+                `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`
+            );
         }
 
         filter.status = normalizedStatus;
     }
 
     if (search?.trim()) {
+        const safeSearch = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            .split(/\s+/)
+            .join(".*");
+
         filter.$or = [
-            { title: { $regex: search.trim(), $options: "i" } },
-            { latestActivitySummary: { $regex: search.trim(), $options: "i" } }
+            {
+                title: {
+                    $regex: safeSearch,
+                    $options: "i"
+                }
+            },
+            {
+                latestActivitySummary: {
+                    $regex: safeSearch,
+                    $options: "i"
+                }
+            }
         ];
     }
 
-    try {
-        const sort = {
-            latestInteractionAt: -1,
-            createdAt: -1
-        };
+    // Pagination
+    let pageNum = Number(page) || 1;
+    let limitNum = Number(limit) || 10;
+    pageNum = Math.max(1, pageNum);
+    if (pageNum > 100) {
+        throw new ApiError(400, "Page number exceeds maximum allowed limit");
+    }
+    limitNum = Math.min(50, Math.max(1, limitNum));
+    const skip = (pageNum - 1) * limitNum;
 
-        const [deals, total, statistics] = await Promise.all([// execute in parallel for minimized response time
-            findDeals(
-                filter,
-                sort,
-                skip,
-                limitNum
-            ),
-            countDeals(filter),
-            getDealStatistics(filter)
-        ]);
+    // Sorting
+    const allowedSortFields = [
+        "createdAt",
+        "updatedAt",
+        "latestInteractionAt",
+        "closedAt",
+        "title"
+    ];
+
+    const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "latestInteractionAt";
+
+    const sort = {
+        [finalSortField]: sortOrder === "desc" ? -1 : 1
+    };
+
+    console.log(`--------\nPage: ${pageNum} | Limit: ${limitNum} | Skip: ${skip} | Sort: ${finalSortField} ${sortOrder}\nSearch: ${search || "N/A"} | Status: ${status || "ALL"}`);
+
+    try {
+        const [deals, filteredTotal, overallTotal, statistics] =
+            await Promise.all([
+                findDeals(
+                    filter,
+                    sort,
+                    skip,
+                    limitNum
+                ),
+                countDeals(filter),
+                countDeals(baseFilter),
+                getDealStatistics(baseFilter)
+            ]);
 
         const statsMap = {
             active: 0,
             won: 0,
             lost: 0,
-            total
+            total: overallTotal
         };
 
         statistics.forEach((stat) => {
-            if (stat._id === "active") {
-                statsMap.active = stat.count;
-            }
-
-            if (stat._id === "won") {
-                statsMap.won = stat.count;
-            }
-
-            if (stat._id === "lost") {
-                statsMap.lost = stat.count;
-            }
+            if (stat._id === "active") statsMap.active = stat.count;
+            if (stat._id === "won") statsMap.won = stat.count;
+            if (stat._id === "lost") statsMap.lost = stat.count;
         });
 
-        console.log(`Deals retrieved | Organization ID: ${orgId} | Retrieved By: ${userId} | Total Deals: ${total}`);
+        console.log(`Deals retrieved | Organization: ${orgId} | RequestedBy: ${userId}\nCount: ${deals.length} | Total: ${filteredTotal} | Search: ${search || "N/A"} | Status: ${status || "ALL"} | Sort: ${finalSortField} ${sortOrder}`);
 
         return {
+            organization: orgId,
+
             statistics: statsMap,
 
             deals,
@@ -345,14 +380,18 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
             pagination: {
                 page: pageNum,
                 limit: limitNum,
-                total,
-                totalPages: Math.ceil(total / limitNum)
+                total: filteredTotal,
+                overallTotal,
+                totalPages: Math.ceil(filteredTotal / limitNum)
             }
         };
-
     } catch (error) {
         console.error("Failed to fetch organization deals:", error);
-        throw new ApiError(500, error.message || "Failed to retrieve deals, please try again");
+
+        throw new ApiError(
+            500,
+            error.message || "Failed to retrieve deals, please try again"
+        );
     }
 };
 
