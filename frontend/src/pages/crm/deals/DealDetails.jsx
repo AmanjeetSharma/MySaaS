@@ -146,10 +146,24 @@ const DealDetails = () => {
     );
   }
 
-  if (!currentDeal) {
+if (!currentDeal) {
     return (
-      <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-        Deal not found.
+      <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
+        <div className="space-y-2 max-w-sm">
+          <h2 className="text-base sm:text-lg font-semibold tracking-tight">Deal not found</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            The deal you are looking for might have been deleted or the URL is incorrect.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-6 h-8 sm:h-9 text-xs sm:text-sm rounded-xl cursor-pointer"
+          onClick={() => navigate("/deals")}
+        >
+          <ArrowLeft className="mr-1.5 sm:mr-2 h-4 w-4" />
+          Back to Deals
+        </Button>
       </div>
     );
   }
