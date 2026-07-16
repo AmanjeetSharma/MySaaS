@@ -18,6 +18,8 @@ import {
 const getDeletedDealId = (payload, fallbackId) =>
     payload?.deletedDealId || payload?.dealId || fallbackId;
 
+let dealsController = null;
+
 export const useDealStore = create((set, get) => ({
     deals: [],
     currentDeal: null,
@@ -47,6 +49,7 @@ export const useDealStore = create((set, get) => ({
                 isLoading: false,
                 error: null,
             });
+
             return [];
         }
 
@@ -55,13 +58,23 @@ export const useDealStore = create((set, get) => ({
             error: null,
         });
 
+        let controller = null;
+
         try {
+
+            dealsController?.abort();
+
+            controller = new AbortController();
+            dealsController = controller;
+
             const response = await http.get('/deals', {
                 params: compactObject({
                     ...query,
                     orgId: organizationId,
                 }),
+                signal: controller.signal,
             });
+
             const data = response.data.data || {};
 
             set({
@@ -78,17 +91,32 @@ export const useDealStore = create((set, get) => ({
 
             return data;
         } catch (error) {
-            const errorMessage = getErrorMessage(error, 'Failed to fetch deals');
+            if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+                return;
+            }
+
+            const errorMessage = getErrorMessage(
+                error,
+                "Failed to fetch deals"
+            );
 
             set({
-                isLoading: false,
                 error: errorMessage,
             });
 
             toast.error(errorMessage, {
-                icon: toastIcon('error'),
+                icon: toastIcon("error"),
             });
+
             throw error;
+        } finally {
+            if (dealsController === controller) {
+                dealsController = null;
+            }
+
+            set({
+                isLoading: false,
+            });
         }
     },
 

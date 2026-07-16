@@ -263,7 +263,7 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
     const {
         page = 1,
         limit = 10,
-        search,
+        search, 
         status,
         sortBy = "latestInteractionAt",
         sortOrder = "desc"
@@ -282,10 +282,7 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
         const allowedStatuses = ["active", "won", "lost"];
 
         if (!allowedStatuses.includes(normalizedStatus)) {
-            throw new ApiError(
-                400,
-                `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`
-            );
+            throw new ApiError(400, `Invalid status filter. Allowed values are: ${allowedStatuses.join(", ")}`);
         }
 
         filter.status = normalizedStatus;
