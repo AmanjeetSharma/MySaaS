@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 import {
+  AlertCircle,
   ArrowRight,
   BarChart3,
   Briefcase,
   Building2,
+  CircleDot,
+  Clock3,
   RefreshCw,
   Search,
   SkipForward,
@@ -44,7 +47,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import DealRow from "@/components/crm/customer/DealRow";
+import OrgDealsRow from "@/components/crm/deal/OrgDealsRow";
+import { cn } from "@/lib/utils";
 import { useDealStore, useUserStore } from "@/stores";
 
 const getEntityId = (entity) => {
@@ -52,6 +56,118 @@ const getEntityId = (entity) => {
   if (typeof entity === "string") return entity;
   return entity._id || entity.id || null;
 };
+
+const statCards = [
+  {
+    key: "active",
+    label: "Active",
+    description: "Open deals needing momentum",
+    icon: TrendingUp,
+    className: "text-sky-600 bg-sky-500/10 border-sky-500/20",
+  },
+  {
+    key: "won",
+    label: "Won",
+    description: "Closed revenue",
+    icon: Trophy,
+    className: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
+  },
+  {
+    key: "lost",
+    label: "Lost",
+    description: "Closed lost opportunities",
+    icon: TrendingDown,
+    className: "text-rose-600 bg-rose-500/10 border-rose-500/20",
+  },
+  {
+    key: "total",
+    label: "Total",
+    description: "All tracked deals",
+    icon: BarChart3,
+    className: "text-foreground bg-muted/60 border-border",
+  },
+];
+
+const quickFilters = [
+  { value: "all", label: "All" },
+  { value: "noActivity", label: "No Activity" },
+  { value: "recentlyCreated", label: "Recently Created" },
+  { value: "won", label: "Won" },
+  { value: "lost", label: "Lost" },
+  { value: "active", label: "Active" },
+];
+
+const getSortValue = (query) => {
+  if (query.sortBy === "latestInteractionAt") return "recentActivity";
+  if (query.sortBy === "title") return query.sortOrder === "asc" ? "titleAsc" : "titleDesc";
+  if (query.sortBy === "createdAt") return query.sortOrder === "asc" ? "oldest" : "newest";
+  return "recentActivity";
+};
+
+const DealStatCard = ({ card, value, isActive, onClick }) => {
+  const Icon = card.icon;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group rounded-lg border bg-background p-4 text-left shadow-xs transition-all duration-200",
+        "hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isActive && "border-primary/40 bg-primary/5 shadow-sm"
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {card.label}
+          </p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+            {value || 0}
+          </p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">
+            {card.description}
+          </p>
+        </div>
+        <span className={cn("rounded-md border p-2 transition-transform duration-200 group-hover:scale-105", card.className)}>
+          <Icon className="size-4" />
+        </span>
+      </div>
+    </button>
+  );
+};
+
+const DealRowSkeleton = () => (
+  <div className="rounded-lg border border-border/70 bg-background p-4">
+    <div className="grid gap-4 lg:grid-cols-[minmax(260px,1.5fr)_minmax(220px,1fr)_minmax(220px,1.1fr)_150px_32px] lg:items-center">
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <Skeleton className="h-6 w-20 rounded-full" />
+          <Skeleton className="h-6 w-24 rounded-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-56 max-w-full" />
+          <Skeleton className="h-4 w-40 max-w-full" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-18" />
+        <Skeleton className="h-4 w-44 max-w-full" />
+        <Skeleton className="h-4 w-32 max-w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-3 w-28" />
+      </div>
+      <div className="space-y-2 lg:text-right">
+        <Skeleton className="h-3 w-16 lg:ml-auto" />
+        <Skeleton className="h-5 w-24 lg:ml-auto" />
+        <Skeleton className="h-3 w-20 lg:ml-auto" />
+      </div>
+    </div>
+  </div>
+);
 
 const Deals = () => {
   const navigate = useNavigate();
@@ -73,6 +189,7 @@ const Deals = () => {
     sortOrder: "desc",
   });
   const [pageInput, setPageInput] = useState(String(query.page));
+  const [activeQuickFilter, setActiveQuickFilter] = useState("all");
 
   const organizationId = getEntityId(userProfile?.activeOrganization);
   const organizationName =
@@ -82,6 +199,11 @@ const Deals = () => {
   const totalDeals = pagination?.total || 0;
   const overallTotal = pagination?.overallTotal || statistics?.total || 0;
   const totalPages = pagination?.totalPages || 1;
+  const sortValue = getSortValue(query);
+  const visibleDeals = useMemo(() => {
+    if (activeQuickFilter !== "noActivity") return deals;
+    return deals.filter((deal) => !deal?.latestInteractionAt && !deal?.latestActivitySummary);
+  }, [activeQuickFilter, deals]);
 
   const fetchDeals = useCallback(async () => {
     if (!organizationId) return;
@@ -126,6 +248,7 @@ const Deals = () => {
       status: value === "all" ? "" : value,
       page: 1,
     }));
+    setActiveQuickFilter(value === "all" ? "all" : value);
     setPageInput("1");
   };
 
@@ -140,6 +263,7 @@ const Deals = () => {
 
     if (sortConfig[value]) {
       setQuery((prev) => ({ ...prev, ...sortConfig[value], page: 1 }));
+      setActiveQuickFilter(value === "newest" ? "recentlyCreated" : "all");
       setPageInput("1");
     }
   };
@@ -153,6 +277,58 @@ const Deals = () => {
     setQuery((prev) => ({ ...prev, page: 1, limit: Number(value) }));
     setPageInput("1");
   };
+
+  const applyQuickFilter = (value) => {
+    setActiveQuickFilter(value);
+    setPageInput("1");
+
+    if (value === "all") {
+      setQuery((prev) => ({
+        ...prev,
+        page: 1,
+        status: "",
+        sortBy: "latestInteractionAt",
+        sortOrder: "desc",
+      }));
+      return;
+    }
+
+    if (value === "recentlyCreated") {
+      setQuery((prev) => ({
+        ...prev,
+        page: 1,
+        status: "",
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      }));
+      return;
+    }
+
+    if (value === "noActivity") {
+      setQuery((prev) => ({
+        ...prev,
+        page: 1,
+        status: "",
+        sortBy: "latestInteractionAt",
+        sortOrder: "asc",
+      }));
+      return;
+    }
+
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      status: value,
+    }));
+  };
+
+  const handleStatFilter = (status) => {
+    applyQuickFilter(status === "total" ? "all" : status);
+  };
+
+  const handleDealOpen = useCallback((deal) => {
+    navigate(`/deals/${deal._id}`);
+  }, [navigate]);
 
   const handlePageSubmit = (event) => {
     event.preventDefault();
@@ -176,6 +352,7 @@ const Deals = () => {
       sortBy: "latestInteractionAt",
       sortOrder: "desc",
     }));
+    setActiveQuickFilter("all");
     setPageInput("1");
 
     const searchInput = document.getElementById("deal-search-input");
@@ -310,7 +487,7 @@ const Deals = () => {
             Deals
           </h1>
           <p className="text-xs text-muted-foreground font-normal max-w-md">
-            Search, filter, and lifecycle track organization deals.
+            Prioritize open opportunities, spot inactive deals, and keep customer follow-ups moving.
           </p>
         </div>
       </div>
@@ -327,7 +504,7 @@ const Deals = () => {
                   No Deals Registered
                 </EmptyTitle>
                 <EmptyDescription className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                  There are currently no deals assigned to <strong>{organizationName}</strong>. Create deals from a customer profile to start tracking opportunities.
+                  Your pipeline is ready, but no opportunities have been created for <strong>{organizationName}</strong> yet. Start from a customer profile so every deal has an owner and contact context.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent className="mt-6">
@@ -345,74 +522,41 @@ const Deals = () => {
         </Card>
       ) : (
         <>
-          <section className="bg-background border border-border rounded-lg p-3 shadow-sm" aria-labelledby="deal-metrics-heading">
+          <section aria-labelledby="deal-metrics-heading">
             <h2 id="deal-metrics-heading" className="sr-only">
               Deal Performance Metrics
             </h2>
-            <div className="grid grid-cols-2 divide-x divide-y sm:grid-cols-4 sm:divide-y-0 divide-border">
-              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Active</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">{statistics?.active || 0}</span>
-                    <TrendingUp className="size-3.5 text-blue-600/70 dark:text-blue-400/70" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Won</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">{statistics?.won || 0}</span>
-                    <Trophy className="size-3.5 text-emerald-600/70 dark:text-emerald-400/70" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Lost</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tracking-tight text-destructive">{statistics?.lost || 0}</span>
-                    <TrendingDown className="size-3.5 text-destructive/70" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-2">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Total</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tracking-tight text-foreground">{statistics?.total || overallTotal}</span>
-                    <BarChart3 className="size-3.5 text-muted-foreground/70" />
-                  </div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {statCards.map((card) => (
+                <DealStatCard
+                  key={card.key}
+                  card={card}
+                  value={card.key === "total" ? statistics?.total || overallTotal : statistics?.[card.key]}
+                  isActive={
+                    card.key === "total"
+                      ? activeQuickFilter === "all" && !query.status
+                      : query.status === card.key
+                  }
+                  onClick={() => handleStatFilter(card.key)}
+                />
+              ))}
             </div>
           </section>
 
           <div className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border py-2">
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between rounded-lg border border-border bg-muted/20 p-1.5">
-              <div className="flex items-center gap-1.5 px-2 py-0.5 text-muted-foreground">
-                <Briefcase className="size-3.5" />
-                <span className="text-xs font-medium text-foreground">
-                  {totalDeals}
-                </span>
-                <span className="text-xs text-muted-foreground/80">
-                  {totalDeals === 1 ? "deal found" : "deals found"}
-                </span>
-              </div>
-
-              <div className="flex flex-col md:flex-row flex-1 items-stretch md:items-center gap-2 justify-end w-full lg:w-auto">
-                <div className="relative w-full md:max-w-xs">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-1.5">
+              <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+                <div className="relative w-full xl:max-w-sm">
                   <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/70" />
                   <Input
                     id="deal-search-input"
-                    placeholder="Search deals..."
+                    placeholder="Search deal title, customer name, or customer email..."
                     className="h-8 w-full pl-8 text-xs placeholder:text-muted-foreground/60"
                     onChange={handleSearch}
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                <div className="flex flex-wrap items-center gap-2 xl:ml-auto">
                   <span className="text-[11px] whitespace-nowrap text-muted-foreground">
                     Status:
                   </span>
@@ -429,9 +573,9 @@ const Deals = () => {
                   </Select>
 
                   <span className="text-[11px] whitespace-nowrap text-muted-foreground">
-                    Filter by:
+                    Sort:
                   </span>
-                  <Select onValueChange={handleSortChange} defaultValue="recentActivity">
+                  <Select onValueChange={handleSortChange} value={sortValue}>
                     <SelectTrigger className="h-8 w-36 text-xs cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
@@ -459,24 +603,59 @@ const Deals = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2 py-1 text-muted-foreground">
+                    <Briefcase className="size-3.5" />
+                    <span className="text-xs font-semibold text-foreground">
+                      {activeQuickFilter === "noActivity" ? visibleDeals.length : totalDeals}
+                    </span>
+                    <span className="text-xs text-muted-foreground/80">
+                      {totalDeals === 1 ? "deal found" : "deals found"}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-2">
+                <span className="mr-1 text-[11px] font-medium text-muted-foreground">Quick filters</span>
+                {quickFilters.map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => applyQuickFilter(filter.value)}
+                    className={cn(
+                      "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-medium transition-all",
+                      "hover:border-primary/30 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      activeQuickFilter === filter.value
+                        ? "border-primary/40 bg-background text-foreground shadow-xs"
+                        : "border-border/70 bg-transparent text-muted-foreground"
+                    )}
+                  >
+                    {filter.value === "noActivity" && <AlertCircle className="size-3" />}
+                    {filter.value === "recentlyCreated" && <Clock3 className="size-3" />}
+                    {["active", "won", "lost"].includes(filter.value) && <CircleDot className="size-3" />}
+                    {filter.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2 pt-1" aria-busy="true" aria-live="polite">
               {Array.from({ length: Math.min(query.limit || 8, 10) }).map((_, index) => (
-                <Skeleton key={index} className="h-20 w-full rounded-lg border border-border/40" />
+                <DealRowSkeleton key={index} />
               ))}
             </div>
-          ) : deals.length > 0 ? (
+          ) : visibleDeals.length > 0 ? (
             <div className="space-y-4">
-              <div className="divide-y divide-border/40 overflow-hidden rounded-lg border border-border/60 bg-background shadow-none">
-                {deals.map((deal) => (
-                  <div key={deal._id} className="p-1 bg-background hover:bg-muted/30 transition-colors">
-                    <DealRow deal={deal} />
-                  </div>
+              <div className="space-y-2">
+                {visibleDeals.map((deal) => (
+                  <OrgDealsRow
+                    key={deal._id}
+                    deal={deal}
+                    onOpen={handleDealOpen}
+                  />
                 ))}
               </div>
 
@@ -562,10 +741,10 @@ const Deals = () => {
                       <Search className="size-5 stroke-[1.75]" />
                     </EmptyMedia>
                     <EmptyTitle className="text-sm font-semibold tracking-tight text-foreground">
-                      No Matches Found
+                      No Deals Match This View
                     </EmptyTitle>
                     <EmptyDescription className="text-xs text-muted-foreground max-w-xs mx-auto">
-                      We couldn't find any deals matching the active filters. Try adjusting your search, status, or sort parameters.
+                      This filter is useful when the pipeline is busy, but there are no deals in it right now. Clear the filters to return to the full pipeline.
                     </EmptyDescription>
                   </EmptyHeader>
                   <EmptyContent className="mt-5 flex items-center justify-center">

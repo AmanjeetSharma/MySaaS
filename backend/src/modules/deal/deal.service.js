@@ -4,6 +4,7 @@ import {
     getOrganizationAccessStatus,
     createDeal,
     findCustomerByIdInOrg,
+    findCustomerIdsForDealSearch,
     checkUserOrganizationMembership,
     findDealById,
     findDealByIdWithPopulate,
@@ -294,6 +295,8 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
             .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
             .split(/\s+/)
             .join(".*");
+        const matchingCustomers = await findCustomerIdsForDealSearch(orgId, safeSearch);
+        const matchingCustomerIds = matchingCustomers.map((customer) => customer._id);
 
         filter.$or = [
             {
@@ -309,6 +312,14 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
                 }
             }
         ];
+
+        if (matchingCustomerIds.length > 0) {
+            filter.$or.push({
+                customer: {
+                    $in: matchingCustomerIds
+                }
+            });
+        }
     }
 
     // Pagination

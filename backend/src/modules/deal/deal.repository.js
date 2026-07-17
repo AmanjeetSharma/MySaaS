@@ -60,6 +60,20 @@ export const findCustomerByIdInOrg = (customerId, orgId) => {
     });
 }
 
+export const findCustomerIdsForDealSearch = (orgId, safeSearch) => {
+    return Customer.find({
+        organization: orgId,
+        isDeleted: false,
+        $or: [
+            { name: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+            { phone: { $regex: safeSearch, $options: "i" } }
+        ]
+    })
+        .select("_id")
+        .lean();
+}
+
 export const findDealById = (dealId) => {
     return Deal.findOne({
         _id: dealId,
