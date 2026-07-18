@@ -119,7 +119,7 @@ const OrgDealsRow = ({ deal, onOpen }) => {
             {!hasActivity && (
               <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
                 <Plus className="size-3" />
-                Needs activity
+                No Activity
               </span>
             )}
           </div>

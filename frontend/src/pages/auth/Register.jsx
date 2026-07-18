@@ -168,8 +168,6 @@ const Register = () => {
         device: getDeviceName()
       });
 
-      toast.success('Google login successful! Redirecting to dashboard...');
-
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       toast.error('Google registration failed. Please try again.');

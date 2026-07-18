@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { http } from '../api/httpClient';
 import { useAppStore } from './appStore';
+import { toastIcon } from '../config/toastIcon.config';
+import { toast } from 'sonner';
 
 export const useAuthStore = create(persist(
     (set, get) => ({
@@ -64,6 +66,10 @@ export const useAuthStore = create(persist(
                     error: null
                 });
 
+                toast.success(data?.message || 'Login successful', {
+                    icon: toastIcon('success'),
+                });
+
                 return response.data;
             } catch (error) {
                 const errorMessage = error.response?.data?.message || 'Login failed';
@@ -85,6 +91,10 @@ export const useAuthStore = create(persist(
                     isAuthenticated: true,
                     isLoading: false,
                     error: null
+                });
+
+                toast.success(data?.message || 'Google login successful', {
+                    icon: toastIcon('success'),
                 });
 
                 return response.data;

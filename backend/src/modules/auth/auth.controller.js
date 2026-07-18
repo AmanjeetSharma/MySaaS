@@ -60,8 +60,8 @@ export const loginController = asyncHandler(async (req, res) => {
                 {
                     name: data.user.name,
                     email: data.user.email,
+                    message: data.message,
                 },
-                `Welcome back, ${data.user.name}!`
             )
         )
 });

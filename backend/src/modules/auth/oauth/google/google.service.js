@@ -58,7 +58,7 @@ export const googleLoginService = async (body) => {
             }
         });
 
-        
+
 
         // default org creation for new user
         try {
@@ -148,6 +148,7 @@ export const googleLoginService = async (body) => {
             email
         },
         accessToken,
-        refreshToken
+        refreshToken,
+        message: isNewUser ? "Your account has been created" : `Welcome back!, ${user.name}`,
     }
 };
