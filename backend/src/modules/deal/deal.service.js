@@ -12,6 +12,7 @@ import {
     countDeals,
     getDealStatistics,
     findDealActivities,
+    getOrgNameById,
 } from "./deal.repository.js";
 import { encodeCursor } from "../../utils/cursor.js";
 
@@ -264,7 +265,7 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
     const {
         page = 1,
         limit = 10,
-        search, 
+        search,
         status,
         sortBy = "latestInteractionAt",
         sortOrder = "desc"
@@ -350,7 +351,7 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
     console.log(`--------\nPage: ${pageNum} | Limit: ${limitNum} | Skip: ${skip} | Sort: ${finalSortField} ${sortOrder}\nSearch: ${search || "N/A"} | Status: ${status || "ALL"}`);
 
     try {
-        const [deals, filteredTotal, overallTotal, statistics] =
+        const [deals, filteredTotal, overallTotal, statistics, orgInfo] =
             await Promise.all([
                 findDeals(
                     filter,
@@ -360,7 +361,8 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
                 ),
                 countDeals(filter),
                 countDeals(baseFilter),
-                getDealStatistics(baseFilter)
+                getDealStatistics(baseFilter),
+                getOrgNameById(orgId)
             ]);
 
         const statsMap = {
@@ -379,7 +381,10 @@ export const getAllDealsForOrganizationService = async (userId, orgId, query) =>
         console.log(`Deals retrieved | Organization: ${orgId} | RequestedBy: ${userId}\nCount: ${deals.length} | Total: ${filteredTotal} | Search: ${search || "N/A"} | Status: ${status || "ALL"} | Sort: ${finalSortField} ${sortOrder}`);
 
         return {
-            organization: orgId,
+            organization: {
+                id: orgId,
+                name: orgInfo?.name || "Your Organization"
+            },
 
             statistics: statsMap,
 

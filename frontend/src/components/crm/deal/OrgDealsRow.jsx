@@ -96,7 +96,7 @@ const OrgDealsRow = memo(({ deal, onOpen }) => {
       className={cn(
         "group/row w-full rounded-lg border border-border/70 bg-background text-left shadow-xs transition-all duration-200",
         "hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card hover:shadow-md",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
       )}
     >
       <div className="grid gap-4 p-4 lg:grid-cols-[minmax(260px,1.5fr)_minmax(220px,1fr)_minmax(220px,1.1fr)_150px_32px] lg:items-center">

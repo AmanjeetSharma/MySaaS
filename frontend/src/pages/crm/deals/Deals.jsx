@@ -146,8 +146,9 @@ const Deals = () => {
 
   // Optimized: Using granular selectors with useShallow to target slice variants accurately
   const userProfile = useUserStore(useShallow((state) => state.userProfile));
-  const { deals, statistics, pagination, getOrganizationDeals, isLoading } = useDealStore(
+  const { organization, deals, statistics, pagination, getOrganizationDeals, isLoading } = useDealStore(
     useShallow((state) => ({
+      organization: state.organization,
       deals: state.deals,
       statistics: state.statistics,
       pagination: state.pagination,
@@ -155,6 +156,7 @@ const Deals = () => {
       isLoading: state.isLoading,
     }))
   );
+
 
   const [query, setQuery] = useState({
     page: 1,
@@ -168,7 +170,7 @@ const Deals = () => {
   const [activeQuickFilter, setActiveQuickFilter] = useState("all");
 
   const organizationId = getEntityId(userProfile?.activeOrganization);
-  const organizationName = userProfile?.activeOrganization?.name || userProfile?.activeOrganizationName || "Your Workspace";
+  const organizationName = organization?.name || "Your Workspace";
   const totalDeals = pagination?.total || 0;
   const overallTotal = pagination?.overallTotal || statistics?.total || 0;
   const totalPages = pagination?.totalPages || 1;

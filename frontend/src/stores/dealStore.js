@@ -21,6 +21,7 @@ const getDeletedDealId = (payload, fallbackId) =>
 let dealsController = null;
 
 export const useDealStore = create((set, get) => ({
+    organization: null,
     deals: [],
     currentDeal: null,
     currentOrganizationId: null,
@@ -30,7 +31,7 @@ export const useDealStore = create((set, get) => ({
         limit: 20,
     },
     activitiesByDealId: {},
-
+    
     isLoading: false,
     isUpdating: false,
     isActivitiesLoading: false,
@@ -78,6 +79,7 @@ export const useDealStore = create((set, get) => ({
             const data = response.data.data || {};
 
             set({
+                organization: data.organization || null,
                 deals: data.deals || [],
                 currentOrganizationId: organizationId,
                 statistics: data.statistics || DEFAULT_DEAL_STATISTICS,

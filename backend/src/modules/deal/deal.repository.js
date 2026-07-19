@@ -148,3 +148,10 @@ export const findDealActivities = async (dealId, cursor = null, limit = 11) => {
         .populate("updatedBy", "name email")
         .lean();
 };
+
+
+export const getOrgNameById = (orgId) => {
+    return Organization.findById(orgId)
+        .select("name")
+        .lean();
+}   
