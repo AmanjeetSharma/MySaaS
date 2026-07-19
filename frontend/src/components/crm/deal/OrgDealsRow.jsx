@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import {
   ArrowRight,
@@ -38,10 +39,11 @@ const statusConfig = {
   },
 };
 
-const currencyMap = {
-  INR: "INR",
-  USD: "USD",
-  EUR: "EUR",
+// Cached formatter instances to prevent repeated instantiation per row
+const formatters = {
+  INR: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }),
+  USD: new Intl.NumberFormat("en-IN", { style: "currency", currency: "USD" }),
+  EUR: new Intl.NumberFormat("en-IN", { style: "currency", currency: "EUR" }),
 };
 
 const getCustomerValue = (customer, field, fallback = "Not available") => {
@@ -53,16 +55,12 @@ const formatAmount = (amount, currency = "INR") => {
   const numericAmount = Number(amount || 0);
   if (!numericAmount) return "No Value";
 
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: currencyMap[currency] || "INR",
-    maximumFractionDigits: numericAmount % 1 === 0 ? 0 : 2,
-  }).format(numericAmount);
+  const formatter = formatters[currency] || formatters.INR;
+  return formatter.format(numericAmount);
 };
 
 const formatCompactDate = (date) => {
   if (!date) return "No date";
-
   try {
     return format(new Date(date), "dd MMM");
   } catch {
@@ -72,7 +70,6 @@ const formatCompactDate = (date) => {
 
 const formatRelativeDate = (date) => {
   if (!date) return null;
-
   try {
     return `${formatDistanceToNowStrict(new Date(date), { addSuffix: true })}`;
   } catch {
@@ -80,7 +77,7 @@ const formatRelativeDate = (date) => {
   }
 };
 
-const OrgDealsRow = ({ deal, onOpen }) => {
+const OrgDealsRow = memo(({ deal, onOpen }) => {
   const status = statusConfig[deal?.status] || statusConfig.active;
   const StatusIcon = status.icon;
   const customerName = getCustomerValue(deal?.customer, "name", "Unknown customer");
@@ -105,12 +102,7 @@ const OrgDealsRow = ({ deal, onOpen }) => {
       <div className="grid gap-4 p-4 lg:grid-cols-[minmax(260px,1.5fr)_minmax(220px,1fr)_minmax(220px,1.1fr)_150px_32px] lg:items-center">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                status.className
-              )}
-            >
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors", status.className)}>
               <span className={cn("size-1.5 rounded-full", status.dotClassName)} />
               <StatusIcon className="size-3.5" />
               {status.label}
@@ -182,12 +174,7 @@ const OrgDealsRow = ({ deal, onOpen }) => {
               <CircleDollarSign className="size-3" />
               Value
             </p>
-            <p
-              className={cn(
-                "text-sm font-semibold tabular-nums text-foreground",
-                amountLabel === "No Value" && "font-medium text-muted-foreground"
-              )}
-            >
+            <p className={cn("text-sm font-semibold tabular-nums text-foreground", amountLabel === "No Value" && "font-medium text-muted-foreground")}>
               {amountLabel}
             </p>
           </div>
@@ -207,6 +194,8 @@ const OrgDealsRow = ({ deal, onOpen }) => {
       </div>
     </button>
   );
-};
+});
 
+OrgDealsRow.displayName = "OrgDealsRow";
+  
 export default OrgDealsRow;
