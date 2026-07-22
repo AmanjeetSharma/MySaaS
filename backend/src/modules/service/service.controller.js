@@ -91,21 +91,6 @@ export const getOrganizationServicesController = asyncHandler(async (req, res) =
 });
 
 
-export const getServiceBySlugController = asyncHandler(async (req, res) => {
-    const data = await getServiceBySlugService(
-        req.params.orgSlug,
-        req.params.serviceSlug
-    )
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Service fetched successfully."
-        )
-    );
-});
-
-
 export const toggleServiceStatusController = asyncHandler(async (req, res) => {
     const data = await toggleServiceStatusService(
         req.params.serviceId
@@ -163,6 +148,21 @@ export const getPublicServiceUrlController = asyncHandler(async (req, res) => {
             200,
             data,
             "Public service URL fetched successfully."
+        )
+    );
+});
+
+
+export const getServiceBySlugController = asyncHandler(async (req, res) => {
+    const data = await getServiceBySlugService(
+        req.params.orgSlug,
+        req.params.serviceSlug
+    )
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Service fetched successfully."
         )
     );
 });

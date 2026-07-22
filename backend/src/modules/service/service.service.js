@@ -342,33 +342,6 @@ export const getOrganizationServicesService = async (orgId) => {
 
 
 
-// Public API
-export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
-    if (!orgSlug || typeof orgSlug !== "string") {
-        throw new ApiError(400, "Invalid organization slug");
-    }
-    if (!serviceSlug || typeof serviceSlug !== "string") {
-        throw new ApiError(400, "Invalid service slug");
-    }
-
-    const organization = await findOrganizationBySlug(orgSlug);
-    if (!organization) {
-        throw new ApiError(404, "Organization not found");
-    }
-
-    const service = await findServiceBySlug(organization._id, serviceSlug);
-    if (!service) {
-        throw new ApiError(404, "Service not found");
-    }
-
-    return service;
-};
-
-
-
-
-
-
 
 
 
@@ -531,3 +504,38 @@ export const getPublicServiceUrlService = async (serviceId) => {
         publicUrl: publicUrl,
     };
 };
+
+
+
+
+
+
+
+
+
+
+// Public API
+export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
+    if (!orgSlug || typeof orgSlug !== "string") {
+        throw new ApiError(400, "Invalid organization slug");
+    }
+    if (!serviceSlug || typeof serviceSlug !== "string") {
+        throw new ApiError(400, "Invalid service slug");
+    }
+
+    const organization = await findOrganizationBySlug(orgSlug);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    const service = await findServiceBySlug(organization._id, serviceSlug);
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    return service;
+};
+
+
+
+

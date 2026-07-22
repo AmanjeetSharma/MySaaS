@@ -24,6 +24,7 @@ const mergeService = (services, service) => {
 export const useServiceStore = create((set) => ({
     services: [],
     currentOrganizationId: null,
+    publicService: null,
 
     isLoading: false,
     isUpdating: false,
@@ -282,6 +283,41 @@ export const useServiceStore = create((set) => ({
         }
     },
 
+    getServiceBySlug: async (orgSlug, serviceSlug) => {
+        set({
+            isLoading: true,
+            error: null,
+        });
+
+        try {
+            const response = await http.get(
+                `/services/public/${orgSlug}/${serviceSlug}`
+            );
+
+            const { data } = response.data;
+
+            console.log('Fetched public service:', data);
+
+            set({
+                publicService: data,
+                isLoading: false,
+                error: null,
+            });
+
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to fetch service.";
+
+            set({
+                publicService: null,
+                isLoading: false,
+                error: errorMessage,
+            });
+
+            throw error;
+        }
+    },
+
     clearServices: () => {
         set({
             services: [],
@@ -291,4 +327,11 @@ export const useServiceStore = create((set) => ({
             error: null,
         });
     },
+    clearPublicService: () => {
+        set({
+            publicService: null,
+            isLoading: false,
+            error: null,
+        });
+    }
 }));

@@ -13,7 +13,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", createBookingController);
+router.post("/", createBookingController);// public api
 
 router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
 router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
