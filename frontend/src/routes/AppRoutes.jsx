@@ -33,6 +33,7 @@ import AnalyticsConversion from '@/pages/analytics/AnalyticsConversion';
 // Service imports
 import AllServices from '@/pages/organization/services/allServices/AllServices';
 import Availability from '@/pages/organization/services/Availability';
+import PublicService from '@/pages/organization/services/publicService/PublicService';
 
 // Customer imports
 import Customers from '@/pages/crm/customers/Customers';
@@ -149,6 +150,11 @@ export const AppRoutes = () => {
 
                 </Route>
             </Route>
+
+            {/* Public Service Route */}
+            <Route path="/book/:orgSlug/:serviceSlug" element={<PublicService />} />
+            
+
         </Routes>
     );
 };

@@ -495,7 +495,7 @@ export const getPublicServiceUrlService = async (serviceId) => {
         throw new ApiError(404, "Organization not found");
     }
 
-    const publicUrl = `${env.CLIENT_URL}/${organization.slug}/${service.slug}`;
+    const publicUrl = `${env.CLIENT_URL}/book/${organization.slug}/${service.slug}`;
 
     console.log(`Public URL fetched for ${service.name} (ID: ${service._id}) | Public URL: ${publicUrl}`);
 

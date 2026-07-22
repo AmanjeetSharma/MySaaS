@@ -296,8 +296,6 @@ export const useServiceStore = create((set) => ({
 
             const { data } = response.data;
 
-            console.log('Fetched public service:', data);
-
             set({
                 publicService: data,
                 isLoading: false,
