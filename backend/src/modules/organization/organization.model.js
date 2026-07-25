@@ -49,7 +49,9 @@ const integrationsSchema = new Schema({
     googleCalendar: {
         isConnected: { type: Boolean, default: false },
         refreshToken: { type: String, default: null, select: false },
-        email: { type: String, default: null }
+        email: { type: String, default: null },
+        calendarId: { type: String, default: null },
+        connectedAt: { type: Date, default: null },
     },
 
     whatsapp: {
