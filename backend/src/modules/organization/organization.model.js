@@ -50,7 +50,7 @@ const integrationsSchema = new Schema({
         isConnected: { type: Boolean, default: false },
         refreshToken: { type: String, default: null, select: false },
         email: { type: String, default: null },
-        calendarId: { type: String, default: null },
+        calendarId: { type: String, default: "primary", enum: ["primary", "work", "personal"] },
         connectedAt: { type: Date, default: null },
     },
 

@@ -23,9 +23,8 @@ const serviceSchema = new Schema({
         ref: "User",
         required: true,
     },
-
-    // Basic info
-
+    
+    // Service fields
     name: {
         type: String,
         required: true,
