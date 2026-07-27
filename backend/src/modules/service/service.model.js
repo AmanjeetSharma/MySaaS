@@ -23,7 +23,7 @@ const serviceSchema = new Schema({
         ref: "User",
         required: true,
     },
-    
+
     // Service fields
     name: {
         type: String,
@@ -82,7 +82,7 @@ const serviceSchema = new Schema({
 
     onlineMeetingProvider: {
         type: String,
-        enum: ["GOOGLE_MEET"],
+        enum: ["GOOGLE_MEET", "ZOOM", "MICROSOFT_TEAMS", "WHATSAPP"],
         default: "GOOGLE_MEET",
     },
 

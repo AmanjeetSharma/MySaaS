@@ -19,6 +19,7 @@ import {
     servicePriceValidator,
     serviceCurrencyValidator,
     serviceAddressValidator,
+    serviceOnlineMeetingProviderValidator,
 } from "./service.validator.js";
 
 
@@ -31,14 +32,34 @@ import {
 
 
 export const createServiceService = async (userId, orgId, payload) => {
-    if (!orgId) {
-        throw new ApiError(400, "Organization ID is required");
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Organization ID is required, and must be a valid ObjectId");
     }
-    const { name, description, mode, durationInMinutes, price, currency, address } = payload;
+    const {
+        name,
+        description,
+        mode,
+        onlineMeetingProvider,
+        durationInMinutes,
+        price,
+        currency,
+        address,
+        autoGenerateMeetingLink,
+    } = payload;
 
-    const requiredFields = { name, mode, durationInMinutes, currency };
+    const requiredFields = {
+        name,
+        mode,
+        durationInMinutes,
+        price,
+        currency,
+    };
+
     for (const [field, value] of Object.entries(requiredFields)) {
-        if (!value) {
+        if (value === undefined ||
+            value === null ||
+            (typeof value === "string" && !value.trim())
+        ) {
             throw new ApiError(400, `${field} is required`);
         }
     }
@@ -62,11 +83,10 @@ export const createServiceService = async (userId, orgId, payload) => {
     if (!durationValidation.valid) {
         throw new ApiError(400, durationValidation.errors.join(", "));
     }
-    if (price !== undefined) {
-        const priceValidation = servicePriceValidator(price);
-        if (!priceValidation.valid) {
-            throw new ApiError(400, priceValidation.errors.join(", "));
-        }
+
+    const priceValidation = servicePriceValidator(price);
+    if (!priceValidation.valid) {
+        throw new ApiError(400, priceValidation.errors.join(", "));
     }
 
     const currencyValidation = serviceCurrencyValidator(currency);
@@ -74,7 +94,26 @@ export const createServiceService = async (userId, orgId, payload) => {
         throw new ApiError(400, currencyValidation.errors.join(", "));
     }
 
+    if (mode === "ONLINE") {
+        if (!onlineMeetingProvider || (typeof onlineMeetingProvider !== "string" && !onlineMeetingProvider.trim())) {
+            throw new ApiError(400, "Online meeting provider is required for online services");
+        }
+
+        const onlineMeetingProviderValidation = serviceOnlineMeetingProviderValidator(onlineMeetingProvider);
+        if (!onlineMeetingProviderValidation.valid) {
+            throw new ApiError(400, onlineMeetingProviderValidation.errors.join(", "));
+        }
+
+        if (autoGenerateMeetingLink !== undefined && typeof autoGenerateMeetingLink !== "boolean") {
+            throw new ApiError(400, "Auto-generate meeting link must be a boolean value");
+        }
+    }
+
     if (mode === "OFFLINE") {
+        if (!address) {
+            throw new ApiError(400, "Address is required to set up offline services");
+        }
+
         const addressValidation = serviceAddressValidator(address);
         if (!addressValidation.valid) {
             throw new ApiError(400, addressValidation.errors.join(", "));
@@ -95,15 +134,12 @@ export const createServiceService = async (userId, orgId, payload) => {
         throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
     }
 
-    if (mode === "OFFLINE" && !address) {
-        throw new ApiError(400, "Address is required to set up offline services");
-    }
-
     const serviceSlug = await generateServiceSlug(name, orgId);
 
     const newService = await createService({
         organization: orgId,
         createdBy: userId,
+
         name,
         slug: serviceSlug,
         description,
@@ -111,7 +147,9 @@ export const createServiceService = async (userId, orgId, payload) => {
         durationInMinutes,
         price,
         currency,
+        onlineMeetingProvider: mode === "ONLINE" ? onlineMeetingProvider : null,
         address: mode === "OFFLINE" ? address : null,
+        autoGenerateMeetingLink: mode === "ONLINE" ? (autoGenerateMeetingLink ?? true) : false,
     });
 
     console.log(`Service created| Name: ${newService.name} (ID: ${newService._id}) | Slug: ${newService.slug}`);
