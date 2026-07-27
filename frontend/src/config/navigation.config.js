@@ -4,14 +4,11 @@ import {
     Briefcase,
     Shield,
     CheckCircle2,
-    Star,
     Building2,
     Palette,
     Sliders,
     Settings,
     UserCircle,
-    TrendingUp,
-    TrendingDown,
     UserStar,
     Bell,
     Info,
@@ -121,6 +118,16 @@ export const useNavigationConfig = () => {
                         href: "/integrations/whatsapp",
                         icon: MessageCircle
                     },
+                    {
+                        title: "Zoom",
+                        href: "/integrations/zoom",
+                        icon: MessageCircle
+                    },
+                    {
+                        title: "Microsoft Teams",
+                        href: "/integrations/microsoft-teams",
+                        icon: MessageCircle
+                    }
                 ]
             },
             {

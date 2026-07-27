@@ -24,12 +24,6 @@ import Organizations from '@/pages/organization/Organizations';
 import OrganizationDetails from '@/pages/organization/OrganizationDetails';
 import Members from '@/pages/organization/Members';
 
-// Analytics imports
-import AnalyticsBookings from '@/pages/analytics/AnalyticsBookings';
-import AnalyticsCRM from '@/pages/analytics/AnalyticsCRM';
-import AnalyticsConversion from '@/pages/analytics/AnalyticsConversion';
-
-
 // Service imports
 import AllServices from '@/pages/organization/services/allServices/AllServices';
 import Availability from '@/pages/organization/services/Availability';
@@ -61,6 +55,8 @@ import SetPassword from '@/pages/settings/account/SetPassword';
 // Integrations imports
 import GoogleCalendar from '@/pages/organization/integrations/GoogleCalendar';
 import WhatsApp from '@/pages/organization/integrations/WhatsApp';
+import Zoom from '@/pages/organization/integrations/Zoom';
+import MicrosoftTeams from '@/pages/organization/integrations/MicrosoftTeams';
 
 // Notifications imports
 import Notifications from '@/pages/notifications/Notifications';
@@ -101,11 +97,6 @@ export const AppRoutes = () => {
                     <Route path="/services/all" element={<AllServices />} />
                     <Route path="/services/all/:serviceId/availability" element={<Availability />} />
 
-                    {/* Analytics Routes */}
-                    <Route path="/analytics/bookings" element={<AnalyticsBookings />} />
-                    <Route path="/analytics/crm" element={<AnalyticsCRM />} />
-                    <Route path="/analytics/conversion" element={<AnalyticsConversion />} />
-
                     {/* Customer Routes */}
                     <Route path="/customers" element={<Customers />} />
                     <Route path="/customers/:customerId" element={<CustomerDetails />} />
@@ -121,6 +112,8 @@ export const AppRoutes = () => {
                     {/* Integrations Routes */}
                     <Route path="/integrations/google-calendar" element={<GoogleCalendar />} />
                     <Route path="/integrations/whatsapp" element={<WhatsApp />} />
+                    <Route path="/integrations/zoom" element={<Zoom />} />
+                    <Route path="/integrations/microsoft-teams" element={<MicrosoftTeams />} />
 
                     {/* Reminder Route */}
                     <Route path="/reminders" element={<Reminder />} />

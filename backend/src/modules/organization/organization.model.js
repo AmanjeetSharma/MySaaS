@@ -92,14 +92,14 @@ const whatsappIntegrationSchema = new Schema({
     },
 }, { _id: false });
 
-const microsoftIntegrationSchema = new Schema({
+const zoomIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
         default: true,
     },
 }, { _id: false });
 
-const zoomIntegrationSchema = new Schema({
+const microsoftIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
         default: true,
