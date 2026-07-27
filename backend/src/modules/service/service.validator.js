@@ -191,7 +191,7 @@ export const serviceAddressValidator = (address) => {
 export const serviceOnlineMeetingProviderValidator = (provider) => {
     const errors = [];
 
-    const allowedProviders = ["GOOGLE_MEET", "ZOOM", "MICROSOFT_TEAMS", "WHATSAPP"];
+    const allowedProviders = ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS"];
 
     if (typeof provider !== "string") {
         errors.push("Online meeting provider must be a string");

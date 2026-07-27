@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const memberSchema = new Schema({
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
@@ -12,7 +12,7 @@ const memberSchema = new Schema({
         default: "member"
     },
     invitedBy: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         default: null
     },
@@ -45,20 +45,87 @@ const subscriptionSchema = new Schema({
 }, { _id: false });
 
 
-const integrationsSchema = new Schema({
-    googleCalendar: {
-        isConnected: { type: Boolean, default: false },
-        refreshToken: { type: String, default: null, select: false },
-        email: { type: String, default: null, lowercase: true, trim: true },
-        googleId: { type: String, default: null, trim: true },
-        calendarId: { type: String, default: "primary", trim: true },
-        connectedAt: { type: Date, default: null },
+const googleIntegrationSchema = new Schema({
+    isConnected: {
+        type: Boolean,
+        default: false,
     },
 
-    whatsapp: {
-        isEnabled: { type: Boolean, default: false },
-    }
+    refreshToken: {
+        type: String,
+        default: null,
+        select: false,
+    },
+
+    email: {
+        type: String,
+        default: null,
+        lowercase: true,
+        trim: true,
+    },
+
+    googleId: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
+    connectedAt: {
+        type: Date,
+        default: null,
+    },
+
+    // Google Calendar config
+    calendarId: {
+        type: String,
+        default: "primary",
+        trim: true,
+    },
+
 }, { _id: false });
+
+// future implementation
+const whatsappIntegrationSchema = new Schema({
+    isConnected: {
+        type: Boolean,
+        default: true,
+    },
+}, { _id: false });
+
+const microsoftIntegrationSchema = new Schema({
+    isConnected: {
+        type: Boolean,
+        default: true,
+    },
+}, { _id: false });
+
+const zoomIntegrationSchema = new Schema({
+    isConnected: {
+        type: Boolean,
+        default: true,
+    },
+}, { _id: false });
+
+
+const integrationsSchema = new Schema({
+    google: {
+        type: googleIntegrationSchema,
+        default: {}
+    },
+    whatsapp: {
+        type: whatsappIntegrationSchema,
+        default: {}
+    },
+    microsoft: {
+        type: microsoftIntegrationSchema,
+        default: {}
+    },
+    zoom: {
+        type: zoomIntegrationSchema,
+        default: {}
+    },
+}, { _id: false });
+
 
 const usageSchema = new Schema({
     aiCreditsUsed: {
@@ -97,7 +164,7 @@ const organizationSchema = new Schema({
     },
 
     owner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
     },
