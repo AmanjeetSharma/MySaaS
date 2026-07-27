@@ -90,6 +90,15 @@ export const googleLoginService = async (body) => {
         user.providers.google = { enabled: true, googleId };
     }
 
+    const hasAvatar = user.avatar?.url && user.avatar?.url.trim() !== "";
+    if (!hasAvatar && picture) {
+        user.avatar = {
+            url: picture,
+            publicId: `google-${googleId}`
+        };
+    }
+
+
     const existingSession = user.sessions?.find(s => s.device === device);
 
     let sessionId;

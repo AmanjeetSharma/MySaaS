@@ -43,7 +43,7 @@ export const forgotPasswordController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(
             200,
             data,
-            "If an account exists with this email, a password reset link has been sent."
+            "If an account exists with this email, we've sent a password reset link"
         ));
 });
 

@@ -123,15 +123,40 @@ export const registerService = async (body, avatarFile) => {
     // Development true: bypass email verification
 
     if (!env.VERIFICATION_REQUIRED) {
-        await createUser({
+        const user = await createUser({
             ...userData,
         });
+
+        const trimmed = user.name.trim();
+        const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
+
+        if (!user.activeOrganization) {
+            const orgSlug = await generateOrgSlug(orgName);
+
+            try {
+                const org = await createDefaultOrganization({
+                    name: orgName,
+                    owner: user._id,
+                    slug: orgSlug
+                });
+                if (org) {
+                    user.activeOrganization = org._id;
+                    await user.save();
+
+                    console.log(`Default organization created for user ${user.email} | Email Verification Bypass | orgId: ${org._id}`);
+                }
+            } catch (err) {
+                console.error(`Default organization creation failed for user ${user.email} | Email Verification Bypass | error: ${err.message}`);
+            }
+        }
 
         console.log(`User created without email verification | email: ${normalizedEmail}`);
 
         return {
             name: userData.name,
-            email: userData.email
+            email: userData.email,
+            organization: user.activeOrganization,
+            organizationName: orgName
         };
     }
 
