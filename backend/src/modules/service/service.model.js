@@ -83,12 +83,12 @@ const serviceSchema = new Schema({
     onlineMeetingProvider: {
         type: String,
         enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS"],
-        default: "GOOGLE_MEET",
+        default: null,
     },
 
     autoGenerateMeetingLink: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 
     isActive: {
