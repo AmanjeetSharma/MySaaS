@@ -45,7 +45,7 @@ import Bookings from '@/pages/bookings/Bookings';
 import Reminder from '@/pages/reminder/Reminder';
 
 // Settings imports
-import Profile from '@/pages/settings/account/Profile';
+import Profile from '@/pages/settings/account/profile/Profile';
 import Appearance from '@/pages/settings/system/Appearance';
 import Preferences from '@/pages/settings/system/Preferences';
 import Security from '@/pages/settings/account/Security';

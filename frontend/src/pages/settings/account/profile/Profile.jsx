@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AccountInfo from './AccountInfo';
 import PhoneComponent from './PhoneComponent';
+import AvatarCropModal from './AvatarCropModal'; // <-- Implemented modal component
 
 const Profile = () => {
   const {
@@ -42,6 +43,11 @@ const Profile = () => {
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(null);
+
+  // New crop states
+  const [selectedImageSrc, setSelectedImageSrc] = useState(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [selectedFileType, setSelectedFileType] = useState('image/jpeg');
 
   const fileInputRef = useRef(null);
 
@@ -82,7 +88,8 @@ const Profile = () => {
     }
   };
 
-  const handleAvatarUpload = async (event) => {
+  // Step 1: File selection triggers preview & opens crop modal
+  const handleFileSelect = (event) => {
     const file = event.target.files?.[0];
 
     if (!file) return;
@@ -107,35 +114,53 @@ const Profile = () => {
       return;
     }
 
-    const reader = new FileReader();
+    setSelectedFileType(file.type); // Store file format
 
-    reader.onloadend = () => {
-      setPreviewAvatar(reader.result);
-    };
+    // Clean up previous Object URL if exists
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+    }
 
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(objectUrl);
+    setIsCropModalOpen(true);
 
+    event.target.value = '';
+  };
+
+  // Step 2: Modal completes crop -> execute actual upload
+  const handleCropAndUpload = async (croppedFile) => {
     setIsAvatarUploading(true);
 
     try {
-      await updateUserAvatar(file);
+      await updateUserAvatar(croppedFile);
 
-      setPreviewAvatar(null);
+      // Clean up modal state
+      cleanupCropState();
+
+      // Refresh user profile
+      await getUserProfile();
 
       toast.success('Avatar updated successfully', {
         icon: <Camera className="h-4 w-4 text-primary" />,
         duration: 2000
       });
     } catch (error) {
-      setPreviewAvatar(null);
-
       toast.error(error.message || 'Failed to update avatar');
     } finally {
       setIsAvatarUploading(false);
+    }
+  };
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+  const cleanupCropState = () => {
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+    }
+    setSelectedImageSrc(null);
+    setIsCropModalOpen(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -150,10 +175,8 @@ const Profile = () => {
     try {
       await deleteUserAvatar();
 
-      // instantly clear current avatar preview/UI
       setPreviewAvatar(null);
 
-      // refresh profile data
       await getUserProfile();
 
       toast.success('Avatar removed successfully', {
@@ -351,7 +374,7 @@ const Profile = () => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleAvatarUpload}
+                onChange={handleFileSelect}
                 className="hidden"
               />
 
@@ -483,6 +506,16 @@ const Profile = () => {
       <PhoneComponent />
 
       <AccountInfo />
+
+      {/* Avatar Crop Modal */}
+      <AvatarCropModal
+        imageSrc={selectedImageSrc}
+        isOpen={isCropModalOpen}
+        onClose={cleanupCropState}
+        onCropComplete={handleCropAndUpload}
+        isUploading={isAvatarUploading}
+        fileType={selectedFileType}
+      />
     </div>
   );
 };
