@@ -143,7 +143,8 @@ const AvatarCropModal = ({
                             <span className="flex items-center gap-1.5">
                                 <RotateCw className="h-3.5 w-3.5" /> Rotation
                             </span>
-                            <span className="font-mono text-[11px]">{rotation}°</span>
+                            {/* Formatted to 2 decimal places */}
+                            <span className="font-mono text-[11px]">{Number(rotation).toFixed(2)}°</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
@@ -194,7 +195,6 @@ const AvatarCropModal = ({
                     </Button>
 
                     <div className="flex gap-2.5">
-                        {/* Cancel Button: Increased Padding & Destructive Theme */}
                         <Button
                             type="button"
                             variant="outline"
@@ -208,7 +208,6 @@ const AvatarCropModal = ({
                             Cancel
                         </Button>
 
-                        {/* Upload Button: Increased Padding */}
                         <Button
                             type="button"
                             onClick={handleSave}
