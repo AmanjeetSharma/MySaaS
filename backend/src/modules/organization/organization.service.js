@@ -270,11 +270,15 @@ export const switchOrganizationService = async (userId, orgId) => {
 
 
 export const syncOrganizationSlugService = async (userId, orgId) => {
-    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Invalid organization ID");
+    }
 
     // check if user has access to the organization
     const org = await findOrganizationById(orgId);
-    if (!org) throw new ApiError(404, "Organization not found");
+    if (!org) {
+        throw new ApiError(404, "Organization not found");
+    }
 
     if (!org.isSlugStale) {
         throw new ApiError(400, "No syncronization required. Url is already up to date");
@@ -286,14 +290,8 @@ export const syncOrganizationSlugService = async (userId, orgId) => {
 
     const newSlug = await generateOrgSlug(org.name);
 
-    if (org.slug === newSlug) {
-        return {
-            message: "Organization slug is already up to date",
-            slug: org.slug
-        };
-    }
-
     org.slug = newSlug;
+    org.isSlugStale = false;
 
     try {
         await org.save();

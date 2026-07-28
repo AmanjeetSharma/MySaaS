@@ -4,12 +4,12 @@ import {
     Building2, ArrowLeft, ShieldCheck,
     Users, Cpu, UserPlus,
     Settings2, ChevronRight, LayoutGrid,
-    CreditCard, ExternalLink, X, Send
+    CreditCard, ExternalLink, X, Send,
+    AlertTriangle, Info, RefreshCw, Link2, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrganizationStore, useUserStore } from '@/stores';
 import { cn } from '@/lib/utils';
-import { iso } from 'zod';
 
 const getEntityId = (entity) => {
     if (!entity) return null;
@@ -20,11 +20,31 @@ const getEntityId = (entity) => {
 const hasSameId = (left, right) => {
     const leftId = getEntityId(left);
     const rightId = getEntityId(right);
-
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
 };
 
-// Reusable UI Components using theme tokens
+// Tooltip Component
+const Tooltip = ({ content, children }) => {
+    const [isVisible, setIsVisible] = useState(false);
+
+    return (
+        <div
+            className="relative inline-flex items-center"
+            onMouseEnter={() => setIsVisible(true)}
+            onMouseLeave={() => setIsVisible(false)}
+        >
+            {children}
+            {isVisible && (
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-64 p-2.5 bg-popover text-popover-foreground text-xs rounded-md shadow-md border border-border animate-in fade-in-0 zoom-in-95">
+                    {content}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-popover" />
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Reusable UI Components
 const Card = ({ children, className = '', padding = 'md' }) => {
     const paddingClasses = {
         sm: 'p-3 md:p-4',
@@ -33,7 +53,7 @@ const Card = ({ children, className = '', padding = 'md' }) => {
     };
     return (
         <div className={cn(
-            "bg-card border border-border rounded-lg",
+            "bg-card border border-border rounded-lg shadow-sm",
             paddingClasses[padding],
             className
         )}>
@@ -42,7 +62,7 @@ const Card = ({ children, className = '', padding = 'md' }) => {
     );
 };
 
-const StatCard = ({ label, value, limit, icon: Icon, badge }) => {
+const StatCard = ({ label, value, limit, icon: Icon, badge, action }) => {
     const percentage = ((value || 0) / (limit || 1)) * 100;
 
     return (
@@ -60,11 +80,14 @@ const StatCard = ({ label, value, limit, icon: Icon, badge }) => {
                     )}
                 </div>
                 <div>
-                    <div className="flex items-baseline gap-1 md:gap-1.5 mb-1.5 md:mb-2">
-                        <span className="text-xl md:text-2xl font-semibold text-foreground">
-                            {value?.toLocaleString() || 0}
-                        </span>
-                        <span className="text-xs md:text-sm text-muted-foreground">/ {limit?.toLocaleString()}</span>
+                    <div className="flex items-baseline justify-between mb-1.5 md:mb-2">
+                        <div className="flex items-baseline gap-1 md:gap-1.5">
+                            <span className="text-xl md:text-2xl font-semibold text-foreground">
+                                {value?.toLocaleString() ?? 0}
+                            </span>
+                            <span className="text-xs md:text-sm text-muted-foreground">/ {limit?.toLocaleString()}</span>
+                        </div>
+                        {action}
                     </div>
                     <div className="h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
@@ -78,17 +101,20 @@ const StatCard = ({ label, value, limit, icon: Icon, badge }) => {
     );
 };
 
-const SectionHeader = ({ icon: Icon, title, description }) => (
-    <div className="space-y-1">
-        <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold text-foreground">
-                {title}
-            </h2>
+const SectionHeader = ({ icon: Icon, title, description, action }) => (
+    <div className="flex items-start justify-between">
+        <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold text-foreground">
+                    {title}
+                </h2>
+            </div>
+            {description && (
+                <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
+            )}
         </div>
-        {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-        )}
+        {action}
     </div>
 );
 
@@ -99,8 +125,8 @@ const IntegrationRow = ({ name, connected, path }) => (
     >
         <div className="flex items-center gap-2 md:gap-3">
             <div className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                connected ? "bg-green-500" : "bg-muted-foreground/30"
+                "w-2 h-2 rounded-full",
+                connected ? "bg-emerald-500" : "bg-muted-foreground/30"
             )} />
             <div>
                 <p className="text-sm font-medium text-foreground">{name}</p>
@@ -135,7 +161,6 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
         }
 
         setIsSending(true);
-        // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         onInvite(email);
         setEmail('');
@@ -209,20 +234,31 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
 export default function OrganizationDetails() {
     const { orgId } = useParams();
     const navigate = useNavigate();
-    const { getOrganization, updateOrganization, ownedOrganization, isLoading, isUpdating } = useOrganizationStore();
+    const {
+        getOrganization,
+        updateOrganization,
+        syncOrganizationSlug,
+        ownedOrganization,
+        isLoading,
+        isUpdating
+    } = useOrganizationStore();
+
     const { userProfile } = useUserStore();
     const currentUserId = userProfile?._id;
 
     const [organization, setOrganization] = useState(null);
     const [orgName, setOrgName] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [isSyncingSlug, setIsSyncingSlug] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
     useEffect(() => {
         const fetchOrganization = async () => {
             try {
-                const data = await getOrganization(orgId);
+                const response = await getOrganization(orgId);
+                const data = response?.data || response;
                 setOrganization(data);
-                setOrgName(data.name);
+                setOrgName(data.name || '');
             } catch {
                 toast.error('Failed to load organization');
                 navigate('/organizations');
@@ -230,6 +266,7 @@ export default function OrganizationDetails() {
         };
         fetchOrganization();
     }, [orgId, currentUserId, getOrganization, navigate]);
+
     const isOwner = useMemo(() => {
         return (
             hasSameId(ownedOrganization, orgId) ||
@@ -237,25 +274,40 @@ export default function OrganizationDetails() {
         );
     }, [organization?.owner, orgId, ownedOrganization, currentUserId]);
 
-
-
     const handleUpdate = async () => {
         try {
             const updatedOrganization = await updateOrganization(orgId, orgName);
+            const unpackedData = updatedOrganization?.data || updatedOrganization;
             setOrganization((currentOrganization) => ({
                 ...currentOrganization,
-                ...updatedOrganization
+                ...unpackedData
             }));
-            toast.success('Organization updated');
+            toast.success('Organization name updated');
             setIsEditing(false);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Update failed');
         }
     };
 
+    const handleSyncSlug = async () => {
+        try {
+            setIsSyncingSlug(true);
+            const data = await syncOrganizationSlug(orgId);
+            setOrganization((prev) => ({
+                ...prev,
+                slug: data.slug,
+                isSlugStale: false
+            }));
+            toast.success('Organization URL slug synchronized successfully');
+        } catch (error) {
+            toast.error(error?.response?.data?.message || 'Failed to synchronize organization URL');
+        } finally {
+            setIsSyncingSlug(false);
+        }
+    };
+
     const handleInviteMember = (email) => {
         toast.success(`Invitation sent to ${email}`);
-        // Here you would make the actual API call to invite the member
     };
 
     if (isLoading || !organization) {
@@ -267,6 +319,9 @@ export default function OrganizationDetails() {
             </div>
         );
     }
+
+    const memberCount = organization.members?.length || organization.usage?.memberCount || 0;
+    const maxMembers = organization.meta?.limits?.maxMembers || 0;
 
     const stats = [
         {
@@ -282,28 +337,27 @@ export default function OrganizationDetails() {
             limit: organization.meta?.limits?.maxCustomers,
             icon: UserPlus,
             badge: `${((organization.usage?.customerCount || 0) / (organization.meta?.limits?.maxCustomers || 1) * 100).toFixed(0)}% of limit`
-        }, {
+        },
+        {
             label: 'Team Members',
-            value: organization.members?.length,
-            limit: organization.meta?.limits?.maxMembers,
+            value: memberCount,
+            limit: maxMembers,
             icon: Users,
-            badge: `${organization.members?.length || 0} / ${organization.meta?.limits?.maxMembers || 0}`
+            badge: `${memberCount} / ${maxMembers}`
         }
     ];
 
-    const remainingSlots = (organization.meta?.limits?.maxMembers || 0) - (organization.members?.length || 0);
+    const remainingSlots = maxMembers - memberCount;
 
     return (
         <>
             <div className="min-h-screen bg-background">
-                {/* Main Content Container */}
-                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-350">
-
+                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
                     {/* Navigation Header */}
-                    <div className="mb-6 sm:mb-8">
+                    <div className="mb-6">
                         <button
                             onClick={() => navigate('/organizations')}
-                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 sm:mb-6"
+                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
                         >
                             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                             Back to organizations
@@ -328,7 +382,7 @@ export default function OrganizationDetails() {
                                         <span>Created {new Date(organization.createdAt).toLocaleDateString()}</span>
                                         {isOwner && (
                                             <span className="flex items-center gap-1">
-                                                <ShieldCheck className="h-3 w-3" />
+                                                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                                                 Owner
                                             </span>
                                         )}
@@ -347,6 +401,40 @@ export default function OrganizationDetails() {
                         </div>
                     </div>
 
+                    {/* Stale Slug Alert Banner */}
+                    {organization.isSlugStale && (
+                        <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="text-sm font-semibold">Public URL Slug Out of Sync</h4>
+                                    <p className="text-xs sm:text-sm opacity-90 mt-0.5">
+                                        Your organization name changed, but your public URL slug (<code className="font-mono font-bold">{organization.slug}</code>) is still using the previous version.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                <Tooltip content="⚠️ Syncing will instantly update public links. Any old shared service or booking links will become deprecated and stop working.">
+                                    <button className="p-1.5 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 rounded-md transition-colors">
+                                        <Info className="h-4 w-4" />
+                                    </button>
+                                </Tooltip>
+                                <button
+                                    onClick={handleSyncSlug}
+                                    disabled={isSyncingSlug || isUpdating}
+                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50"
+                                >
+                                    {isSyncingSlug ? (
+                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="h-3.5 w-3.5" />
+                                    )}
+                                    Sync URL Slug
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                         {stats.map((stat) => (
@@ -356,16 +444,15 @@ export default function OrganizationDetails() {
 
                     {/* Two Column Layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                        {/* Left Column - Primary Content */}
+                        {/* Left Column */}
                         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-                            {/* Organization Settings Section */}
                             <Card>
                                 <SectionHeader
                                     icon={Settings2}
                                     title="Organization Settings"
-                                    description="Manage your organization's basic information"
+                                    description="Manage your organization's basic information and public address"
                                 />
-                                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+                                <div className="mt-4 sm:mt-6 space-y-4">
                                     {isEditing ? (
                                         <>
                                             <div>
@@ -406,17 +493,45 @@ export default function OrganizationDetails() {
                                                 <span className="text-sm text-muted-foreground">Organization name</span>
                                                 <span className="text-sm font-medium text-foreground">{organization.name}</span>
                                             </div>
+
+                                            {/* Slug Field Section */}
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-sm text-muted-foreground">Public URL Slug</span>
+                                                    <Tooltip content="⚠️ Syncing will update public links. Any old shared service or booking links will become deprecated.">
+                                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                                    </Tooltip>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-mono bg-muted/50 px-2 py-1 rounded text-foreground border border-border">
+                                                        /{organization.slug}
+                                                    </span>
+                                                    {organization.isSlugStale ? (
+                                                        <button
+                                                            onClick={handleSyncSlug}
+                                                            disabled={isSyncingSlug}
+                                                            className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1 underline"
+                                                        >
+                                                            {isSyncingSlug ? 'Syncing...' : 'Sync needed'}
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-xs text-emerald-600 flex items-center gap-0.5">
+                                                            <CheckCircle2 className="h-3 w-3" /> Synced
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
                                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
                                                 <span className="text-sm text-muted-foreground">Description</span>
                                                 <span className="text-sm font-medium text-foreground">{organization?.description || 'No description provided'}</span>
                                             </div>
-                                            <div className="pt-2 text-sm text-destructive/60">
-                                                {((isOwner) ? (
-                                                    null
-                                                ) : (
-                                                    "Contact your organization owner for any changes"
-                                                ))}
-                                            </div>
+                                            {!isOwner && (
+                                                <div className="pt-2 text-xs text-muted-foreground flex items-center gap-1">
+                                                    <AlertCircle className="h-3.5 w-3.5" />
+                                                    Contact your organization owner to edit details.
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -432,21 +547,30 @@ export default function OrganizationDetails() {
                                 <div className="mt-4 sm:mt-6 space-y-2">
                                     <IntegrationRow
                                         name="Google Calendar"
-                                        connected={organization.integrations?.googleCalendar?.isConnected}
+                                        connected={organization.integrations?.google?.isConnected}
                                         path="/integrations/google-calendar"
                                     />
                                     <IntegrationRow
                                         name="WhatsApp Business"
-                                        connected={organization.integrations?.whatsapp?.isEnabled}
+                                        connected={organization.integrations?.whatsapp?.isConnected}
                                         path="/integrations/whatsapp"
+                                    />
+                                    <IntegrationRow
+                                        name="Microsoft Teams"
+                                        connected={organization.integrations?.microsoft?.isConnected}
+                                        path="/integrations/microsoft-teams"
+                                    />
+                                    <IntegrationRow
+                                        name="Zoom"
+                                        connected={organization.integrations?.zoom?.isConnected}
+                                        path="/integrations/zoom"
                                     />
                                 </div>
                             </Card>
                         </div>
 
-                        {/* Right Column - Secondary Information */}
+                        {/* Right Column */}
                         <div className="space-y-6 sm:space-y-8">
-                            {/* Subscription Card */}
                             <Card>
                                 <SectionHeader
                                     icon={CreditCard}
@@ -456,7 +580,7 @@ export default function OrganizationDetails() {
                                 <div className="mt-4 sm:mt-6 space-y-3">
                                     <DetailRow
                                         label="Current Plan"
-                                        value={organization.subscription?.plan?.toUpperCase() || 'Free'}
+                                        value={organization.subscription?.plan?.toUpperCase() || 'FREE'}
                                         valueClassName="capitalize"
                                     />
                                     <DetailRow
@@ -471,12 +595,11 @@ export default function OrganizationDetails() {
                                 </div>
                             </Card>
 
-                            {/* Team Members Card */}
                             <Card>
                                 <SectionHeader
                                     icon={Users}
                                     title="Team Members"
-                                    description={`${organization.members?.length || 0} of ${organization.meta?.limits?.maxMembers || 0} members`}
+                                    description={`${memberCount} of ${maxMembers} members`}
                                 />
                                 <div className="mt-4">
                                     <button
@@ -487,16 +610,14 @@ export default function OrganizationDetails() {
                                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                                     </button>
 
-                                    {remainingSlots > 0 && (
+                                    {remainingSlots > 0 ? (
                                         <button
                                             onClick={() => setIsInviteModalOpen(true)}
                                             className="w-full mt-3 px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors font-medium border border-dashed border-border rounded-lg hover:border-primary/50"
                                         >
                                             + Invite members
                                         </button>
-                                    )}
-
-                                    {remainingSlots <= 0 && (
+                                    ) : (
                                         <div className="mt-4 p-3 bg-muted/30 rounded-lg">
                                             <p className="text-xs text-muted-foreground text-center">
                                                 Member limit reached. Upgrade to add more members.
@@ -510,7 +631,6 @@ export default function OrganizationDetails() {
                 </div>
             </div>
 
-            {/* Invite Member Modal */}
             <InviteMemberModal
                 isOpen={isInviteModalOpen}
                 onClose={() => setIsInviteModalOpen(false)}

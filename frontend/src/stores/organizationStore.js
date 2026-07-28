@@ -484,6 +484,72 @@ export const useOrganizationStore = create((set, get) => ({
     },
 
     // =========================================================
+    // SYNC ORGANIZATION SLUG
+    // =========================================================
+
+    syncOrganizationSlug: async (orgId) => {
+        set({
+            isUpdating: true,
+            error: null
+        });
+
+        try {
+            const response = await http.post(
+                `/organizations/${orgId}/sync-slug`
+            );
+
+            const { data } = response.data;
+
+            const {
+                ownedOrganization,
+                memberOrganizations,
+                currentOrganization
+            } = get();
+
+            const updateSlug = (organization) => {
+
+                if (!organization || organization._id !== orgId) {
+                    return organization;
+                }
+
+                return {
+                    ...organization,
+                    slug: data.slug,
+                    isSlugStale: false
+                };
+            };
+
+            set({
+                ownedOrganization: updateSlug(ownedOrganization),
+
+                memberOrganizations:
+                    memberOrganizations.map(updateSlug),
+
+                currentOrganization:
+                    updateSlug(currentOrganization),
+
+                isUpdating: false,
+                error: null
+            });
+
+            return data;
+
+        } catch (error) {
+
+            const errorMessage =
+                error.response?.data?.message ||
+                "Failed to synchronize organization URL";
+
+            set({
+                isUpdating: false,
+                error: errorMessage
+            });
+
+            throw error;
+        }
+    },
+
+    // =========================================================
     // SET CURRENT ORGANIZATION
     // =========================================================
 
