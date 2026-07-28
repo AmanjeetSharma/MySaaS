@@ -297,7 +297,7 @@ export const useOrganizationStore = create((set, get) => ({
     // UPDATE ORGANIZATION
     // =========================================================
 
-    updateOrganization: async (orgId, orgName) => {
+    updateOrganization: async (orgId, { orgName, description }) => {
 
         set({
             isUpdating: true,
@@ -309,7 +309,7 @@ export const useOrganizationStore = create((set, get) => ({
             const response =
                 await http.patch(
                     `/organizations/${orgId}`,
-                    { orgName }
+                    { orgName, description }
                 );
 
             const { data } = response.data;

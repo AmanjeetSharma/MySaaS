@@ -29,7 +29,7 @@ const Tooltip = ({ content, children }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <div 
+        <div
             className="relative inline-flex items-center"
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
@@ -281,10 +281,12 @@ export default function OrganizationDetails() {
 
     const handleUpdate = async () => {
         try {
-            const updatedOrganization = await updateOrganization(orgId, {
-                name: orgName,
-                description: orgDescription
-            });
+            const updatedOrganization = await updateOrganization(orgId,
+                {
+                    orgName: orgName,
+                    description: orgDescription
+                }
+            );
             const unpackedData = updatedOrganization?.data || updatedOrganization;
             setOrganization((currentOrganization) => ({
                 ...currentOrganization,

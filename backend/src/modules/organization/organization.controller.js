@@ -56,9 +56,12 @@ export const getOrganizationController = asyncHandler(async (req, res) => {
 
 
 export const updateOrganizationController = asyncHandler(async (req, res) => {
+
+    const { orgName, description } = req.body;
+
     const data = await updateOrganizationService(
         req.params.orgId,
-        req.body,
+        { orgName, description },
         req.user._id
     );
 

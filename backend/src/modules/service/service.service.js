@@ -21,6 +21,7 @@ import {
     serviceAddressValidator,
     serviceOnlineMeetingProviderValidator,
 } from "./service.validator.js";
+import { INTEGRATION_CONFIG } from "../../constants/onlineMeetingProviders.js";
 
 
 
@@ -56,7 +57,8 @@ export const createServiceService = async (userId, orgId, payload) => {
     };
 
     for (const [field, value] of Object.entries(requiredFields)) {
-        if (value === undefined ||
+        if (
+            value === undefined ||
             value === null ||
             (typeof value === "string" && !value.trim())
         ) {
@@ -95,7 +97,7 @@ export const createServiceService = async (userId, orgId, payload) => {
     }
 
     if (mode === "ONLINE") {
-        if (!onlineMeetingProvider || (typeof onlineMeetingProvider !== "string" && !onlineMeetingProvider.trim())) {
+        if ( typeof onlineMeetingProvider !== "string" || !onlineMeetingProvider.trim()) {
             throw new ApiError(400, "Online meeting provider is required for online services");
         }
 
@@ -134,6 +136,23 @@ export const createServiceService = async (userId, orgId, payload) => {
         throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
     }
 
+    // meeting provider check: supported and connected or not
+    if (mode === "ONLINE") {
+        const provider = INTEGRATION_CONFIG[onlineMeetingProvider];
+        if (!provider) {
+            throw new ApiError(400, "Unsupported online meeting provider.");
+        }
+
+        if (!provider.available) {
+            throw new ApiError(400, `${provider.name} is coming soon.`);
+        }
+
+        const integration = organization.integrations?.[provider.integrationKey];
+        if (!integration?.isConnected) {
+            throw new ApiError(400, `Please connect your ${provider.name} account before using ${provider.name}.`);
+        }
+    }
+
     const serviceSlug = await generateServiceSlug(name, orgId);
 
     const newService = await createService({
@@ -143,12 +162,16 @@ export const createServiceService = async (userId, orgId, payload) => {
         name,
         slug: serviceSlug,
         description,
+
         mode,
         durationInMinutes,
         price,
         currency,
+
+        address,
+
         onlineMeetingProvider: mode === "ONLINE" ? onlineMeetingProvider : null,
-        address: mode === "OFFLINE" ? address : null,
+
         autoGenerateMeetingLink: mode === "ONLINE" ? (autoGenerateMeetingLink ?? true) : false,
     });
 

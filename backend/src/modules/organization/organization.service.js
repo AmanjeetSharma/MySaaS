@@ -150,6 +150,7 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
     }
 
     const { orgName, description } = updateData;
+    console.log(updateData);
 
     const org = await findOrganizationById(orgId);
     if (!org) throw new ApiError(404, "Organization not found");
