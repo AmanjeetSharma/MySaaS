@@ -316,7 +316,7 @@ const Customer = () => {
                   Build Your Customer Base
                 </EmptyTitle>
                 <EmptyDescription className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                  There are currently no customers assigned to <strong>{organizationName}</strong>. Let's create your very first one to begin tracking parameters.
+                  There are currently no customers assigned to <strong>{organizationName}</strong>. Let's add your very first one to begin tracking parameters.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent className="mt-6">
@@ -326,7 +326,7 @@ const Customer = () => {
                   className="h-9 text-xs font-medium px-5 gap-2 shadow-sm cursor-pointer transition-all"
                 >
                   <Plus className="size-4 stroke-[2.5]" />
-                  <span>Create First Customer</span>
+                  <span>Add Your First Customer</span>
                 </Button>
               </EmptyContent>
             </Empty>

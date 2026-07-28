@@ -310,29 +310,6 @@ const Profile = () => {
 
               {/* Avatar Buttons */}
               <div className="flex gap-1.5 sm:gap-2">
-                {/* Upload */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isAvatarUploading}
-                  className="
-                    gap-1 sm:gap-2
-                    h-8 sm:h-9
-                    text-xs sm:text-sm
-                    cursor-pointer
-                    rounded-xl
-                    transition-all duration-200
-                    hover:shadow-md
-                    active:scale-[0.98]
-                  "
-                >
-                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
-
-                  <span>
-                    {isAvatarUploading ? 'Uploading...' : 'Upload'}
-                  </span>
-                </Button>
 
                 {/* Remove */}
                 {userProfile?.avatar?.url && (
@@ -367,6 +344,31 @@ const Profile = () => {
                     </span>
                   </Button>
                 )}
+                
+                {/* Upload */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isAvatarUploading}
+                  className="
+                    gap-1 sm:gap-2
+                    h-8 sm:h-9
+                    text-xs sm:text-sm
+                    cursor-pointer
+                    rounded-xl
+                    transition-all duration-200
+                    hover:shadow-md
+                    active:scale-[0.98]
+                  "
+                >
+                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
+
+                  <span>
+                    {isAvatarUploading ? 'Uploading...' : 'Upload'}
+                  </span>
+                </Button>
+
               </div>
 
               {/* Hidden Input */}

@@ -24,7 +24,7 @@ const Zoom = () => {
                         <div className="p-5 sm:p-8 md:p-12">
                             <div className="flex flex-col items-center text-center">
                                 {/* Responsive Icon Badge */}
-                                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-blue-500/10 text-blue-500 rounded-xl sm:rounded-(--radius-2xl) flex items-center justify-center mb-4 sm:mb-6 ring-1 ring-blue-500/20">
+                                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-blue-500/10 text-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 ring-1 ring-blue-500/20">
                                     <Video className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10" strokeWidth={1.5} />
                                 </div>
 
@@ -40,7 +40,7 @@ const Zoom = () => {
                                 <div className="group/btn w-full sm:w-auto">
                                     <button
                                         onClick={handleConnect}
-                                        className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 bg-[#0B5CFF] hover:bg-[#0a4fd6] text-white font-bold text-sm sm:text-base rounded-xl sm:rounded-(--radius-xl) shadow-xl shadow-blue-500/20 transition-all group-hover/btn:-translate-y-1 active:scale-95 flex items-center justify-center gap-2.5 sm:gap-3 cursor-pointer"
+                                        className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 bg-[#0B5CFF] hover:bg-[#0a4fd6] text-white font-bold text-sm sm:text-base rounded-xl sm:rounded-xl shadow-xl shadow-blue-500/20 transition-all group-hover/btn:-translate-y-1 active:scale-95 flex items-center justify-center gap-2.5 sm:gap-3 cursor-pointer"
                                     >
                                         <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
                                         Connect Account

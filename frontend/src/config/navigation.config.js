@@ -17,7 +17,8 @@ import {
     MessageCircle,
     BookOpen,
     Handshake,
-    CircleQuestionMark
+    CircleQuestionMark,
+    Video,
 } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
@@ -121,12 +122,12 @@ export const useNavigationConfig = () => {
                     {
                         title: "Zoom",
                         href: "/integrations/zoom",
-                        icon: MessageCircle
+                        icon: Video
                     },
                     {
                         title: "Microsoft Teams",
                         href: "/integrations/microsoft-teams",
-                        icon: MessageCircle
+                        icon: Users
                     }
                 ]
             },
