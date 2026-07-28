@@ -151,6 +151,13 @@ const organizationSchema = new Schema({
         maxlength: [80, "Organization name must be at most 80 characters"],
     },
 
+    description: {
+        type: String,
+        default: "",
+        trim: true,
+        maxlength: [500, "Organization description must be at most 500 characters"],
+    },
+
     slug: {
         type: String,
         required: true,

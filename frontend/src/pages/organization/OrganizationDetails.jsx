@@ -5,7 +5,8 @@ import {
     Users, Cpu, UserPlus,
     Settings2, ChevronRight, LayoutGrid,
     CreditCard, ExternalLink, X, Send,
-    AlertTriangle, Info, RefreshCw, Link2, CheckCircle2, AlertCircle
+    AlertTriangle, RefreshCw, CheckCircle2, AlertCircle,
+    FileText, Edit3
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrganizationStore, useUserStore } from '@/stores';
@@ -28,14 +29,14 @@ const Tooltip = ({ content, children }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <div
+        <div 
             className="relative inline-flex items-center"
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
         >
             {children}
             {isVisible && (
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-64 p-2.5 bg-popover text-popover-foreground text-xs rounded-md shadow-md border border-border animate-in fade-in-0 zoom-in-95">
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-72 p-3 bg-popover text-popover-foreground text-xs rounded-md shadow-lg border border-border animate-in fade-in-0 zoom-in-95 pointer-events-none">
                     {content}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-popover" />
                 </div>
@@ -121,7 +122,7 @@ const SectionHeader = ({ icon: Icon, title, description, action }) => (
 const IntegrationRow = ({ name, connected, path }) => (
     <Link
         to={path}
-        className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:bg-accent/5 hover:border-border/80 transition-all group"
+        className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:bg-accent/5 hover:border-border/80 transition-all group cursor-pointer"
     >
         <div className="flex items-center gap-2 md:gap-3">
             <div className={cn(
@@ -177,7 +178,7 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                     <h3 className="text-lg font-semibold text-foreground">Invite Team Member</h3>
                     <button
                         onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -193,7 +194,7 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="colleague@company.com"
-                                className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                                className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm"
                                 autoFocus
                                 required
                             />
@@ -206,14 +207,14 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors"
+                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSending}
-                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                         >
                             {isSending ? (
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -248,9 +249,12 @@ export default function OrganizationDetails() {
 
     const [organization, setOrganization] = useState(null);
     const [orgName, setOrgName] = useState('');
+    const [orgDescription, setOrgDescription] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [isSyncingSlug, setIsSyncingSlug] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+    const DESCRIPTION_LIMIT = 500;
 
     useEffect(() => {
         const fetchOrganization = async () => {
@@ -259,6 +263,7 @@ export default function OrganizationDetails() {
                 const data = response?.data || response;
                 setOrganization(data);
                 setOrgName(data.name || '');
+                setOrgDescription(data.description || '');
             } catch {
                 toast.error('Failed to load organization');
                 navigate('/organizations');
@@ -276,13 +281,16 @@ export default function OrganizationDetails() {
 
     const handleUpdate = async () => {
         try {
-            const updatedOrganization = await updateOrganization(orgId, orgName);
+            const updatedOrganization = await updateOrganization(orgId, {
+                name: orgName,
+                description: orgDescription
+            });
             const unpackedData = updatedOrganization?.data || updatedOrganization;
             setOrganization((currentOrganization) => ({
                 ...currentOrganization,
                 ...unpackedData
             }));
-            toast.success('Organization name updated');
+            toast.success('Organization updated successfully');
             setIsEditing(false);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Update failed');
@@ -357,7 +365,7 @@ export default function OrganizationDetails() {
                     <div className="mb-6">
                         <button
                             onClick={() => navigate('/organizations')}
-                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
                         >
                             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                             Back to organizations
@@ -366,12 +374,12 @@ export default function OrganizationDetails() {
                         {/* Organization Header */}
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-muted rounded-lg flex items-center justify-center border border-border">
+                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-muted rounded-lg flex items-center justify-center border border-border shrink-0">
                                     <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
                                 </div>
                                 <div>
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+                                        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground break-all">
                                             {organization.name}
                                         </h1>
                                         <span className="px-2 py-0.5 bg-muted text-[10px] sm:text-xs font-medium text-muted-foreground rounded-md">
@@ -393,8 +401,9 @@ export default function OrganizationDetails() {
                             {isOwner && !isEditing && (
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent hover:border-border/80 transition-colors cursor-pointer"
+                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent hover:border-border/80 transition-colors cursor-pointer flex items-center gap-1.5"
                                 >
+                                    <Edit3 className="h-3.5 w-3.5" />
                                     Edit details
                                 </button>
                             )}
@@ -409,28 +418,35 @@ export default function OrganizationDetails() {
                                 <div>
                                     <h4 className="text-sm font-semibold">Public URL Slug Out of Sync</h4>
                                     <p className="text-xs sm:text-sm opacity-90 mt-0.5">
-                                        Your organization name changed, but your public URL slug (<code className="font-mono font-bold">{organization.slug}</code>) is still using the previous version.
+                                        Your organization name was updated, but your public URL slug (<code className="font-mono font-bold">{organization.slug}</code>) is still out of sync.
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                                <Tooltip content="⚠️ Syncing will instantly update public links. Any old shared service or booking links will become deprecated and stop working.">
-                                    <button className="p-1.5 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 rounded-md transition-colors">
-                                        <Info className="h-4 w-4" />
+
+                            <div className="self-end sm:self-auto shrink-0">
+                                <Tooltip
+                                    content={
+                                        <div className="flex items-start gap-2 text-amber-200">
+                                            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                                            <span>
+                                                <strong>Warning:</strong> Syncing will update public links. Any old shared service or booking links will become deprecated.
+                                            </span>
+                                        </div>
+                                    }
+                                >
+                                    <button
+                                        onClick={handleSyncSlug}
+                                        disabled={isSyncingSlug || isUpdating}
+                                        className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+                                    >
+                                        {isSyncingSlug ? (
+                                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <RefreshCw className="h-3.5 w-3.5" />
+                                        )}
+                                        Sync URL Slug
                                     </button>
                                 </Tooltip>
-                                <button
-                                    onClick={handleSyncSlug}
-                                    disabled={isSyncingSlug || isUpdating}
-                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50"
-                                >
-                                    {isSyncingSlug ? (
-                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                    ) : (
-                                        <RefreshCw className="h-3.5 w-3.5" />
-                                    )}
-                                    Sync URL Slug
-                                </button>
                             </div>
                         </div>
                     )}
@@ -450,11 +466,11 @@ export default function OrganizationDetails() {
                                 <SectionHeader
                                     icon={Settings2}
                                     title="Organization Settings"
-                                    description="Manage your organization's basic information and public address"
+                                    description="Manage your organization's basic information and public profile"
                                 />
-                                <div className="mt-4 sm:mt-6 space-y-4">
+                                <div className="mt-4 sm:mt-6">
                                     {isEditing ? (
-                                        <>
+                                        <div className="space-y-5">
                                             <div>
                                                 <label className="block text-sm font-medium text-foreground mb-2">
                                                     Organization Name
@@ -463,16 +479,40 @@ export default function OrganizationDetails() {
                                                     type="text"
                                                     value={orgName}
                                                     onChange={(e) => setOrgName(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm"
                                                     placeholder="Organization name"
                                                     autoFocus
                                                 />
                                             </div>
+
+                                            <div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <label className="block text-sm font-medium text-foreground">
+                                                        Description
+                                                    </label>
+                                                    <span className={cn(
+                                                        "text-xs font-mono",
+                                                        orgDescription.length > DESCRIPTION_LIMIT ? "text-destructive font-medium" : "text-muted-foreground"
+                                                    )}>
+                                                        {orgDescription.length}/{DESCRIPTION_LIMIT}
+                                                    </span>
+                                                </div>
+                                                <textarea
+                                                    rows={4}
+                                                    maxLength={DESCRIPTION_LIMIT}
+                                                    value={orgDescription}
+                                                    onChange={(e) => setOrgDescription(e.target.value)}
+                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm resize-y"
+                                                    placeholder="Briefly describe your organization's mission or service..."
+                                                />
+                                            </div>
+
                                             <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
                                                 <button
                                                     onClick={() => {
                                                         setIsEditing(false);
                                                         setOrgName(organization.name);
+                                                        setOrgDescription(organization.description || '');
                                                     }}
                                                     className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
                                                 >
@@ -480,56 +520,87 @@ export default function OrganizationDetails() {
                                                 </button>
                                                 <button
                                                     onClick={handleUpdate}
-                                                    disabled={isUpdating}
+                                                    disabled={isUpdating || orgDescription.length > DESCRIPTION_LIMIT}
                                                     className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
                                                 >
                                                     {isUpdating ? 'Saving...' : 'Save changes'}
                                                 </button>
                                             </div>
-                                        </>
+                                        </div>
                                     ) : (
-                                        <div className="space-y-3">
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
-                                                <span className="text-sm text-muted-foreground">Organization name</span>
-                                                <span className="text-sm font-medium text-foreground">{organization.name}</span>
+                                        <div className="space-y-6">
+                                            {/* Top Key Data Grid */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-border">
+                                                <div className="space-y-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                                                        Organization Name
+                                                    </span>
+                                                    <p className="text-sm font-medium text-foreground break-all">
+                                                        {organization.name}
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                                                        Public URL Slug
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-mono bg-muted/60 px-2 py-0.5 rounded text-foreground border border-border">
+                                                            /{organization.slug}
+                                                        </span>
+                                                        {organization.isSlugStale ? (
+                                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase tracking-wide">
+                                                                Sync needed
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
+                                                                <CheckCircle2 className="h-3.5 w-3.5" /> Synced
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            {/* Slug Field Section */}
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-sm text-muted-foreground">Public URL Slug</span>
-                                                    <Tooltip content="⚠️ Syncing will update public links. Any old shared service or booking links will become deprecated.">
-                                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                                                    </Tooltip>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-mono bg-muted/50 px-2 py-1 rounded text-foreground border border-border">
-                                                        /{organization.slug}
+                                            {/* Redesigned Description Card */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider flex items-center gap-1.5">
+                                                        <FileText className="h-3.5 w-3.5" /> Description
                                                     </span>
-                                                    {organization.isSlugStale ? (
-                                                        <button
-                                                            onClick={handleSyncSlug}
-                                                            disabled={isSyncingSlug}
-                                                            className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1 underline"
-                                                        >
-                                                            {isSyncingSlug ? 'Syncing...' : 'Sync needed'}
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-xs text-emerald-600 flex items-center gap-0.5">
-                                                            <CheckCircle2 className="h-3 w-3" /> Synced
+                                                    {organization?.description && (
+                                                        <span className="text-[11px] font-mono text-muted-foreground/70">
+                                                            {organization.description.length}/500 chars
                                                         </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="p-4 bg-muted/30 border border-border/80 rounded-lg">
+                                                    {organization?.description ? (
+                                                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-line break-words">
+                                                            {organization.description}
+                                                        </p>
+                                                    ) : (
+                                                        <div className="py-2 text-center sm:text-left">
+                                                            <p className="text-sm text-muted-foreground italic">
+                                                                No description provided yet.
+                                                            </p>
+                                                            {isOwner && (
+                                                                <button
+                                                                    onClick={() => setIsEditing(true)}
+                                                                    className="mt-2 text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                                                                >
+                                                                    + Add description
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border gap-2">
-                                                <span className="text-sm text-muted-foreground">Description</span>
-                                                <span className="text-sm font-medium text-foreground">{organization?.description || 'No description provided'}</span>
-                                            </div>
                                             {!isOwner && (
-                                                <div className="pt-2 text-xs text-muted-foreground flex items-center gap-1">
-                                                    <AlertCircle className="h-3.5 w-3.5" />
-                                                    Contact your organization owner to edit details.
+                                                <div className="pt-1 text-xs text-muted-foreground flex items-center gap-1.5">
+                                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                                    Contact your organization owner to edit these details.
                                                 </div>
                                             )}
                                         </div>
@@ -589,7 +660,7 @@ export default function OrganizationDetails() {
                                             ? new Date(organization.subscription.endDate).toLocaleDateString()
                                             : 'No expiration'}
                                     />
-                                    <button className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+                                    <button className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer">
                                         Manage subscription
                                     </button>
                                 </div>
@@ -604,7 +675,7 @@ export default function OrganizationDetails() {
                                 <div className="mt-4">
                                     <button
                                         onClick={() => navigate(`/organizations/${orgId}/members`)}
-                                        className="w-full flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/5 transition-colors group"
+                                        className="w-full flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/5 transition-colors group cursor-pointer"
                                     >
                                         <span className="text-sm font-medium text-foreground">View all members</span>
                                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -613,7 +684,7 @@ export default function OrganizationDetails() {
                                     {remainingSlots > 0 ? (
                                         <button
                                             onClick={() => setIsInviteModalOpen(true)}
-                                            className="w-full mt-3 px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors font-medium border border-dashed border-border rounded-lg hover:border-primary/50"
+                                            className="w-full mt-3 px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors font-medium border border-dashed border-border rounded-lg hover:border-primary/50 cursor-pointer"
                                         >
                                             + Invite members
                                         </button>

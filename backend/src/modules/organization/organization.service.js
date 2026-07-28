@@ -141,28 +141,54 @@ export const getOrganizationService = async (orgId, userId) => {
 
 
 
-
 export const updateOrganizationService = async (orgId, updateData, userId) => {
-    if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
-    if (!updateData) { throw new ApiError(400, "Data is required to update organization"); }
-
-    const { orgName } = updateData;
-    const cleanedOrgName = orgName.trim();
-
-    const nameError = organizationNameValidator(cleanedOrgName);
-    if (!nameError.valid) {
-        throw new ApiError(400, `Name is invalid: ${nameError.errors.join(", ")}`);
+    if (!orgId) {
+        throw new ApiError(400, "Organization ID is required");
+    }
+    if (!updateData) {
+        throw new ApiError(400, "Data is required to update organization");
     }
 
+    const { orgName, description } = updateData;
+
     const org = await findOrganizationById(orgId);
-    if (!org) { throw new ApiError(404, "Organization not found"); }
+    if (!org) throw new ApiError(404, "Organization not found");
 
     if (org.owner.toString() !== userId.toString()) {
         throw new ApiError(403, "You do not have permission to update this organization");
     }
 
-    org.name = cleanedOrgName[0].toUpperCase() + cleanedOrgName.slice(1);
-    org.isSlugStale = true;
+    let hasChanges = false;
+
+    if (orgName) {
+        const cleanedOrgName = orgName.trim();
+
+        const nameError = organizationNameValidator(cleanedOrgName);
+        if (!nameError.valid) {
+            throw new ApiError(400, `Name is invalid: ${nameError.errors.join(", ")}`);
+        }
+
+        if (org.name !== cleanedOrgName) {
+            org.name = cleanedOrgName[0].toUpperCase() + cleanedOrgName.slice(1);
+            org.isSlugStale = true;
+            hasChanges = true;
+        }
+    }
+
+    // Update description only if it has changed
+    if (description !== undefined) {
+        const cleanedDescription = description.trim();
+
+        if (org.description !== cleanedDescription) {
+            org.description = cleanedDescription;
+            hasChanges = true;
+        }
+    }
+
+    if (!hasChanges) {
+        throw new ApiError(400, "No changes detected.");
+    }
+
     try {
         await org.save();
     } catch (err) {
