@@ -97,7 +97,7 @@ export const createServiceService = async (userId, orgId, payload) => {
     }
 
     if (mode === "ONLINE") {
-        if ( typeof onlineMeetingProvider !== "string" || !onlineMeetingProvider.trim()) {
+        if (typeof onlineMeetingProvider !== "string" || !onlineMeetingProvider.trim()) {
             throw new ApiError(400, "Online meeting provider is required for online services");
         }
 
@@ -196,107 +196,177 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         throw new ApiError(400, "Invalid service ID");
     }
 
-    const { name, description, mode, durationInMinutes, price, currency, address } = payload;
-
-    if (name !== undefined) {
-        const nameValidation = serviceNameValidator(name);
-        if (!nameValidation.valid) {
-            throw new ApiError(400, nameValidation.errors.join(", "));
-        }
-    }
-
-    if (description !== undefined) {
-        const descriptionValidation = serviceDescriptionValidator(description);
-        if (!descriptionValidation.valid) {
-            throw new ApiError(400, descriptionValidation.errors.join(", "));
-        }
-    }
-
-    if (mode !== undefined) {
-        if (mode === "OFFLINE" && !address) {
-            throw new ApiError(400, "Address is required to set up offline services");
-        }
-        const modeValidation = serviceModeValidator(mode);
-        if (!modeValidation.valid) {
-            throw new ApiError(400, modeValidation.errors.join(", "));
-        }
-    }
-
-    if (durationInMinutes !== undefined) {
-        const durationValidation = serviceDurationValidator(durationInMinutes);
-        if (!durationValidation.valid) {
-            throw new ApiError(400, durationValidation.errors.join(", "));
-        }
-    }
-
-    if (price !== undefined) {
-        const priceValidation = servicePriceValidator(price);
-        if (!priceValidation.valid) {
-            throw new ApiError(400, priceValidation.errors.join(", "));
-        }
-    }
-
-    if (currency !== undefined) {
-        const currencyValidation = serviceCurrencyValidator(currency);
-        if (!currencyValidation.valid) {
-            throw new ApiError(400, currencyValidation.errors.join(", "));
-        }
-    }
-
-    if (address !== undefined && address !== null) {
-        const addressValidation = serviceAddressValidator(address);
-        if (!addressValidation.valid) {
-            throw new ApiError(400, addressValidation.errors.join(", "));
-        }
-    }
+    const {
+        name,
+        description,
+        mode,
+        onlineMeetingProvider,
+        durationInMinutes,
+        price,
+        currency,
+        address,
+        autoGenerateMeetingLink,
+    } = payload;
 
     const service = await findServiceById(serviceId);
+
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
 
     const organization = await findOrganizationById(service.organization);
+
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
 
-    //check  if owner or member can update service details
     if (
         userId.toString() !== organization.owner.toString() &&
         !organization.members.some(
             (member) => member.user.toString() === userId.toString()
         )
     ) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+        throw new ApiError(403, "Access denied. You cannot update a service from an organization you do not belong to");
     }
 
-    const oldName = service.name;
-    if (name && name !== service.name) {
+
+    if (name !== undefined) {
+        const validation = serviceNameValidator(name);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (description !== undefined) {
+        const validation = serviceDescriptionValidator(description);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (mode !== undefined) {
+        const validation = serviceModeValidator(mode);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (durationInMinutes !== undefined) {
+        const validation = serviceDurationValidator(durationInMinutes);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (price !== undefined) {
+        const validation = servicePriceValidator(price);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (currency !== undefined) {
+        const validation = serviceCurrencyValidator(currency);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    const finalMode = mode ?? service.mode;
+
+
+    if (finalMode === "OFFLINE") {
+
+        const finalAddress = address ?? service.address;
+
+        if (!finalAddress) {
+            throw new ApiError(400, "Address is required for offline services");
+        }
+
+        const validation = serviceAddressValidator(finalAddress);
+
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
+        }
+    }
+
+
+    if (finalMode === "ONLINE") {
+        const finalProvider = onlineMeetingProvider ?? service.onlineMeetingProvider;
+
+        if (!finalProvider) {
+            throw new ApiError(400, "Online meeting provider is required for online services");
+        }
+
+        const provider = INTEGRATION_CONFIG[finalProvider];
+
+        if (!provider) {
+            throw new ApiError(400, "Unsupported online meeting provider");
+        }
+
+        if (!provider.available) {
+            throw new ApiError(400, `${provider.name} is coming soon`);
+        }
+
+        const integration = organization.integrations?.[provider.integrationKey];
+
+        if (!integration?.isConnected) {
+            throw new ApiError(400, `Please connect your ${provider.name} account before using ${provider.name}`);
+        }
+    }
+
+
+    if (name !== undefined && name !== service.name) {
         service.name = name;
         service.isSlugStale = true;
     }
 
-    if (description !== undefined) service.description = description;
-    if (mode !== undefined) service.mode = mode;
-    if (durationInMinutes !== undefined) service.durationInMinutes = durationInMinutes;
-    if (price !== undefined) service.price = price;
-    if (currency !== undefined) service.currency = currency;
-    if (address !== undefined) service.address = address;
-
-    const finalMode = mode || service.mode;
-    if (
-        finalMode === "OFFLINE" &&
-        !(address !== undefined ? address : service.address)
-    ) {
-        throw new ApiError(400, "Address is required for offline services");
+    if (description !== undefined) {
+        service.description = description;
+    }
+    if (mode !== undefined) {
+        service.mode = mode;
+    }
+    if (durationInMinutes !== undefined) {
+        service.durationInMinutes = durationInMinutes;
+    }
+    if (price !== undefined) {
+        service.price = price;
+    }
+    if (currency !== undefined) {
+        service.currency = currency;
+    }
+    if (address !== undefined) {
+        service.address = address;
+    }
+    if (onlineMeetingProvider !== undefined) {
+        service.onlineMeetingProvider = finalMode === "ONLINE" ? onlineMeetingProvider : null;
     }
 
-    if (
-        finalMode === "ONLINE" &&
-        !organization.integrations?.googleCalendar?.isConnected
-    ) {
-        throw new ApiError(400, "Please complete Google Calendar integration to set up online services");
+    if (autoGenerateMeetingLink !== undefined) {
+        if (typeof autoGenerateMeetingLink !== "boolean") {
+            throw new ApiError(400, "Auto-generate meeting link must be a boolean value");
+        }
+        service.autoGenerateMeetingLink = finalMode === "ONLINE" ? autoGenerateMeetingLink : false;
     }
+
+    if (finalMode === "OFFLINE") {
+        service.onlineMeetingProvider = null;
+        service.autoGenerateMeetingLink = false;
+    }
+
 
     try {
         await service.save();
@@ -305,7 +375,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         throw new ApiError(500, "An error occurred while updating the service, please try again.");
     }
 
-    console.log(`Service updated| Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
+    console.log(`Service updated | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
 
     return service;
 };
