@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// Import our standalone card components
 import { OrganizationCard, CreateOrganizationCard } from './OrganizationCard';
 
 export default function Organizations() {
@@ -53,7 +52,7 @@ export default function Organizations() {
       await switchOrganization(orgId);
       toast.success('Organization switched', {
         icon: <Building2 className="h-5 w-5 text-primary" />,
-        position: 'bottom-right',
+        position: 'top-center',
       });
     } catch (error) {
       toast.error('Failed to switch organization');
@@ -88,27 +87,27 @@ export default function Organizations() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center font-semibold text-sm uppercase tracking-widest text-muted-foreground/50 animate-pulse">
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center font-semibold text-sm uppercase tracking-widest text-muted-foreground/50 animate-pulse">
         Synchronizing Workspaces...
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:py-12 space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/60 pb-6">
+    <div className="mx-auto max-w-7xl px-4 pt-2 pb-8 md:pt-4 space-y-6">
+      {/* Header Section (Tighter top margin to sit directly below navbar) */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border/60 pb-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-            Workspaces
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            Manage Your Workspace
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your owned organizations and switch active team accounts.
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+            Create, switch, or delete your workspaces
           </p>
         </div>
 
         {hasNoActiveOrganization && (
-          <div className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
             <span>No active workspace selected. Please select or create one below.</span>
           </div>
@@ -129,7 +128,7 @@ export default function Organizations() {
           />
         )}
 
-        {/* 2. Create Workspace Card (If user does not own an org) */}
+        {/* 2. Create Workspace Card */}
         {!ownedOrganization && (
           <CreateOrganizationCard onClick={() => setShowCreateModal(true)} />
         )}
@@ -157,18 +156,18 @@ export default function Organizations() {
               Give your new organization a name to get started.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-5 pt-2">
+          <form onSubmit={handleCreate} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-foreground">Workspace Name</Label>
               <Input
                 autoFocus
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
-                className="h-11 rounded-xl text-sm"
+                className="h-10 rounded-xl text-sm"
                 placeholder="e.g. Acme Corp"
               />
             </div>
-            <Button disabled={isUpdating} type="submit" className="w-full h-11 rounded-xl font-semibold cursor-pointer">
+            <Button disabled={isUpdating} type="submit" className="w-full h-10 rounded-xl font-semibold cursor-pointer">
               {isUpdating ? 'Creating...' : 'Create Organization'}
             </Button>
           </form>

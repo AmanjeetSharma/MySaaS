@@ -1,37 +1,47 @@
 import { Link } from 'react-router-dom';
 import {
     Building2, Users, Crown, UserPlus,
-    Zap, Calendar, MessageSquare, ArrowUpRight,
-    Trash2, Plus, Sparkles, CheckCircle2
+    Zap, ArrowUpRight, Trash2, Plus, Sparkles, CheckCircle2
 } from 'lucide-react';
+import { INTEGRATION_LIST } from '@/constants/integrations.constant';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // --- Reusable Organization Card ---
 export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, isUpdating }) => {
     const displayMemberCount = org.members?.length || org.usage?.memberCount || 0;
 
+    // Filter integrations to ONLY include those that are connected/enabled
+    const connectedIntegrations = INTEGRATION_LIST.filter((item) => {
+        const keyData = org.integrations?.[item.integrationKey];
+        return keyData?.isConnected === true || keyData?.isEnabled === true;
+    });
+
     return (
         <div
             onClick={() => !isActive && onSelect(org._id)}
-            className={`
-        group relative flex flex-col justify-between rounded-3xl border p-6 transition-all duration-300 ease-out
-        ${isActive
-                    ? 'border-primary bg-primary/[0.03] shadow-xl shadow-primary/10 ring-2 ring-primary/20'
-                    : 'border-border/60 bg-card hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 cursor-pointer'
+            className={`  group relative flex flex-col justify-between rounded-[2rem] border border-border/40 p-5 sm:p-6 transition-all duration-300 ease-out overflow-visible
+             ${isActive
+                    ? 'border-primary/40 bg-primary/3 shadow-lg shadow-primary/10 ring-1 ring-primary/10'
+                    : 'border-border/20 bg-card hover:border-primary/40 hover:bg-accent/20 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] cursor-pointer'
                 }
-        ${isUpdating ? 'pointer-events-none opacity-60' : ''}
-      `}
+            `}
         >
-            {/* Top Active Pill Accent */}
+            {/* Top Active Badge */}
             {isActive && (
-                <div className="absolute -top-3.5 right-6">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/25 ring-2 ring-background">
+                <div className="absolute -top-4 right-6 z-10">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background">
                         <CheckCircle2 className="h-3 w-3" /> Active
                     </span>
                 </div>
             )}
 
             {/* Main Content Area */}
-            <div className="space-y-6">
+            <div className="space-y-5">
                 {/* Header: Icon + Owner/Member Badge */}
                 <div className="flex items-center justify-between gap-3">
                     <div className={`
@@ -55,31 +65,41 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                     )}
                 </div>
 
-                {/* Title and Integrations Row */}
+                {/* Title and Connected Integration Icons with Tooltips */}
                 <div>
                     <h3 className="text-xl font-bold tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
                         {org.name}
                     </h3>
 
-                    {/* Active Integrations Badges */}
-                    <div className="mt-2.5 flex items-center gap-1.5 min-h-6">
-                        {org.integrations?.whatsapp?.isConnected || org.integrations?.whatsapp?.isEnabled ? (
-                            <div title="WhatsApp Connected" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[10px] font-medium">
-                                <MessageSquare className="h-2.5 w-2.5" /> WhatsApp
-                            </div>
-                        ) : null}
-                        {org.integrations?.google?.isConnected || org.integrations?.googleCalendar?.isConnected ? (
-                            <div title="Google Calendar Connected" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[10px] font-medium">
-                                <Calendar className="h-2.5 w-2.5" /> Calendar
-                            </div>
-                        ) : null}
-                        {(!org.integrations?.whatsapp?.isConnected && !org.integrations?.google?.isConnected) && (
-                            <span className="text-xs text-muted-foreground/60 italic">No integrations linked</span>
+                    {/* Connected Provider Icons with Shadcn Tooltips */}
+                    <div className="mt-2.5 flex items-center gap-1.5 min-h-7">
+                        {connectedIntegrations.length > 0 ? (
+                            <TooltipProvider delayDuration={150}>
+                                {connectedIntegrations.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <Tooltip key={item.integrationKey}>
+                                            <TooltipTrigger asChild>
+                                                <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-transform hover:scale-105 cursor-pointer">
+                                                    <Icon className="h-3.5 w-3.5" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="text-xs font-medium px-2.5 py-1">
+                                                {item.name}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </TooltipProvider>
+                        ) : (
+                            <span className="text-[11px] text-muted-foreground/50 italic">
+                                No integrations connected
+                            </span>
                         )}
                     </div>
                 </div>
 
-                {/* Compact Metrics Grid (Team Size & Tier) */}
+                {/* Compact Metrics Grid */}
                 <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/40 p-3 border border-border/40">
                     <div className="flex flex-col">
                         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Team Size</span>
@@ -100,7 +120,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
             </div>
 
             {/* Card Actions */}
-            <div className="mt-6 flex items-center gap-2 pt-2">
+            <div className="mt-6 flex items-center gap-2 pt-1">
                 <Link
                     to={`/organizations/${org._id}`}
                     onClick={(e) => e.stopPropagation()}
@@ -115,7 +135,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                             onDelete(org);
                         }}
                         title="Delete Organization"
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-destructive/20 text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground active:scale-90 cursor-pointer shrink-0"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-destructive/20 text-destructive transition-all hover:bg-destructive/20 hover:text-destructive-foreground active:scale-90 cursor-pointer shrink-0"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>
@@ -131,33 +151,33 @@ export const CreateOrganizationCard = ({ onClick }) => {
         <button
             onClick={onClick}
             className="
-        group relative flex min-h-[260px] w-full flex-col items-center justify-center
-        rounded-3xl border-2 border-dashed border-border/80
-        bg-card/50 p-6
+        group relative flex min-h-62.5 w-full flex-col items-center justify-center
+        rounded-[2rem] border-2 border-dashed border-border/80
+        bg-card/40 p-6
         transition-all duration-300 ease-out
-        hover:-translate-y-1 hover:border-primary/50 hover:bg-primary/[0.02] hover:shadow-xl hover:shadow-primary/5
+        hover:border-primary/50 hover:bg-accent/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] dark:hover:shadow-[0_0_20px_rgba(139,92,246,0.12)]
         cursor-pointer
       "
         >
             <div className="
-        flex h-14 w-14 items-center justify-center
+        flex h-12 w-12 items-center justify-center
         rounded-2xl bg-muted text-muted-foreground
         transition-all duration-500
         group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-90 group-hover:shadow-lg group-hover:shadow-primary/25
       ">
-                <Plus className="h-7 w-7" />
+                <Plus className="h-6 w-6" />
             </div>
 
             <h3 className="mt-4 text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                 New Workspace
             </h3>
 
-            <p className="mt-1 text-xs text-muted-foreground max-w-[200px] text-center leading-relaxed">
+            <p className="mt-1 text-xs text-muted-foreground max-w-50 text-center leading-relaxed">
                 Set up an automated space for your team operations.
             </p>
 
             <div className="
-        mt-5 inline-flex items-center gap-1.5
+        mt-4 inline-flex items-center gap-1.5
         rounded-xl bg-primary px-4 py-2
         text-xs font-bold text-primary-foreground
         shadow-md shadow-primary/20

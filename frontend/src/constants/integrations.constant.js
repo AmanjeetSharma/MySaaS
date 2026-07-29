@@ -1,36 +1,37 @@
-import { Video, VideoOff, Layers, MessageSquare } from 'lucide-react';
+import {
+    Video,
+    CalendarDays,
+    MessageCircle,
+    Users,
+} from "lucide-react";
 
 export const INTEGRATION_CONFIG = {
     GOOGLE_MEET: {
         integrationKey: "google",
-        available: true,
         name: "Google Meet",
         description: "Sync calendar & call links",
-        icon: Video,
+        icon: CalendarDays,
     },
 
     ZOOM: {
         integrationKey: "zoom",
-        available: false,
         name: "Zoom",
         description: "Connect Zoom meetings",
-        icon: VideoOff,
+        icon: Video,
     },
 
     MICROSOFT_TEAMS: {
         integrationKey: "microsoft",
-        available: false,
         name: "Microsoft Teams",
         description: "Schedule Teams calls",
-        icon: Layers,
+        icon: Users,
     },
 
     WHATSAPP: {
         integrationKey: "whatsapp",
-        available: false,
         name: "WhatsApp",
         description: "Send automated messages",
-        icon: MessageSquare,
+        icon: MessageCircle,
     },
 };
 
