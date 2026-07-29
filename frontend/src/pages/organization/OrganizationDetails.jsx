@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
     Building2, ArrowLeft, ShieldCheck,
@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner';
 import { useOrganizationStore, useUserStore } from '@/stores';
 import { cn } from '@/lib/utils';
+import { INTEGRATION_LIST } from '@/constants/integrations.constant';
 
 const getEntityId = (entity) => {
     if (!entity) return null;
@@ -29,7 +30,7 @@ const Tooltip = ({ content, children }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <div
+        <div 
             className="relative inline-flex items-center"
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
@@ -54,7 +55,7 @@ const Card = ({ children, className = '', padding = 'md' }) => {
     };
     return (
         <div className={cn(
-            "bg-card border border-border rounded-lg shadow-sm",
+            "bg-card border border-border rounded-xl shadow-sm",
             paddingClasses[padding],
             className
         )}>
@@ -119,20 +120,24 @@ const SectionHeader = ({ icon: Icon, title, description, action }) => (
     </div>
 );
 
-const IntegrationRow = ({ name, connected, path }) => (
+const IntegrationRow = ({ name, description, icon: Icon, connected, path }) => (
     <Link
         to={path}
         className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:bg-accent/5 hover:border-border/80 transition-all group cursor-pointer"
     >
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-3">
             <div className={cn(
-                "w-2 h-2 rounded-full",
-                connected ? "bg-emerald-500" : "bg-muted-foreground/30"
-            )} />
+                "p-2 rounded-lg transition-colors",
+                connected 
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
+                    : "bg-muted text-muted-foreground border border-border"
+            )}>
+                <Icon className="h-4 w-4" />
+            </div>
             <div>
                 <p className="text-sm font-medium text-foreground">{name}</p>
                 <p className="text-xs text-muted-foreground">
-                    {connected ? 'Connected' : 'Not configured'}
+                    {connected ? 'Connected' : description || 'Not configured'}
                 </p>
             </div>
         </div>
@@ -251,8 +256,12 @@ export default function OrganizationDetails() {
     const [orgName, setOrgName] = useState('');
     const [orgDescription, setOrgDescription] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [focusTarget, setFocusTarget] = useState('name'); // 'name' | 'description'
     const [isSyncingSlug, setIsSyncingSlug] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+    const nameInputRef = useRef(null);
+    const descriptionInputRef = useRef(null);
 
     const DESCRIPTION_LIMIT = 500;
 
@@ -272,6 +281,17 @@ export default function OrganizationDetails() {
         fetchOrganization();
     }, [orgId, currentUserId, getOrganization, navigate]);
 
+    // Handle cursor focus when switching into edit mode
+    useEffect(() => {
+        if (isEditing) {
+            if (focusTarget === 'description' && descriptionInputRef.current) {
+                descriptionInputRef.current.focus();
+            } else if (nameInputRef.current) {
+                nameInputRef.current.focus();
+            }
+        }
+    }, [isEditing, focusTarget]);
+
     const isOwner = useMemo(() => {
         return (
             hasSameId(ownedOrganization, orgId) ||
@@ -281,12 +301,10 @@ export default function OrganizationDetails() {
 
     const handleUpdate = async () => {
         try {
-            const updatedOrganization = await updateOrganization(orgId,
-                {
-                    orgName: orgName,
-                    description: orgDescription
-                }
-            );
+            const updatedOrganization = await updateOrganization(orgId, {
+                orgName: orgName,
+                description: orgDescription
+            });
             const unpackedData = updatedOrganization?.data || updatedOrganization;
             setOrganization((currentOrganization) => ({
                 ...currentOrganization,
@@ -318,6 +336,11 @@ export default function OrganizationDetails() {
 
     const handleInviteMember = (email) => {
         toast.success(`Invitation sent to ${email}`);
+    };
+
+    const openEditMode = (target = 'name') => {
+        setFocusTarget(target);
+        setIsEditing(true);
     };
 
     if (isLoading || !organization) {
@@ -402,7 +425,7 @@ export default function OrganizationDetails() {
 
                             {isOwner && !isEditing && (
                                 <button
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={() => openEditMode('name')}
                                     className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent hover:border-border/80 transition-colors cursor-pointer flex items-center gap-1.5"
                                 >
                                     <Edit3 className="h-3.5 w-3.5" />
@@ -478,12 +501,12 @@ export default function OrganizationDetails() {
                                                     Organization Name
                                                 </label>
                                                 <input
+                                                    ref={nameInputRef}
                                                     type="text"
                                                     value={orgName}
                                                     onChange={(e) => setOrgName(e.target.value)}
                                                     className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm"
                                                     placeholder="Organization name"
-                                                    autoFocus
                                                 />
                                             </div>
 
@@ -500,6 +523,7 @@ export default function OrganizationDetails() {
                                                     </span>
                                                 </div>
                                                 <textarea
+                                                    ref={descriptionInputRef}
                                                     rows={4}
                                                     maxLength={DESCRIPTION_LIMIT}
                                                     value={orgDescription}
@@ -588,7 +612,7 @@ export default function OrganizationDetails() {
                                                             </p>
                                                             {isOwner && (
                                                                 <button
-                                                                    onClick={() => setIsEditing(true)}
+                                                                    onClick={() => openEditMode('description')}
                                                                     className="mt-2 text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
                                                                 >
                                                                     + Add description
@@ -610,7 +634,7 @@ export default function OrganizationDetails() {
                                 </div>
                             </Card>
 
-                            {/* Integrations Section */}
+                            {/* Integrations Section mapped directly from constants */}
                             <Card>
                                 <SectionHeader
                                     icon={LayoutGrid}
@@ -618,26 +642,21 @@ export default function OrganizationDetails() {
                                     description="Connect external services to your organization"
                                 />
                                 <div className="mt-4 sm:mt-6 space-y-2">
-                                    <IntegrationRow
-                                        name="Google Calendar"
-                                        connected={organization.integrations?.google?.isConnected}
-                                        path="/integrations/google-calendar"
-                                    />
-                                    <IntegrationRow
-                                        name="WhatsApp Business"
-                                        connected={organization.integrations?.whatsapp?.isConnected}
-                                        path="/integrations/whatsapp"
-                                    />
-                                    <IntegrationRow
-                                        name="Microsoft Teams"
-                                        connected={organization.integrations?.microsoft?.isConnected}
-                                        path="/integrations/microsoft-teams"
-                                    />
-                                    <IntegrationRow
-                                        name="Zoom"
-                                        connected={organization.integrations?.zoom?.isConnected}
-                                        path="/integrations/zoom"
-                                    />
+                                    {INTEGRATION_LIST.map((item) => {
+                                        const isConnected = organization.integrations?.[item.integrationKey]?.isConnected;
+                                        const Icon = item.icon;
+
+                                        return (
+                                            <IntegrationRow
+                                                key={item.integrationKey}
+                                                name={item.name}
+                                                description={item.description}
+                                                icon={Icon}
+                                                connected={isConnected}
+                                                path={`/integrations/${item.integrationKey}`}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </Card>
                         </div>

@@ -102,7 +102,7 @@ export default function Organizations() {
             Manage Your Workspace
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-            Create, switch, or delete your workspaces
+            Create, switch, or delete your workspaces. You can also manage members and integrations for each workspace.
           </p>
         </div>
 
@@ -114,6 +114,7 @@ export default function Organizations() {
         )}
       </div>
 
+      {/* Organizations Responsive Grid */}
       {/* Organizations Responsive Grid */}
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* 1. Owned Org */}
