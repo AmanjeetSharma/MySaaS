@@ -1,5 +1,4 @@
 import {
-  CalendarClock,
   Clock,
   DollarSign,
   Euro,
@@ -7,7 +6,8 @@ import {
   MapPin,
   Settings2,
   Video,
-  WalletCards,
+  HandCoins,
+  MonitorPlay,
 } from 'lucide-react';
 import { INTEGRATION_CONFIG } from '@/constants/integrations.constant';
 import { Button } from '@/components/ui/button';
@@ -31,17 +31,17 @@ const formatPriceDisplay = (service) => {
   }).format(amount);
 
   return (
-    <span className="inline-flex items-center gap-1">
-      <CurrencyIcon className="h-3.5 w-3.5" />
+    <span className="inline-flex items-center gap-0.5 font-bold text-foreground">
+      <CurrencyIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
       {formattedAmount}
     </span>
   );
 };
 
 const formatShortLocation = (address) => {
-  if (!address) return 'In-Person';
+  if (!address) return 'Offline';
   const parts = [address.city, address.state].filter((item) => item && item.trim() !== '');
-  return parts.length > 0 ? parts.join(', ') : 'In-Person';
+  return parts.length > 0 ? parts.join(', ') : 'Offline';
 };
 
 export default function ServiceCard({
@@ -51,97 +51,104 @@ export default function ServiceCard({
   onManageService,
 }) {
   const isOffline = service.mode === 'OFFLINE';
+
+  // Resolve Provider Config and Icon dynamically
   const providerConfig = INTEGRATION_CONFIG[service.onlineMeetingProvider];
-  const providerName = providerConfig?.name || 'Online Meeting';
+  const ProviderIcon = providerConfig?.icon || Video;
+  const providerName = providerConfig?.name || service.onlineMeetingProvider || 'Online';
 
   return (
     <div
-      className={`group relative flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 sm:p-6 ${service.isActive
-          ? 'border-border/80 bg-card shadow-sm hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md'
-          : 'border-border/60 bg-muted/30 opacity-80 hover:bg-muted/50'
+      className={`relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-300 ${service.isActive
+        ? 'border-border/80 bg-card shadow-2xs hover:border-primary/50 hover:shadow-[0_0_15px_rgba(var(--primary),0.18)] dark:hover:border-primary/60 dark:hover:shadow-[0_0_18px_rgba(255,255,255,0.08)]'
+        : 'border-border/50 bg-muted/20 opacity-85 hover:border-border/90 hover:opacity-100 hover:shadow-[0_0_12px_rgba(0,0,0,0.06)]'
         }`}
     >
-      <div>
+      <div className="space-y-3">
         {/* Top Header Row */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-black uppercase tracking-tight text-foreground sm:text-xl">
-              {service.name}
-            </h3>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-sm font-bold text-foreground sm:text-base">
+                {service.name}
+              </h3>
+            </div>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${service.isActive
-                  ? 'border border-primary/20 bg-primary/10 text-primary'
-                  : 'border border-border bg-muted text-muted-foreground'
+              className={`mt-1 inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${service.isActive
+                ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'border border-border/60 bg-muted text-muted-foreground'
                 }`}
             >
               {service.isActive ? 'Active' : 'Inactive'}
             </span>
-            <div className="flex items-center rounded-full border border-border bg-background p-1 shadow-xs">
-              <Switch
-                checked={!!service.isActive}
-                onCheckedChange={() => onToggleStatus(service)}
-                disabled={actionLoading?.status}
-                className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
-              />
-            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border/60 bg-background/80 px-2 py-1 shadow-2xs">
+            <Switch
+              checked={!!service.isActive}
+              onCheckedChange={() => onToggleStatus(service)}
+              disabled={actionLoading?.status}
+              className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35 scale-90"
+            />
           </div>
         </div>
 
         {/* Short Description */}
-        <p className="mt-3 min-h-10 text-xs font-medium leading-relaxed text-muted-foreground line-clamp-2 sm:text-sm">
+        <p className="line-clamp-2 min-h-8 text-xs font-medium text-muted-foreground leading-relaxed">
           {service.description || 'No description provided.'}
         </p>
 
-        <div className="my-4 h-px w-full bg-border/60" />
-
-        {/* Essential Metrics Grid */}
-        <div className="space-y-2.5 text-xs font-bold text-foreground">
+        {/* Compact Metrics List with Separators */}
+        <div className="divide-y divide-border/40 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs">
           {/* Duration */}
-          <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3.5 py-2.5">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+            <div className="flex items-center gap-2 font-semibold">
+              <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
               <span>Duration</span>
             </div>
-            <span className="font-black">{service.durationInMinutes || 30} min</span>
+            <span className="font-bold text-foreground">{service.durationInMinutes || 30} mins</span>
           </div>
 
           {/* Price */}
-          <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3.5 py-2.5">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <WalletCards className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+            <div className="flex items-center gap-2 font-semibold">
+              <HandCoins className="h-3.5 w-3.5 text-primary shrink-0" />
               <span>Price</span>
             </div>
-            <span className="font-black">{formatPriceDisplay(service)}</span>
+            {formatPriceDisplay(service)}
           </div>
 
-          {/* Location or Online Provider */}
-          <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3.5 py-2.5">
-            <div className="flex items-center gap-2 text-muted-foreground">
+          {/* Location or Online Provider Icon */}
+          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+            <div className="flex items-center gap-2 font-semibold">
               {isOffline ? (
-                <MapPin className="h-4 w-4 text-primary" />
+                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
               ) : (
-                <Video className="h-4 w-4 text-primary" />
+                <MonitorPlay className="h-3.5 w-3.5 text-primary shrink-0" />
               )}
-              <span>{isOffline ? 'Location' : 'Online'}</span>
+              <span>{isOffline ? 'Location' : 'Provider'}</span>
             </div>
-            <span className="max-w-[180px] truncate font-black text-right">
-              {isOffline ? formatShortLocation(service.address) : providerName}
-            </span>
+
+            <div className="flex items-center gap-1.5 min-w-0 max-w-[150px] justify-end">
+              {!isOffline && ProviderIcon && (
+                <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              )}
+              <span className="truncate font-bold text-foreground">
+                {isOffline ? formatShortLocation(service.address) : providerName}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Primary Action Button */}
-      <div className="mt-6 pt-2">
+      {/* Action Button */}
+      <div className="mt-3.5">
         <Button
           type="button"
           onClick={() => onManageService(service)}
-          className="h-11 w-full cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-[0.98]"
+          className="h-8 w-full cursor-pointer rounded-lg text-xs font-bold shadow-2xs hover:bg-primary/90 hover:shadow-sm active:scale-98 transition-all"
         >
-          <Settings2 className="h-4 w-4" />
+          <Settings2 className="h-3.5 w-3.5 shrink-0" />
           Manage Service
         </Button>
       </div>

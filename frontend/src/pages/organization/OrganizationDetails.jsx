@@ -25,27 +25,6 @@ const hasSameId = (left, right) => {
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
 };
 
-// Tooltip Component
-const Tooltip = ({ content, children }) => {
-    const [isVisible, setIsVisible] = useState(false);
-
-    return (
-        <div 
-            className="relative inline-flex items-center"
-            onMouseEnter={() => setIsVisible(true)}
-            onMouseLeave={() => setIsVisible(false)}
-        >
-            {children}
-            {isVisible && (
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-72 p-3 bg-popover text-popover-foreground text-xs rounded-md shadow-lg border border-border animate-in fade-in-0 zoom-in-95 pointer-events-none">
-                    {content}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-popover" />
-                </div>
-            )}
-        </div>
-    );
-};
-
 // Reusable UI Components
 const Card = ({ children, className = '', padding = 'md' }) => {
     const paddingClasses = {
@@ -128,8 +107,8 @@ const IntegrationRow = ({ name, description, icon: Icon, connected, path }) => (
         <div className="flex items-center gap-3">
             <div className={cn(
                 "p-2 rounded-lg transition-colors",
-                connected 
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
+                connected
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-muted text-muted-foreground border border-border"
             )}>
                 <Icon className="h-4 w-4" />
@@ -212,7 +191,7 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent/20 transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
@@ -258,6 +237,7 @@ export default function OrganizationDetails() {
     const [isEditing, setIsEditing] = useState(false);
     const [focusTarget, setFocusTarget] = useState('name'); // 'name' | 'description'
     const [isSyncingSlug, setIsSyncingSlug] = useState(false);
+    const [showSyncModal, setShowSyncModal] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
     const nameInputRef = useRef(null);
@@ -317,7 +297,7 @@ export default function OrganizationDetails() {
         }
     };
 
-    const handleSyncSlug = async () => {
+    const handleConfirmSyncSlug = async () => {
         try {
             setIsSyncingSlug(true);
             const data = await syncOrganizationSlug(orgId);
@@ -326,7 +306,8 @@ export default function OrganizationDetails() {
                 slug: data.slug,
                 isSlugStale: false
             }));
-            toast.success('Organization URL slug synchronized successfully');
+            toast.success('Organization URL synchronized successfully');
+            setShowSyncModal(false);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to synchronize organization URL');
         } finally {
@@ -426,7 +407,7 @@ export default function OrganizationDetails() {
                             {isOwner && !isEditing && (
                                 <button
                                     onClick={() => openEditMode('name')}
-                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent hover:border-border/80 transition-colors cursor-pointer flex items-center gap-1.5"
+                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent/20 hover:border-border/80 transition-colors cursor-pointer flex items-center gap-1.5"
                                 >
                                     <Edit3 className="h-3.5 w-3.5" />
                                     Edit details
@@ -441,37 +422,22 @@ export default function OrganizationDetails() {
                             <div className="flex items-start gap-3">
                                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-semibold">Public URL Slug Out of Sync</h4>
+                                    <h4 className="text-sm font-semibold">Public URL Out of Sync</h4>
                                     <p className="text-xs sm:text-sm opacity-90 mt-0.5">
-                                        Your organization name was updated, but your public URL slug (<code className="font-mono font-bold">{organization.slug}</code>) is still out of sync.
+                                        Your organization name was updated, but your public URL (<code className="font-mono font-bold">{organization.slug}</code>) is still out of sync.
                                     </p>
                                 </div>
                             </div>
 
                             <div className="self-end sm:self-auto shrink-0">
-                                <Tooltip
-                                    content={
-                                        <div className="flex items-start gap-2 text-amber-200">
-                                            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                                            <span>
-                                                <strong>Warning:</strong> Syncing will update public links. Any old shared service or booking links will become deprecated.
-                                            </span>
-                                        </div>
-                                    }
+                                <button
+                                    onClick={() => setShowSyncModal(true)}
+                                    disabled={isSyncingSlug || isUpdating}
+                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
                                 >
-                                    <button
-                                        onClick={handleSyncSlug}
-                                        disabled={isSyncingSlug || isUpdating}
-                                        className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
-                                    >
-                                        {isSyncingSlug ? (
-                                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                        ) : (
-                                            <RefreshCw className="h-3.5 w-3.5" />
-                                        )}
-                                        Sync URL Slug
-                                    </button>
-                                </Tooltip>
+                                    <RefreshCw className="h-3.5 w-3.5" />
+                                    Sync URL Slug
+                                </button>
                             </div>
                         </div>
                     )}
@@ -540,7 +506,7 @@ export default function OrganizationDetails() {
                                                         setOrgName(organization.name);
                                                         setOrgDescription(organization.description || '');
                                                     }}
-                                                    className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                                                    className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent/20 transition-colors cursor-pointer"
                                                 >
                                                     Cancel
                                                 </button>
@@ -567,8 +533,8 @@ export default function OrganizationDetails() {
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
-                                                        Public URL Slug
+                                                    <span className="text-xs text-muted-foreground font-semibold tracking-wider">
+                                                        Public URL: Organization Path
                                                     </span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-mono bg-muted/60 px-2 py-0.5 rounded text-foreground border border-border">
@@ -722,6 +688,59 @@ export default function OrganizationDetails() {
                     </div>
                 </div>
             </div>
+
+            {/* Sync Organization URL Slug Confirmation Modal */}
+            {showSyncModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
+                    <div className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+
+                        {/* Content Block */}
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <AlertTriangle className="h-6 w-6" />
+                            </div>
+
+                            <div className="space-y-1.5 pt-0.5">
+                                <h3 className="text-lg font-bold text-foreground">Sync Organization URL?</h3>
+                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                    Create a new booking link that matches the current organization name.
+                                </p>
+                                <p className="text-xs font-semibold leading-relaxed text-amber-600 dark:text-amber-400">
+                                    Warning: All existing links using this organization prefix will be disabled immediately.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pt-1">
+                            <button
+                                type="button"
+                                disabled={isSyncingSlug}
+                                onClick={() => setShowSyncModal(false)}
+                                className="h-10 w-full rounded-xl border border-border bg-background text-xs font-bold text-foreground hover:bg-accent/20 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={isSyncingSlug}
+                                onClick={handleConfirmSyncSlug}
+                                className="h-10 w-full cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 transition-colors disabled:opacity-50"
+                            >
+                                {isSyncingSlug ? (
+                                    <>
+                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                        Syncing...
+                                    </>
+                                ) : (
+                                    'Confirm Sync'
+                                )}
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
 
             <InviteMemberModal
                 isOpen={isInviteModalOpen}

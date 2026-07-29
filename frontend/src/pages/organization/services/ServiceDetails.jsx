@@ -13,12 +13,12 @@ import {
   IndianRupee,
   MapPin,
   RefreshCw,
-  Save,
   Video,
   WalletCards,
   X,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   Building2,
   Check,
   Trash2,
@@ -38,12 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 const MAX_PRICE = 99999999;
 
@@ -211,6 +205,8 @@ export default function ServiceDetails() {
   const [hasCopied, setHasCopied] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (serviceId) {
@@ -334,14 +330,18 @@ export default function ServiceDetails() {
     }
   };
 
-  const handleSyncSlug = async () => {
+  const handleConfirmSyncSlug = async () => {
     if (!serviceId) return;
+    setIsSyncing(true);
 
     try {
       await syncServiceSlug(serviceId);
-      toast.success('Service URL synced');
+      toast.success('Service URL synced successfully');
+      setShowSyncModal(false);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'URL sync failed');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -381,8 +381,8 @@ export default function ServiceDetails() {
               </h1>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${selectedService?.isActive
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                    : 'bg-muted text-muted-foreground border border-border/60'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                  : 'bg-muted text-muted-foreground border border-border/60'
                   }`}
               >
                 {selectedService?.isActive ? 'Active' : 'Inactive'}
@@ -560,26 +560,18 @@ export default function ServiceDetails() {
                 )}
               </Button>
 
+              {/* Lightweight Sync URL Action Button */}
               {selectedService?.isSlugStale && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleSyncSlug}
-                        className="h-9 min-h-[36px] w-full rounded-lg text-[10px] font-bold uppercase tracking-wider sm:h-8 sm:w-auto"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Sync URL
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-60 text-xs">
-                      Regenerates the public URL slug to match the updated service name.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSyncModal(true)}
+                  className="h-9 min-h-[36px] flex-1 cursor-pointer gap-1.5 rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 hover:text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400 dark:hover:bg-amber-500/25 sm:h-8 sm:flex-none text-[10px] font-bold uppercase tracking-wider transition-colors"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Sync URL
+                </Button>
               )}
             </div>
           </div>
@@ -592,7 +584,7 @@ export default function ServiceDetails() {
               General Settings
             </h2>
             <span className="text-[10px] font-medium text-muted-foreground/70">
-              {isEditing ? 'Editing Mode' : 'Read-Only'}
+              {isEditing ? 'Editing...' : 'Service Overview'}
             </span>
           </div>
 
@@ -634,7 +626,7 @@ export default function ServiceDetails() {
 
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Service Mode
+                Mode
               </Label>
               {isEditing ? (
                 <div className="relative rounded-lg border border-border/70 bg-muted/20 p-1">
@@ -647,8 +639,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'OFFLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'OFFLINE'
-                          ? 'text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -658,8 +650,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'ONLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'ONLINE'
-                          ? 'text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <Video className="h-3.5 w-3.5 shrink-0" />
@@ -961,29 +953,85 @@ export default function ServiceDetails() {
         {isEditing && (
           <div className="sticky bottom-3 z-40 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background/95 p-3 shadow-xl backdrop-blur-md sm:bottom-5 sm:p-3.5">
             <span className="hidden text-xs font-semibold text-muted-foreground sm:inline">
-              Unsaved modifications active
+              Unsaved changes will be lost, click "Save Changes" to see the changes.
             </span>
-            <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
+
+            <div className="flex w-full items-center gap-2.5 sm:ml-auto sm:w-auto">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={handleCancelEdit}
-                className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-lg text-xs font-bold sm:h-9 sm:flex-initial"
+                className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-lg px-4 text-xs font-bold transition-all hover:bg-accent/20 active:scale-98 sm:h-9 sm:flex-initial sm:px-5"
               >
                 Cancel
               </Button>
+
               <Button
                 type="submit"
                 disabled={isUpdating}
-                className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-xs sm:h-9 sm:flex-initial"
+                className="h-10 min-h-[40px] flex-1 cursor-pointer gap-2 rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-xs transition-all active:scale-98 sm:h-9 sm:flex-initial"
               >
-                <Save className="h-3.5 w-3.5" />
                 {isUpdating ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
         )}
       </form>
+
+      {/* Sync URL Confirmation Modal */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
+          <div className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+
+            {/* Content Block */}
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+
+              <div className="space-y-1.5 pt-0.5">
+                <h3 className="text-lg font-bold text-foreground">Sync Booking URL?</h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Create a new booking link that matches the current service name.
+                </p>
+                <p className="text-xs font-semibold leading-relaxed text-amber-600 dark:text-amber-400">
+                  Warning: Previously shared links will stop working.
+                </p>
+              </div>
+            </div>
+
+            {/* 50/50 Equal Width Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSyncing}
+                onClick={() => setShowSyncModal(false)}
+                className="h-10 w-full rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="button"
+                disabled={isSyncing}
+                onClick={handleConfirmSyncSlug}
+                className="h-10 w-full cursor-pointer gap-2 rounded-xl bg-amber-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
+              >
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  'Confirm Sync'
+                )}
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

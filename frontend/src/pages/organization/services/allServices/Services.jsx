@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useServiceStore, useUserStore } from '@/stores';
@@ -94,43 +94,45 @@ export default function Services() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center font-black uppercase tracking-widest text-muted-foreground/50">
+      <div className="flex h-[70vh] items-center justify-center font-bold tracking-wider text-muted-foreground/60 text-xs uppercase">
         Synchronizing Workspace...
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-7 px-3 py-7 sm:px-4 sm:py-10 md:space-y-10 md:py-16">
+    <div className="mx-auto w-full max-w-7xl space-y-5 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
       {/* Top Page Header */}
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-black uppercase tracking-tighter sm:text-4xl md:text-6xl">
-            Services
-          </h1>
-          <p className="max-w-2xl text-sm font-medium text-muted-foreground sm:text-base md:text-lg">
-            Manage the services customers can book from your active organization.
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4">
+        <div className="space-y-1 min-w-0">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+              Services
+            </h1>
+          </div>
+          <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+            Create and manage your bookable services
           </p>
         </div>
 
         <Button
           type="button"
           onClick={openCreate}
-          className="h-11 cursor-pointer rounded-xl px-4 text-xs font-black uppercase tracking-widest shadow-sm sm:h-12 sm:px-5 sm:text-sm"
+          className="h-9 min-h-[36px] w-full cursor-pointer rounded-lg px-4 text-xs font-bold uppercase tracking-wider shadow-xs transition-all active:scale-95 sm:w-auto"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5 shrink-0" />
           New Service
         </Button>
       </div>
 
       {!activeOrganizationId && (
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-medium text-amber-700 shadow-sm">
-          Choose an active organization before creating services.
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+          Select or create an active organization to manage services.
         </div>
       )}
 
       {/* Service Cards Grid */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3.5 sm:gap-4.5 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
           <ServiceCard
             key={service._id}
@@ -145,11 +147,23 @@ export default function Services() {
       </div>
 
       {activeOrganizationId && services.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
-          <h3 className="text-lg font-black uppercase tracking-tight">No Services Yet</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-muted-foreground">
-            Create your first bookable service from the button above.
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 px-4 py-12 text-center shadow-2xs">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
+            <Layers className="h-5 w-5" />
+          </div>
+          <h3 className="mt-3 text-sm font-bold text-foreground">No Services Found</h3>
+          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+            Get started by adding your first bookable consultation or offline service above.
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={openCreate}
+            className="mt-4 h-8 rounded-lg text-xs font-bold"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Create Service
+          </Button>
         </div>
       )}
 
