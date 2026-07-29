@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { ACTIVITY_TYPES, getActivityLabel, getActivityIcon } from "@/config/activityTypes.config";
+import { ACTIVITY_TYPES, getActivityLabel, getActivityIcon } from "@/constants/activityTypes.constant";
 import { useActivityStore } from "@/stores";
 
 const ActivityDetailsDialog = ({ open, onOpenChange, activityId, initialMode = "view" }) => {

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { http } from '../api/httpClient';
-import { toastIcon } from '../config/toastIcon.config';
+import { toastIcon } from '../constants/toastIcon.constant';
 import { useCustomerStore } from './customerStore';
 import {
     DEFAULT_DEAL_STATISTICS,

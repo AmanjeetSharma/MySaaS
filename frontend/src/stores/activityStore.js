@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { http } from '../api/httpClient';
-import { ACTIVITY_TYPES } from '../config/activityTypes.config';
-import { toastIcon } from '../config/toastIcon.config';
+import { ACTIVITY_TYPES } from '../constants/activityTypes.constant';
+import { toastIcon } from '../constants/toastIcon.constant';
 import { useCustomerStore } from './customerStore';
 import { useDealStore } from './dealStore';
 import {

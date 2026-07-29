@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { ACTIVITY_TYPES } from "@/config/activityTypes.config";
+import { ACTIVITY_TYPES } from "@/constants/activityTypes.constant";
 import { useActivityStore } from "@/stores";
 
 const defaultForm = {

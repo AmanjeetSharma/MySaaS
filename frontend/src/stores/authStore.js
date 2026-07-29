@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { http } from '../api/httpClient';
 import { useAppStore } from './appStore';
-import { toastIcon } from '../config/toastIcon.config';
+import { toastIcon } from '../constants/toastIcon.constant';
 import { toast } from 'sonner';
 
 export const useAuthStore = create(persist(

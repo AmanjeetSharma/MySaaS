@@ -9,7 +9,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { timezones } from '@/config/timezone.config.js';
+import { timezones } from '@/constants/timezone.constant.js';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { http } from '@/api/httpClient';

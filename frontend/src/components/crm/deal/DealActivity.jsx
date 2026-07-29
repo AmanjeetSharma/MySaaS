@@ -15,7 +15,7 @@ import {
     getActivityIcon,
     getActivityLabel,
     getActivityColor
-} from "@/config/activityTypes.config";
+} from "@/constants/activityTypes.constant";
 
 const DealActivity = ({ activity, onViewDetails, onEdit, onDelete, isLast = false }) => {
     if (!activity) return null;

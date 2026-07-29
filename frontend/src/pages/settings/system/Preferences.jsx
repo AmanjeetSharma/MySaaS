@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { timezones } from "@/config/timezone.config";
+import { timezones } from "@/constants/timezone.constant";
 
 import {
     Card,
