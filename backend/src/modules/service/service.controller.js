@@ -65,6 +65,7 @@ export const deleteServiceController = asyncHandler(async (req, res) => {
 
 export const getServiceByIdController = asyncHandler(async (req, res) => {
     const data = await getServiceByIdService(
+        req.user._id,
         req.params.serviceId
     )
     return res.status(200).json(

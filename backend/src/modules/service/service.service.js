@@ -133,7 +133,7 @@ export const createServiceService = async (userId, orgId, payload) => {
             (member) => member.user.toString() === userId.toString()
         )
     ) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
     }
 
     // meeting provider check: supported and connected or not
@@ -144,7 +144,7 @@ export const createServiceService = async (userId, orgId, payload) => {
         }
 
         if (!provider.available) {
-            throw new ApiError(400, `${provider.name} is coming soon. Please choose a different provider.`);
+            throw new ApiError(400, `${provider.name} service is coming soon. Please choose a different provider.`);
         }
 
         const integration = organization.integrations?.[provider.integrationKey];
@@ -226,7 +226,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
             (member) => member.user.toString() === userId.toString()
         )
     ) {
-        throw new ApiError(403, "Access denied. You cannot update a service from an organization you do not belong to");
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
     }
 
 
@@ -317,7 +317,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         }
 
         if (!provider.available) {
-            throw new ApiError(400, `${provider.name} is coming soon. Please choose a different provider.`);
+            throw new ApiError(400, `${provider.name} service is coming soon. Please choose a different provider.`);
         }
 
         const integration = organization.integrations?.[provider.integrationKey];
@@ -411,7 +411,7 @@ export const deleteServiceService = async (userId, serviceId) => {
             (member) => member.user.toString() === userId.toString()
         )
     ) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
     }
 
     try {
@@ -434,7 +434,7 @@ export const deleteServiceService = async (userId, serviceId) => {
 
 
 
-export const getServiceByIdService = async (serviceId) => {
+export const getServiceByIdService = async (userId, serviceId) => {
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
@@ -443,6 +443,22 @@ export const getServiceByIdService = async (serviceId) => {
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
+
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
+    }
+
+    console.log(`Service fetched | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
 
     return service;
 };
