@@ -83,7 +83,9 @@ export const useNavigationConfig = () => {
             },
             {
                 title: "Services",
-                href: "/services/all",
+                href: activeOrganizationId
+                    ? `/organizations/${activeOrganizationId}/services`
+                    : "/organizations",
                 icon: Briefcase,
                 items: []
             },

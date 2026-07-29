@@ -1,5 +1,16 @@
-import { useMemo, useState } from 'react';
-import { ChevronDown, DollarSign, Euro, Globe2, IndianRupee, Link2, MapPin, Video, WalletCards } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ChevronDown,
+  DollarSign,
+  Euro,
+  Globe2,
+  IndianRupee,
+  Link2,
+  MapPin,
+  Video,
+  WalletCards,
+} from 'lucide-react';
+import { INTEGRATION_CONFIG } from '@/constants/integrations.constant';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +38,7 @@ const DEFAULT_FORM = {
   durationInMinutes: 30,
   price: 0,
   currency: 'INR',
+  onlineMeetingProvider: 'GOOGLE_MEET',
   address: {
     street: '',
     city: '',
@@ -47,7 +59,6 @@ const currencyIcons = {
 const normalizeNumberInput = (value) => {
   if (value === '') return '';
   if (value.startsWith('0.') || value === '0') return value;
-
   return value.replace(/^0+(?=\d)/, '');
 };
 
@@ -73,13 +84,17 @@ const formatAmount = (service) => {
 const formatAddress = (address) => {
   if (!address) return 'No address added';
 
-  return [
-    address.street,
-    address.city,
-    address.state,
-    address.country,
-    address.zipCode,
-  ].filter(Boolean).join(', ') || 'No address added';
+  return (
+    [
+      address.street,
+      address.city,
+      address.state,
+      address.country,
+      address.zipCode,
+    ]
+      .filter((item) => item && item.trim() !== '')
+      .join(', ') || 'No address added'
+  );
 };
 
 const toFormState = (service = null) => {
@@ -92,6 +107,7 @@ const toFormState = (service = null) => {
     durationInMinutes: service.durationInMinutes || 30,
     price: service.price ?? 0,
     currency: service.currency || 'INR',
+    onlineMeetingProvider: service.onlineMeetingProvider || 'GOOGLE_MEET',
     address: {
       street: service.address?.street || '',
       city: service.address?.city || '',
@@ -113,7 +129,9 @@ const buildPayload = (form, organizationId) => {
     currency: form.currency,
   };
 
-  if (form.mode === 'OFFLINE') {
+  if (form.mode === 'ONLINE') {
+    payload.onlineMeetingProvider = form.onlineMeetingProvider;
+  } else if (form.mode === 'OFFLINE') {
     payload.address = {
       street: form.address.street.trim(),
       city: form.address.city.trim(),
@@ -129,6 +147,8 @@ const buildPayload = (form, organizationId) => {
 const PublicServicePreview = ({ service }) => {
   const isOffline = service.mode === 'OFFLINE';
   const CurrencyIcon = currencyIcons[service.currency] || IndianRupee;
+  const providerConfig = INTEGRATION_CONFIG[service.onlineMeetingProvider];
+  const providerName = providerConfig?.name || 'Meeting Link';
 
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
@@ -159,9 +179,15 @@ const PublicServicePreview = ({ service }) => {
       </p>
 
       <div className="mt-5 flex items-start gap-2 rounded-xl bg-muted/60 p-3 text-sm font-medium">
-        {isOffline ? <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />}
+        {isOffline ? (
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        ) : (
+          <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        )}
         <span className="wrap-break-word">
-          {isOffline ? formatAddress(service.address) : 'Google Meet link generated after booking'}
+          {isOffline
+            ? formatAddress(service.address)
+            : `${providerName} link generated after booking`}
         </span>
       </div>
 
@@ -187,29 +213,41 @@ export default function ServiceModal({
   onToggleMeetingLink,
 }) {
   const [form, setForm] = useState(() => toFormState(service));
-  const [meetingLinkEnabled, setMeetingLinkEnabled] = useState(() => !!service?.autoGenerateMeetingLink);
+  const [meetingLinkEnabled, setMeetingLinkEnabled] = useState(
+    () => !!service?.autoGenerateMeetingLink
+  );
 
-  const previewService = useMemo(() => ({
-    ...service,
-    ...form,
-    price: Number(form.price || 0),
-    durationInMinutes: Number(form.durationInMinutes || 0),
-  }), [form, service]);
+  useEffect(() => {
+    if (open) {
+      setForm(toFormState(service));
+      setMeetingLinkEnabled(!!service?.autoGenerateMeetingLink);
+    }
+  }, [service, open]);
+
+  const previewService = useMemo(
+    () => ({
+      ...service,
+      ...form,
+      price: Number(form.price || 0),
+      durationInMinutes: Number(form.durationInMinutes || 0),
+    }),
+    [form, service]
+  );
 
   const updateField = (field, value) => {
-    setForm(current => ({ ...current, [field]: value }));
+    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const updateNumberField = (field, value) => {
-    setForm(current => ({ ...current, [field]: normalizeNumberInput(value) }));
+    setForm((current) => ({ ...current, [field]: normalizeNumberInput(value) }));
   };
 
   const updatePriceField = (value) => {
-    setForm(current => ({ ...current, price: normalizePriceInput(value) }));
+    setForm((current) => ({ ...current, price: normalizePriceInput(value) }));
   };
 
   const updateAddress = (field, value) => {
-    setForm(current => ({
+    setForm((current) => ({
       ...current,
       address: {
         ...current.address,
@@ -225,17 +263,24 @@ export default function ServiceModal({
 
   const isEdit = mode === 'edit';
   const CurrencyIcon = currencyIcons[form.currency] || IndianRupee;
-  const fieldClassName = 'h-11 rounded-xl border-border/80 bg-background font-bold shadow-sm transition-shadow focus-visible:shadow-md sm:h-12';
+  const fieldClassName =
+    'h-11 rounded-xl border-border/80 bg-background font-bold shadow-sm transition-shadow focus-visible:shadow-md sm:h-12';
+
   const handleMeetingLinkToggle = async () => {
     if (!service || !onToggleMeetingLink) return;
+
+    const previousState = meetingLinkEnabled;
+    setMeetingLinkEnabled(!previousState);
 
     try {
       const result = await onToggleMeetingLink(service);
       setMeetingLinkEnabled(!!result?.autoGenerateMeetingLink);
     } catch {
-      setMeetingLinkEnabled(!!service.autoGenerateMeetingLink);
+      setMeetingLinkEnabled(previousState);
     }
   };
+
+  const currentProviderConfig = INTEGRATION_CONFIG[form.onlineMeetingProvider];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -249,7 +294,10 @@ export default function ServiceModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 pt-1 sm:gap-6 sm:pt-2 lg:grid-cols-[1.1fr_0.9fr]">
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-4 pt-1 sm:gap-6 sm:pt-2 lg:grid-cols-[1.1fr_0.9fr]"
+        >
           <div className="space-y-4 sm:space-y-5">
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="space-y-2 sm:col-span-2">
@@ -266,33 +314,69 @@ export default function ServiceModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Meeting Link
-                </Label>
-                <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 shadow-sm sm:h-12">
-                  <div className="min-w-0">
-                    <div className="truncate text-xs font-black tracking-widest">
-                      Auto Generate Link
-                    </div>
-                    <div className="truncate text-[11px] font-medium text-muted-foreground">
-                      {isEdit ? 'Google Meet' : 'Available after service creation'}
-                    </div>
-                  </div>
-                  <Switch
-                    checked={meetingLinkEnabled}
-                    onCheckedChange={handleMeetingLinkToggle}
-                    disabled={!isEdit || isMeetingLinkUpdating}
-                    className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
-                  />
+              {form.mode === 'ONLINE' && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Meeting Provider
+                  </Label>
+                  <Select
+                    value={form.onlineMeetingProvider}
+                    onValueChange={(value) => updateField('onlineMeetingProvider', value)}
+                  >
+                    <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
+                      <SelectValue placeholder="Select platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(INTEGRATION_CONFIG).map(([key, config]) => {
+                        const IconComponent = config.icon;
+                        return (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2 font-bold">
+                              {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
+                              <span>{config.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
+              )}
+
+              {form.mode === 'ONLINE' && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Meeting Link Settings
+                  </Label>
+                  <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 shadow-sm sm:h-12">
+                    <div className="min-w-0">
+                      <div className="truncate text-xs font-black tracking-widest">
+                        Auto Generate Link
+                      </div>
+                      <div className="truncate text-[11px] font-medium text-muted-foreground">
+                        {isEdit
+                          ? currentProviderConfig?.name || 'Selected Provider'
+                          : 'Available after service creation'}
+                      </div>
+                    </div>
+                    <Switch
+                      checked={meetingLinkEnabled}
+                      onCheckedChange={handleMeetingLinkToggle}
+                      disabled={!isEdit || isMeetingLinkUpdating}
+                      className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Currency
                 </Label>
-                <Select value={form.currency} onValueChange={(value) => updateField('currency', value)}>
+                <Select
+                  value={form.currency}
+                  onValueChange={(value) => updateField('currency', value)}
+                >
                   <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
                     <SelectValue />
                   </SelectTrigger>
@@ -306,7 +390,7 @@ export default function ServiceModal({
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Duration
+                  Duration (mins)
                 </Label>
                 <Input
                   type="number"
@@ -315,13 +399,15 @@ export default function ServiceModal({
                   onFocus={(event) => {
                     if (event.currentTarget.value === '0') event.currentTarget.select();
                   }}
-                  onChange={(event) => updateNumberField('durationInMinutes', event.target.value)}
+                  onChange={(event) =>
+                    updateNumberField('durationInMinutes', event.target.value)
+                  }
                   className={fieldClassName}
                   required
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Price
                 </Label>
@@ -362,12 +448,20 @@ export default function ServiceModal({
                 Service Mode
               </Label>
               <div className="relative rounded-xl border border-border/80 bg-background p-1 shadow-sm">
-                <div className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-lg bg-primary shadow-sm transition-transform duration-200 ${form.mode === 'ONLINE' ? 'translate-x-full' : 'translate-x-0'}`} />
+                <div
+                  className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-lg bg-primary shadow-sm transition-transform duration-200 ${
+                    form.mode === 'ONLINE' ? 'translate-x-full' : 'translate-x-0'
+                  }`}
+                />
                 <div className="relative grid grid-cols-2">
                   <button
                     type="button"
                     onClick={() => updateField('mode', 'OFFLINE')}
-                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${form.mode === 'OFFLINE' ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
+                      form.mode === 'OFFLINE'
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
                   >
                     <MapPin className="h-4 w-4" />
                     Offline
@@ -375,7 +469,11 @@ export default function ServiceModal({
                   <button
                     type="button"
                     onClick={() => updateField('mode', 'ONLINE')}
-                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${form.mode === 'ONLINE' ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
+                      form.mode === 'ONLINE'
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
                   >
                     <Video className="h-4 w-4" />
                     Online
@@ -400,7 +498,7 @@ export default function ServiceModal({
                     onChange={(event) => updateAddress('street', event.target.value)}
                     className={fieldClassName}
                     placeholder="Office / building / street"
-                    required
+                    required={form.mode === 'OFFLINE'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -411,7 +509,7 @@ export default function ServiceModal({
                     value={form.address.city}
                     onChange={(event) => updateAddress('city', event.target.value)}
                     className={fieldClassName}
-                    required
+                    required={form.mode === 'OFFLINE'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -432,7 +530,7 @@ export default function ServiceModal({
                     value={form.address.country}
                     onChange={(event) => updateAddress('country', event.target.value)}
                     className={fieldClassName}
-                    required
+                    required={form.mode === 'OFFLINE'}
                   />
                 </div>
                 <div className="space-y-2">

@@ -150,7 +150,7 @@ export default function Organizations() {
 
       {/* Create Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogContent className="sm:max-w-md rounded-2xl  [&>button]:cursor-pointer">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Launch Workspace</DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -165,7 +165,7 @@ export default function Organizations() {
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
                 className="h-10 rounded-xl text-sm"
-                placeholder="e.g. Acme Corp"
+                placeholder="e.g. My Organization"
               />
             </div>
             <Button disabled={isUpdating} type="submit" className="w-full h-10 rounded-xl font-semibold cursor-pointer">

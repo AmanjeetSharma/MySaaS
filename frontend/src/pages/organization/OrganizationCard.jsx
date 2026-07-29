@@ -185,7 +185,6 @@ export const CreateOrganizationCard = ({ onClick }) => {
         group-hover:opacity-100 group-hover:translate-y-0
         transition-all duration-300
       ">
-                <Sparkles className="h-3.5 w-3.5" />
                 Create Workspace
             </div>
         </button>

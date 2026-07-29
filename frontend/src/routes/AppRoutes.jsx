@@ -25,8 +25,11 @@ import OrganizationDetails from '@/pages/organization/OrganizationDetails';
 import Members from '@/pages/organization/Members';
 
 // Service imports
-import AllServices from '@/pages/organization/services/allServices/AllServices';
+import Services from '@/pages/organization/services/allServices/Services';
 import Availability from '@/pages/organization/services/Availability';
+import ServiceDetails from '@/pages/organization/services/ServiceDetails';
+
+// Public Service imports
 import PublicService from '@/pages/organization/services/publicService/PublicService';
 
 // Customer imports
@@ -94,7 +97,8 @@ export const AppRoutes = () => {
                     <Route path="/organizations/:orgId/members" element={<Members />} />
 
                     {/* Service Routes */}
-                    <Route path="/services/all" element={<AllServices />} />
+                    <Route path="/organizations/:orgId/services" element={<Services />} />
+                    <Route path="/organizations/:orgId/services/:serviceId" element={<ServiceDetails />} />
                     <Route path="/services/all/:serviceId/availability" element={<Availability />} />
 
                     {/* Customer Routes */}
@@ -146,7 +150,7 @@ export const AppRoutes = () => {
 
             {/* Public Service Route */}
             <Route path="/book/:orgSlug/:serviceSlug" element={<PublicService />} />
-            
+
 
         </Routes>
     );

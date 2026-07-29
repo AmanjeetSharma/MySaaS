@@ -144,7 +144,7 @@ export const createServiceService = async (userId, orgId, payload) => {
         }
 
         if (!provider.available) {
-            throw new ApiError(400, `${provider.name} is coming soon.`);
+            throw new ApiError(400, `${provider.name} is coming soon. Please choose a different provider.`);
         }
 
         const integration = organization.integrations?.[provider.integrationKey];
@@ -317,7 +317,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         }
 
         if (!provider.available) {
-            throw new ApiError(400, `${provider.name} is coming soon`);
+            throw new ApiError(400, `${provider.name} is coming soon. Please choose a different provider.`);
         }
 
         const integration = organization.integrations?.[provider.integrationKey];

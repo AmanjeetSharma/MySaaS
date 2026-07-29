@@ -37,7 +37,7 @@ const copyToClipboard = async (text) => {
   document.body.removeChild(textarea);
 };
 
-export default function AllServices() {
+export default function Services() {
   const navigate = useNavigate();
   const {
     services,
