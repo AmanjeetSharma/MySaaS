@@ -10,21 +10,18 @@ import {
     toggleServiceStatusController,
     toggleAutoGenerateMeetingLinkController,
     syncServiceSlugController,
-    getPublicServiceUrlController,
 } from './service.controller.js';
 
 const router = express.Router();
 
 router.post("/", verifyToken, createServiceController);
+router.get("/:serviceId", verifyToken, getServiceByIdController);
 router.patch("/:serviceId", verifyToken, updateServiceController);
 router.delete("/:serviceId", verifyToken, deleteServiceController);
 router.get("/organization/:orgId", verifyToken, getOrganizationServicesController);
 router.patch("/:serviceId/toggle-status", verifyToken, toggleServiceStatusController);
 router.patch("/:serviceId/toggle-auto-generate-meeting-link", verifyToken, toggleAutoGenerateMeetingLinkController);
 router.patch("/:serviceId/sync-slug", verifyToken, syncServiceSlugController);
-router.get("/:serviceId/public-url", verifyToken, getPublicServiceUrlController);
 router.get("/public/:orgSlug/:serviceSlug", getServiceBySlugController);// public api
-//not been used yet
-router.get("/:serviceId", verifyToken, getServiceByIdController);
 
 export default router;

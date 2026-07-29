@@ -283,6 +283,15 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         }
     }
 
+    if (
+        autoGenerateMeetingLink !== undefined &&
+        typeof autoGenerateMeetingLink !== "boolean"
+    ) {
+        throw new ApiError(
+            400,
+            "Auto-generate meeting link must be a boolean value"
+        );
+    }
 
     const finalMode = mode ?? service.mode;
 
@@ -306,8 +315,13 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     if (finalMode === "ONLINE") {
         const finalProvider = onlineMeetingProvider ?? service.onlineMeetingProvider;
 
-        if (!finalProvider) {
+        if (typeof finalProvider !== "string" || !finalProvider.trim()) {
             throw new ApiError(400, "Online meeting provider is required for online services");
+        }
+
+        const validation = serviceOnlineMeetingProviderValidator(finalProvider);
+        if (!validation.valid) {
+            throw new ApiError(400, validation.errors.join(", "));
         }
 
         const provider = INTEGRATION_CONFIG[finalProvider];
@@ -352,14 +366,11 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         service.address = address;
     }
     if (onlineMeetingProvider !== undefined) {
-        service.onlineMeetingProvider = finalMode === "ONLINE" ? onlineMeetingProvider : null;
+        service.onlineMeetingProvider = onlineMeetingProvider;
     }
 
     if (autoGenerateMeetingLink !== undefined) {
-        if (typeof autoGenerateMeetingLink !== "boolean") {
-            throw new ApiError(400, "Auto-generate meeting link must be a boolean value");
-        }
-        service.autoGenerateMeetingLink = finalMode === "ONLINE" ? autoGenerateMeetingLink : false;
+        service.autoGenerateMeetingLink = autoGenerateMeetingLink;
     }
 
     if (finalMode === "OFFLINE") {
@@ -381,6 +392,46 @@ export const updateServiceService = async (userId, serviceId, payload) => {
 };
 
 
+
+
+
+
+
+
+
+
+
+export const getServiceByIdService = async (userId, serviceId) => {
+    if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+        throw new ApiError(400, "Invalid service ID");
+    }
+
+    let service = await findServiceById(serviceId);
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
+    }
+
+    service = service.toObject();// Convert to plain object to allow adding new properties
+    service.publicUrl = `${env.CLIENT_URL}/book/${organization.slug}/${service.slug}`;
+
+    console.log(`Service fetched | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
+
+    return service
+};
 
 
 
@@ -434,17 +485,16 @@ export const deleteServiceService = async (userId, serviceId) => {
 
 
 
-export const getServiceByIdService = async (userId, serviceId) => {
-    if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-        throw new ApiError(400, "Invalid service ID");
+
+
+
+
+export const getOrganizationServicesService = async (userId, orgId) => {
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Invalid organization ID");
     }
 
-    const service = await findServiceById(serviceId);
-    if (!service) {
-        throw new ApiError(404, "Service not found");
-    }
-
-    const organization = await findOrganizationById(service.organization);
+    const organization = await findOrganizationById(orgId);
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
@@ -456,27 +506,6 @@ export const getServiceByIdService = async (userId, serviceId) => {
         )
     ) {
         throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
-    }
-
-    console.log(`Service fetched | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
-
-    return service;
-};
-
-
-
-
-
-
-
-export const getOrganizationServicesService = async (orgId) => {
-    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
-        throw new ApiError(400, "Invalid organization ID");
-    }
-
-    const organization = await findOrganizationById(orgId);
-    if (!organization) {
-        throw new ApiError(404, "Organization not found");
     }
 
     const services = await findServicesByOrganizationId(orgId);
@@ -492,33 +521,73 @@ export const getOrganizationServicesService = async (orgId) => {
 
 
 
-export const toggleServiceStatusService = async (serviceId) => {
+export const toggleServiceStatusService = async (userId, serviceId) => {
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
         throw new ApiError(400, "Invalid service ID");
     }
 
-    const service = await findServiceById(serviceId, "_id name isActive mode address organization");
+    const service = await findServiceById(serviceId, "_id name isActive mode address onlineMeetingProvider organization");
+
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
 
-    const organization = await findOrganizationById(service.organization, "integrations");
+    const organization = await findOrganizationById(service.organization, "owner members integrations");
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
 
+
+    console.log("Permission Debug:", {
+        userId,
+        organizationId: organization._id,
+        owner: organization.owner,
+        members: organization.members
+    });
+    if (
+        userId.toString() !== organization.owner.toString() &&
+        !organization.members.some(
+            (member) => member.user.toString() === userId.toString()
+        )
+    ) {
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
+    }
+
     if (!service.isActive) {
-        if (service.mode === "OFFLINE" &&
-            (
+        if (service.mode === "OFFLINE") {
+            if (
                 !service.address ||
                 !service.address.street ||
                 !service.address.city ||
                 !service.address.country
-            )
-        ) { throw new ApiError(400, "Cannot activate offline service without a valid address"); }
+            ) {
+                throw new ApiError(400, "Cannot activate offline service without a valid address.");
+            }
 
-        if (service.mode === "ONLINE" && !organization.integrations?.googleCalendar?.isConnected) {
-            throw new ApiError(400, "Please complete Google Calendar integration to activate online services");
+        } else if (service.mode === "ONLINE") {
+
+            if (
+                typeof service.onlineMeetingProvider !== "string" ||
+                !service.onlineMeetingProvider.trim()
+            ) {
+                throw new ApiError(400, "Online meeting provider is required to activate online services.");
+            }
+
+            const provider = INTEGRATION_CONFIG[service.onlineMeetingProvider];
+
+            if (!provider) {
+                throw new ApiError(400, "Unsupported online meeting provider.");
+            }
+
+            if (!provider.available) {
+                throw new ApiError(400, `${provider.name} service is coming soon. Please choose a different provider.`);
+            }
+
+            const integration = organization.integrations?.[provider.integrationKey];
+
+            if (!integration?.isConnected) {
+                throw new ApiError(400, `Please connect your ${provider.name} account before activating this service.`);
+            }
         }
     }
 
@@ -527,7 +596,8 @@ export const toggleServiceStatusService = async (serviceId) => {
     try {
         await service.save();
     } catch (err) {
-        throw new ApiError(500, "An error occurred while toggling the service status, please try again.");
+        console.error("Error toggling service status:", err);
+        throw new ApiError(500, "An error occurred while toggling the service status. Please try again.");
     }
 
     console.log(`Service status toggled | Name: ${service.name} (ID: ${service._id}) | New Status: ${service.isActive ? "Active" : "Inactive"}`);
@@ -556,6 +626,11 @@ export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) =>
     const service = await findServiceById(serviceId);
     if (!service) {
         throw new ApiError(404, "Service not found");
+    }
+
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
     }
 
     service.autoGenerateMeetingLink = !service.autoGenerateMeetingLink;
@@ -618,40 +693,6 @@ export const syncServiceSlugService = async (userId, serviceId) => {
         newSlug: service.slug,
     }
 };
-
-
-
-
-
-
-
-
-
-export const getPublicServiceUrlService = async (serviceId) => {
-    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
-        throw new ApiError(400, "Invalid service ID");
-    }
-
-    const service = await findServiceById(serviceId);
-    if (!service) {
-        throw new ApiError(404, "Service not found")
-    };
-
-    const organization = await findOrganizationById(service.organization);
-    if (!organization) {
-        throw new ApiError(404, "Organization not found");
-    }
-
-    const publicUrl = `${env.CLIENT_URL}/book/${organization.slug}/${service.slug}`;
-
-    console.log(`Public URL fetched for ${service.name} (ID: ${service._id}) | Public URL: ${publicUrl}`);
-
-    return {
-        success: true,
-        publicUrl: publicUrl,
-    };
-};
-
 
 
 

@@ -397,11 +397,11 @@ export default function Availability() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => navigate('/services/all')}
+            onClick={() => navigate(`/organizations/${service?.organization}/services/${serviceId}`)}
             className="h-9 cursor-pointer rounded-lg px-2 text-xs font-black uppercase tracking-widest text-muted-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Services
+            Back to Service
           </Button>
 
           <div className="min-w-0 space-y-3">

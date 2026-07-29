@@ -5,13 +5,6 @@ import { toast } from 'sonner';
 import { useServiceStore, useUserStore } from '@/stores';
 import ServiceCard from './ServiceCard';
 import ServiceModal from './ServiceModal';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 const getEntityId = (entity) => {
@@ -20,49 +13,24 @@ const getEntityId = (entity) => {
   return entity._id || entity.id || null;
 };
 
-const copyToClipboard = async (text) => {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand('copy');
-  document.body.removeChild(textarea);
-};
-
 export default function Services() {
   const navigate = useNavigate();
   const {
     services,
     getOrganizationServices,
     createService,
-    updateService,
-    deleteService,
     toggleServiceStatus,
-    toggleAutoGenerateMeetingLink,
-    getPublicServiceUrl,
-    syncServiceSlug,
     clearServices,
     isLoading,
   } = useServiceStore();
 
   const { userProfile, getUserProfile } = useUserStore();
   const [modalMode, setModalMode] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [cardAction, setCardAction] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
   const activeOrganizationId = getEntityId(userProfile?.activeOrganization);
-  const isModalOpen = modalMode === 'create' || modalMode === 'edit';
+  const isModalOpen = modalMode === 'create';
 
   useEffect(() => {
     if (!userProfile) {
@@ -85,54 +53,24 @@ export default function Services() {
       toast.error('Select or create an active organization first');
       return;
     }
-
-    setSelectedService(null);
     setModalMode('create');
-  };
-
-  const openEdit = (service) => {
-    setSelectedService(service);
-    setModalMode('edit');
   };
 
   const closeModal = () => {
     setModalMode(null);
-    setSelectedService(null);
   };
 
-  const handleSave = async (payload) => {
+  const handleCreateSave = async (payload) => {
     setSaveLoading(true);
 
     try {
-      if (modalMode === 'edit' && selectedService?._id) {
-        await updateService(selectedService._id, payload);
-        toast.success('Service updated');
-      } else {
-        await createService(payload);
-        toast.success('Service created');
-      }
-
+      await createService(payload);
+      toast.success('Service created successfully');
       closeModal();
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to save service');
+      toast.error(error?.response?.data?.message || 'Unable to create service');
     } finally {
       setSaveLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget?._id) return;
-
-    setDeleteLoading(true);
-
-    try {
-      await deleteService(deleteTarget._id);
-      setDeleteTarget(null);
-      toast.success('Service deleted');
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Delete failed');
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -149,52 +87,9 @@ export default function Services() {
     }
   };
 
-  const handleToggleMeetingLink = async (service) => {
-    setCardAction(`meeting:${service._id}`);
-
-    try {
-      const result = await toggleAutoGenerateMeetingLink(service._id);
-      toast.success(result?.message || 'Meeting link setting updated');
-      return result;
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Meeting link update failed');
-      throw error;
-    } finally {
-      setCardAction(null);
-    }
-  };
-
-  const handleCopyUrl = async (service) => {
-    setCardAction(`copy:${service._id}`);
-
-    try {
-      const publicUrl = await getPublicServiceUrl(service._id);
-
-      await copyToClipboard(publicUrl);
-      toast.success('Public URL copied');
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to copy URL');
-    } finally {
-      setCardAction(null);
-    }
-  };
-
-  const handleSyncSlug = async (service) => {
-    setCardAction(`sync:${service._id}`);
-
-    try {
-      await syncServiceSlug(service._id);
-      toast.success('Service URL synced');
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'URL sync failed');
-    } finally {
-      setCardAction(null);
-    }
-  };
-
-  const handleConfigureAvailability = (service) => {
-    if (!service?._id) return;
-    navigate(`/services/all/${service._id}/availability`);
+  const handleManageService = (service) => {
+    if (!service?._id || !activeOrganizationId) return;
+    navigate(`/organizations/${activeOrganizationId}/services/${service._id}`);
   };
 
   if (isLoading) {
@@ -207,6 +102,7 @@ export default function Services() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-7 px-3 py-7 sm:px-4 sm:py-10 md:space-y-10 md:py-16">
+      {/* Top Page Header */}
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-black uppercase tracking-tighter sm:text-4xl md:text-6xl">
@@ -233,6 +129,7 @@ export default function Services() {
         </div>
       )}
 
+      {/* Service Cards Grid */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
         {services.map((service) => (
           <ServiceCard
@@ -240,15 +137,9 @@ export default function Services() {
             service={service}
             actionLoading={{
               status: cardAction === `status:${service._id}`,
-              copy: cardAction === `copy:${service._id}`,
-              sync: cardAction === `sync:${service._id}`,
             }}
-            onEdit={openEdit}
-            onDelete={setDeleteTarget}
             onToggleStatus={handleToggleStatus}
-            onCopyUrl={handleCopyUrl}
-            onSyncSlug={handleSyncSlug}
-            onConfigureAvailability={handleConfigureAvailability}
+            onManageService={handleManageService}
           />
         ))}
       </div>
@@ -262,55 +153,20 @@ export default function Services() {
         </div>
       )}
 
+      {/* Creation Modal */}
       {activeOrganizationId && (
         <ServiceModal
-          key={`${modalMode}-${selectedService?._id || 'new'}`}
+          key="create-new"
           open={isModalOpen}
-          mode={modalMode}
-          service={selectedService}
+          mode="create"
+          service={null}
           organizationId={activeOrganizationId}
           isUpdating={saveLoading}
-          isMeetingLinkUpdating={cardAction === `meeting:${selectedService?._id}`}
           onOpenChange={(open) => {
             if (!open) closeModal();
           }}
-          onSubmit={handleSave}
-          onToggleMeetingLink={handleToggleMeetingLink}
+          onSubmit={handleCreateSave}
         />
-      )}
-
-      {deleteTarget && (
-        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-          <DialogContent className="rounded-xl sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="font-black uppercase tracking-tight text-destructive">
-                Delete Service
-              </DialogTitle>
-              <DialogDescription className="font-medium">
-                Are you sure you want to delete <span className="font-bold text-foreground">{deleteTarget.name}</span>? This cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-3 flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDeleteTarget(null)}
-                className="h-11 flex-1 cursor-pointer rounded-xl font-bold"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                className="h-11 flex-1 cursor-pointer rounded-xl font-bold"
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? 'Deleting...' : 'Delete'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       )}
     </div>
   );

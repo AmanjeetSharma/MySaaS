@@ -11,7 +11,6 @@ import {
     toggleServiceStatusService,
     toggleAutoGenerateMeetingLinkService,
     syncServiceSlugService,
-    getPublicServiceUrlService,
 } from "./service.service.js";
 
 
@@ -80,6 +79,7 @@ export const getServiceByIdController = asyncHandler(async (req, res) => {
 
 export const getOrganizationServicesController = asyncHandler(async (req, res) => {
     const data = await getOrganizationServicesService(
+        req.user._id,
         req.params.orgId
     )
     return res.status(200).json(
@@ -94,6 +94,7 @@ export const getOrganizationServicesController = asyncHandler(async (req, res) =
 
 export const toggleServiceStatusController = asyncHandler(async (req, res) => {
     const data = await toggleServiceStatusService(
+        req.user._id,
         req.params.serviceId
     );
 
@@ -134,21 +135,6 @@ export const syncServiceSlugController = asyncHandler(async (req, res) => {
             200,
             data,
             "Service slug synchronized successfully."
-        )
-    );
-});
-
-
-export const getPublicServiceUrlController = asyncHandler(async (req, res) => {
-    const data = await getPublicServiceUrlService(
-        req.params.serviceId
-    );
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Public service URL fetched successfully."
         )
     );
 });
