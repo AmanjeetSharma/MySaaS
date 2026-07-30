@@ -1,11 +1,20 @@
 import mongoose, { Schema } from "mongoose";
 
+const addressSnapshotSchema = new Schema({
+    street: { type: String, trim: true, default: null },
+    city: { type: String, trim: true, default: null },
+    state: { type: String, trim: true, default: null },
+    country: { type: String, trim: true, default: null },
+    zipCode: { type: String, trim: true, default: null },
+}, { _id: false });
+
 const bookerSchema = new Schema({
     name: {
         type: String,
         required: true,
         trim: true,
-        maxlength: [100, "Name cannot exceed 100 characters"],
+        minlength: [3, 'Name must be at least 3 characters long'],
+        maxlength: [50, 'Name cannot exceed 50 characters']
     },
 
     email: {
@@ -54,22 +63,75 @@ const serviceSnapshotSchema = new Schema({
         required: true,
     },
 
+    meetingProvider: {
+        type: String,
+        enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS",],
+        default: null,
+    },
+
+    autoGenerateMeetingLink: {
+        type: Boolean,
+        default: false,
+    },
+
     address: {
-        type: Object,
+        type: addressSnapshotSchema,
         default: null,
     },
 }, { _id: false });
 
+
+const meetingSchema = new Schema({
+    provider: {
+        type: String,
+        enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS",],
+        default: null,
+    },
+
+    link: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+}, { _id: false });
+
+const calendarEventSchema = new Schema({
+    provider: {
+        type: String,
+        enum: ["GOOGLE"],
+        default: null,
+    },
+
+    calendarId: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
+    eventId: {
+        type: String,
+        default: null,
+    },
+
+    htmlLink: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+}, { _id: false });
+
+// Booking Schema
+
 const bookingSchema = new Schema({
     organization: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Organization",
         required: true,
         index: true,
     },
 
     service: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Service",
         required: true,
         index: true,
@@ -101,26 +163,18 @@ const bookingSchema = new Schema({
         required: true,
     },
 
-    meetingProvider: {
-        type: String,
-        enum: ["GOOGLE_MEET"],
-        default: null,
+    meeting: {
+        type: meetingSchema,
+        default: {},
     },
-
-    meetingLink: {
-        type: String,
-        default: null,
+    calendarEvent: {
+        type: calendarEventSchema,
+        default: {},
     },
 
     status: {
         type: String,
-        enum: [
-            "PENDING",
-            "CONFIRMED",
-            "COMPLETED",
-            "CANCELLED",
-            "NO_SHOW",
-        ],
+        enum: ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW",],
         default: "CONFIRMED",
         index: true,
     },
@@ -149,9 +203,7 @@ const bookingSchema = new Schema({
         maxlength: [1000, "Notes cannot exceed 1000 characters"],
     },
 },
-    {
-        timestamps: true,
-    }
+    { timestamps: true, }
 );
 
 bookingSchema.pre("validate", function validateBookingTimes(next) {

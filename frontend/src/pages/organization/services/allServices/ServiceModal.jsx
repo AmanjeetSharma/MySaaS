@@ -40,7 +40,7 @@ const DEFAULT_FORM = {
   durationInMinutes: 30,
   price: 0,
   currency: 'INR',
-  onlineMeetingProvider: 'GOOGLE_MEET',
+  meetingProvider: 'GOOGLE_MEET',
   autoGenerateMeetingLink: true,
   address: {
     street: '',
@@ -86,7 +86,7 @@ const toFormState = (service = null) => {
     durationInMinutes: service.durationInMinutes || 30,
     price: service.price ?? 0,
     currency: service.currency || 'INR',
-    onlineMeetingProvider: service.onlineMeetingProvider || 'GOOGLE_MEET',
+    meetingProvider: service.meetingProvider || 'GOOGLE_MEET',
     autoGenerateMeetingLink: service.autoGenerateMeetingLink ?? true,
     address: {
       street: service.address?.street || '',
@@ -110,7 +110,7 @@ const buildPayload = (form, organizationId) => {
   };
 
   if (form.mode === 'ONLINE') {
-    payload.onlineMeetingProvider = form.onlineMeetingProvider;
+    payload.meetingProvider = form.meetingProvider;
     payload.autoGenerateMeetingLink = Boolean(form.autoGenerateMeetingLink);
   } else if (form.mode === 'OFFLINE') {
     payload.address = {
@@ -284,7 +284,7 @@ export default function ServiceModal({
                       value={form.currency}
                       onValueChange={(value) => updateField('currency', value)}
                     >
-                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-[90px] shrink-0">
+                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-22.5 shrink-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -363,8 +363,8 @@ export default function ServiceModal({
                       Meeting Platform
                     </Label>
                     <Select
-                      value={form.onlineMeetingProvider}
-                      onValueChange={(val) => updateField('onlineMeetingProvider', val)}
+                      value={form.meetingProvider}
+                      onValueChange={(val) => updateField('meetingProvider', val)}
                     >
                       <SelectTrigger className="h-9 w-full rounded-lg border-border/80 bg-background text-sm cursor-pointer shadow-2xs">
                         <SelectValue placeholder="Select platform" />
@@ -515,7 +515,7 @@ export default function ServiceModal({
             <Button
               disabled={isUpdating}
               type="submit"
-              className="h-9 rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-2xs cursor-pointer min-w-[110px]"
+              className="h-9 rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-2xs cursor-pointer min-w-27.5"
             >
               {isUpdating ? (
                 <>

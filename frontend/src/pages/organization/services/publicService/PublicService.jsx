@@ -59,7 +59,7 @@ const PublicService = () => {
         price,
         currency,
         address,
-        onlineMeetingProvider,
+        meetingProvider,
         isActive,
     } = publicService;
 
@@ -162,7 +162,7 @@ const PublicService = () => {
                                         <p className="text-xs text-slate-500 mt-0.5">
                                             {mode === "OFFLINE"
                                                 ? "Location address provided below"
-                                                : `Conducted via ${onlineMeetingProvider?.replace("_", " ") || "Google Meet"}`}
+                                                : `Conducted via ${meetingProvider?.replace("_", " ") || "Google Meet"}`}
                                         </p>
                                     </div>
                                 </div>

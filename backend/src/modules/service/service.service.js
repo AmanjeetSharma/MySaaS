@@ -40,7 +40,7 @@ export const createServiceService = async (userId, orgId, payload) => {
         name,
         description,
         mode,
-        onlineMeetingProvider,
+        meetingProvider,
         durationInMinutes,
         price,
         currency,
@@ -97,11 +97,11 @@ export const createServiceService = async (userId, orgId, payload) => {
     }
 
     if (mode === "ONLINE") {
-        if (typeof onlineMeetingProvider !== "string" || !onlineMeetingProvider.trim()) {
+        if (typeof meetingProvider !== "string" || !meetingProvider.trim()) {
             throw new ApiError(400, "Online meeting provider is required for online services");
         }
 
-        const onlineMeetingProviderValidation = serviceOnlineMeetingProviderValidator(onlineMeetingProvider);
+        const onlineMeetingProviderValidation = serviceOnlineMeetingProviderValidator(meetingProvider);
         if (!onlineMeetingProviderValidation.valid) {
             throw new ApiError(400, onlineMeetingProviderValidation.errors.join(", "));
         }
@@ -138,7 +138,7 @@ export const createServiceService = async (userId, orgId, payload) => {
 
     // meeting provider check: supported and connected or not
     if (mode === "ONLINE") {
-        const provider = INTEGRATION_CONFIG[onlineMeetingProvider];
+        const provider = INTEGRATION_CONFIG[meetingProvider];
         if (!provider) {
             throw new ApiError(400, "Unsupported online meeting provider.");
         }
@@ -170,7 +170,7 @@ export const createServiceService = async (userId, orgId, payload) => {
 
         address,
 
-        onlineMeetingProvider: mode === "ONLINE" ? onlineMeetingProvider : null,
+        meetingProvider: mode === "ONLINE" ? meetingProvider : null,
 
         autoGenerateMeetingLink: mode === "ONLINE" ? (autoGenerateMeetingLink ?? true) : false,
     });
@@ -200,7 +200,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
         name,
         description,
         mode,
-        onlineMeetingProvider,
+        meetingProvider,
         durationInMinutes,
         price,
         currency,
@@ -313,7 +313,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
 
 
     if (finalMode === "ONLINE") {
-        const finalProvider = onlineMeetingProvider ?? service.onlineMeetingProvider;
+        const finalProvider = meetingProvider ?? service.meetingProvider;
 
         if (typeof finalProvider !== "string" || !finalProvider.trim()) {
             throw new ApiError(400, "Online meeting provider is required for online services");
@@ -365,8 +365,8 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     if (address !== undefined) {
         service.address = address;
     }
-    if (onlineMeetingProvider !== undefined) {
-        service.onlineMeetingProvider = onlineMeetingProvider;
+    if (meetingProvider !== undefined) {
+        service.meetingProvider = meetingProvider;
     }
 
     if (autoGenerateMeetingLink !== undefined) {
@@ -374,7 +374,7 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     }
 
     if (finalMode === "OFFLINE") {
-        service.onlineMeetingProvider = null;
+        service.meetingProvider = null;
         service.autoGenerateMeetingLink = false;
     }
 
@@ -526,7 +526,7 @@ export const toggleServiceStatusService = async (userId, serviceId) => {
         throw new ApiError(400, "Invalid service ID");
     }
 
-    const service = await findServiceById(serviceId, "_id name isActive mode address onlineMeetingProvider organization");
+    const service = await findServiceById(serviceId, "_id name isActive mode address meetingProvider organization");
 
     if (!service) {
         throw new ApiError(404, "Service not found");
@@ -567,13 +567,13 @@ export const toggleServiceStatusService = async (userId, serviceId) => {
         } else if (service.mode === "ONLINE") {
 
             if (
-                typeof service.onlineMeetingProvider !== "string" ||
-                !service.onlineMeetingProvider.trim()
+                typeof service.meetingProvider !== "string" ||
+                !service.meetingProvider.trim()
             ) {
                 throw new ApiError(400, "Online meeting provider is required to activate online services.");
             }
 
-            const provider = INTEGRATION_CONFIG[service.onlineMeetingProvider];
+            const provider = INTEGRATION_CONFIG[service.meetingProvider];
 
             if (!provider) {
                 throw new ApiError(400, "Unsupported online meeting provider.");

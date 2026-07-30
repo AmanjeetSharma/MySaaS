@@ -80,7 +80,7 @@ const serviceSchema = new Schema({
         default: null,
     },
 
-    onlineMeetingProvider: {
+    meetingProvider: {
         type: String,
         enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS"],
         default: null,

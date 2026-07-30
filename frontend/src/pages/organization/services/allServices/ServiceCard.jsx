@@ -53,9 +53,9 @@ export default function ServiceCard({
   const isOffline = service.mode === 'OFFLINE';
 
   // Resolve Provider Config and Icon dynamically
-  const providerConfig = INTEGRATION_CONFIG[service.onlineMeetingProvider];
+  const providerConfig = INTEGRATION_CONFIG[service.meetingProvider];
   const ProviderIcon = providerConfig?.icon || Video;
-  const providerName = providerConfig?.name || service.onlineMeetingProvider || 'Online';
+  const providerName = providerConfig?.name || service.meetingProvider || 'Online';
 
   return (
     <div

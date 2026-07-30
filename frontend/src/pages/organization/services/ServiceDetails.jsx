@@ -127,7 +127,7 @@ const toFormState = (service) => {
       durationInMinutes: 30,
       price: 0,
       currency: 'INR',
-      onlineMeetingProvider: 'GOOGLE_MEET',
+      meetingProvider: 'GOOGLE_MEET',
       address: {
         street: '',
         city: '',
@@ -145,7 +145,7 @@ const toFormState = (service) => {
     durationInMinutes: service.durationInMinutes || 30,
     price: service.price ?? 0,
     currency: service.currency || 'INR',
-    onlineMeetingProvider: service.onlineMeetingProvider || 'GOOGLE_MEET',
+    meetingProvider: service.meetingProvider || 'GOOGLE_MEET',
     address: {
       street: service.address?.street || '',
       city: service.address?.city || '',
@@ -167,7 +167,7 @@ const buildPayload = (form) => {
   };
 
   if (form.mode === 'ONLINE') {
-    payload.onlineMeetingProvider = form.onlineMeetingProvider;
+    payload.meetingProvider = form.meetingProvider;
   } else if (form.mode === 'OFFLINE') {
     payload.address = {
       street: form.address.street.trim(),
@@ -354,7 +354,7 @@ export default function ServiceDetails() {
   }
 
   const CurrencyIcon = currencyIcons[form.currency] || IndianRupee;
-  const currentProviderConfig = INTEGRATION_CONFIG[form.onlineMeetingProvider];
+  const currentProviderConfig = INTEGRATION_CONFIG[form.meetingProvider];
   const isOffline = (isEditing ? form.mode : selectedService?.mode) === 'OFFLINE';
 
   const fieldInputClass =
@@ -500,7 +500,7 @@ export default function ServiceDetails() {
           <div className="mt-1 truncate text-xs font-bold text-foreground sm:text-sm">
             {isOffline
               ? formatShortAddress(selectedService?.address)
-              : currentProviderConfig?.name || selectedService?.onlineMeetingProvider || 'Online'}
+              : currentProviderConfig?.name || selectedService?.meetingProvider || 'Online'}
           </div>
         </div>
       </div>
@@ -696,8 +696,8 @@ export default function ServiceDetails() {
                     Choose Meeting Platform
                   </Label>
                   <Select
-                    value={form.onlineMeetingProvider}
-                    onValueChange={(v) => updateField('onlineMeetingProvider', v)}
+                    value={form.meetingProvider}
+                    onValueChange={(v) => updateField('meetingProvider', v)}
                   >
                     <SelectTrigger className="h-10 w-full cursor-pointer rounded-lg border-border/80 bg-background/80 shadow-xs">
                       <SelectValue placeholder="Select provider" />
@@ -747,7 +747,7 @@ export default function ServiceDetails() {
                     {currentProviderConfig?.icon && (
                       <currentProviderConfig.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
-                    <span className="truncate">{currentProviderConfig?.name || selectedService?.onlineMeetingProvider}</span>
+                    <span className="truncate">{currentProviderConfig?.name || selectedService?.meetingProvider}</span>
                   </div>
                 </div>
 

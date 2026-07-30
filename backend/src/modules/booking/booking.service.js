@@ -73,7 +73,7 @@ export const createBookingService = async (userId, payload) => {
         startTime: parsedStartTime,
         endTime: parsedEndTime,
         timezone,
-        meetingProvider: service.mode === "ONLINE" ? service.onlineMeetingProvider : null,
+        meetingProvider: service.mode === "ONLINE" ? service.meetingProvider : null,
         meetingLink: null,
         notes: notes || null,
     };

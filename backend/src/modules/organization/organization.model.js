@@ -64,7 +64,7 @@ const googleIntegrationSchema = new Schema({
         trim: true,
     },
 
-    googleId: {
+    googleAccountId: {
         type: String,
         default: null,
         trim: true,
