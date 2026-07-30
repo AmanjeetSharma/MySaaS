@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
     Building2, Users, Crown, UserPlus,
-    Zap, ArrowUpRight, Trash2, Plus, Sparkles, CheckCircle2
+    Zap, ArrowUpRight, Trash2, Plus, CheckCircle2
 } from 'lucide-react';
 import { INTEGRATION_LIST } from '@/constants/integrations.constant';
 import {
@@ -24,10 +24,10 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
     return (
         <div
             onClick={() => !isActive && onSelect(org._id)}
-            className={`  group relative flex flex-col justify-between rounded-[2rem] border border-border/40 p-5 sm:p-6 transition-all duration-300 ease-out overflow-visible
+            className={`group relative flex flex-col justify-between rounded-[2rem] border border-border/40 p-5 sm:p-6 transition-all duration-300 ease-out overflow-visible
              ${isActive
                     ? 'border-primary/40 bg-primary/3 shadow-lg shadow-primary/10 ring-1 ring-primary/10'
-                    : 'border-border/20 bg-card hover:border-primary/40 hover:bg-accent/20 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] cursor-pointer'
+                    : 'border-border/20 bg-card hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.12)] cursor-pointer'
                 }
             `}
         >
@@ -45,12 +45,12 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                 {/* Header: Icon + Owner/Member Badge */}
                 <div className="flex items-center justify-between gap-3">
                     <div className={`
-            flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300
-            ${isActive
+                        flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300
+                        ${isActive
                             ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                             : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                         }
-          `}>
+                    `}>
                         <Building2 className="h-6 w-6" />
                     </div>
 
@@ -67,7 +67,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
 
                 {/* Title and Connected Integration Icons with Tooltips */}
                 <div>
-                    <h3 className="text-xl font-bold tracking-tight text-foreground truncate group-hover:text-primary transition-colors">
+                    <h3 className="text-xl font-bold tracking-tight text-foreground truncate  transition-colors">
                         {org.name}
                     </h3>
 
@@ -151,20 +151,20 @@ export const CreateOrganizationCard = ({ onClick }) => {
         <button
             onClick={onClick}
             className="
-        group relative flex min-h-62.5 w-full flex-col items-center justify-center
-        rounded-[2rem] border-2 border-dashed border-border/80
-        bg-card/40 p-6
-        transition-all duration-300 ease-out
-        hover:border-primary/50 hover:bg-accent/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] dark:hover:shadow-[0_0_20px_rgba(139,92,246,0.12)]
-        cursor-pointer
-      "
+                group relative flex min-h-62.5 w-full flex-col items-center justify-center
+                rounded-[2rem] border-2 border-dashed border-border/80
+                bg-card/40 p-6
+                transition-all duration-300 ease-out
+                hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] dark:hover:shadow-[0_0_20px_rgba(139,92,246,0.12)]
+                cursor-pointer
+            "
         >
             <div className="
-        flex h-12 w-12 items-center justify-center
-        rounded-2xl bg-muted text-muted-foreground
-        transition-all duration-500
-        group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-90 group-hover:shadow-lg group-hover:shadow-primary/25
-      ">
+                flex h-12 w-12 items-center justify-center
+                rounded-2xl bg-muted text-muted-foreground
+                transition-all duration-500
+                group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-90 group-hover:shadow-lg group-hover:shadow-primary/25
+            ">
                 <Plus className="h-6 w-6" />
             </div>
 
@@ -177,14 +177,14 @@ export const CreateOrganizationCard = ({ onClick }) => {
             </p>
 
             <div className="
-        mt-4 inline-flex items-center gap-1.5
-        rounded-xl bg-primary px-4 py-2
-        text-xs font-bold text-primary-foreground
-        shadow-md shadow-primary/20
-        opacity-0 translate-y-2
-        group-hover:opacity-100 group-hover:translate-y-0
-        transition-all duration-300
-      ">
+                mt-4 inline-flex items-center gap-1.5
+                rounded-xl bg-primary px-4 py-2
+                text-xs font-bold text-primary-foreground
+                shadow-md shadow-primary/20
+                opacity-0 translate-y-2
+                group-hover:opacity-100 group-hover:translate-y-0
+                transition-all duration-300
+            ">
                 Create Workspace
             </div>
         </button>

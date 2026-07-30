@@ -234,23 +234,29 @@ export const useServiceStore = create((set) => ({
 
         try {
             const response = await http.patch(`/services/${serviceId}/sync-slug`);
-            const { data } = response.data;
+            const payload = response.data?.data || {};
+
+            const updatedFields = {
+                slug: payload.newSlug || payload.slug,
+                publicUrl: payload.publicUrl,
+                isSlugStale: false,
+            };
 
             set((state) => ({
                 services: state.services.map((service) =>
                     getServiceId(service) === serviceId
-                        ? { ...service, slug: data.newSlug, publicUrl: data.publicUrl || service.publicUrl, isSlugStale: false }
+                        ? { ...service, ...updatedFields }
                         : service
                 ),
                 selectedService:
                     getServiceId(state.selectedService) === serviceId
-                        ? { ...state.selectedService, slug: data.newSlug, publicUrl: data.publicUrl || state.selectedService.publicUrl, isSlugStale: false }
+                        ? { ...state.selectedService, ...updatedFields }
                         : state.selectedService,
                 isUpdating: false,
                 error: null,
             }));
 
-            return data;
+            return payload;
         } catch (error) {
             const errorMessage =
                 error.response?.data?.message || 'Failed to sync service URL';

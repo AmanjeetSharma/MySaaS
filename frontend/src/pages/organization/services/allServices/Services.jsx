@@ -159,7 +159,7 @@ export default function Services() {
             type="button"
             variant="outline"
             onClick={openCreate}
-            className="mt-4 h-8 rounded-lg text-xs font-bold"
+            className="mt-4 h-8 rounded-lg text-xs font-bold cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             Create Service

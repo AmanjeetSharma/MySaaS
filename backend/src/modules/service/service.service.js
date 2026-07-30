@@ -671,6 +671,11 @@ export const syncServiceSlugService = async (userId, serviceId) => {
         throw new ApiError(403, "You are not allowed to change this organization's URL/web address");
     }
 
+    const organization = await findOrganizationById(service.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
     const newSlug = await generateServiceSlug(service.name, service.organization);
 
     service.slug = newSlug;
@@ -691,6 +696,7 @@ export const syncServiceSlugService = async (userId, serviceId) => {
         success: true,
         message: "Service slug synced successfully",
         newSlug: service.slug,
+        publicUrl: `${env.CLIENT_URL}/book/${organization.slug}/${service.slug}`,
     }
 };
 

@@ -335,8 +335,8 @@ export default function ServiceDetails() {
     setIsSyncing(true);
 
     try {
-      await syncServiceSlug(serviceId);
-      toast.success('Service URL synced successfully');
+      const result = await syncServiceSlug(serviceId);
+      toast.success(result?.message || 'Service URL synced successfully');
       setShowSyncModal(false);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'URL sync failed');
@@ -381,8 +381,8 @@ export default function ServiceDetails() {
               </h1>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${selectedService?.isActive
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                  : 'bg-muted text-muted-foreground border border-border/60'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                    : 'bg-muted text-muted-foreground border border-border/60'
                   }`}
               >
                 {selectedService?.isActive ? 'Active' : 'Inactive'}
@@ -639,8 +639,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'OFFLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'OFFLINE'
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -650,8 +650,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'ONLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'ONLINE'
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <Video className="h-3.5 w-3.5 shrink-0" />
@@ -982,7 +982,6 @@ export default function ServiceDetails() {
       {showSyncModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
           <div className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-
             {/* Content Block */}
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -1028,7 +1027,6 @@ export default function ServiceDetails() {
                 )}
               </Button>
             </div>
-
           </div>
         </div>
       )}

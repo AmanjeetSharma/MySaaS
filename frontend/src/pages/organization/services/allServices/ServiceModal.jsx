@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ChevronDown,
   DollarSign,
   Euro,
-  Globe2,
   IndianRupee,
-  Link2,
   MapPin,
   Video,
-  WalletCards,
+  Info,
+  Sparkles,
+  Check,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { INTEGRATION_CONFIG } from '@/constants/integrations.constant';
 import {
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 const DEFAULT_FORM = {
   name: '',
@@ -39,6 +41,7 @@ const DEFAULT_FORM = {
   price: 0,
   currency: 'INR',
   onlineMeetingProvider: 'GOOGLE_MEET',
+  autoGenerateMeetingLink: true,
   address: {
     street: '',
     city: '',
@@ -73,30 +76,6 @@ const normalizePriceInput = (value) => {
   return normalizedValue;
 };
 
-const formatAmount = (service) => {
-  const amount = Number(service?.price || 0);
-
-  return new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  }).format(amount);
-};
-
-const formatAddress = (address) => {
-  if (!address) return 'No address added';
-
-  return (
-    [
-      address.street,
-      address.city,
-      address.state,
-      address.country,
-      address.zipCode,
-    ]
-      .filter((item) => item && item.trim() !== '')
-      .join(', ') || 'No address added'
-  );
-};
-
 const toFormState = (service = null) => {
   if (!service) return DEFAULT_FORM;
 
@@ -108,6 +87,7 @@ const toFormState = (service = null) => {
     price: service.price ?? 0,
     currency: service.currency || 'INR',
     onlineMeetingProvider: service.onlineMeetingProvider || 'GOOGLE_MEET',
+    autoGenerateMeetingLink: service.autoGenerateMeetingLink ?? true,
     address: {
       street: service.address?.street || '',
       city: service.address?.city || '',
@@ -131,6 +111,7 @@ const buildPayload = (form, organizationId) => {
 
   if (form.mode === 'ONLINE') {
     payload.onlineMeetingProvider = form.onlineMeetingProvider;
+    payload.autoGenerateMeetingLink = Boolean(form.autoGenerateMeetingLink);
   } else if (form.mode === 'OFFLINE') {
     payload.address = {
       street: form.address.street.trim(),
@@ -144,102 +125,37 @@ const buildPayload = (form, organizationId) => {
   return payload;
 };
 
-const PublicServicePreview = ({ service }) => {
-  const isOffline = service.mode === 'OFFLINE';
-  const CurrencyIcon = currencyIcons[service.currency] || IndianRupee;
-  const providerConfig = INTEGRATION_CONFIG[service.onlineMeetingProvider];
-  const providerName = providerConfig?.name || 'Meeting Link';
-
-  return (
-    <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-            {isOffline ? <MapPin className="h-3 w-3" /> : <Video className="h-3 w-3" />}
-            {service.mode || 'ONLINE'}
-          </div>
-          <h3 className="mt-4 wrap-break-word text-2xl font-black uppercase tracking-tight">
-            {service.name || 'Service name'}
-          </h3>
-        </div>
-        <div className="shrink-0 text-right">
-          <div className="flex items-center justify-end gap-1.5 text-xl font-black">
-            <WalletCards className="h-4 w-4 text-muted-foreground" />
-            <CurrencyIcon className="h-4 w-4" />
-            {formatAmount(service)}
-          </div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            {service.durationInMinutes || 30} min
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-4 min-h-12 text-sm font-medium leading-relaxed text-muted-foreground">
-        {service.description || 'A clear description of what customers can book.'}
-      </p>
-
-      <div className="mt-5 flex items-start gap-2 rounded-xl bg-muted/60 p-3 text-sm font-medium">
-        {isOffline ? (
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        ) : (
-          <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        )}
-        <span className="wrap-break-word">
-          {isOffline
-            ? formatAddress(service.address)
-            : `${providerName} link generated after booking`}
-        </span>
-      </div>
-
-      <Button
-        type="button"
-        className="mt-5 h-11 w-full cursor-default rounded-xl font-black uppercase tracking-widest"
-      >
-        Book Service
-      </Button>
-    </div>
-  );
-};
-
 export default function ServiceModal({
   open,
   mode,
   service,
   organizationId,
   isUpdating,
-  isMeetingLinkUpdating,
   onOpenChange,
   onSubmit,
-  onToggleMeetingLink,
 }) {
   const [form, setForm] = useState(() => toFormState(service));
-  const [meetingLinkEnabled, setMeetingLinkEnabled] = useState(
-    () => !!service?.autoGenerateMeetingLink
-  );
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (open) {
       setForm(toFormState(service));
-      setMeetingLinkEnabled(!!service?.autoGenerateMeetingLink);
+      setErrors({});
     }
   }, [service, open]);
 
-  const previewService = useMemo(
-    () => ({
-      ...service,
-      ...form,
-      price: Number(form.price || 0),
-      durationInMinutes: Number(form.durationInMinutes || 0),
-    }),
-    [form, service]
-  );
-
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
   };
 
   const updateNumberField = (field, value) => {
     setForm((current) => ({ ...current, [field]: normalizeNumberInput(value) }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
   };
 
   const updatePriceField = (value) => {
@@ -254,323 +170,364 @@ export default function ServiceModal({
         [field]: value,
       },
     }));
+    if (errors[`address.${field}`]) {
+      setErrors((prev) => ({ ...prev, [`address.${field}`]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = 'Service name is required';
+    if (!form.durationInMinutes || Number(form.durationInMinutes) <= 0) {
+      newErrors.durationInMinutes = 'Enter valid duration';
+    }
+
+    if (form.mode === 'OFFLINE') {
+      if (!form.address.street.trim()) newErrors['address.street'] = 'Street is required';
+      if (!form.address.city.trim()) newErrors['address.city'] = 'City is required';
+      if (!form.address.country.trim()) newErrors['address.country'] = 'Country is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!validateForm()) return;
     onSubmit(buildPayload(form, organizationId));
   };
 
   const isEdit = mode === 'edit';
   const CurrencyIcon = currencyIcons[form.currency] || IndianRupee;
-  const fieldClassName =
-    'h-11 rounded-xl border-border/80 bg-background font-bold shadow-sm transition-shadow focus-visible:shadow-md sm:h-12';
-
-  const handleMeetingLinkToggle = async () => {
-    if (!service || !onToggleMeetingLink) return;
-
-    const previousState = meetingLinkEnabled;
-    setMeetingLinkEnabled(!previousState);
-
-    try {
-      const result = await onToggleMeetingLink(service);
-      setMeetingLinkEnabled(!!result?.autoGenerateMeetingLink);
-    } catch {
-      setMeetingLinkEnabled(previousState);
-    }
-  };
-
-  const currentProviderConfig = INTEGRATION_CONFIG[form.onlineMeetingProvider];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl p-3 sm:max-w-5xl sm:rounded-[1.5rem] sm:p-4">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black uppercase tracking-tight sm:text-2xl">
-            {isEdit ? 'Edit Service' : 'Create Service'}
-          </DialogTitle>
-          <DialogDescription className="font-medium">
-            Update the booking details on the left and review the public card on the right.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="p-0 sm:max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl [&>button]:cursor-pointer">
+        {/* Header */}
+        <div className="border-b border-border px-6 py-4.5 bg-muted/20">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+              {isEdit ? 'Edit Service' : 'Create New Service'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Configure parameters, pricing models, and location settings for client bookings.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid gap-4 pt-1 sm:gap-6 sm:pt-2 lg:grid-cols-[1.1fr_0.9fr]"
-        >
-          <div className="space-y-4 sm:space-y-5">
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Service Name
-                </Label>
-                <Input
-                  autoFocus
-                  value={form.name}
-                  onChange={(event) => updateField('name', event.target.value)}
-                  className={`${fieldClassName} text-base`}
-                  placeholder="Strategy consultation"
-                  required
-                />
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit}>
+          <div className="max-h-[calc(85vh-8.5rem)] overflow-y-auto px-6 py-5 space-y-6">
+
+            {/* Section 1: Basic Service Metadata */}
+            <div className="space-y-4">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                1. General Details
               </div>
 
-              {form.mode === 'ONLINE' && (
-                <div className="space-y-2 sm:col-span-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Meeting Provider
+              {/* Service Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="service-name" className="text-xs font-medium text-foreground">
+                  Service Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="service-name"
+                  autoFocus
+                  value={form.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  className={cn(
+                    "h-9 rounded-lg border-border/80 bg-background text-sm shadow-2xs transition-all focus-visible:ring-2 focus-visible:ring-primary/20",
+                    errors.name && "border-destructive focus-visible:ring-destructive/20"
+                  )}
+                  placeholder="e.g. Executive Strategy Consultation"
+                />
+                {errors.name && (
+                  <p className="text-[11px] font-medium text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> {errors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Duration + Combined Currency & Price Input */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Duration */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="service-duration" className="text-xs font-medium text-foreground">
+                    Duration <span className="text-destructive">*</span>
                   </Label>
                   <Select
-                    value={form.onlineMeetingProvider}
-                    onValueChange={(value) => updateField('onlineMeetingProvider', value)}
+                    value={String(form.durationInMinutes)}
+                    onValueChange={(val) => updateField('durationInMinutes', Number(val))}
                   >
-                    <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
-                      <SelectValue placeholder="Select platform" />
+                    <SelectTrigger id="service-duration" className="h-9 w-full rounded-lg border-border/80 bg-background text-sm shadow-2xs cursor-pointer">
+                      <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(INTEGRATION_CONFIG).map(([key, config]) => {
-                        const IconComponent = config.icon;
-                        return (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2 font-bold">
-                              {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
-                              <span>{config.name}</span>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
+                      <SelectItem value="15" className="cursor-pointer">15 minutes</SelectItem>
+                      <SelectItem value="30" className="cursor-pointer">30 minutes</SelectItem>
+                      <SelectItem value="45" className="cursor-pointer">45 minutes</SelectItem>
+                      <SelectItem value="60" className="cursor-pointer">60 minutes (1 hr)</SelectItem>
+                      <SelectItem value="90" className="cursor-pointer">90 minutes (1.5 hrs)</SelectItem>
+                      <SelectItem value="120" className="cursor-pointer">120 minutes (2 hrs)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              )}
 
-              {form.mode === 'ONLINE' && (
-                <div className="space-y-2 sm:col-span-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Meeting Link Settings
+                {/* Compound Currency + Price Control */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="service-price" className="text-xs font-medium text-foreground">
+                    Price & Currency <span className="text-destructive">*</span>
                   </Label>
-                  <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 shadow-sm sm:h-12">
-                    <div className="min-w-0">
-                      <div className="truncate text-xs font-black tracking-widest">
-                        Auto Generate Link
+                  <div className="flex h-9 rounded-lg border border-border/80 bg-background shadow-2xs focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
+                    <Select
+                      value={form.currency}
+                      onValueChange={(value) => updateField('currency', value)}
+                    >
+                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-[90px] shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="INR" className="cursor-pointer">INR (₹)</SelectItem>
+                        <SelectItem value="USD" className="cursor-pointer">USD ($)</SelectItem>
+                        <SelectItem value="EUR" className="cursor-pointer">EUR (€)</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <div className="relative flex-1 flex items-center">
+                      <CurrencyIcon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <Input
+                        id="service-price"
+                        type="number"
+                        min="0"
+                        max={MAX_PRICE}
+                        step="1"
+                        value={form.price}
+                        onFocus={(e) => {
+                          if (e.currentTarget.value === '0') e.currentTarget.select();
+                        }}
+                        onChange={(e) => updatePriceField(e.target.value)}
+                        className="h-full border-0 bg-transparent pl-8 pr-3 text-sm focus-visible:ring-0 shadow-none"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px w-full bg-border/60" />
+
+            {/* Section 2: Delivery Mode & Dynamic Settings */}
+            <div className="space-y-4">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                2. Location & Delivery
+              </div>
+
+              {/* Mode Segmented Control */}
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/40 border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => updateField('mode', 'ONLINE')}
+                  className={cn(
+                    "flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    form.mode === 'ONLINE'
+                      ? "bg-background text-foreground shadow-2xs border border-border/80"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Video className="h-3.5 w-3.5 text-primary shrink-0" />
+                  Virtual / Online
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => updateField('mode', 'OFFLINE')}
+                  className={cn(
+                    "flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                    form.mode === 'OFFLINE'
+                      ? "bg-background text-foreground shadow-2xs border border-border/80"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                  In-Person / Offline
+                </button>
+              </div>
+
+              {/* ONLINE Mode: Integration Card */}
+              {form.mode === 'ONLINE' && (
+                <div className="p-4 rounded-xl border border-border/80 bg-card space-y-4 animate-in fade-in-50 duration-150">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-foreground">
+                      Meeting Platform
+                    </Label>
+                    <Select
+                      value={form.onlineMeetingProvider}
+                      onValueChange={(val) => updateField('onlineMeetingProvider', val)}
+                    >
+                      <SelectTrigger className="h-9 w-full rounded-lg border-border/80 bg-background text-sm cursor-pointer shadow-2xs">
+                        <SelectValue placeholder="Select platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(INTEGRATION_CONFIG).map(([key, config]) => {
+                          const IconComponent = config.icon;
+                          return (
+                            <SelectItem key={key} value={key} className="cursor-pointer">
+                              <div className="flex items-center gap-2 text-xs font-medium">
+                                {IconComponent && <IconComponent className="h-3.5 w-3.5 text-primary shrink-0" />}
+                                <span>{config.name}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-border/50">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="text-xs font-medium text-foreground">
+                        Auto-generate meeting link
                       </div>
-                      <div className="truncate text-[11px] font-medium text-muted-foreground">
-                        {isEdit
-                          ? currentProviderConfig?.name || 'Selected Provider'
-                          : 'Available after service creation'}
+                      <div className="text-[11px] text-muted-foreground">
+                        Automatically attach a unique link to confirmed bookings.
                       </div>
                     </div>
                     <Switch
-                      checked={meetingLinkEnabled}
-                      onCheckedChange={handleMeetingLinkToggle}
-                      disabled={!isEdit || isMeetingLinkUpdating}
-                      className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
+                      checked={form.autoGenerateMeetingLink}
+                      onCheckedChange={(val) => updateField('autoGenerateMeetingLink', val)}
+                      className="cursor-pointer"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Currency
-                </Label>
-                <Select
-                  value={form.currency}
-                  onValueChange={(value) => updateField('currency', value)}
-                >
-                  <SelectTrigger className="h-11 w-full rounded-xl border-border/80 bg-background shadow-sm sm:h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INR">INR</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Duration (mins)
-                </Label>
-                <Input
-                  type="number"
-                  min="15"
-                  value={form.durationInMinutes}
-                  onFocus={(event) => {
-                    if (event.currentTarget.value === '0') event.currentTarget.select();
-                  }}
-                  onChange={(event) =>
-                    updateNumberField('durationInMinutes', event.target.value)
-                  }
-                  className={fieldClassName}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Price
-                </Label>
-                <div className="relative">
-                  <WalletCards className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <CurrencyIcon className="pointer-events-none absolute left-9 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
-                  <Input
-                    type="number"
-                    min="0"
-                    max={MAX_PRICE}
-                    step="1"
-                    value={form.price}
-                    onFocus={(event) => {
-                      if (event.currentTarget.value === '0') event.currentTarget.select();
-                    }}
-                    onChange={(event) => updatePriceField(event.target.value)}
-                    className={`${fieldClassName} pl-16`}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Description
-              </Label>
-              <Textarea
-                value={form.description}
-                onChange={(event) => updateField('description', event.target.value)}
-                className="min-h-24 rounded-xl border-border/80 bg-background shadow-sm focus-visible:shadow-md sm:min-h-28"
-                placeholder="Tell customers what they get from this service."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Service Mode
-              </Label>
-              <div className="relative rounded-xl border border-border/80 bg-background p-1 shadow-sm">
-                <div
-                  className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-lg bg-primary shadow-sm transition-transform duration-200 ${
-                    form.mode === 'ONLINE' ? 'translate-x-full' : 'translate-x-0'
-                  }`}
-                />
-                <div className="relative grid grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => updateField('mode', 'OFFLINE')}
-                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
-                      form.mode === 'OFFLINE'
-                        ? 'text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <MapPin className="h-4 w-4" />
-                    Offline
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updateField('mode', 'ONLINE')}
-                    className={`flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
-                      form.mode === 'ONLINE'
-                        ? 'text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <Video className="h-4 w-4" />
-                    Online
-                  </button>
-                </div>
-                {form.mode === 'OFFLINE' && (
-                  <div className="pointer-events-none absolute left-1/4 top-full z-10 flex -translate-x-1/2 -translate-y-1 items-center justify-center rounded-full border border-border bg-background p-1 text-primary shadow-sm">
-                    <ChevronDown className="h-4 w-4" />
+              {/* OFFLINE Mode: Compact Address Matrix */}
+              {form.mode === 'OFFLINE' && (
+                <div className="p-4 rounded-xl border border-border/80 bg-card space-y-3 animate-in fade-in-50 duration-150">
+                  {/* Street */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium text-foreground">
+                      Street Address <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      value={form.address.street}
+                      onChange={(e) => updateAddress('street', e.target.value)}
+                      className={cn(
+                        "h-9 rounded-lg border-border/80 bg-background text-sm shadow-2xs",
+                        errors['address.street'] && "border-destructive"
+                      )}
+                      placeholder="e.g. 100 Innovation Way, Suite 300"
+                    />
                   </div>
-                )}
+
+                  {/* City + State + Zip */}
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-foreground">
+                        City <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        value={form.address.city}
+                        onChange={(e) => updateAddress('city', e.target.value)}
+                        className={cn("h-8 rounded-lg text-xs bg-background", errors['address.city'] && "border-destructive")}
+                        placeholder="City"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-muted-foreground">
+                        State
+                      </Label>
+                      <Input
+                        value={form.address.state}
+                        onChange={(e) => updateAddress('state', e.target.value)}
+                        className="h-8 rounded-lg text-xs bg-background"
+                        placeholder="State / Prov"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-muted-foreground">
+                        Zip
+                      </Label>
+                      <Input
+                        value={form.address.zipCode}
+                        onChange={(e) => updateAddress('zipCode', e.target.value)}
+                        className="h-8 rounded-lg text-xs bg-background"
+                        placeholder="Postal Code"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Country */}
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-foreground">
+                      Country <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      value={form.address.country}
+                      onChange={(e) => updateAddress('country', e.target.value)}
+                      className={cn("h-8 rounded-lg text-xs bg-background", errors['address.country'] && "border-destructive")}
+                      placeholder="e.g. United States"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="h-px w-full bg-border/60" />
+
+            {/* Section 3: Optional Context */}
+            <div className="space-y-3">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                3. Additional Information
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="service-description" className="text-xs font-medium text-foreground">
+                    Description
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground">(Optional)</span>
+                </div>
+                <Textarea
+                  id="service-description"
+                  value={form.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  className="min-h-16 rounded-lg border-border/80 bg-background p-2.5 font-normal text-xs sm:text-sm shadow-2xs resize-y focus-visible:ring-2 focus-visible:ring-primary/20"
+                  placeholder="Outline topics covered or preparation required for this session..."
+                />
               </div>
             </div>
 
-            {form.mode === 'OFFLINE' && (
-              <div className="grid gap-3 rounded-xl border border-border/70 bg-muted/30 p-3 sm:grid-cols-2 sm:gap-4 sm:rounded-2xl sm:p-4">
-                <div className="space-y-2 sm:col-span-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Street
-                  </Label>
-                  <Input
-                    value={form.address.street}
-                    onChange={(event) => updateAddress('street', event.target.value)}
-                    className={fieldClassName}
-                    placeholder="Office / building / street"
-                    required={form.mode === 'OFFLINE'}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    City
-                  </Label>
-                  <Input
-                    value={form.address.city}
-                    onChange={(event) => updateAddress('city', event.target.value)}
-                    className={fieldClassName}
-                    required={form.mode === 'OFFLINE'}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    State
-                  </Label>
-                  <Input
-                    value={form.address.state}
-                    onChange={(event) => updateAddress('state', event.target.value)}
-                    className={fieldClassName}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Country
-                  </Label>
-                  <Input
-                    value={form.address.country}
-                    onChange={(event) => updateAddress('country', event.target.value)}
-                    className={fieldClassName}
-                    required={form.mode === 'OFFLINE'}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Zip Code
-                  </Label>
-                  <Input
-                    value={form.address.zipCode}
-                    onChange={(event) => updateAddress('zipCode', event.target.value)}
-                    className={fieldClassName}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-2 sm:gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="h-11 flex-1 cursor-pointer rounded-xl font-bold sm:h-12"
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={isUpdating}
-                type="submit"
-                className="h-11 flex-1 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest sm:h-12 sm:text-sm"
-              >
-                {isUpdating ? 'Saving...' : isEdit ? 'Save Service' : 'Create Service'}
-              </Button>
-            </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <Globe2 className="h-3.5 w-3.5" />
-              Public Preview
-            </div>
-            <PublicServicePreview service={previewService} />
+          {/* Locked Dialog Footer */}
+          <div className="flex items-center justify-end gap-2.5 border-t border-border px-6 py-3.5 bg-card">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="h-9 rounded-lg text-xs font-semibold px-4 cursor-pointer hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={isUpdating}
+              type="submit"
+              className="h-9 rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-2xs cursor-pointer min-w-[110px]"
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  Saving...
+                </>
+              ) : isEdit ? (
+                'Save Changes'
+              ) : (
+                'Create Service'
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>
