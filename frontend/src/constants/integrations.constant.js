@@ -11,6 +11,7 @@ export const INTEGRATION_CONFIG = {
         name: "Google Meet",
         description: "Sync calendar & call links",
         icon: CalendarDays,
+        path: "/integrations/connect-google",
     },
 
     ZOOM: {
@@ -18,6 +19,7 @@ export const INTEGRATION_CONFIG = {
         name: "Zoom",
         description: "Connect Zoom meetings",
         icon: Video,
+        path: "/integrations/connect-zoom",
     },
 
     MICROSOFT_TEAMS: {
@@ -25,6 +27,7 @@ export const INTEGRATION_CONFIG = {
         name: "Microsoft Teams",
         description: "Schedule Teams calls",
         icon: Users,
+        path: "/integrations/connect-microsoft-teams",
     },
 
     WHATSAPP: {
@@ -32,6 +35,7 @@ export const INTEGRATION_CONFIG = {
         name: "WhatsApp",
         description: "Send automated messages",
         icon: MessageCircle,
+        path: "/integrations/connect-whatsapp",
     },
 };
 

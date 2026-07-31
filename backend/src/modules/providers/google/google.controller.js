@@ -1,5 +1,6 @@
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
+import env from "../../../config/env.config.js";
 import {
     connectGoogleService,
     googleOAuthCallbackService,
@@ -26,22 +27,27 @@ export const connectGoogleController = asyncHandler(async (req, res) => {
     );
 });
 
-
 export const googleOAuthCallbackController = asyncHandler(async (req, res) => {
     const { code, state } = req.query;
 
-    const data = await googleOAuthCallbackService({
-        code,
-        state
-    });
+    const redirectBaseUrl = `${env.CLIENT_URL}/integrations/connect-google`;
 
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Google account connected successfully."
-        )
-    );
+    try {
+        const { email } = await googleOAuthCallbackService({
+            code,
+            state,
+        });
+
+        return res.redirect(
+            302,
+            `${redirectBaseUrl}?connected=true&email=${encodeURIComponent(email)}`
+        );
+    } catch (error) {
+        return res.redirect(
+            302,
+            `${redirectBaseUrl}?connected=false&error=oauth_failed`
+        );
+    }
 });
 
 

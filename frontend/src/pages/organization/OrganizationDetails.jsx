@@ -619,7 +619,7 @@ export default function OrganizationDetails() {
                                                 description={item.description}
                                                 icon={Icon}
                                                 connected={isConnected}
-                                                path={`/integrations/${item.integrationKey}`}
+                                                path={item.path}
                                             />
                                         );
                                     })}
