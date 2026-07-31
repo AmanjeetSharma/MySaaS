@@ -40,12 +40,23 @@ export const disconnectGoogleIntegration = (orgId) => {
     return Organization.findByIdAndUpdate(
         orgId,
         {
-            $unset: {
-                "integrations.google": 1,// remove the entire google integration object
+            $set: {
+                "integrations.google": {
+                    isConnected: false,
+                    refreshToken: {
+                        encryptedData: null,
+                        iv: null,
+                        authTag: null,
+                    },
+                    email: null,
+                    googleAccountId: null,
+                    connectedAt: null,
+                    calendarId: "primary",
+                },
             },
         },
         {
-            returnDocument: "after", // return the updated document
+            new: true,
         }
     );
 };
