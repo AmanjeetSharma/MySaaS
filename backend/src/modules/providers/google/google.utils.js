@@ -28,6 +28,7 @@ export const verifyGoogleOAuthState = (state) => {
 
 
 const ALGORITHM = "aes-256-gcm";
+console.log("Runtime key:", env.GOOGLE_REFRESH_TOKEN_ENCRYPTION_KEY);
 
 const ENCRYPTION_KEY = Buffer.from(
     env.GOOGLE_REFRESH_TOKEN_ENCRYPTION_KEY,
@@ -62,7 +63,11 @@ export const decryptRefreshToken = ({
     iv,
     authTag,
 }) => {
-
+    console.log({
+        encryptedData,
+        iv,
+        authTag,
+    });
     const decipher = crypto.createDecipheriv(
         ALGORITHM,
         ENCRYPTION_KEY,
