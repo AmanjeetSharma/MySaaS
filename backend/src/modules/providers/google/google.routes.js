@@ -11,12 +11,12 @@ import {
 const router = express.Router();
 
 // Google OAuth routes
-router.get("/connect/:organizationId", verifyToken, connectGoogleController);
+router.get("/connect/:orgId", verifyToken, connectGoogleController);
 router.get("/callback", googleOAuthCallbackController);
 
 // Google Integration routes
-router.get("/status/:organizationId", verifyToken, getGoogleIntegrationStatusController);//Get current integration status
-router.get("/calendars/:organizationId", verifyToken, listGoogleCalendarsController);//list all calendars available to the connected account
-router.delete("/disconnect/:organizationId", verifyToken, disconnectGoogleController);//disconnect google acc
+router.get("/status/:orgId", verifyToken, getGoogleIntegrationStatusController);//Get current integration status
+router.get("/calendars/:orgId", verifyToken, listGoogleCalendarsController);//list all calendars available to the connected account
+router.delete("/disconnect/:orgId", verifyToken, disconnectGoogleController);//disconnect google acc
 
 export default router;
