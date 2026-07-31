@@ -82,11 +82,11 @@ export const listGoogleCalendarsController = asyncHandler(async (req, res) => {
 
 
 export const disconnectGoogleController = asyncHandler(async (req, res) => {
-    const { organizationId } = req.params;
+    const { orgId } = req.params;
 
     const data = await disconnectGoogleService({
         userId: req.user._id,
-        orgId: organizationId
+        orgId
     });
 
     return res.status(200).json(

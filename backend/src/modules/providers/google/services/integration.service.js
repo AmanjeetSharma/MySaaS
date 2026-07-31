@@ -15,6 +15,7 @@ import {
     updateGoogleIntegration,
     getOrganizationGoogleIntegration,
     getOrganizationGoogleCredentials,
+    disconnectGoogleIntegration,
 } from "../google.repository.js";
 
 

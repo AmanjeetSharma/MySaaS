@@ -9,6 +9,7 @@ export { useAvailabilityStore } from './availabilityStore';
 export { useCustomerStore } from './customerStore';
 export { useDealStore } from './dealStore';
 export { useActivityStore } from './activityStore';
+export { useGoogleStore } from './googleStore';
 
 
 
