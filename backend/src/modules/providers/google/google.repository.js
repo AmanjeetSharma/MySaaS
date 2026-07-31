@@ -56,7 +56,7 @@ export const disconnectGoogleIntegration = (orgId) => {
             },
         },
         {
-            new: true,
+            returnDocument: "after",
         }
     );
 };

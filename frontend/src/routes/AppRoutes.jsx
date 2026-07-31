@@ -56,7 +56,7 @@ import ChangePassword from '@/pages/settings/account/ChangePassword';
 import SetPassword from '@/pages/settings/account/SetPassword';
 
 // Integrations imports
-import GoogleCalendar from '@/pages/organization/integrations/GoogleCalendar';
+import ConnectGoogle from '@/pages/organization/integrations/ConnectGoogle';
 import WhatsApp from '@/pages/organization/integrations/WhatsApp';
 import Zoom from '@/pages/organization/integrations/Zoom';
 import MicrosoftTeams from '@/pages/organization/integrations/MicrosoftTeams';
@@ -114,7 +114,7 @@ export const AppRoutes = () => {
                     <Route path="/bookings" element={<Bookings />} />
 
                     {/* Integrations Routes */}
-                    <Route path="/integrations/google-calendar" element={<GoogleCalendar />} />
+                    <Route path="/integrations/connect-google" element={<ConnectGoogle />} />
                     <Route path="/integrations/whatsapp" element={<WhatsApp />} />
                     <Route path="/integrations/zoom" element={<Zoom />} />
                     <Route path="/integrations/microsoft-teams" element={<MicrosoftTeams />} />

@@ -113,7 +113,7 @@ export const useNavigationConfig = () => {
                 items: [
                     {
                         title: "Google Calendar",
-                        href: "/integrations/google-calendar",
+                        href: "/integrations/connect-google",
                         icon: CalendarDays
                     },
                     {
