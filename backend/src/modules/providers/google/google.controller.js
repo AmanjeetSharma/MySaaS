@@ -12,10 +12,10 @@ import {
 export const connectGoogleController = asyncHandler(async (req, res) => {
     const { orgId } = req.params;
 
-    const data = await connectGoogleService(
-        req.user._id,
+    const data = await connectGoogleService({
+        userId: req.user._id,
         orgId
-    );
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -30,7 +30,10 @@ export const connectGoogleController = asyncHandler(async (req, res) => {
 export const googleOAuthCallbackController = asyncHandler(async (req, res) => {
     const { code, state } = req.query;
 
-    const data = await googleOAuthCallbackService(code, state);
+    const data = await googleOAuthCallbackService({
+        code,
+        state
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -45,10 +48,10 @@ export const googleOAuthCallbackController = asyncHandler(async (req, res) => {
 export const getGoogleIntegrationStatusController = asyncHandler(async (req, res) => {
     const { orgId } = req.params;
 
-    const data = await getGoogleIntegrationStatusService(
-        req.user._id,
+    const data = await getGoogleIntegrationStatusService({
+        userId: req.user._id,
         orgId
-    );
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -63,10 +66,10 @@ export const getGoogleIntegrationStatusController = asyncHandler(async (req, res
 export const listGoogleCalendarsController = asyncHandler(async (req, res) => {
     const { orgId } = req.params;
 
-    const data = await listGoogleCalendarsService(
-        req.user._id,
+    const data = await listGoogleCalendarsService({
+        userId: req.user._id,
         orgId
-    );
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -81,10 +84,10 @@ export const listGoogleCalendarsController = asyncHandler(async (req, res) => {
 export const disconnectGoogleController = asyncHandler(async (req, res) => {
     const { organizationId } = req.params;
 
-    const data = await disconnectGoogleService(
-        req.user._id,
-        organizationId
-    );
+    const data = await disconnectGoogleService({
+        userId: req.user._id,
+        orgId: organizationId
+    });
 
     return res.status(200).json(
         new ApiResponse(

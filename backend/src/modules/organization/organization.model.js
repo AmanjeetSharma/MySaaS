@@ -52,9 +52,21 @@ const googleIntegrationSchema = new Schema({
     },
 
     refreshToken: {
-        type: String,
-        default: null,
-        select: false,
+        encryptedData: {
+            type: String,
+            default: null,
+            select: false,
+        },
+        iv: {// Initialization Vector
+            type: String,
+            default: null,
+            select: false,
+        },
+        authTag: {// Authentication Tag for AES-GCM (algorithm used for encryption)
+            type: String,
+            default: null,
+            select: false,
+        },
     },
 
     email: {
