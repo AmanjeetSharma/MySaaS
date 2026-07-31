@@ -70,7 +70,7 @@ const AvatarCropModal = ({
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* Cropper Viewport Area (Clean & tight layout) */}
+                {/* Cropper Viewport Area */}
                 <div className="relative w-full h-64 sm:h-72 bg-neutral-950 rounded-xl overflow-hidden border border-border/50 shadow-inner my-2 select-none">
                     {imageSrc && (
                         <Cropper
@@ -143,7 +143,6 @@ const AvatarCropModal = ({
                             <span className="flex items-center gap-1.5">
                                 <RotateCw className="h-3.5 w-3.5" /> Rotation
                             </span>
-                            {/* Formatted to 2 decimal places */}
                             <span className="font-mono text-[11px]">{Number(rotation).toFixed(2)}°</span>
                         </div>
                         <div className="flex items-center gap-2">

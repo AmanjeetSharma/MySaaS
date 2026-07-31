@@ -88,7 +88,28 @@ const Profile = () => {
     }
   };
 
-  // Step 1: File selection triggers preview & opens crop modal
+  // Direct upload handler for uncroppable media like animated GIFs
+  const uploadDirectAvatar = async (file) => {
+    setIsAvatarUploading(true);
+    try {
+      await updateUserAvatar(file);
+      await getUserProfile();
+
+      toast.success('Avatar updated successfully', {
+        icon: <Camera className="h-4 w-4 text-primary" />,
+        duration: 2000
+      });
+    } catch (error) {
+      toast.error(error.message || 'Failed to update avatar');
+    } finally {
+      setIsAvatarUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Step 1: File selection routing & size validations
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0];
 
@@ -109,14 +130,33 @@ const Profile = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+    // Specific check for GIF files: Max size 2MB
+    if (file.type === 'image/gif') {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('GIF size should be less than 2MB');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+
+      // Bypass crop modal and upload directly
+      uploadDirectAvatar(file);
       return;
     }
 
-    setSelectedFileType(file.type); // Store file format
+    // Standard check for non-GIF files: Max size 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
 
-    // Clean up previous Object URL if exists
+    // Cropping path for static images
+    setSelectedFileType(file.type);
+
     if (selectedImageSrc) {
       URL.revokeObjectURL(selectedImageSrc);
     }
@@ -344,7 +384,7 @@ const Profile = () => {
                     </span>
                   </Button>
                 )}
-                
+
                 {/* Upload */}
                 <Button
                   variant="outline"
