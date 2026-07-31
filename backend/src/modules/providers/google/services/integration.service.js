@@ -105,13 +105,14 @@ export const googleOAuthCallbackService = async ({
 
     const { data } = await oauth2.userinfo.get();
 
-    if (!data.email) {
+    if (!data || !data.id || !data.email) {
         throw new ApiError(400, "Unable to retrieve Google account information. Please try again.");
     }
 
     const organization = await updateGoogleIntegration(
         payload.orgId,
         {
+            googleAccountId: data.id,
             isConnected: true,
             refreshToken: encryptedRefreshToken,
             email: data.email,

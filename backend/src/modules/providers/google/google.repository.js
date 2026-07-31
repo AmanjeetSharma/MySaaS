@@ -15,7 +15,7 @@ export const updateGoogleIntegration = (orgId, integration) => {
             },
         },
         {
-            new: true,
+            returnDocument: "after",
         }
     );
 };
@@ -45,7 +45,7 @@ export const disconnectGoogleIntegration = (orgId) => {
             },
         },
         {
-            new: true,
+            returnDocument: "after", // return the updated document
         }
     );
 };
