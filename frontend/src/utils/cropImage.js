@@ -14,27 +14,25 @@ function getRadianAngle(degreeValue) {
 }
 
 /**
- * Generates a cropped File object from an image URL and pixel crop area.
- * Preserves PNG transparency if input is PNG/WEBP.
+ * Crop canvas image with target sizing optimization
  */
 export async function getCroppedImg(
     imageSrc,
     pixelCrop,
     rotation = 0,
     fileName = 'cropped-image.jpg',
-    outputType = 'image/jpeg'
+    outputType = 'image/jpeg',
+    maxOutputSize = 512 // 512px max dimension is ideal for avatars
 ) {
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    if (!ctx) {
-        throw new Error('No 2d context');
-    }
+    if (!ctx) throw new Error('No 2d context');
 
     const rotRad = getRadianAngle(rotation);
 
-    // Calculate bounding box of rotated image
+    // Calculate bounding box
     const boundingBoxWidth =
         Math.abs(Math.cos(rotRad) * image.width) +
         Math.abs(Math.sin(rotRad) * image.height);
@@ -42,30 +40,39 @@ export async function getCroppedImg(
         Math.abs(Math.sin(rotRad) * image.width) +
         Math.abs(Math.cos(rotRad) * image.height);
 
-    // Set canvas size to match the bounding box
     canvas.width = boundingBoxWidth;
     canvas.height = boundingBoxHeight;
 
-    // Translate canvas center to image center and rotate
     ctx.translate(boundingBoxWidth / 2, boundingBoxHeight / 2);
     ctx.rotate(rotRad);
     ctx.translate(-image.width / 2, -image.height / 2);
-
-    // Draw image on canvas
     ctx.drawImage(image, 0, 0);
 
-    // Create crop canvas
+    // Calculate target output dimensions (Max limit capping)
+    let targetWidth = pixelCrop.width;
+    let targetHeight = pixelCrop.height;
+
+    if (targetWidth > maxOutputSize || targetHeight > maxOutputSize) {
+        if (targetWidth > targetHeight) {
+            targetHeight = Math.round((targetHeight * maxOutputSize) / targetWidth);
+            targetWidth = maxOutputSize;
+        } else {
+            targetWidth = Math.round((targetWidth * maxOutputSize) / targetHeight);
+            targetHeight = maxOutputSize;
+        }
+    }
+
     const cropCanvas = document.createElement('canvas');
     const cropCtx = cropCanvas.getContext('2d');
 
-    if (!cropCtx) {
-        throw new Error('No crop context');
-    }
+    if (!cropCtx) throw new Error('No crop context');
 
-    cropCanvas.width = pixelCrop.width;
-    cropCanvas.height = pixelCrop.height;
+    cropCanvas.width = targetWidth;
+    cropCanvas.height = targetHeight;
 
-    // Extract crop area from the canvas
+    // Smooth image scaling during resize
+    cropCtx.imageSmoothingQuality = 'high';
+
     cropCtx.drawImage(
         canvas,
         pixelCrop.x,
@@ -74,11 +81,10 @@ export async function getCroppedImg(
         pixelCrop.height,
         0,
         0,
-        pixelCrop.width,
-        pixelCrop.height
+        targetWidth,
+        targetHeight
     );
 
-    // Convert canvas to File object
     return new Promise((resolve, reject) => {
         cropCanvas.toBlob(
             (blob) => {
@@ -90,7 +96,7 @@ export async function getCroppedImg(
                 resolve(file);
             },
             outputType,
-            0.95 // High quality
+            0.90 // 0.90 quality reduces file size drastically with zero visual loss
         );
     });
 }

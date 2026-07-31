@@ -10,7 +10,7 @@ import {
     DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, RefreshCw } from 'lucide-react';
+import { Loader2, RotateCw, RotateCcw, RefreshCw } from 'lucide-react';
 import { getCroppedImg } from '@/utils/cropImage';
 
 const AvatarCropModal = ({
@@ -25,6 +25,7 @@ const AvatarCropModal = ({
     const [zoom, setZoom] = useState(1);
     const [rotation, setRotation] = useState(0);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleCropComplete = useCallback((_, croppedPixels) => {
         setCroppedAreaPixels(croppedPixels);
@@ -36,37 +37,43 @@ const AvatarCropModal = ({
         setRotation(0);
     };
 
-    const handleSave = async () => {
-        try {
-            if (!croppedAreaPixels || !imageSrc) return;
-            const croppedFile = await getCroppedImg(
-                imageSrc,
-                croppedAreaPixels,
-                rotation,
-                'avatar.jpg',
-                fileType
-            );
-            await onCropComplete(croppedFile);
-        } catch (e) {
-            console.error('Error cropping image:', e);
-        }
+    const handleSave = () => {
+        if (!croppedAreaPixels || !imageSrc || isProcessing || isUploading) return;
+
+        // Instant UI feedback
+        setIsProcessing(true);
+
+        // Yield to browser frame to render processing loader immediately
+        setTimeout(async () => {
+            try {
+                const croppedFile = await getCroppedImg(
+                    imageSrc,
+                    croppedAreaPixels,
+                    rotation,
+                    'avatar.jpg',
+                    fileType,
+                    512 // Cap output resolution to 512x512 for optimal performance
+                );
+                await onCropComplete(croppedFile);
+            } catch (e) {
+                console.error('Error cropping image:', e);
+            } finally {
+                setIsProcessing(false);
+            }
+        }, 50);
     };
 
+    const isBusy = isProcessing || isUploading;
+
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && !isUploading && onClose()}>
-            <DialogContent
-                className="
-          sm:max-w-lg bg-card/95 backdrop-blur-md border-border/80 shadow-2xl p-5 sm:p-6 rounded-2xl
-          animate-in fade-in-0 zoom-in-95 duration-200
-          [&>button]:cursor-pointer [&>button]:transition-transform [&>button]:active:scale-90
-        "
-            >
+        <Dialog open={isOpen} onOpenChange={(open) => !open && !isBusy && onClose()}>
+            <DialogContent className="sm:max-w-lg bg-card/95 backdrop-blur-md border-border/80 shadow-2xl p-5 sm:p-6 rounded-2xl">
                 <DialogHeader className="space-y-1">
                     <DialogTitle className="text-base sm:text-xl font-semibold tracking-tight">
                         Adjust Profile Picture
                     </DialogTitle>
                     <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
-                        Drag to position, scroll or slide to zoom and rotate.
+                        Drag to position & scroll/pinch to zoom.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -93,55 +100,12 @@ const AvatarCropModal = ({
                     )}
                 </div>
 
-                {/* Control Sliders & Quick Buttons */}
+                {/* Rotation Control Slider & Quick Step Buttons */}
                 <div className="space-y-3 py-1">
-                    {/* Zoom Controls */}
                     <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
                             <span className="flex items-center gap-1.5">
-                                <ZoomIn className="h-3.5 w-3.5" /> Zoom
-                            </span>
-                            <span className="font-mono text-[11px]">{Math.round(zoom * 100)}%</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0 rounded-lg cursor-pointer transition-all active:scale-90 hover:bg-muted"
-                                onClick={() => setZoom((prev) => Math.max(1, prev - 0.2))}
-                                disabled={zoom <= 1 || isUploading}
-                            >
-                                <ZoomOut className="h-3.5 w-3.5" />
-                            </Button>
-                            <input
-                                type="range"
-                                value={zoom}
-                                min={1}
-                                max={3}
-                                step={0.05}
-                                onChange={(e) => setZoom(Number(e.target.value))}
-                                disabled={isUploading}
-                                className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary transition-opacity hover:opacity-100 opacity-90"
-                            />
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0 rounded-lg cursor-pointer transition-all active:scale-90 hover:bg-muted"
-                                onClick={() => setZoom((prev) => Math.min(3, prev + 0.2))}
-                                disabled={zoom >= 3 || isUploading}
-                            >
-                                <ZoomIn className="h-3.5 w-3.5" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Rotation Controls */}
-                    <div className="space-y-1">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-                            <span className="flex items-center gap-1.5">
-                                <RotateCw className="h-3.5 w-3.5" /> Rotation
+                                Rotate the image to adjust its orientation
                             </span>
                             <span className="font-mono text-[11px]">{Number(rotation).toFixed(2)}°</span>
                         </div>
@@ -152,7 +116,7 @@ const AvatarCropModal = ({
                                 size="icon"
                                 className="h-7 w-7 shrink-0 rounded-lg cursor-pointer transition-all active:scale-90 hover:bg-muted"
                                 onClick={() => setRotation((prev) => (prev - 90 + 360) % 360)}
-                                disabled={isUploading}
+                                disabled={isBusy}
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
                             </Button>
@@ -163,7 +127,7 @@ const AvatarCropModal = ({
                                 max={360}
                                 step={1}
                                 onChange={(e) => setRotation(Number(e.target.value))}
-                                disabled={isUploading}
+                                disabled={isBusy}
                                 className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary transition-opacity hover:opacity-100 opacity-90"
                             />
                             <Button
@@ -172,7 +136,7 @@ const AvatarCropModal = ({
                                 size="icon"
                                 className="h-7 w-7 shrink-0 rounded-lg cursor-pointer transition-all active:scale-90 hover:bg-muted"
                                 onClick={() => setRotation((prev) => (prev + 90) % 360)}
-                                disabled={isUploading}
+                                disabled={isBusy}
                             >
                                 <RotateCw className="h-3.5 w-3.5" />
                             </Button>
@@ -187,7 +151,7 @@ const AvatarCropModal = ({
                         variant="ghost"
                         size="sm"
                         onClick={handleReset}
-                        disabled={isUploading || (zoom === 1 && rotation === 0 && crop.x === 0 && crop.y === 0)}
+                        disabled={isBusy || (zoom === 1 && rotation === 0 && crop.x === 0 && crop.y === 0)}
                         className="text-xs gap-1.5 text-muted-foreground hover:text-foreground rounded-xl cursor-pointer transition-all active:scale-95 px-3 py-2"
                     >
                         <RefreshCw className="h-3.5 w-3.5" /> Reset
@@ -198,11 +162,11 @@ const AvatarCropModal = ({
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            disabled={isUploading}
+                            disabled={isBusy}
                             className="
-                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-95
-                border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive
-              "
+                                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-95
+                                border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive
+                            "
                         >
                             Cancel
                         </Button>
@@ -210,15 +174,15 @@ const AvatarCropModal = ({
                         <Button
                             type="button"
                             onClick={handleSave}
-                            disabled={isUploading}
+                            disabled={isBusy}
                             className="
-                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm gap-2 font-medium cursor-pointer transition-all active:scale-95 shadow-sm hover:shadow
-              "
+                                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm gap-2 font-medium cursor-pointer transition-all active:scale-95 shadow-sm hover:shadow
+                            "
                         >
-                            {isUploading ? (
+                            {isBusy ? (
                                 <>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    Uploading...
+                                    {isProcessing ? 'Processing...' : 'Uploading...'}
                                 </>
                             ) : (
                                 'Crop & Save'
