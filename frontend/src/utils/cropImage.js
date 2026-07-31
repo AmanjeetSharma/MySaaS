@@ -1,5 +1,3 @@
-// src/utils/cropImage.js
-
 const createImage = (url) =>
     new Promise((resolve, reject) => {
         const image = new Image();
@@ -96,7 +94,7 @@ export async function getCroppedImg(
                 resolve(file);
             },
             outputType,
-            0.90 // 0.90 quality reduces file size drastically with zero visual loss
+            0.90 
         );
     });
 }
