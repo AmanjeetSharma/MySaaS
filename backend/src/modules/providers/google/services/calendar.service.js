@@ -9,7 +9,7 @@ import { createGoogleOAuthClient } from "../google.client.js";
 
 
 
-const getGoogleCalendarClient = (refreshToken) => {
+export const getGoogleCalendarClient = (refreshToken) => {
     const oauthClient = createGoogleOAuthClient();
 
     oauthClient.setCredentials({

@@ -305,8 +305,8 @@ const ConnectGoogle = () => {
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`pb-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${activeTab === 'overview'
-                    ? 'border-[#4285F4] text-[#4285F4]'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'border-[#4285F4] text-[#4285F4]'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
               >
                 Overview & Feeds
@@ -314,8 +314,8 @@ const ConnectGoogle = () => {
               <button
                 onClick={() => setActiveTab('features')}
                 className={`pb-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${activeTab === 'features'
-                    ? 'border-[#4285F4] text-[#4285F4]'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'border-[#4285F4] text-[#4285F4]'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
               >
                 Features & Permissions
@@ -384,15 +384,18 @@ const ConnectGoogle = () => {
                               <div className="w-3 h-3 rounded-full bg-[#4285F4] shrink-0"></div>
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-semibold text-foreground">
-                                  {calendar.summary}
+                                  Calendar: {calendar.name}
                                 </p>
                                 <p className="truncate text-xs font-mono text-muted-foreground mt-0.5">
-                                  {calendar.id}
+                                  Calendar ID: {calendar.id}
                                 </p>
+                                <p className="truncate text-xs text-muted-foreground mt-0.5">
+                                  Description: {calendar.description || 'No description provided'}
+                                </p>  
                               </div>
                             </div>
                             {calendar.primary && (
-                              <span className="rounded-full bg-[#4285F4]/10 border border-[#4285F4]/20 px-3 py-1 text-[11px] font-bold text-[#4285F4] shrink-0">
+                              <span className="rounded-full bg-[#4285F4]/10 border border-[#4285F4]/20 px-3 py-1 text-[11px] font-bold text-[#2abc38] shrink-0">
                                 Primary Calendar
                               </span>
                             )}

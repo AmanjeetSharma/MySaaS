@@ -94,27 +94,39 @@ const googleIntegrationSchema = new Schema({
         trim: true,
     },
 
+    calendarName: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
+    calendarDescription: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
 }, { _id: false });
 
 // future implementation
 const whatsappIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 }, { _id: false });
 
 const zoomIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 }, { _id: false });
 
 const microsoftIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 }, { _id: false });
 

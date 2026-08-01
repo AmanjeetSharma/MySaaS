@@ -7,6 +7,7 @@ import {
     getGoogleIntegrationStatusService,
     listGoogleCalendarsService,
     disconnectGoogleService,
+    updateSelectedCalendarService,
 } from "./google.service.js";
 
 
@@ -48,6 +49,26 @@ export const googleOAuthCallbackController = asyncHandler(async (req, res) => {
             `${redirectBaseUrl}?connected=false&error=oauth_failed`
         );
     }
+});
+
+
+export const updateSelectedCalendarController = asyncHandler(async (req, res) => {
+    const { orgId } = req.params;
+    const { calendarId } = req.body;
+
+    const data = await updateSelectedCalendarService({
+        userId: req.user._id,
+        orgId,
+        calendarId
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Google Calendar updated successfully."
+        )
+    );
 });
 
 

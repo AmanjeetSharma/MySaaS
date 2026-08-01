@@ -4,6 +4,7 @@ import { google } from "googleapis";
 import { ApiError } from "../../../../utils/ApiError.js";
 import { createGoogleOAuthClient } from "../google.client.js";
 import { GOOGLE_SCOPES } from "../google.constants.js";
+import { getGoogleCalendarClient } from "./calendar.service.js";
 import {
     generateGoogleOAuthState,
     verifyGoogleOAuthState,
@@ -16,6 +17,7 @@ import {
     getOrganizationGoogleIntegration,
     getOrganizationGoogleCredentials,
     disconnectGoogleIntegration,
+    updateSelectedCalendar,
 } from "../google.repository.js";
 
 
@@ -142,6 +144,72 @@ export const googleOAuthCallbackService = async ({
 
 
 
+export const updateSelectedCalendarService = async ({
+    userId,
+    orgId,
+    calendarId,
+}) => {
+
+    if (!orgId || !mongoose.Types.ObjectId.isValid(orgId)) {
+        throw new ApiError(400, "Organization ID is required and must be a valid ObjectId.");
+    }
+
+    if (!calendarId?.trim()) {
+        throw new ApiError(400, "Calendar ID is required.");
+    }
+
+    const organization = await getOrganizationGoogleCredentials(orgId);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
+
+    if (organization.owner.toString() !== userId.toString()) {
+        throw new ApiError(403, "Only the organization owner can change the selected calendar.");
+    }
+
+    if (!organization.integrations.google.isConnected) {
+        throw new ApiError(400, "Please connect a Google account before selecting a calendar.");
+    }
+
+    const refreshToken = decryptRefreshToken(
+        organization.integrations.google.refreshToken
+    );
+
+    const calendar = getGoogleCalendarClient(refreshToken);
+
+    const { data } = await calendar.calendarList.list();
+
+    if (!data?.items) {
+        throw new ApiError(500, "Failed to fetch Google Calendar list.");
+    }
+
+    const selectedCalendar = data.items.find(
+        (item) => item.id === calendarId
+    );
+
+    if (!selectedCalendar) {
+        throw new ApiError(400, "Selected calendar does not exist.");
+    }
+
+    const result = await updateSelectedCalendar(orgId, calendarId);
+    if (!result) {
+        throw new ApiError(500, "Failed to update calendar.");
+    }
+
+    return {
+        calendarId: selectedCalendar.id,
+        summary: selectedCalendar.summary,
+    };
+};
+
+
+
+
+
+
+
+
+
 export const getGoogleIntegrationStatusService = async ({
     userId,
     orgId,
@@ -155,8 +223,9 @@ export const getGoogleIntegrationStatusService = async ({
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (organization.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "Only the organization owner can view Google integration status.");
+    if (organization.owner.toString() !== userId.toString() &&
+        !organization.members.some(member => member.user.toString() === userId.toString())) {
+        throw new ApiError(403, "Access denied. You are not a part of this organization.");
     }
 
     const googleIntegration = organization.integrations?.google;
@@ -189,8 +258,9 @@ export const listGoogleCalendarsService = async ({
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (organization.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "Only the organization owner can access calendars.");
+    if (organization.owner.toString() !== userId.toString() &&
+        !organization.members.some(member => member.user.toString() === userId.toString())) {
+        throw new ApiError(403, "Access denied. You are not a part of this organization.");
     }
 
     if (!organization.integrations.google.isConnected) {
@@ -212,11 +282,30 @@ export const listGoogleCalendarsService = async ({
 
     const { data } = await calendar.calendarList.list();
 
+    const calendars = await Promise.all(
+        data.items.map(async (item) => {
+            const { data: calendarData } = await calendar.calendars.get({
+                calendarId: item.id,
+            });
+
+            return {
+                id: calendarData.id,
+                name: calendarData.summary,
+                description: calendarData.description ?? null,
+                primary: item.primary,
+                accessRole: item.accessRole,
+            };
+        })
+    );
+
+    console.log(calendars);
+
     return data.items.map((calendar) => ({
         id: calendar.id,
-        summary: calendar.summary,
-        primary: calendar.primary,
-        accessRole: calendar.accessRole,
+        name: calendar.summary,
+        description: calendar.description || null,
+        primary: calendar.primary || false,
+        accessRole: calendar.accessRole || null,
     }));
 };
 

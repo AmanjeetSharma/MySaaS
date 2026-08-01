@@ -339,7 +339,7 @@ export const loginService = async (body) => {
     const user = await findUserByEmail(normalizedEmail, "+password");
 
     if (!user) {
-        throw new ApiError(401, "User doesn't exist");
+        throw new ApiError(401, "User not found");
     }
 
     // Check if user registered via Google
@@ -428,7 +428,7 @@ export const logoutService = async (refreshToken, userId) => {
     const user = await findUserById(userId, "+sessions.refreshToken");
 
     if (!user) {
-        throw new ApiError(401, "User doesn't exist");
+        throw new ApiError(401, "User not found");
     }
 
     const currentDevice = user.sessions.find(s => s.refreshToken === refreshToken)?.device || 'Unknown Device';
@@ -469,7 +469,7 @@ export const refreshTokenService = async (refreshToken) => {
     const user = await findUserById(decoded.id, "+sessions.refreshToken");
     if (!user) {
         console.log(`Refresh token failed - user not found | userId: ${decoded.id}`);
-        throw new ApiError(401, "User doesn't exist");
+        throw new ApiError(401, "User not found");
     }
 
     const session = user.sessions.find(

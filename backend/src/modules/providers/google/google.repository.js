@@ -23,7 +23,7 @@ export const updateGoogleIntegration = (orgId, integration) => {
 export const getOrganizationGoogleIntegration = (orgId) => {
     return Organization.findById(orgId)
         .select(
-            "owner integrations.google.isConnected integrations.google.email integrations.google.connectedAt integrations.google.calendarId"
+            "owner integrations.google.isConnected integrations.google.email integrations.google.connectedAt integrations.google.calendarId members"
         )
         .lean();
 };
@@ -31,7 +31,7 @@ export const getOrganizationGoogleIntegration = (orgId) => {
 export const getOrganizationGoogleCredentials = (orgId) => {
     return Organization.findById(orgId)
         .select(
-            "owner integrations.google"
+            "owner integrations.google members"
         )
         .lean();
 };
@@ -53,6 +53,20 @@ export const disconnectGoogleIntegration = (orgId) => {
                     connectedAt: null,
                     calendarId: "primary",
                 },
+            },
+        },
+        {
+            returnDocument: "after",
+        }
+    );
+};
+
+export const updateSelectedCalendar = (orgId, calendarId,) => {
+    return Organization.findByIdAndUpdate(
+        orgId,
+        {
+            $set: {
+                "integrations.google.calendarId": calendarId,
             },
         },
         {
