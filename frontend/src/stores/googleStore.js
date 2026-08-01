@@ -19,11 +19,13 @@ export const useGoogleStore = create((set) => ({
     authUrl: null,
     status: initialStatus,
     calendars: [],
+    role: null,
 
     isLoading: false,
     isConnecting: false,
     isDisconnecting: false,
     isFetchingCalendars: false,
+    isUpdatingCalendar: false,
     error: null,
 
     connectGoogle: async (orgId) => {
@@ -111,6 +113,60 @@ export const useGoogleStore = create((set) => ({
         }
     },
 
+    updateSelectedCalendar: async (orgId, calendarId) => {
+        set({
+            isUpdatingCalendar: true,
+            error: null
+        });
+
+        try {
+            const response = await http.patch(
+                `/providers/google/calendar/${orgId}`,
+                {
+                    calendarId
+                }
+            );
+
+            const data = getResponseData(response);
+
+            set((state) => ({
+                status: {
+                    ...state.status,
+                    calendarId: data?.calendarId || state.status.calendarId
+                },
+
+                calendars: state.calendars.map((calendar) => ({
+                    ...calendar,
+                    selected: calendar.id === data?.calendarId
+                })),
+
+                isUpdatingCalendar: false,
+                error: null
+            }));
+
+            toast.success(
+                response.data?.message || 'Google calendar updated successfully.'
+            );
+
+            return data;
+
+        } catch (error) {
+            const errorMessage = getErrorMessage(
+                error,
+                'Failed to update Google calendar'
+            );
+
+            set({
+                isUpdatingCalendar: false,
+                error: errorMessage
+            });
+
+            toast.error(errorMessage);
+
+            throw error;
+        }
+    },
+
     getStatus: async (orgId) => {
         set({
             isLoading: true,
@@ -151,10 +207,14 @@ export const useGoogleStore = create((set) => ({
 
         try {
             const response = await http.get(`/providers/google/calendars/${orgId}`);
-            const data = getResponseData(response) || [];
+            const data = getResponseData(response);
+
+            const calendarsList = Array.isArray(data) ? data : (data?.calendars || []);
+            const userRole = data?.role || null;
 
             set({
-                calendars: data,
+                calendars: calendarsList,
+                role: userRole,
                 isFetchingCalendars: false,
                 error: null
             });
@@ -189,6 +249,7 @@ export const useGoogleStore = create((set) => ({
                 authUrl: null,
                 status: initialStatus,
                 calendars: [],
+                role: null,
                 isDisconnecting: false,
                 error: null
             });
@@ -218,10 +279,12 @@ export const useGoogleStore = create((set) => ({
         authUrl: null,
         status: initialStatus,
         calendars: [],
+        role: null,
         isLoading: false,
         isConnecting: false,
         isDisconnecting: false,
         isFetchingCalendars: false,
+        isUpdatingCalendar: false,
         error: null
     })
 }));

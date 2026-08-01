@@ -210,7 +210,7 @@ export const updateSelectedCalendarService = async ({
     if (!selectedCalendar) {
         throw new ApiError(400, "Selected calendar does not exist.");
     }
-    
+
     if (!["owner", "writer"].includes(selectedCalendar.accessRole)) {
         throw new ApiError(400, "Selected calendar does not have permission to create appointments.");
     }
@@ -320,29 +320,35 @@ export const listGoogleCalendarsService = async ({
                 primary: item.primary ?? false,
                 selected:
                     item.id === organization.integrations.google.calendarId,
+
             }));
 
-        return calendars;
+        return {
+            calendars,
+            role: "owner",
+        };
     }
 
     const selectedCalendar = data.items.find(
         item => item.id === organization.integrations.google.calendarId
     );
 
-    if (!selectedCalendar) {
+    if (!selectedCalendar || !["owner", "writer"].includes(selectedCalendar?.accessRole)) {
         throw new ApiError(404, "The selected Google Calendar no longer exists or is no longer accessible.");
     }
 
-    return [
-        {
-            id: selectedCalendar.id,
-            name: selectedCalendar.summary,
-            description: selectedCalendar.description ?? null,
-            selected: true,
-        },
-    ];
-};
-
+    return {
+        calendars: [
+            {
+                id: selectedCalendar.id,
+                name: selectedCalendar.summary,
+                description: selectedCalendar.description ?? null,
+                selected: true,
+            },
+        ],
+        role: "member",
+    }
+}
 
 
 
