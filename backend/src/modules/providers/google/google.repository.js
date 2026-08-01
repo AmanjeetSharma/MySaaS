@@ -51,7 +51,7 @@ export const disconnectGoogleIntegration = (orgId) => {
                     email: null,
                     googleAccountId: null,
                     connectedAt: null,
-                    calendarId: "primary",
+                    calendarId: null,
                 },
             },
         },
@@ -61,12 +61,14 @@ export const disconnectGoogleIntegration = (orgId) => {
     );
 };
 
-export const updateSelectedCalendar = (orgId, calendarId,) => {
+export const updateSelectedCalendar = (orgId, payload) => {
     return Organization.findByIdAndUpdate(
         orgId,
         {
             $set: {
-                "integrations.google.calendarId": calendarId,
+                "integrations.google.calendarId": payload.calendarId,
+                "integrations.google.calendarName": payload.summary,
+                "integrations.google.calendarDescription": payload.description ?? null,
             },
         },
         {

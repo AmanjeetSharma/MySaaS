@@ -37,7 +37,7 @@ export const connectGoogleService = async ({
     }
 
     if (organization.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "Only Organization owner can connect Google account");
+        throw new ApiError(403, "Access denied. Ask the organization owner to connect Google account.");
     }
 
     const oauthClient = createGoogleOAuthClient();
@@ -91,10 +91,7 @@ export const googleOAuthCallbackService = async ({
     const { tokens } = tokenResponse;
 
     if (!tokens.refresh_token) {
-        throw new ApiError(
-            400,
-            "Google did not return a refresh token. Please disconnect the app from your Google Account and try again."
-        );
+        throw new ApiError(400, "Google did not return a refresh token. Please disconnect the app from your Google Account and try again.");
     }
 
     const encryptedRefreshToken = encryptRefreshToken(tokens.refresh_token);
@@ -106,32 +103,51 @@ export const googleOAuthCallbackService = async ({
         version: "v2",
     });
 
-    const { data } = await oauth2.userinfo.get();
+    const { data: googleUser } = await oauth2.userinfo.get();
 
-    if (!data || !data.id || !data.email) {
+    if (!googleUser || !googleUser.id || !googleUser.email) {
         throw new ApiError(400, "Unable to retrieve Google account information. Please try again.");
+    }
+
+    const calendar = getGoogleCalendarClient(
+        tokens.refresh_token
+    );
+
+    const { data: calendarList } = await calendar.calendarList.list();
+
+    if (!calendarList?.items?.length) {
+        throw new ApiError(500, "No Google calendars were found for this account.");
+    }
+
+    const primaryCalendar = calendarList.items.find(
+        (item) => item.primary
+    );
+
+    if (!primaryCalendar) {
+        throw new ApiError(500, "Primary Google Calendar could not be found.");
     }
 
     const organization = await updateGoogleIntegration(
         payload.orgId,
         {
-            googleAccountId: data.id,
             isConnected: true,
+            email: googleUser.email,
+            googleAccountId: googleUser.id,
             refreshToken: encryptedRefreshToken,
-            email: data.email,
-            googleId: data.id,
+            calendarId: primaryCalendar.id,
+            calendarName: primaryCalendar.summary,
+            calendarDescription: primaryCalendar.description ?? null,
             connectedAt: new Date(),
-            calendarId: "primary",
         }
     );
 
     if (!organization) {
-        throw new ApiError(404, "Failed to update Google integration.");
+        throw new ApiError(500, "Failed to update Google integration.");
     }
 
     return {
-        email: data.email,
-        connectedAt: new Date(),
+        email: googleUser.email,
+        connectedAt: organization.integrations.google.connectedAt,
     };
 };
 
@@ -164,11 +180,15 @@ export const updateSelectedCalendarService = async ({
     }
 
     if (organization.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "Only the organization owner can change the selected calendar.");
+        throw new ApiError(403, "Access denied. Only the organization owner can update calendar.");
     }
 
     if (!organization.integrations.google.isConnected) {
         throw new ApiError(400, "Please connect a Google account before selecting a calendar.");
+    }
+
+    if (organization.integrations.google.calendarId === calendarId) {
+        throw new ApiError(400, "You’re already using this as your active calendar.");
     }
 
     const refreshToken = decryptRefreshToken(
@@ -190,8 +210,16 @@ export const updateSelectedCalendarService = async ({
     if (!selectedCalendar) {
         throw new ApiError(400, "Selected calendar does not exist.");
     }
+    
+    if (!["owner", "writer"].includes(selectedCalendar.accessRole)) {
+        throw new ApiError(400, "Selected calendar does not have permission to create appointments.");
+    }
 
-    const result = await updateSelectedCalendar(orgId, calendarId);
+    const result = await updateSelectedCalendar(orgId, {
+        calendarId: selectedCalendar.id,
+        summary: selectedCalendar.summary,
+        description: selectedCalendar.description ?? null,
+    });
     if (!result) {
         throw new ApiError(500, "Failed to update calendar.");
     }
@@ -199,6 +227,7 @@ export const updateSelectedCalendarService = async ({
     return {
         calendarId: selectedCalendar.id,
         summary: selectedCalendar.summary,
+        description: selectedCalendar.description ?? null,
     };
 };
 
@@ -258,8 +287,10 @@ export const listGoogleCalendarsService = async ({
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (organization.owner.toString() !== userId.toString() &&
-        !organization.members.some(member => member.user.toString() === userId.toString())) {
+    const isOwner = organization.owner.toString() === userId.toString();
+    const isMember = organization.members.some(member => member.user.toString() === userId.toString());
+
+    if (!isOwner && !isMember) {
         throw new ApiError(403, "Access denied. You are not a part of this organization.");
     }
 
@@ -269,46 +300,48 @@ export const listGoogleCalendarsService = async ({
 
     const refreshToken = decryptRefreshToken(organization.integrations.google.refreshToken);
 
-    const oauthClient = createGoogleOAuthClient();
-
-    oauthClient.setCredentials({
-        refresh_token: refreshToken,
-    });
-
-    const calendar = google.calendar({
-        version: "v3",
-        auth: oauthClient,
-    });
+    const calendar = getGoogleCalendarClient(refreshToken);
 
     const { data } = await calendar.calendarList.list();
 
-    const calendars = await Promise.all(
-        data.items.map(async (item) => {
-            const { data: calendarData } = await calendar.calendars.get({
-                calendarId: item.id,
-            });
+    if (!data?.items?.length) {
+        throw new ApiError(500, "Failed to fetch Google calendars.");
+    }
 
-            return {
-                id: calendarData.id,
-                name: calendarData.summary,
-                description: calendarData.description ?? null,
-                primary: item.primary,
-                accessRole: item.accessRole,
-            };
-        })
+    if (isOwner) {
+        const calendars = data.items
+            .filter(item =>
+                ["owner", "writer"].includes(item.accessRole)
+            )
+            .map(item => ({
+                id: item.id,
+                name: item.summary,
+                description: item.description ?? null,
+                primary: item.primary ?? false,
+                selected:
+                    item.id === organization.integrations.google.calendarId,
+            }));
+
+        return calendars;
+    }
+
+    const selectedCalendar = data.items.find(
+        item => item.id === organization.integrations.google.calendarId
     );
 
-    console.log(calendars);
+    if (!selectedCalendar) {
+        throw new ApiError(404, "The selected Google Calendar no longer exists or is no longer accessible.");
+    }
 
-    return data.items.map((calendar) => ({
-        id: calendar.id,
-        name: calendar.summary,
-        description: calendar.description || null,
-        primary: calendar.primary || false,
-        accessRole: calendar.accessRole || null,
-    }));
+    return [
+        {
+            id: selectedCalendar.id,
+            name: selectedCalendar.summary,
+            description: selectedCalendar.description ?? null,
+            selected: true,
+        },
+    ];
 };
-
 
 
 
@@ -333,7 +366,7 @@ export const disconnectGoogleService = async ({
     }
 
     if (organization.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "Only the organization owner can disconnect Google.");
+        throw new ApiError(403, "Access denied. Only the organization owner can disconnect Google.");
     }
 
     if (!organization.integrations.google.isConnected) {

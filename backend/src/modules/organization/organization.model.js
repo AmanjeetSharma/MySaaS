@@ -90,7 +90,7 @@ const googleIntegrationSchema = new Schema({
     // Google Calendar config
     calendarId: {
         type: String,
-        default: "primary",
+        default: null,
         trim: true,
     },
 
