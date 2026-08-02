@@ -118,17 +118,17 @@ export const useNavigationConfig = () => {
                     },
                     {
                         title: "WhatsApp",
-                        href: "/integrations/whatsapp",
+                        href: "/integrations/connect-whatsapp",
                         icon: MessageCircle
                     },
                     {
                         title: "Zoom",
-                        href: "/integrations/zoom",
+                        href: "/integrations/connect-zoom",
                         icon: Video
                     },
                     {
                         title: "Microsoft Teams",
-                        href: "/integrations/microsoft-teams",
+                        href: "/integrations/connect-microsoft-teams",
                         icon: Users
                     }
                 ]

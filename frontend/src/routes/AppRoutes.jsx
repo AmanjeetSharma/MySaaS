@@ -115,9 +115,9 @@ export const AppRoutes = () => {
 
                     {/* Integrations Routes */}
                     <Route path="/integrations/connect-google" element={<ConnectGoogle />} />
-                    <Route path="/integrations/whatsapp" element={<WhatsApp />} />
-                    <Route path="/integrations/zoom" element={<Zoom />} />
-                    <Route path="/integrations/microsoft-teams" element={<MicrosoftTeams />} />
+                    <Route path="/integrations/connect-whatsapp" element={<WhatsApp />} />
+                    <Route path="/integrations/connect-zoom" element={<Zoom />} />
+                    <Route path="/integrations/connect-microsoft-teams" element={<MicrosoftTeams />} />
 
                     {/* Reminder Route */}
                     <Route path="/reminders" element={<Reminder />} />
