@@ -43,7 +43,9 @@ const ConnectGoogle = () => {
 
   const {
     status,
+    statusOrgId,
     calendars,
+    calendarsOrgId,
     role,
     isLoading,
     isConnecting,
@@ -65,13 +67,14 @@ const ConnectGoogle = () => {
   const activeOrg = userProfile?.activeOrganization;
   const organizationId = useMemo(() => getEntityId(activeOrg), [activeOrg]);
 
-  const isConnected = Boolean(status?.isConnected);
+  const isStatusForActiveOrg = statusOrgId === organizationId;
+  const isCalendarsForActiveOrg = calendarsOrgId === organizationId;
+  const activeCalendars = useMemo(() => (
+    isCalendarsForActiveOrg ? calendars : []
+  ), [calendars, isCalendarsForActiveOrg]);
+  const isConnected = isStatusForActiveOrg && Boolean(status?.isConnected);
   const isBusy = isLoading || isConnecting || isDisconnecting;
   const isOwner = role === 'owner';
-
-  const activeCalendar = useMemo(() => {
-    return calendars.find(c => c.selected || c.id === status?.calendarId);
-  }, [calendars, status?.calendarId]);
 
   useEffect(() => {
     if (!userProfile) {
@@ -380,9 +383,9 @@ const ConnectGoogle = () => {
                 )}
               </div>
 
-              {calendars.length > 0 ? (
+              {activeCalendars.length > 0 ? (
                 <div className="space-y-2.5 sm:space-y-3">
-                  {calendars.map((calendar) => {
+                  {activeCalendars.map((calendar) => {
                     const isSelected = calendar.selected || calendar.id === status?.calendarId;
                     const isRowUpdating = updatingCalendarId === calendar.id;
 

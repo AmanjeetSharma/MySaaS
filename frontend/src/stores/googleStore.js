@@ -18,7 +18,9 @@ const getErrorMessage = (error, fallback) => (
 export const useGoogleStore = create((set) => ({
     authUrl: null,
     status: initialStatus,
+    statusOrgId: null,
     calendars: [],
+    calendarsOrgId: null,
     role: null,
 
     isLoading: false,
@@ -90,6 +92,10 @@ export const useGoogleStore = create((set) => ({
                     email: data?.email || null,
                     connectedAt: data?.connectedAt || null
                 },
+                statusOrgId: data?.orgId || null,
+                calendars: [],
+                calendarsOrgId: null,
+                role: null,
                 isLoading: false,
                 error: null
             });
@@ -177,11 +183,24 @@ export const useGoogleStore = create((set) => ({
             const response = await http.get(`/providers/google/status/${orgId}`);
             const data = getResponseData(response) || initialStatus;
 
-            set({
+            set((state) => ({
                 status: data,
+                statusOrgId: orgId,
+                calendars:
+                    data?.isConnected && state.calendarsOrgId === orgId
+                        ? state.calendars
+                        : [],
+                calendarsOrgId:
+                    data?.isConnected && state.calendarsOrgId === orgId
+                        ? state.calendarsOrgId
+                        : null,
+                role:
+                    data?.isConnected && state.calendarsOrgId === orgId
+                        ? state.role
+                        : null,
                 isLoading: false,
                 error: null
-            });
+            }));
 
             return data;
         } catch (error) {
@@ -214,6 +233,7 @@ export const useGoogleStore = create((set) => ({
 
             set({
                 calendars: calendarsList,
+                calendarsOrgId: orgId,
                 role: userRole,
                 isFetchingCalendars: false,
                 error: null
@@ -248,7 +268,9 @@ export const useGoogleStore = create((set) => ({
             set({
                 authUrl: null,
                 status: initialStatus,
+                statusOrgId: orgId,
                 calendars: [],
+                calendarsOrgId: null,
                 role: null,
                 isDisconnecting: false,
                 error: null
@@ -278,7 +300,9 @@ export const useGoogleStore = create((set) => ({
     resetGoogleStore: () => set({
         authUrl: null,
         status: initialStatus,
+        statusOrgId: null,
         calendars: [],
+        calendarsOrgId: null,
         role: null,
         isLoading: false,
         isConnecting: false,
