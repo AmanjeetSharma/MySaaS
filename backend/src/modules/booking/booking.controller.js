@@ -11,11 +11,16 @@ import {
     deleteBookingService,
 } from './booking.service.js';
 
+
 export const createBookingController = asyncHandler(async (req, res) => {
-    const data = await createBookingService(
-        req.user._id,
-        req.body
-    );
+    const { serviceId, startTime, timezone, booker } = req.body;
+    const data = await createBookingService({
+        userId: req.user._id,
+        serviceId,
+        startTime,
+        timezone,
+        booker,
+    });
 
     return res.status(201).json(
         new ApiResponse(
@@ -26,11 +31,12 @@ export const createBookingController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const getBookingByIdController = asyncHandler(async (req, res) => {
-    const data = await getBookingByIdService(
-        req.user._id,
-        req.params.bookingId
-    );
+    const data = await getBookingByIdService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -41,12 +47,13 @@ export const getBookingByIdController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const getOrganizationBookingsController = asyncHandler(async (req, res) => {
-    const data = await getOrganizationBookingsService(
-        req.user._id,
-        req.params.orgId,
-        req.query
-    );
+    const data = await getOrganizationBookingsService({
+        userId: req.user._id,
+        orgId: req.params.orgId,
+        query: req.query
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -57,12 +64,13 @@ export const getOrganizationBookingsController = asyncHandler(async (req, res) =
     );
 });
 
+
 export const getServiceBookingsController = asyncHandler(async (req, res) => {
-    const data = await getServiceBookingsService(
-        req.user._id,
-        req.params.serviceId,
-        req.query
-    );
+    const data = await getServiceBookingsService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId,
+        query: req.query
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -73,12 +81,13 @@ export const getServiceBookingsController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const updateBookingController = asyncHandler(async (req, res) => {
-    const data = await updateBookingService(
-        req.user._id,
-        req.params.bookingId,
-        req.body
-    );
+    const data = await updateBookingService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId,
+        updateData: req.body
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -89,12 +98,13 @@ export const updateBookingController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const updateBookingStatusController = asyncHandler(async (req, res) => {
-    const data = await updateBookingStatusService(
-        req.user._id,
-        req.params.bookingId,
-        req.body.status
-    );
+    const data = await updateBookingStatusService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId,
+        status: req.body.status
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -105,12 +115,13 @@ export const updateBookingStatusController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const cancelBookingController = asyncHandler(async (req, res) => {
-    const data = await cancelBookingService(
-        req.user._id,
-        req.params.bookingId,
-        req.body.cancellationReason
-    );
+    const data = await cancelBookingService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId,
+        cancellationReason: req.body.cancellationReason
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -121,11 +132,12 @@ export const cancelBookingController = asyncHandler(async (req, res) => {
     );
 });
 
+
 export const deleteBookingController = asyncHandler(async (req, res) => {
-    await deleteBookingService(
-        req.user._id,
-        req.params.bookingId
-    );
+    await deleteBookingService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId
+    });
 
     return res.status(200).json(
         new ApiResponse(
