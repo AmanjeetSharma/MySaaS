@@ -7,8 +7,12 @@ import {
     getServiceBookingsService,
     updateBookingService,
     updateBookingStatusService,
+    rescheduleBookingService,
     cancelBookingService,
     deleteBookingService,
+    getPublicBookingService,
+    publicRescheduleBookingService,
+    publicCancelBookingService,
 } from './booking.service.js';
 
 
@@ -116,6 +120,25 @@ export const updateBookingStatusController = asyncHandler(async (req, res) => {
 });
 
 
+export const rescheduleBookingController = asyncHandler(async (req, res) => {
+    const data = await rescheduleBookingService({
+        userId: req.user._id,
+        bookingId: req.params.bookingId,
+        startTime: req.body.startTime,
+        timezone: req.body.timezone,
+        date: req.body.date
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking rescheduled successfully."
+        )
+    );
+});
+
+
 export const cancelBookingController = asyncHandler(async (req, res) => {
     const data = await cancelBookingService({
         userId: req.user._id,
@@ -144,6 +167,55 @@ export const deleteBookingController = asyncHandler(async (req, res) => {
             200,
             null,
             "Booking deleted successfully."
+        )
+    );
+});
+
+
+export const getPublicBookingController = asyncHandler(async (req, res) => {
+    const data = await getPublicBookingService({
+        hashedToken: req.params.hashedToken
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Public booking fetched successfully."
+        )
+    );
+});
+
+
+export const publicRescheduleBookingController = asyncHandler(async (req, res) => {
+    const data = await publicRescheduleBookingService({
+        hashedToken: req.params.hashedToken,
+        startTime: req.body.startTime,
+        timezone: req.body.timezone,
+        date: req.body.date
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Public booking rescheduled successfully."
+        )
+    );
+});
+
+
+export const publicCancelBookingController = asyncHandler(async (req, res) => {
+    const data = await publicCancelBookingService({
+        hashedToken: req.params.hashedToken,
+        cancellationReason: req.body.cancellationReason
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Public booking cancelled successfully."
         )
     );
 });

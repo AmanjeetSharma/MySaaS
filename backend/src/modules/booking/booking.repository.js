@@ -68,3 +68,11 @@ export const updateBooking = async (bookingId, updateData) => {
 export const deleteBookingById = async (bookingId) => {
     return await Booking.findByIdAndDelete(bookingId);
 };
+
+export const findOrganizationById = async (orgId) => {
+    return await Booking.findOne({ organization: orgId });
+}
+
+export const findServiceById = async (serviceId) => {
+    return await Booking.findOne({ service: serviceId });
+}

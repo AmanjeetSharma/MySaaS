@@ -25,7 +25,7 @@ import availabilityRoutes from "./modules/availability/availability.routes.js";
 import customerRoutes from "./modules/customer/customer.routes.js";
 import dealRoutes from "./modules/deal/deal.routes.js";
 import activityRoutes from "./modules/activity/activity.routes.js";
-// import bookingRoutes from "./modules/booking/booking.routes.js";
+import bookingRoutes from "./modules/booking/booking.routes.js";
 import googleRoutes from "./modules/providers/google/google.routes.js";
 
 // Use routes
@@ -37,7 +37,7 @@ app.use("/api/v1/availability", availabilityRoutes);
 app.use("/api/v1/customers", customerRoutes);
 app.use("/api/v1/deals", dealRoutes);
 app.use("/api/v1/activities", activityRoutes);
-// app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/providers/google", googleRoutes);
 
 // Error handling middleware

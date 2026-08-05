@@ -120,8 +120,21 @@ const calendarEventSchema = new Schema({
     },
 }, { _id: false });
 
-// Booking Schema
+// for accessing booking details without authentication for booker
+const bookingAccessSchema = new Schema({
+    hashedToken: {
+        type: String,
+        default: null,
+        select: false,
+    },
 
+    expiresAt: {
+        type: Date,
+        default: null,
+    }
+}, { _id: false });
+
+// Booking Schema
 const bookingSchema = new Schema({
     organization: {
         type: Schema.Types.ObjectId,
@@ -174,7 +187,7 @@ const bookingSchema = new Schema({
 
     status: {
         type: String,
-        enum: ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW",],
+        enum: ["CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW",],
         default: "CONFIRMED",
         index: true,
     },
@@ -201,6 +214,11 @@ const bookingSchema = new Schema({
         default: null,
         trim: true,
         maxlength: [1000, "Notes cannot exceed 1000 characters"],
+    },
+
+    bookingAccess: {
+        type: bookingAccessSchema,
+        default: {},
     },
 },
     { timestamps: true, }

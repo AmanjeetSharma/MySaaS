@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
 import { findOverlappingBooking } from "./booking.repository.js";
-import { ACTIVE_BOOKING_STATUSES, BOOKING_STATUSES } from "./booking.constants.js";
+import { BOOKING_STATUSES } from "./booking.constants.js";
 
 export const validateObjectId = (id, label) => {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {

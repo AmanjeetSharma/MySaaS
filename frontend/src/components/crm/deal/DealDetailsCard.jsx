@@ -151,13 +151,12 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
 
           {deal.closedAt && (
             <div
-              className={`flex items-center justify-between p-2 rounded-xl border mt-2 ${
-                status === "lost"
-                  ? "bg-rose-500/5 text-rose-600 border-rose-500/10 dark:text-rose-400"
-                  : status === "won"
+              className={`flex items-center justify-between p-2 rounded-xl border mt-2 ${status === "lost"
+                ? "bg-rose-500/5 text-rose-600 border-rose-500/10 dark:text-rose-400"
+                : status === "won"
                   ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/10 dark:text-emerald-400"
                   : "bg-muted/40 text-muted-foreground border-muted/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-3.5 w-3.5 opacity-80" />
@@ -229,7 +228,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5 cursor-pointer"
           >
             <Pencil className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
             <span className="truncate">Edit Details</span>
@@ -239,7 +238,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
             variant="outline"
             size="sm"
             onClick={onStatus}
-            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5 cursor-pointer"
           >
             <Flag className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
             <span className="truncate">Status</span>
@@ -249,7 +248,7 @@ const DealDetailsCard = ({ deal, onEdit, onStatus, onDelete }) => {
             variant="destructive"
             size="sm"
             onClick={onDelete}
-            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5"
+            className="h-8 sm:h-9 text-[10px] sm:text-xs rounded-xl px-1 sm:px-2.5 cursor-pointer"
           >
             <Trash2 className="mr-1 sm:mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
             <span className="truncate">Delete</span>

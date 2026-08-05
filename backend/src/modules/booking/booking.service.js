@@ -23,10 +23,19 @@ import {
     getPaginationOptions,
     validateStatusTransition,
 } from "./booking.helper.js";
-import {
-    ACTIVE_BOOKING_STATUSES,
-    BOOKING_STATUSES,
-} from "./booking.constants.js";
+import { BOOKING_STATUSES, } from "./booking.constants.js";
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const createBookingService = async (userId, payload) => {
     const { serviceId, booker, startTime, timezone, notes } = payload;
@@ -38,11 +47,11 @@ export const createBookingService = async (userId, payload) => {
 
     const parsedStartTime = new Date(startTime);
     const service = await findServiceById(serviceId);
-    
+
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
-    
+
     if (!service.isActive) {
         throw new ApiError(400, "Service is not active for booking");
     }
@@ -296,6 +305,31 @@ export const updateBookingStatusService = async (userId, bookingId, status) => {
     return updatedBooking;
 };
 
+
+
+
+
+
+
+
+
+
+
+export const rescheduleBookingService = async (userId, bookingId, startTime, timezone, date) => {
+    //not implemented yet
+}
+
+
+
+
+
+
+
+
+
+
+
+
 export const cancelBookingService = async (userId, bookingId, cancellationReason) => {
     validateObjectId(bookingId, "booking ID");
 
@@ -375,3 +409,24 @@ const checkOrganizationAccess = async (orgId, userId) => {
 
     return organization;
 };
+
+
+
+
+
+
+
+
+
+
+export const getPublicBookingService = async (hashedToken) => {
+    //not implemented yet
+}
+
+export const publicRescheduleBookingService = async (hashedToken, payload) => {
+    //not implemented yet
+}
+
+export const publicCancelBookingService = async (hashedToken, payload) => {
+    //not implemented yet
+}

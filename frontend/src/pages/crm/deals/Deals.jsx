@@ -417,8 +417,7 @@ const Deals = () => {
                 </div>
                 <EmptyTitle className="text-base font-semibold tracking-tight text-foreground">No Deals Registered</EmptyTitle>
                 <EmptyDescription className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                  Your pipeline is ready, but no opportunities have been created for <strong>{organizationName}</strong> yet. Start from a customer profile so every deal has an owner and contact context.
-                </EmptyDescription>
+                  Get started by creating your first deal for <strong>{organizationName}</strong>. This ensures every deal is connected to the correct owner and contact.                </EmptyDescription>
               </EmptyHeader>
               <EmptyContent className="mt-6">
                 <Button size="sm" onClick={() => navigate("/customers")} className="h-9 text-xs font-medium px-5 gap-2 shadow-sm cursor-pointer transition-all">
