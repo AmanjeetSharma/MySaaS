@@ -3,6 +3,7 @@ import { checkOrganizationAccess } from "../modules/organization/organization.ac
 
 
 export const requireOrganizationAccess = asyncHandler(async (req, res, next) => {
+    console.log("requireOrganizationAccess middleware called");
     const userId = req.user._id;
 
     const organizationId =
