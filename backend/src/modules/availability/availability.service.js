@@ -8,26 +8,24 @@ import {
     deleteAvailabilityByServiceId,
 } from "./availability.repository.js";
 import { timezoneValidator } from "../user/settings/settings.validator.js";
-
-const DAYS = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-];
+import { DAYS_OF_WEEK } from "./availability.constant.js";
 
 
 
 
 
 
-
-export const createAvailabilityService = async (userId, serviceId, payload) => {
+export const createAvailabilityService = async ({
+    userId,
+    serviceId,
+    payload,
+}) => {
     if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
-        throw new ApiError(400, "Invalid service ID");
+        throw new ApiError(400, "Service ID is required and must be a valid ObjectId");
+    }
+
+    if (!payload.days) {
+        throw new ApiError(400, "Days availability is required");
     }
 
     const existingAvailability = await findAvailabilityByServiceId(serviceId);
@@ -45,13 +43,15 @@ export const createAvailabilityService = async (userId, serviceId, payload) => {
         throw new ApiError(404, "Organization not found");
     }
 
-    if (
-        userId.toString() !== organization.owner.toString() &&
-        !organization.members.some(
-            (member) => member.user.toString() === userId.toString()
-        )
-    ) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+    const hasAccess =
+        userId.toString() === organization.owner.toString() ||
+        organization.members.some(
+            (member) =>
+                member.user.toString() === userId.toString()
+        );
+
+    if (!hasAccess) {
+        throw new ApiError(403, "Access denied. You cannot perform this action on this organization");
     }
 
     const timezoneValidation = timezoneValidator(payload.timezone);
@@ -62,20 +62,11 @@ export const createAvailabilityService = async (userId, serviceId, payload) => {
     const availability = await createAvailability({
         service: serviceId,
         timezone: payload.timezone,
-        monday: payload.monday,
-        tuesday: payload.tuesday,
-        wednesday: payload.wednesday,
-        thursday: payload.thursday,
-        friday: payload.friday,
-        saturday: payload.saturday,
-        sunday: payload.sunday,
+        days: payload.days,
     });
-
-    console.log(`Availability created with ID: ${availability._id} for service: ${service.name}(ID: ${service._id})`);
 
     return availability;
 };
-
 
 
 
@@ -124,7 +115,7 @@ export const updateAvailabilityService = async (userId, serviceId, payload) => {
         availability.timezone = payload.timezone;
     }
 
-    for (const day of DAYS) {
+    for (const day of DAYS_OF_WEEK) {
         if (payload[day] !== undefined) {
             availability[day] = payload[day];
         }
@@ -216,14 +207,15 @@ export const deleteAvailabilityService = async (userId, serviceId) => {
             (member) => member.user.toString() === userId.toString()
         )
     ) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+        throw new ApiError(403, "Access denied. You cannot perform this action on an organization you do not belong to");
     }
 
-    try {
-        await deleteAvailabilityByServiceId(serviceId);
-    } catch (err) {
-        throw new ApiError(500, "An error occurred while deleting availability, please try again.");
+    const availability = await findAvailabilityByServiceId(serviceId);
+    if (!availability) {
+        throw new ApiError(404, "Availability not found");
     }
+
+    await deleteAvailabilityByServiceId(serviceId);
 
     console.log(`Availability deleted with ID: ${serviceId} for service: ${service.name}(ID: ${service._id})`);
 

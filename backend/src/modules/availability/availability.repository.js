@@ -4,17 +4,17 @@ import { Organization } from "../organization/organization.model.js";
 
 
 export const findAvailabilityByServiceId = async (serviceId) => {
-    return await Availability.findOne({ service: serviceId });
+    return Availability.findOne({ service: serviceId });
 };
 
 
 export const createAvailability = async (payload) => {
-    return await Availability.create(payload);
+    return Availability.create(payload);
 
 };
 
 export const updateAvailabilityById = async (availabilityId, payload) => {
-    return await Availability.findByIdAndUpdate(
+    return Availability.findByIdAndUpdate(
         availabilityId,
         payload,
         { new: true }
@@ -27,7 +27,7 @@ export const findServiceById = async (serviceId, selectedFields) => {
     if (selectedFields) {
         query = query.select(selectedFields);
     }
-    return await query;
+    return query;
 };
 
 
@@ -36,10 +36,10 @@ export const findOrganizationById = async (orgId, selectedFields) => {
     if (selectedFields) {
         query = query.select(selectedFields);
     }
-    return await query;
+    return query;
 };
 
 
 export const deleteAvailabilityByServiceId = async (serviceId) => {
-    return await Availability.findOneAndDelete({ service: serviceId });
+    return Availability.findOneAndDelete({ service: serviceId });
 };

@@ -11,11 +11,11 @@ import {
 
 
 export const createAvailabilityController = asyncHandler(async (req, res) => {
-    const data = await createAvailabilityService(
-        req.user._id,
-        req.params.serviceId,
-        req.body
-    );
+    const data = await createAvailabilityService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId,
+        payload: req.body
+    });
 
     return res.status(201).json(
         new ApiResponse(
