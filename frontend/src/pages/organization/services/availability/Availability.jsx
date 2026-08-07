@@ -336,12 +336,13 @@ export default function Availability() {
 
   if (isLoading || serviceLoading) {
     return (
-      <div className="flex h-screen items-center justify-center gap-3 font-black uppercase tracking-widest text-muted-foreground/60">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        Syncronizing Workspace...
+      <div className="fixed inset-0 flex items-center justify-center animate-pulse text-5xl font-black uppercase tracking-widest text-muted-foreground/40">
+        Synchronizing Workspace...
       </div>
     );
   }
+
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-3 py-7 sm:px-4 sm:py-10 md:py-14">
