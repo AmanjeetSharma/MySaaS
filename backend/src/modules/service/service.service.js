@@ -8,6 +8,7 @@ import {
     findServicesByOrganizationId,
     findOrganizationBySlug,
     findServiceBySlug,
+    findAvailabilityByServiceId,
 } from "./service.repository.js";
 import { generateServiceSlug } from "./service.helper.js";
 import env from "../../config/env.config.js";
@@ -729,9 +730,42 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
         throw new ApiError(404, "Service not found");
     }
 
-    return service;
-};
+    const availability = await findAvailabilityByServiceId(service._id);
 
+    const responseObject = {
+        service: service.toObject(),
+        availability: availability ? { ...availability.toObject() } : null,
+    };
+
+    return {
+        organization: {
+            name: organization.name,
+            slug: organization.slug,
+        },
+
+        service: {
+            id: service._id,
+            name: service.name,
+            slug: service.slug,
+            description: service.description,
+            mode: service.mode,
+            durationInMinutes: service.durationInMinutes,
+            price: service.price,
+            currency: service.currency,
+            meetingProvider: service.meetingProvider,
+            address: service.address,
+        },
+
+        availability: availability
+            ? {
+                timezone: availability.timezone,
+                days: availability.days,
+            }
+            : null,
+
+        isBookable: !!availability,
+    };
+};
 
 
 

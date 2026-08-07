@@ -1,6 +1,7 @@
 import { User } from "../user/user.model.js";
 import { Organization } from "../organization/organization.model.js";
 import { Service } from "./service.model.js";
+import { Availability } from "../availability/availability.model.js";
 
 export const findIfSlugExists = async (orgId, slug) => {
     return await Service.findOne({ organization: orgId, slug });
@@ -46,5 +47,10 @@ export const findOrganizationBySlug = async (slug) => {
 
 
 export const findServiceBySlug = async (orgId, slug) => {
-    return await Service.findOne({ organization: orgId, slug });
+    return Service.findOne({ organization: orgId, slug });
+}
+
+
+export const findAvailabilityByServiceId = async (serviceId) => {
+    return Availability.findOne({ service: serviceId });
 }
