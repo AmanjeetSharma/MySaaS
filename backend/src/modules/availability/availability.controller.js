@@ -28,11 +28,11 @@ export const createAvailabilityController = asyncHandler(async (req, res) => {
 
 
 export const updateAvailabilityController = asyncHandler(async (req, res) => {
-    const data = await updateAvailabilityService(
-        req.user._id,
-        req.params.serviceId,
-        req.body
-    );
+    const data = await updateAvailabilityService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId,
+        payload: req.body
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -45,10 +45,10 @@ export const updateAvailabilityController = asyncHandler(async (req, res) => {
 
 
 export const getAvailabilityByServiceIdController = asyncHandler(async (req, res) => {
-    const data = await getAvailabilityByServiceIdService(
-        req.user._id,
-        req.params.serviceId
-    );
+    const data = await getAvailabilityByServiceIdService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -61,16 +61,16 @@ export const getAvailabilityByServiceIdController = asyncHandler(async (req, res
 
 
 export const deleteAvailabilityController = asyncHandler(async (req, res) => {
-    const data = await deleteAvailabilityService(
-        req.user._id,
-        req.params.serviceId
-    );
+    const data = await deleteAvailabilityService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId
+    });
 
     return res.status(200).json(
         new ApiResponse(
             200,
             data,
-            "Availability deleted successfully."
+            "Availability has been reset to default"
         )
     );
 });

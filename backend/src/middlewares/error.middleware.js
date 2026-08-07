@@ -1,9 +1,24 @@
 import { ApiError } from "../utils/ApiError.js";
+import mongoose from "mongoose";
 import env from "../config/env.config.js";
 
 const errorHandler = (err, req, res, next) => {
 
     let error = err;
+    if (err instanceof mongoose.Error.ValidationError) {
+
+        const errors = Object.values(err.errors).map(error => ({
+            field: error.path,
+            message: error.message,
+        }));
+
+        return res.status(400).json({
+            statusCode: 400,
+            success: false,
+            message: "Validation failed.",
+            errors,
+        });
+    }
 
     // converts unknown errors -> ApiError
     if (!(error instanceof ApiError)) {

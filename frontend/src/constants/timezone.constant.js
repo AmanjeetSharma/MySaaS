@@ -1,4 +1,4 @@
-export const timezones = [
+export const TIMEZONES = [
     // UTC
     'UTC',
 

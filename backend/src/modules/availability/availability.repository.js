@@ -31,15 +31,6 @@ export const findServiceById = async (serviceId, selectedFields) => {
 };
 
 
-export const findOrganizationById = async (orgId, selectedFields) => {
-    let query = Organization.findById(orgId);
-    if (selectedFields) {
-        query = query.select(selectedFields);
-    }
-    return query;
-};
-
-
 export const deleteAvailabilityByServiceId = async (serviceId) => {
     return Availability.findOneAndDelete({ service: serviceId });
 };

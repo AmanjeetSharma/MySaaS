@@ -510,6 +510,8 @@ export const getOrganizationServicesService = async (userId, orgId) => {
 
     const services = await findServicesByOrganizationId(orgId);
 
+    console.log(`Services fetched for organization: ${organization.name} (ID: ${organization._id}) | Total Services: ${services.length}`);
+
     return services;
 };
 

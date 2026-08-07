@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { timezones } from "@/constants/timezone.constant";
+import { TIMEZONES } from "@/constants/timezone.constant";
 
 import {
     Card,
@@ -231,7 +231,7 @@ const Preferences = () => {
 
                                 <SelectContent className="max-h-70">
 
-                                    {timezones.map((tz) => (
+                                    {TIMEZONES.map((tz) => (
 
                                         <SelectItem
                                             key={tz}

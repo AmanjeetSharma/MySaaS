@@ -1,120 +1,155 @@
-import { create } from 'zustand';
-import { http } from '../api/httpClient';
+import { create } from "zustand";
+import { http } from "../api/httpClient";
+
+const getErrorMessage = (error, fallback) =>
+  error.response?.data?.message || fallback;
 
 export const useAvailabilityStore = create((set) => ({
   availability: null,
+
   isLoading: false,
   isSaving: false,
   isDeleting: false,
+
   error: null,
 
   getAvailability: async (serviceId) => {
-    set({ isLoading: true, error: null });
+    set({
+      isLoading: true,
+      error: null,
+    });
 
     try {
       const response = await http.get(`/availability/${serviceId}`);
-      const { data } = response.data;
+      const availability = response.data.data;
 
       set({
-        availability: data || null,
-        isLoading: false,
-        error: null,
+        availability: availability || null,
       });
 
-      return data || null;
+      return availability || null;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        'Failed to fetch availability';
-
       set({
         availability: null,
-        isLoading: false,
-        error: errorMessage,
+        error: getErrorMessage(
+          error,
+          "Failed to fetch availability"
+        ),
       });
 
       throw error;
+    } finally {
+      set({
+        isLoading: false,
+      });
     }
   },
 
   createAvailability: async (serviceId, payload) => {
-    set({ isSaving: true, error: null });
+    set({
+      isSaving: true,
+      error: null,
+    });
 
     try {
-      const response = await http.post(`/availability/${serviceId}`, payload);
-      const { data } = response.data;
+      const response = await http.post(
+        `/availability/${serviceId}`,
+        payload
+      );
+
+      const availability = response.data.data;
 
       set({
-        availability: data || null,
-        isSaving: false,
-        error: null,
+        availability: availability || null,
       });
 
-      return data || null;
+      return availability || null;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        'Failed to create availability';
+      set({
+        error: getErrorMessage(
+          error,
+          "Failed to create availability"
+        ),
+      });
 
-      set({ isSaving: false, error: errorMessage });
       throw error;
+    } finally {
+      set({
+        isSaving: false,
+      });
     }
   },
 
   updateAvailability: async (serviceId, payload) => {
-    set({ isSaving: true, error: null });
+    set({
+      isSaving: true,
+      error: null,
+    });
 
     try {
-      const response = await http.patch(`/availability/${serviceId}`, payload);
-      const { data } = response.data;
+      const response = await http.patch(
+        `/availability/${serviceId}`,
+        payload
+      );
+
+      const availability = response.data.data;
 
       set({
-        availability: data || null,
-        isSaving: false,
-        error: null,
+        availability: availability || null,
       });
 
-      return data || null;
+      return availability || null;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        'Failed to update availability';
+      set({
+        error: getErrorMessage(
+          error,
+          "Failed to update availability"
+        ),
+      });
 
-      set({ isSaving: false, error: errorMessage });
       throw error;
+    } finally {
+      set({
+        isSaving: false,
+      });
     }
   },
 
   deleteAvailability: async (serviceId) => {
-    set({ isDeleting: true, error: null });
+    set({
+      isDeleting: true,
+      error: null,
+    });
 
     try {
-      const response = await http.delete(`/availability/${serviceId}`);
+      const response = await http.delete(
+        `/availability/${serviceId}`
+      );
 
       set({
         availability: null,
-        isDeleting: false,
-        error: null,
       });
 
-      return response.data?.data || null;
+      return response.data.data;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        'Failed to delete availability';
+      set({
+        error: getErrorMessage(error, "Failed to delete availability"),
+      });
 
-      set({ isDeleting: false, error: errorMessage });
       throw error;
+    } finally {
+      set({
+        isDeleting: false,
+      });
     }
   },
 
-  clearAvailability: () => {
+  clearAvailability: () =>
     set({
       availability: null,
       isLoading: false,
       isSaving: false,
       isDeleting: false,
       error: null,
-    });
-  },
+    }),
 }));

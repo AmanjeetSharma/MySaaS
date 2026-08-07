@@ -26,7 +26,7 @@ import Members from '@/pages/organization/Members';
 
 // Service imports
 import Services from '@/pages/organization/services/allServices/Services';
-import Availability from '@/pages/organization/services/Availability';
+import Availability from '@/pages/organization/services/availability/Availability';
 import ServiceDetails from '@/pages/organization/services/ServiceDetails';
 
 // Public Service imports
