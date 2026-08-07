@@ -489,7 +489,7 @@ export default function Availability() {
 
           <div className="w-full lg:max-w-md">
             <Select value={form.timezone} onValueChange={updateTimezone}>
-              <SelectTrigger className="h-12 w-full rounded-xl border-primary/20 bg-background px-4 font-black shadow-sm">
+              <SelectTrigger className="h-12 w-full rounded-xl border-primary/20 bg-background px-4 font-black shadow-sm cursor-pointer">
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent className="max-h-72">

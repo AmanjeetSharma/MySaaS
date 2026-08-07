@@ -17,7 +17,7 @@ export const serviceNameValidator = (name) => {
     }
 
     if (!/^[A-Za-z0-9\s\-&_().]+$/.test(trimmed)) {
-        errors.push("Service name contains invalid characters");
+        errors.push("Service name cannot contain special characters");
     }
 
     return {

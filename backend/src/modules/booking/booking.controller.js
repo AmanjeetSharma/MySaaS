@@ -16,24 +16,24 @@ import {
 } from './booking.service.js';
 
 
-export const createBookingController = asyncHandler(async (req, res) => {
-    const { serviceId, startTime, timezone, booker } = req.body;
-    const data = await createBookingService({
-        userId: req.user._id,
-        serviceId,
-        startTime,
-        timezone,
-        booker,
-    });
+    export const createBookingController = asyncHandler(async (req, res) => {
+        const { serviceId, startTime, timezone, booker, notes } = req.body;
+        const data = await createBookingService({
+            serviceId,
+            startTime,
+            timezone,
+            booker,
+            notes,
+        });
 
-    return res.status(201).json(
-        new ApiResponse(
-            201,
-            data,
-            "Booking created successfully."
-        )
-    );
-});
+        return res.status(201).json(
+            new ApiResponse(
+                201,
+                data,
+                "Booking created successfully."
+            )
+        );
+    });
 
 
 export const getBookingByIdController = asyncHandler(async (req, res) => {

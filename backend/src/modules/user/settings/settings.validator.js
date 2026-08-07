@@ -27,17 +27,23 @@ export const themeValidator = (theme) => {
 
 
 export const timezoneValidator = (timezone) => {
-    const errors = [];
+    if (typeof timezone !== "string" || timezone.trim() === "") {
+        return {
+            valid: false,
+            errors: ["Invalid timezone"],
+        };
+    }
 
-    if (!timezone || typeof timezone !== "string") {
-        errors.push("Invalid timezone");
-    } else if (!TIMEZONES.includes(timezone)) {
-        errors.push("Timezone not supported");
+    if (!TIMEZONES.includes(timezone)) {
+        return {
+            valid: false,
+            errors: ["Timezone not supported"],
+        };
     }
 
     return {
-        valid: errors.length === 0,
-        errors
+        valid: true,
+        errors: [],
     };
 };
 

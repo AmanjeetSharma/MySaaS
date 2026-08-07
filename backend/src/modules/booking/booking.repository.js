@@ -1,4 +1,6 @@
 import { Booking } from "./booking.model.js";
+import { Organization } from "../organization/organization.model.js";
+import { Service } from "../service/service.model.js";
 
 export const findBookingById = async (bookingId, populateFields) => {
     let query = Booking.findById(bookingId);
@@ -69,10 +71,18 @@ export const deleteBookingById = async (bookingId) => {
     return await Booking.findByIdAndDelete(bookingId);
 };
 
-export const findOrganizationById = async (orgId) => {
-    return await Booking.findOne({ organization: orgId });
+export const findOrganizationById = async (orgId, selectedFields) => {
+    let query = Organization.findById(orgId);
+    if (selectedFields) {
+        query = query.select(selectedFields);
+    }
+    return await query;
 }
 
-export const findServiceById = async (serviceId) => {
-    return await Booking.findOne({ service: serviceId });
+export const findServiceById = async (serviceId, selectedFields) => {
+    let query = Service.findById(serviceId);
+    if (selectedFields) {
+        query = query.select(selectedFields);
+    }
+    return await query;
 }

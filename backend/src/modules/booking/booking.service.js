@@ -37,23 +37,21 @@ import { BOOKING_STATUSES, } from "./booking.constants.js";
 
 
 
-export const createBookingService = async (userId, payload) => {
+export const createBookingService = async (payload) => {
     const { serviceId, booker, startTime, timezone, notes } = payload;
 
     validateObjectId(serviceId, "service ID");
     validateBookerDetails(booker);
-    validateStartTime(startTime);
+    const parsedStartTime = validateStartTime(startTime);
     validateTimezone(timezone);
 
-    const parsedStartTime = new Date(startTime);
     const service = await findServiceById(serviceId);
-
     if (!service) {
         throw new ApiError(404, "Service not found");
     }
 
     if (!service.isActive) {
-        throw new ApiError(400, "Service is not active for booking");
+        throw new ApiError(400, "Service is not taking booking at the moment");
     }
 
     const parsedEndTime = new Date(
@@ -77,13 +75,17 @@ export const createBookingService = async (userId, payload) => {
             price: service.price,
             currency: service.currency,
             mode: service.mode,
+            meetingProvider: service.mode === "ONLINE" ? service.meetingProvider : null,
+            autoGenerateMeetingLink: service.mode === "ONLINE" ? service.autoGenerateMeetingLink : false,
             address: service.mode === "OFFLINE" ? service.address : null,
         },
         startTime: parsedStartTime,
         endTime: parsedEndTime,
         timezone,
-        meetingProvider: service.mode === "ONLINE" ? service.meetingProvider : null,
-        meetingLink: null,
+        meeting: {
+            provider: service.mode === "ONLINE" ? service.meetingProvider : null,
+            link: null,
+        },
         notes: notes || null,
     };
 

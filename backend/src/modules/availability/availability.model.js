@@ -1,71 +1,80 @@
 import mongoose from "mongoose";
-import { TIMEZONES, DEFAULT_TIMEZONE } from "../../constants/timezone.constants.js";
+import {
+    TIMEZONES,
+    DEFAULT_TIMEZONE,
+} from "../../constants/timezone.constants.js";
 
-const timeSlotSchema = new mongoose.Schema({
-    startTime: { type: String, required: true, },
-    endTime: { type: String, required: true, },
-}, { _id: false });
-
-
-const dayAvailabilitySchema = new mongoose.Schema({
-    enabled: { type: Boolean, default: false, },
-    slots: {
-        type: [timeSlotSchema],
-        default: [],
+const timeSlotSchema = new mongoose.Schema(
+    {
+        startTime: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 1439,
+        },
+        endTime: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 1440,
+        },
     },
-}, { _id: false });
+    { _id: false }
+);
 
+const dayAvailabilitySchema = new mongoose.Schema(
+    {
+        enabled: {
+            type: Boolean,
+            default: false,
+        },
 
-const availabilitySchema = new mongoose.Schema({
+        slots: {
+            type: [timeSlotSchema],
+            default: [],
+        },
+    },
+    { _id: false }
+);
+
+const DAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+];
+
+const availabilityFields = {
     service: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Service",
-        default: null,
+        required: true,
+        unique: true,
+        index: true,
     },
 
     timezone: {
         type: String,
         enum: TIMEZONES,
         default: DEFAULT_TIMEZONE,
+        required: true,
     },
+};
 
-    monday: {
+DAYS.forEach((day) => {
+    availabilityFields[day] = {
         type: dayAvailabilitySchema,
         default: () => ({}),
-    },
+    };
+});
 
-    tuesday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-
-    wednesday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-
-    thursday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-
-    friday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-
-    saturday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-
-    sunday: {
-        type: dayAvailabilitySchema,
-        default: () => ({}),
-    },
-}, { timestamps: true, }
-);
+const availabilitySchema = new mongoose.Schema(availabilityFields, {
+    timestamps: true,
+});
 
 export const Availability =
-    mongoose.model.Availability ||
+    mongoose.models.Availability ||
     mongoose.model("Availability", availabilitySchema);

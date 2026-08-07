@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { BOOKING_STATUSES } from "./booking.constants.js";
 
 const addressSnapshotSchema = new Schema({
     street: { type: String, trim: true, default: null },
@@ -187,7 +188,7 @@ const bookingSchema = new Schema({
 
     status: {
         type: String,
-        enum: ["CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW",],
+        enum: BOOKING_STATUSES,
         default: "CONFIRMED",
         index: true,
     },
@@ -224,12 +225,10 @@ const bookingSchema = new Schema({
     { timestamps: true, }
 );
 
-bookingSchema.pre("validate", function validateBookingTimes(next) {
+bookingSchema.pre("validate", function validateBookingTimes() {
     if (this.startTime && this.endTime && this.endTime <= this.startTime) {
-        return next(new Error("End time must be after start time"));
+        throw new Error("End time must be after start time");
     }
-
-    return next();
 });
 
 bookingSchema.index({ organization: 1, startTime: 1 });

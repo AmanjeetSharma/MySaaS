@@ -2,17 +2,35 @@ import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
 import { findOverlappingBooking } from "./booking.repository.js";
 import { BOOKING_STATUSES } from "./booking.constants.js";
+import { emailValidator, nameValidator } from "../../validations/auth.validators.js";
+import { timezoneValidator } from "../user/settings/settings.validator.js";
 
 export const validateObjectId = (id, label) => {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(400, `Invalid ${label}`);
     }
 };
-
 export const validateBookerDetails = (booker) => {
-    if (!booker?.name || !booker?.email) {
+    if (!booker) {
+        throw new ApiError(400, "Booker details are required");
+    }
+
+    const { name, email } = booker;
+
+    if (!name || !email) {
         throw new ApiError(400, "Booker name and email are required");
     }
+
+    const nameValidation = nameValidator(name);
+    if (!nameValidation.valid) {
+        throw new ApiError(400, nameValidation.errors.join(", "));
+    }
+
+    if (!emailValidator(email)) {
+        throw new ApiError(400, "Invalid email address");
+    }
+
+    return true;
 };
 
 export const validateStartTime = (startTime) => {
@@ -32,8 +50,9 @@ export const validateStartTime = (startTime) => {
 };
 
 export const validateTimezone = (timezone) => {
-    if (!timezone) {
-        throw new ApiError(400, "Timezone is required");
+    const timezoneValidation = timezoneValidator(timezone);
+    if (!timezoneValidation.valid) {
+        throw new ApiError(400, timezoneValidation.errors.join(", "));
     }
 };
 
