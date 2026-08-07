@@ -7,7 +7,8 @@ export const requireOrganizationAccess = asyncHandler(async (req, res, next) => 
 
     const organizationId =
         req.params.orgId ||
-        req.body.organizationId ||
+        req.params.organizationId ||
+        req.body?.organizationId ||
         req.query.organizationId;
 
     const organization = await checkOrganizationAccess(
