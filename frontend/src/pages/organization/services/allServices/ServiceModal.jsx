@@ -10,6 +10,7 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Clock,
 } from 'lucide-react';
 import { INTEGRATION_CONFIG } from '@/constants/integrations.constant';
 import {
@@ -52,6 +53,17 @@ const DEFAULT_FORM = {
 };
 
 const MAX_PRICE = 99999999;
+const MAX_DURATION = 1440; // Max 24 hours (1440 mins)
+
+const DURATION_PRESETS = [
+  { label: '15 mins', value: '15' },
+  { label: '30 mins', value: '30' },
+  { label: '45 mins', value: '45' },
+  { label: '60 mins (1 hr)', value: '60' },
+  { label: '90 mins (1.5 hrs)', value: '90' },
+  { label: '120 mins (2 hrs)', value: '120' },
+  { label: 'Custom...', value: 'custom' },
+];
 
 const currencyIcons = {
   INR: IndianRupee,
@@ -72,6 +84,17 @@ const normalizePriceInput = (value) => {
   const numericValue = Number(normalizedValue);
   if (!Number.isFinite(numericValue)) return MAX_PRICE.toString();
   if (numericValue > MAX_PRICE) return MAX_PRICE.toString();
+
+  return normalizedValue;
+};
+
+const normalizeDurationInput = (value) => {
+  const normalizedValue = normalizeNumberInput(value);
+  if (normalizedValue === '') return '';
+
+  const numericValue = Number(normalizedValue);
+  if (!Number.isFinite(numericValue)) return MAX_DURATION.toString();
+  if (numericValue > MAX_DURATION) return MAX_DURATION.toString();
 
   return normalizedValue;
 };
@@ -136,11 +159,18 @@ export default function ServiceModal({
 }) {
   const [form, setForm] = useState(() => toFormState(service));
   const [errors, setErrors] = useState({});
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setForm(toFormState(service));
+      const initialForm = toFormState(service);
+      setForm(initialForm);
       setErrors({});
+
+      const isPreset = DURATION_PRESETS.some(
+        (p) => p.value === String(initialForm.durationInMinutes)
+      );
+      setIsCustomDuration(!isPreset);
     }
   }, [service, open]);
 
@@ -151,15 +181,22 @@ export default function ServiceModal({
     }
   };
 
-  const updateNumberField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: normalizeNumberInput(value) }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
+  const updatePriceField = (value) => {
+    setForm((current) => ({ ...current, price: normalizePriceInput(value) }));
+  };
+
+  const updateDurationPreset = (value) => {
+    if (value === 'custom') {
+      setIsCustomDuration(true);
+    } else {
+      setIsCustomDuration(false);
+      updateField('durationInMinutes', Number(value));
     }
   };
 
-  const updatePriceField = (value) => {
-    setForm((current) => ({ ...current, price: normalizePriceInput(value) }));
+  const updateCustomDuration = (value) => {
+    const normalized = normalizeDurationInput(value);
+    updateField('durationInMinutes', normalized);
   };
 
   const updateAddress = (field, value) => {
@@ -179,7 +216,7 @@ export default function ServiceModal({
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = 'Service name is required';
     if (!form.durationInMinutes || Number(form.durationInMinutes) <= 0) {
-      newErrors.durationInMinutes = 'Enter valid duration';
+      newErrors.durationInMinutes = 'Enter valid duration (min 1 min)';
     }
 
     if (form.mode === 'OFFLINE') {
@@ -249,32 +286,65 @@ export default function ServiceModal({
                 )}
               </div>
 
-              {/* Duration + Combined Currency & Price Input */}
+              {/* Combined Duration & Price Controls */}
               <div className="grid gap-4 sm:grid-cols-2">
-                {/* Duration */}
+                {/* Duration Control matching Price & Currency style */}
                 <div className="space-y-1.5">
                   <Label htmlFor="service-duration" className="text-xs font-medium text-foreground">
                     Duration <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={String(form.durationInMinutes)}
-                    onValueChange={(val) => updateField('durationInMinutes', Number(val))}
+                  <div
+                    className={cn(
+                      "flex h-9 rounded-lg border border-border/80 bg-background shadow-2xs focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden",
+                      errors.durationInMinutes && "border-destructive focus-within:ring-destructive/20"
+                    )}
                   >
-                    <SelectTrigger id="service-duration" className="h-9 w-full rounded-lg border-border/80 bg-background text-sm shadow-2xs cursor-pointer">
-                      <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15" className="cursor-pointer">15 minutes</SelectItem>
-                      <SelectItem value="30" className="cursor-pointer">30 minutes</SelectItem>
-                      <SelectItem value="45" className="cursor-pointer">45 minutes</SelectItem>
-                      <SelectItem value="60" className="cursor-pointer">60 minutes (1 hr)</SelectItem>
-                      <SelectItem value="90" className="cursor-pointer">90 minutes (1.5 hrs)</SelectItem>
-                      <SelectItem value="120" className="cursor-pointer">120 minutes (2 hrs)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={isCustomDuration ? 'custom' : String(form.durationInMinutes)}
+                      onValueChange={updateDurationPreset}
+                    >
+                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-28 shrink-0">
+                        <SelectValue placeholder="Duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DURATION_PRESETS.map((preset) => (
+                          <SelectItem key={preset.value} value={preset.value} className="cursor-pointer text-xs font-medium">
+                            {preset.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="relative flex-1 flex items-center">
+                      <Clock className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <Input
+                        id="service-duration"
+                        type="number"
+                        min="1"
+                        max={MAX_DURATION}
+                        step="1"
+                        disabled={!isCustomDuration}
+                        value={form.durationInMinutes}
+                        onFocus={(e) => {
+                          if (e.currentTarget.value === '0') e.currentTarget.select();
+                        }}
+                        onChange={(e) => updateCustomDuration(e.target.value)}
+                        className="h-full border-0 bg-transparent pl-8 pr-8 text-sm focus-visible:ring-0 shadow-none disabled:opacity-75 disabled:cursor-not-allowed"
+                        placeholder="30"
+                      />
+                      <span className="pointer-events-none absolute right-2.5 text-[10px] font-bold uppercase text-muted-foreground">
+                        mins
+                      </span>
+                    </div>
+                  </div>
+                  {errors.durationInMinutes && (
+                    <p className="text-[11px] font-medium text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> {errors.durationInMinutes}
+                    </p>
+                  )}
                 </div>
 
-                {/* Compound Currency + Price Control */}
+                {/* Currency + Price Control */}
                 <div className="space-y-1.5">
                   <Label htmlFor="service-price" className="text-xs font-medium text-foreground">
                     Price & Currency <span className="text-destructive">*</span>
@@ -403,7 +473,7 @@ export default function ServiceModal({
                 </div>
               )}
 
-              {/* OFFLINE Mode: Compact Address Matrix */}
+              {/* OFFLINE Mode: Address Fields */}
               {form.mode === 'OFFLINE' && (
                 <div className="p-4 rounded-xl border border-border/80 bg-card space-y-3 animate-in fade-in-50 duration-150">
                   {/* Street */}
