@@ -399,7 +399,7 @@ export default function Availability() {
               className="h-11 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all"
             >
               <X className="h-4 w-4 mr-1" />
-              Reset
+              Discard Changes
             </Button>
           )}
           {hasExistingAvailability && (
