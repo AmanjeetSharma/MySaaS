@@ -1,88 +1,31 @@
 import { Booking } from "./booking.model.js";
 import { Organization } from "../organization/organization.model.js";
 import { Service } from "../service/service.model.js";
+import { Availability } from "../availability/availability.model.js";
 
-export const findBookingById = async (bookingId, populateFields) => {
-    let query = Booking.findById(bookingId);
-    if (populateFields) {
-        query = query.populate(populateFields);
-    }
-    return await query;
+export const findOrganizationBySlug = async (slug) => {
+    return Organization.findOne({ slug })
+        .populate("owner", "name email")
+        .select("+integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
 };
 
-export const findBookingsByFilter = async (filter, sortOptions) => {
-    let query = Booking.find(filter);
-    if (sortOptions) {
-        query = query.sort(sortOptions);
-    }
-    return await query;
+export const findServiceBySlug = async (orgId, slug) => {
+    return Service.findOne({ organization: orgId, slug });
 };
 
-export const findBookingsByOrganization = async (filter, paginationOptions, sortOrder) => {
-    const { page, limit, skip } = paginationOptions;
-    return await Booking.find(filter)
-        .populate("service", "name slug mode durationInMinutes price currency")
-        .sort({ startTime: sortOrder })
-        .skip(skip)
-        .limit(limit);
+export const findAvailabilityByServiceId = async (serviceId) => {
+    return Availability.findOne({ service: serviceId });
 };
 
-export const findBookingsByService = async (filter, paginationOptions, sortOrder) => {
-    const { page, limit, skip } = paginationOptions;
-    return await Booking.find(filter)
-        .populate("service", "name slug mode durationInMinutes price currency")
-        .sort({ startTime: sortOrder })
-        .skip(skip)
-        .limit(limit);
-};
-
-export const countBookingsByFilter = async (filter) => {
-    return await Booking.countDocuments(filter);
-};
-
-export const findOverlappingBooking = async (serviceId, startTime, endTime, excludeBookingId) => {
-    const query = {
-        service: serviceId,
-        status: { $in: ["PENDING", "CONFIRMED"] },
+export const findOverlappingOrganizationBooking = async (orgId, startTime, endTime) => {
+    return Booking.findOne({
+        organization: orgId,
+        status: "CONFIRMED",
         startTime: { $lt: endTime },
         endTime: { $gt: startTime },
-    };
-
-    if (excludeBookingId) {
-        query._id = { $ne: excludeBookingId };
-    }
-
-    return await Booking.findOne(query);
+    });
 };
 
 export const createBooking = async (bookingData) => {
-    return await Booking.create(bookingData);
+    return Booking.create(bookingData);
 };
-
-export const updateBooking = async (bookingId, updateData) => {
-    return await Booking.findByIdAndUpdate(
-        bookingId,
-        updateData,
-        { new: true, runValidators: true }
-    );
-};
-
-export const deleteBookingById = async (bookingId) => {
-    return await Booking.findByIdAndDelete(bookingId);
-};
-
-export const findOrganizationById = async (orgId, selectedFields) => {
-    let query = Organization.findById(orgId);
-    if (selectedFields) {
-        query = query.select(selectedFields);
-    }
-    return await query;
-}
-
-export const findServiceById = async (serviceId, selectedFields) => {
-    let query = Service.findById(serviceId);
-    if (selectedFields) {
-        query = query.select(selectedFields);
-    }
-    return await query;
-}

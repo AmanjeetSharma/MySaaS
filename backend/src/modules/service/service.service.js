@@ -737,6 +737,18 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
         availability: availability ? { ...availability.toObject() } : null,
     };
 
+    const hasBookableAvailability = Object.values(availability?.days ?? {}).some(
+        day => day.enabled && Array.isArray(day.slots) && day.slots.length > 0
+    );
+
+    const isBookable =
+        service.isActive &&
+        hasBookableAvailability &&
+        (
+            service.mode === "ONLINE" ||
+            (service.mode === "OFFLINE" && !!service.address)
+        );
+
     return {
         organization: {
             name: organization.name,
@@ -763,7 +775,7 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
             }
             : null,
 
-        isBookable: !!availability,
+        isBookable,
     };
 };
 

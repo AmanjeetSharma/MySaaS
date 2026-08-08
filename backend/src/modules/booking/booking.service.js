@@ -1,29 +1,21 @@
-import mongoose from "mongoose";
+import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
+import env from "../../config/env.config.js";
+import { sendEmail } from "../../integrations/email.integration.js";
 import {
-    findOrganizationById,
-    findServiceById,
-    findBookingById,
-    findOverlappingBooking,
     createBooking,
-    findBookingsByOrganization,
-    findBookingsByService,
-    countBookingsByFilter,
-    updateBooking,
-    deleteBookingById,
+    findAvailabilityByServiceId,
+    findOrganizationBySlug,
+    findOverlappingOrganizationBooking,
+    findServiceBySlug,
 } from "./booking.repository.js";
 import {
-    validateObjectId,
     validateBookerDetails,
     validateStartTime,
     validateTimezone,
-    buildBookingQuery,
-    checkOverlappingBooking,
-    validateBookingStatus,
-    getPaginationOptions,
-    validateStatusTransition,
 } from "./booking.helper.js";
-import { BOOKING_STATUSES, } from "./booking.constants.js";
+import { decryptRefreshToken } from "../providers/google/google.utils.js";
+import { createCalendarEvent } from "../providers/google/services/calendar.service.js";
 
 
 
@@ -33,67 +25,67 @@ import { BOOKING_STATUSES, } from "./booking.constants.js";
 
 
 
-
-
-
-
-export const createBookingService = async (payload) => {
-    const { serviceId, booker, startTime, timezone, notes } = payload;
-
-    validateObjectId(serviceId, "service ID");
-    validateBookerDetails(booker);
-    const parsedStartTime = validateStartTime(startTime);
-    validateTimezone(timezone);
-
-    const service = await findServiceById(serviceId);
-    if (!service) {
-        throw new ApiError(404, "Service not found");
+const tryCreateGoogleEvent = async ({
+    organization,
+    service,
+    booker,
+    startTime,
+    endTime,
+    timezone,
+    manageBookingUrl,
+}) => {
+    if (!shouldCreateGoogleEvent(service, organization)) {
+        return {
+            meeting: {
+                provider: service.mode === "ONLINE" ? service.meetingProvider : null,
+                link: null,
+            },
+            calendarEvent: {},
+        };
     }
 
-    if (!service.isActive) {
-        throw new ApiError(400, "Service is not taking booking at the moment");
+    try {
+        const refreshToken = decryptRefreshToken(organization.integrations.google.refreshToken);
+        const calendarId = organization.integrations.google.calendarId;
+        const event = await createCalendarEvent({
+            refreshToken,
+            calendarId,
+            summary: `${service.name} with ${booker.name}`,
+            description: [
+                `Booking for ${service.name}`,
+                `Booker: ${booker.name} <${booker.email}>`,
+                manageBookingUrl ? `Manage booking: ${manageBookingUrl}` : null,
+            ].filter(Boolean).join("\n"),
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            timeZone: timezone,
+            attendees: [{ email: booker.email, displayName: booker.name }],
+            generateMeetLink: true,
+        });
+
+        return {
+            meeting: {
+                provider: service.meetingProvider,
+                link: event.meetLink,
+            },
+            calendarEvent: {
+                provider: "GOOGLE",
+                calendarId,
+                eventId: event.eventId,
+                htmlLink: event.htmlLink,
+            },
+        };
+    } catch (error) {
+        console.error("[Booking] Google Calendar event creation failed:", error.message);
+
+        return {
+            meeting: {
+                provider: service.meetingProvider,
+                link: null,
+            },
+            calendarEvent: {},
+        };
     }
-
-    const parsedEndTime = new Date(
-        parsedStartTime.getTime() + service.durationInMinutes * 60 * 1000
-    );
-
-    await checkOverlappingBooking(serviceId, parsedStartTime, parsedEndTime);
-
-    const bookingData = {
-        organization: service.organization,
-        service: service._id,
-        booker: {
-            name: booker.name,
-            email: booker.email,
-            phone: booker.phone || null,
-        },
-        serviceSnapshot: {
-            name: service.name,
-            slug: service.slug,
-            durationInMinutes: service.durationInMinutes,
-            price: service.price,
-            currency: service.currency,
-            mode: service.mode,
-            meetingProvider: service.mode === "ONLINE" ? service.meetingProvider : null,
-            autoGenerateMeetingLink: service.mode === "ONLINE" ? service.autoGenerateMeetingLink : false,
-            address: service.mode === "OFFLINE" ? service.address : null,
-        },
-        startTime: parsedStartTime,
-        endTime: parsedEndTime,
-        timezone,
-        meeting: {
-            provider: service.mode === "ONLINE" ? service.meetingProvider : null,
-            link: null,
-        },
-        notes: notes || null,
-    };
-
-    const newBooking = await createBooking(bookingData);
-
-    console.log(`Booking created| Service: ${service.name} (ID: ${service._id}) | Booker: ${booker.name} (${booker.email})`);
-
-    return newBooking;
 };
 
 
@@ -108,110 +100,36 @@ export const createBookingService = async (payload) => {
 
 
 
+const sendBookingEmails = async ({ booking, organization, manageBookingUrl }) => {
+    if (!env.EMAIL_ENABLED) return;
 
+    const date = new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: booking.timezone,
+    }).format(booking.startTime);
 
+    const customerMessage = [
+        `Hi ${booking.booker.name},`,
+        "",
+        `Your booking for ${booking.serviceSnapshot.name} with ${organization.name} is confirmed for ${date}.`,
+        booking.meeting?.link ? `Meeting link: ${booking.meeting.link}` : null,
+        manageBookingUrl ? `Manage booking: ${manageBookingUrl}` : null,
+    ].filter(Boolean).join("\n");
 
+    const ownerEmail = organization.owner?.email;
+    const ownerMessage = [
+        `New booking for ${booking.serviceSnapshot.name}.`,
+        "",
+        `Booker: ${booking.booker.name} <${booking.booker.email}>`,
+        `Time: ${date}`,
+        booking.meeting?.link ? `Meeting link: ${booking.meeting.link}` : null,
+    ].filter(Boolean).join("\n");
 
-export const getBookingByIdService = async (userId, bookingId) => {
-    validateObjectId(bookingId, "booking ID");
-
-    const booking = await findBookingById(bookingId);
-    if (!booking) {
-        throw new ApiError(404, "Booking not found");
-    }
-
-    await checkOrganizationAccess(booking.organization, userId);
-
-    await booking.populate("service", "name slug mode durationInMinutes price currency");
-
-    return booking;
-};
-
-
-
-
-
-
-
-
-
-export const getOrganizationBookingsService = async (userId, orgId, query) => {
-    validateObjectId(orgId, "organization ID");
-    await checkOrganizationAccess(orgId, userId);
-
-    const filter = {
-        organization: orgId,
-        ...buildBookingQuery(query),
-    };
-
-    const paginationOptions = getPaginationOptions(query);
-    const sortOrder = query.sortOrder === "asc" ? 1 : -1;
-
-    const [bookings, total] = await Promise.all([
-        findBookingsByOrganization(filter, paginationOptions, sortOrder),
-        countBookingsByFilter(filter),
+    await Promise.allSettled([
+        sendEmail(booking.booker.email, "Booking confirmed", customerMessage),
+        ownerEmail ? sendEmail(ownerEmail, "New booking received", ownerMessage) : Promise.resolve(),
     ]);
-
-    const result = {
-        bookings,
-        pagination: {
-            page: paginationOptions.page,
-            limit: paginationOptions.limit,
-            total,
-            totalPages: Math.ceil(total / paginationOptions.limit),
-        },
-    };
-
-    console.log(`Organization bookings fetched| Organization: ${orgId} | Count: ${bookings.length}`);
-
-    return result;
-};
-
-
-
-
-
-
-
-
-
-
-export const getServiceBookingsService = async (userId, serviceId, query) => {
-    validateObjectId(serviceId, "service ID");
-
-    const service = await findServiceById(serviceId);
-    if (!service) {
-        throw new ApiError(404, "Service not found");
-    }
-
-    await checkOrganizationAccess(service.organization, userId);
-
-    const filter = {
-        service: serviceId,
-        ...buildBookingQuery(query),
-    };
-
-    const paginationOptions = getPaginationOptions(query);
-    const sortOrder = query.sortOrder === "asc" ? 1 : -1;
-
-    const [bookings, total] = await Promise.all([
-        findBookingsByService(filter, paginationOptions, sortOrder),
-        countBookingsByFilter(filter),
-    ]);
-
-    const result = {
-        bookings,
-        pagination: {
-            page: paginationOptions.page,
-            limit: paginationOptions.limit,
-            total,
-            totalPages: Math.ceil(total / paginationOptions.limit),
-        },
-    };
-
-    console.log(`Service bookings fetched| Service: ${serviceId} | Count: ${bookings.length}`);
-
-    return result;
 };
 
 
@@ -227,208 +145,89 @@ export const getServiceBookingsService = async (userId, serviceId, query) => {
 
 
 
-export const updateBookingService = async (userId, bookingId, payload) => {
-    validateObjectId(bookingId, "booking ID");
 
-    const { startTime, timezone, notes, meetingLink } = payload;
 
-    const booking = await findBookingById(bookingId);
-    if (!booking) {
-        throw new ApiError(404, "Booking not found");
-    }
 
-    await checkOrganizationAccess(booking.organization, userId);
 
-    const updateData = {};
+export const createBookingService = async (payload = {}) => {
+    const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
+    const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
 
-    if (startTime !== undefined) {
-        const parsedStartTime = new Date(startTime);
-        if (Number.isNaN(parsedStartTime.getTime())) {
-            throw new ApiError(400, "Invalid start time");
-        }
-        if (parsedStartTime <= new Date()) {
-            throw new ApiError(400, "Booking start time must be in the future");
-        }
+    validateBookerDetails(payload.booker);
+    const startTime = validateStartTime(payload.startTime);
+    validateTimezone(payload.timezone);
 
-        const parsedEndTime = new Date(
-            parsedStartTime.getTime() + booking.serviceSnapshot.durationInMinutes * 60 * 1000
-        );
-
-        await checkOverlappingBooking(booking.service, parsedStartTime, parsedEndTime, bookingId);
-
-        updateData.startTime = parsedStartTime;
-        updateData.endTime = parsedEndTime;
-    }
-
-    if (timezone !== undefined) updateData.timezone = timezone;
-    if (notes !== undefined) updateData.notes = notes || null;
-    if (meetingLink !== undefined) updateData.meetingLink = meetingLink || null;
-
-    const updatedBooking = await updateBooking(bookingId, updateData);
-
-    console.log(`Booking updated| Booking ID: ${bookingId}`);
-
-    return updatedBooking;
-};
-
-
-
-
-
-
-
-
-
-
-
-export const updateBookingStatusService = async (userId, bookingId, status) => {
-    validateObjectId(bookingId, "booking ID");
-
-    const booking = await findBookingById(bookingId);
-    if (!booking) {
-        throw new ApiError(404, "Booking not found");
-    }
-
-    await checkOrganizationAccess(booking.organization, userId);
-
-    validateBookingStatus(status);
-    validateStatusTransition(booking.status, status);
-
-    const updateData = {
-        status,
-        cancelledAt: status === "CANCELLED" ? new Date() : null,
-        completedAt: status === "COMPLETED" ? new Date() : null,
-    };
-
-    const updatedBooking = await updateBooking(bookingId, updateData);
-
-    console.log(`Booking status updated| Booking ID: ${bookingId} | Status: ${status}`);
-
-    return updatedBooking;
-};
-
-
-
-
-
-
-
-
-
-
-
-export const rescheduleBookingService = async (userId, bookingId, startTime, timezone, date) => {
-    //not implemented yet
-}
-
-
-
-
-
-
-
-
-
-
-
-
-export const cancelBookingService = async (userId, bookingId, cancellationReason) => {
-    validateObjectId(bookingId, "booking ID");
-
-    const booking = await findBookingById(bookingId);
-    if (!booking) {
-        throw new ApiError(404, "Booking not found");
-    }
-
-    await checkOrganizationAccess(booking.organization, userId);
-
-    if (booking.status === "CANCELLED") {
-        throw new ApiError(400, "Booking is already cancelled");
-    }
-
-    const updateData = {
-        status: "CANCELLED",
-        cancellationReason: cancellationReason || null,
-        cancelledAt: new Date(),
-        completedAt: null,
-    };
-
-    const cancelledBooking = await updateBooking(bookingId, updateData);
-
-    console.log(`Booking cancelled| Booking ID: ${bookingId} | Reason: ${cancellationReason || "No reason provided"}`);
-
-    return cancelledBooking;
-};
-
-
-
-
-
-
-
-
-
-
-export const deleteBookingService = async (userId, bookingId) => {
-    validateObjectId(bookingId, "booking ID");
-
-    const booking = await findBookingById(bookingId);
-    if (!booking) {
-        throw new ApiError(404, "Booking not found");
-    }
-
-    await checkOrganizationAccess(booking.organization, userId);
-
-    await deleteBookingById(bookingId);
-
-    console.log(`Booking deleted| Booking ID: ${bookingId}`);
-};
-
-
-
-
-
-
-
-
-
-
-// Helper function to check organization access
-const checkOrganizationAccess = async (orgId, userId) => {
-    const organization = await findOrganizationById(orgId);
+    const organization = await findOrganizationBySlug(organizationSlug);
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
 
-    const isOwner = organization.owner.toString() === userId.toString();
-    const isMember = organization.members.some(
-        (member) => member.user.toString() === userId.toString()
-    );
-
-    if (!isOwner && !isMember) {
-        throw new ApiError(403, "Access denied. You can not perform this action on an organization you do not belong to");
+    const service = await findServiceBySlug(organization._id, serviceSlug);
+    if (!service || !service.isActive) {
+        throw new ApiError(404, "Service not found");
     }
 
-    return organization;
+    const availability = await findAvailabilityByServiceId(service._id);
+    if (!availability) {
+        throw new ApiError(400, "Bookings unavailable");
+    }
+
+    const endTime = validateRequestedSlot({
+        startTime,
+        availability,
+        durationInMinutes: service.durationInMinutes,
+    });
+
+    const conflictingBooking = await findOverlappingOrganizationBooking(
+        organization._id,
+        startTime,
+        endTime
+    );
+
+    if (conflictingBooking) {
+        throw new ApiError(409, "Slot already booked");
+    }
+
+    const accessToken = generateBookingAccessToken();
+    const manageBookingUrl = `${env.CLIENT_URL}/booking/manage?token=${accessToken.rawToken}`;
+    const booker = {
+        name: payload.booker.name.trim(),
+        email: payload.booker.email.trim().toLowerCase(),
+        phone: payload.booker.phone?.trim() || null,
+    };
+
+    const googleResult = await tryCreateGoogleEvent({
+        organization,
+        service,
+        booker,
+        startTime,
+        endTime,
+        timezone: payload.timezone,
+        manageBookingUrl,
+    });
+
+    const booking = await createBooking({
+        organization: organization._id,
+        service: service._id,
+        booker,
+        serviceSnapshot: buildServiceSnapshot(service),
+        startTime,
+        endTime,
+        timezone: payload.timezone,
+        meeting: googleResult.meeting,
+        calendarEvent: googleResult.calendarEvent,
+        notes: payload.notes?.trim() || null,
+        bookingAccess: {
+            hashedToken: accessToken.hashedToken,
+            expiresAt: accessToken.expiresAt,
+        },
+    });
+
+    await sendBookingEmails({ booking, organization, manageBookingUrl });
+
+    return {
+        bookingId: booking._id,
+        meetingLink: booking.meeting?.link ?? null,
+        manageBookingUrl,
+    };
 };
-
-
-
-
-
-
-
-
-
-
-export const getPublicBookingService = async (hashedToken) => {
-    //not implemented yet
-}
-
-export const publicRescheduleBookingService = async (hashedToken, payload) => {
-    //not implemented yet
-}
-
-export const publicCancelBookingService = async (hashedToken, payload) => {
-    //not implemented yet
-}

@@ -12,12 +12,9 @@ export const serviceNameValidator = (name) => {
         errors.push("Service name must be between 3 to 120 characters");
     }
 
-    if (!/^[A-Za-z]/.test(trimmed)) {
-        errors.push("Service name must start with a letter");
-    }
-
-    if (!/^[A-Za-z0-9\s\-&_().]+$/.test(trimmed)) {
-        errors.push("Service name cannot contain special characters");
+    // Reject control characters.
+    if (/[\u0000-\u001F\u007F]/.test(trimmed)) {
+        errors.push("Service name contains invalid characters");
     }
 
     return {
@@ -25,7 +22,6 @@ export const serviceNameValidator = (name) => {
         errors,
     };
 };
-
 
 
 

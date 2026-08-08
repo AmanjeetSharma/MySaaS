@@ -1,15 +1,24 @@
+import crypto from "crypto";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
-import { findOverlappingBooking } from "./booking.repository.js";
-import { BOOKING_STATUSES } from "./booking.constants.js";
 import { emailValidator, nameValidator } from "../../validations/auth.validators.js";
 import { timezoneValidator } from "../user/settings/settings.validator.js";
+
+export const BOOKING_ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+
+
+
 
 export const validateObjectId = (id, label) => {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(400, `Invalid ${label}`);
     }
 };
+
+
+
+
 export const validateBookerDetails = (booker) => {
     if (!booker) {
         throw new ApiError(400, "Booker details are required");
@@ -33,6 +42,9 @@ export const validateBookerDetails = (booker) => {
     return true;
 };
 
+
+
+
 export const validateStartTime = (startTime) => {
     if (!startTime) {
         throw new ApiError(400, "Start time is required");
@@ -49,6 +61,9 @@ export const validateStartTime = (startTime) => {
     return parsedStartTime;
 };
 
+
+
+
 export const validateTimezone = (timezone) => {
     const timezoneValidation = timezoneValidator(timezone);
     if (!timezoneValidation.valid) {
@@ -56,74 +71,134 @@ export const validateTimezone = (timezone) => {
     }
 };
 
-export const validateBookingStatus = (status) => {
-    if (!BOOKING_STATUSES.includes(status)) {
-        throw new ApiError(400, "Invalid booking status");
-    }
-};
 
-export const validateStatusTransition = (currentStatus, newStatus) => {
-    const validTransitions = {
-        PENDING: ["CONFIRMED", "CANCELLED"],
-        CONFIRMED: ["COMPLETED", "CANCELLED", "NO_SHOW"],
-        COMPLETED: [],
-        CANCELLED: [],
-        NO_SHOW: [],
+
+
+export const generateBookingAccessToken = () => {
+    const rawToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
+
+    const expiresAt = new Date(Date.now() + BOOKING_ACCESS_TOKEN_TTL_MS);
+
+    return {
+        rawToken,
+        hashedToken,
+        expiresAt,
     };
-
-    if (!validTransitions[currentStatus]?.includes(newStatus)) {
-        throw new ApiError(400, `Cannot transition from ${currentStatus} to ${newStatus}`);
-    }
 };
 
-export const checkOverlappingBooking = async (serviceId, startTime, endTime, excludeBookingId) => {
-    const overlappingBooking = await findOverlappingBooking(
-        serviceId,
-        startTime,
-        endTime,
-        excludeBookingId
+
+
+
+export const normalizeSlug = (value, label) => {
+    if (!value || typeof value !== "string" || !value.trim()) {
+        throw new ApiError(400, `${label} is required`);
+    }
+
+    return value.trim().toLowerCase();
+};
+
+
+
+
+export const getZonedDateParts = (date, timezone) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        weekday: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    }).formatToParts(date);
+
+    const getPart = (type) => parts.find((part) => part.type === type)?.value;
+
+    return {
+        dayName: getPart("weekday").toLowerCase(),
+        minuteOfDay:
+            Number(getPart("hour")) * 60 +
+            Number(getPart("minute")),
+    };
+};
+
+
+
+
+export const validateRequestedSlot = ({
+    startTime,
+    availability,
+    durationInMinutes
+}) => {
+    const scheduleTimezone = availability.timezone;
+
+    const { dayName, minuteOfDay } = getZonedDateParts(startTime, scheduleTimezone);
+
+    const daySchedule = availability.days?.[dayName];
+
+    if (!daySchedule?.enabled || !daySchedule.slots?.length) {
+        throw new ApiError(400, "Requested day is not available for bookings");
+    }
+
+    const matchingSlot = daySchedule.slots.find((slot) => (
+        minuteOfDay >= slot.startTime &&
+        minuteOfDay + durationInMinutes <= slot.endTime
+    ));
+
+    if (!matchingSlot) {
+        throw new ApiError(400, "Requested time slot is not available");
+    }
+
+    return new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
+};
+
+
+
+
+export const buildServiceSnapshot = (service) => ({
+    name: service.name,
+    slug: service.slug,
+    durationInMinutes: service.durationInMinutes,
+    price: service.price,
+    currency: service.currency,
+    mode: service.mode,
+
+    meetingProvider:
+        service.mode === "ONLINE"
+            ? service.meetingProvider
+            : null,
+
+    autoGenerateMeetingLink:
+        service.mode === "ONLINE"
+            ? service.autoGenerateMeetingLink
+            : false,
+
+    address:
+        service.mode === "OFFLINE"
+            ? service.address
+            : null,
+});
+
+
+export const shouldCreateGoogleEvent = (service, organization) => {
+
+    const google = organization.integrations?.google;
+
+    return (
+        service.mode === "ONLINE" &&
+        service.meetingProvider === "GOOGLE_MEET" &&
+        service.autoGenerateMeetingLink === true &&
+        google?.isConnected === true &&
+        google?.refreshToken?.encryptedData &&
+        google?.calendarId
     );
-
-    if (overlappingBooking) {
-        throw new ApiError(409, "This time slot is already booked");
-    }
 };
 
-export const buildBookingQuery = (query = {}) => {
-    const filter = {};
 
-    if (query.status) {
-        if (!BOOKING_STATUSES.includes(query.status)) {
-            throw new ApiError(400, "Invalid booking status");
-        }
-        filter.status = query.status;
-    }
 
-    if (query.from || query.to) {
-        filter.startTime = {};
-        if (query.from) {
-            const from = new Date(query.from);
-            if (Number.isNaN(from.getTime())) {
-                throw new ApiError(400, "Invalid from date");
-            }
-            filter.startTime.$gte = from;
-        }
-        if (query.to) {
-            const to = new Date(query.to);
-            if (Number.isNaN(to.getTime())) {
-                throw new ApiError(400, "Invalid to date");
-            }
-            filter.startTime.$lte = to;
-        }
-    }
 
-    return filter;
-};
-
-export const getPaginationOptions = (query = {}) => {
-    const page = Math.max(parseInt(query.page, 10) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(query.limit, 10) || 20, 1), 100);
-    const skip = (page - 1) * limit;
-
-    return { page, limit, skip };
-};
+export const buildManageBookingUrl = (rawToken) => {
+    return `${env.CLIENT_URL}/book/manage?token=${encodeURIComponent(rawToken)}`;
+}
