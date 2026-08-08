@@ -647,7 +647,7 @@ export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) =>
     return {
         success: true,
         autoGenerateMeetingLink: service.autoGenerateMeetingLink,
-        message: `Auto-generate meeting link ${service.autoGenerateMeetingLink ? "enabled" : "disabled"} successfully.`,
+        message: `Auto-generate meeting link ${service.autoGenerateMeetingLink ? "enabled" : "disabled"}.`,
     }
 };
 

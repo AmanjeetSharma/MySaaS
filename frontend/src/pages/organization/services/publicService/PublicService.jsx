@@ -6,7 +6,7 @@ import {
     MapPin,
     Video,
     ShieldCheck,
-    Sparkles,
+    Building2,
     ArrowRight,
     CalendarX2,
     CheckCircle2,
@@ -274,7 +274,7 @@ const PublicService = () => {
                             {/* Organization Badge & Title */}
                             <div>
                                 <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-600 mb-2 bg-indigo-50/80 px-2.5 py-1 rounded-full border border-indigo-100">
-                                    <Sparkles className="w-3 h-3 text-indigo-500" />
+                                    <Building2 className="w-3 h-3 text-indigo-500" />
                                     <span>{organization?.name || "Workspace"}</span>
                                 </div>
                                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
