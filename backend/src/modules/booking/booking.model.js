@@ -205,6 +205,12 @@ const bookingSchema = new Schema({
         default: null,
     },
 
+    cancelledBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+    },
+
     completedAt: {
         type: Date,
         default: null,

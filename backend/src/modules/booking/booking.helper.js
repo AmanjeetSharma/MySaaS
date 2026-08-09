@@ -18,7 +18,7 @@ export const BOOKING_ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;// 30 days i
 
 export const validateObjectId = (id, label) => {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, `Invalid ${label}`);
+        throw new ApiError(400, `${label} is required and must be a valid ObjectId.`);
     }
 };
 
@@ -262,7 +262,7 @@ export const sendBookingEmails = async ({
 
 
     // Owner email is disabled and will be implemented using bullmq
-    
+
     // const ownerEmail = organization.owner?.email;
 
     // const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
@@ -281,4 +281,24 @@ export const sendBookingEmails = async ({
     // } catch (error) {
     //     console.error(`[Booking Email] Failed to send notification email to ${ownerEmail}:`, error.message);
     // }
+};
+
+
+
+
+
+export const validateCancellation = (booking) => {
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
+    if (booking.status === "CANCELLED") {
+        throw new ApiError(400, "Booking is already cancelled.");
+    }
+
+    if (booking.status === "COMPLETED") {
+        throw new ApiError(400, "Completed bookings cannot be cancelled.");
+    }
+
+    return true;
 };

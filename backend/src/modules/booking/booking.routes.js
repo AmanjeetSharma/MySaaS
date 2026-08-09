@@ -11,7 +11,7 @@ import {
     // updateBookingStatusController,
     // rescheduleBookingController,
 
-    // cancelBookingController,
+    cancelBookingController,
     // deleteBookingController,
 
     // getPublicBookingController,
@@ -31,7 +31,7 @@ router.post("/", createBookingController);// public api
 // router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
 // router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);
 
-// router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);
+router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);
 // router.delete("/:bookingId", verifyToken, deleteBookingController);
 
 // router.get("/manage", getPublicBookingController);// public api

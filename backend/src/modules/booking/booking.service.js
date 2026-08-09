@@ -8,8 +8,12 @@ import {
     findOrganizationBySlug,
     findOverlappingOrganizationBooking,
     findServiceBySlug,
+    findBookingByIdAndOrganization,
+    cancelBooking,
+    findOrganizationById,
 } from "./booking.repository.js";
 import {
+    validateObjectId,
     validateBookerDetails,
     validateStartTime,
     validateTimezone,
@@ -20,10 +24,15 @@ import {
     shouldCreateGoogleEvent,
     buildManageBookingUrl,
     sendBookingEmails,
+    validateCancellation,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
-import { createCalendarEvent } from "../providers/google/services/calendar.service.js";
-
+import {
+    createCalendarEvent,
+    updateCalendarEvent,
+    deleteCalendarEvent,
+} from "../providers/google/services/calendar.service.js";
+import { checkOrganizationAccess } from "../organization/organization.access.js";
 
 
 
@@ -179,9 +188,73 @@ export const createBookingService = async (payload = {}) => {
 
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
+    console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".`);
+
     return {
         bookingId: booking._id,
         meetingLink: booking.meeting?.link ?? null,
         manageBookingUrl,
     };
+};
+
+
+
+
+
+
+
+
+
+export const cancelBookingService = async ({
+    userId,
+    orgId,
+    bookingId,
+    cancellationReason,
+}) => {
+    validateObjectId(orgId, "Organization ID");
+    validateObjectId(bookingId, "Booking ID");
+
+    // Staff authorization
+    await checkOrganizationAccess(userId, orgId);
+
+    const booking = await findBookingByIdAndOrganization(bookingId, orgId);
+
+    validateCancellation(booking);
+
+    // delete Google Calendar event if it exists otherwise exit with api error
+    if (
+        booking.calendarEvent?.provider === "GOOGLE" &&
+        booking.calendarEvent?.calendarId &&
+        booking.calendarEvent?.eventId
+    ) {
+        const organization = await findOrganizationById(orgId);
+
+        if (
+            organization?.integrations?.google?.isConnected &&
+            organization.integrations.google?.refreshToken?.encryptedData
+        ) {
+            try {
+                const refreshToken = decryptRefreshToken(organization.integrations.google.refreshToken);
+
+                await deleteCalendarEvent({
+                    refreshToken,
+                    calendarId: booking.calendarEvent.calendarId,
+                    eventId: booking.calendarEvent.eventId,
+                    sendUpdates: "all",
+                });
+            } catch (error) {
+                console.error("[Booking] Failed to delete Google Calendar event:", error.message);
+                throw new ApiError(500, "We encountered an error while cancelling the booking. Please try again later.");
+            }
+        }
+    }   
+
+    const cancelledBooking = await cancelBooking(bookingId, cancellationReason?.trim() || null, userId);
+    if (!cancelledBooking) {
+        throw new ApiError(409, "Booking could not be cancelled.");
+    }
+
+    console.log(`[Booking] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
+
+    return cancelledBooking;
 };

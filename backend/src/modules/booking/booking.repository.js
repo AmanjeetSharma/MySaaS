@@ -33,3 +33,39 @@ export const findOverlappingOrganizationBooking = async (orgId, startTime, endTi
 export const createBooking = async (bookingData) => {
     return Booking.create(bookingData);
 };
+
+
+export const findBookingByIdAndOrganization = async (bookingId, organizationId) => {
+    return Booking.findOne({
+        _id: bookingId,
+        organization: organizationId,
+    });
+};
+
+
+export const cancelBooking = async (bookingId, cancellationReason, cancelledBy) => {
+    return Booking.findOneAndUpdate(
+        {
+            _id: bookingId,
+            status: {
+                $nin: ["CANCELLED", "COMPLETED"],
+            },
+        },
+        {
+            $set: {
+                status: "CANCELLED",
+                cancellationReason: cancellationReason || null,
+                cancelledAt: new Date(),
+                cancelledBy,
+            },
+        },
+        {
+            returnDocument: "after",
+        }
+    );
+};
+
+
+export const findOrganizationById = async (orgId) => {
+    return Organization.findById(orgId).select("+integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
+};
