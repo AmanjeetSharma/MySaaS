@@ -254,23 +254,31 @@ export const sendBookingEmails = async ({
         manageBookingUrl,
     });
 
-    const ownerEmail = organization.owner?.email;
-
-    const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
-        ...templateData,
-
-        ownerName: organization.owner?.name,
-        bookerName: booking.booker.name,
-        bookerEmail: booking.booker.email,
-        bookerPhone: booking.booker.phone,
-    }) : null;
+    try {
+        await sendEmail(booking.booker.email, "Booking confirmed - MySaaS", bookerEmailHTML, true);
+    } catch (error) {
+        console.error(`[Booking Email] Failed to send confirmation email to ${booking.booker.email}:`, error.message);
+    }
 
 
-    await Promise.allSettled([
-        sendEmail(booking.booker.email, "Booking confirmed - MySaaS", bookerEmailHTML, true),
+    // Owner email is disabled and will be implemented using bullmq
+    
+    // const ownerEmail = organization.owner?.email;
 
-        ownerEmail && ownerEmailHTML
-            ? sendEmail(ownerEmail, `New booking for - ${booking.serviceSnapshot.name}`, ownerEmailHTML, true)
-            : Promise.resolve(),
-    ]);
+    // const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
+    //     ...templateData,
+
+    //     ownerName: organization.owner?.name,
+    //     bookerName: booking.booker.name,
+    //     bookerEmail: booking.booker.email,
+    //     bookerPhone: booking.booker.phone,
+    // }) : null;
+
+    // try {
+    //     if (ownerEmail && ownerEmailHTML) {
+    //         await sendEmail(ownerEmail, "New booking received - MySaaS", ownerEmailHTML, true);
+    //     }
+    // } catch (error) {
+    //     console.error(`[Booking Email] Failed to send notification email to ${ownerEmail}:`, error.message);
+    // }
 };
