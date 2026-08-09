@@ -3,8 +3,14 @@ import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
 import { emailValidator, nameValidator } from "../../validations/auth.validators.js";
 import { timezoneValidator } from "../user/settings/settings.validator.js";
+import { bookingConfirmationBookerEmailTemplate } from "../../utils/email/bookingConfirmationBookerEmailTemplate.js";
+import { bookingConfirmationOwnerEmailTemplate } from "../../utils/email/bookingConfirmationOwnerEmailTemplate.js";
+import env from "../../config/env.config.js";
+import { sendEmail } from "../../integrations/email.integration.js";
 
-export const BOOKING_ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+export const BOOKING_ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;// 30 days in ms
+
 
 
 
@@ -15,6 +21,7 @@ export const validateObjectId = (id, label) => {
         throw new ApiError(400, `Invalid ${label}`);
     }
 };
+
 
 
 
@@ -45,6 +52,7 @@ export const validateBookerDetails = (booker) => {
 
 
 
+
 export const validateStartTime = (startTime) => {
     if (!startTime) {
         throw new ApiError(400, "Start time is required");
@@ -64,12 +72,14 @@ export const validateStartTime = (startTime) => {
 
 
 
+
 export const validateTimezone = (timezone) => {
     const timezoneValidation = timezoneValidator(timezone);
     if (!timezoneValidation.valid) {
         throw new ApiError(400, timezoneValidation.errors.join(", "));
     }
 };
+
 
 
 
@@ -94,6 +104,7 @@ export const generateBookingAccessToken = () => {
 
 
 
+
 export const normalizeSlug = (value, label) => {
     if (!value || typeof value !== "string" || !value.trim()) {
         throw new ApiError(400, `${label} is required`);
@@ -101,6 +112,7 @@ export const normalizeSlug = (value, label) => {
 
     return value.trim().toLowerCase();
 };
+
 
 
 
@@ -127,6 +139,7 @@ export const getZonedDateParts = (date, timezone) => {
 
 
 
+
 export const validateRequestedSlot = ({
     startTime,
     availability,
@@ -139,7 +152,7 @@ export const validateRequestedSlot = ({
     const daySchedule = availability.days?.[dayName];
 
     if (!daySchedule?.enabled || !daySchedule.slots?.length) {
-        throw new ApiError(400, "Requested day is not available for bookings");
+        throw new ApiError(400, "Requested day is currently not available for bookings");
     }
 
     const matchingSlot = daySchedule.slots.find((slot) => (
@@ -153,6 +166,7 @@ export const validateRequestedSlot = ({
 
     return new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
 };
+
 
 
 
@@ -182,6 +196,9 @@ export const buildServiceSnapshot = (service) => ({
 });
 
 
+
+
+
 export const shouldCreateGoogleEvent = (service, organization) => {
 
     const google = organization.integrations?.google;
@@ -199,6 +216,61 @@ export const shouldCreateGoogleEvent = (service, organization) => {
 
 
 
+
 export const buildManageBookingUrl = (rawToken) => {
     return `${env.CLIENT_URL}/book/manage?token=${encodeURIComponent(rawToken)}`;
 }
+
+
+
+
+
+export const sendBookingEmails = async ({
+    booking,
+    organization,
+    manageBookingUrl,
+}) => {
+    if (!env.EMAIL_ENABLED) return;
+
+    const date = new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: booking.timezone,
+    }).format(booking.startTime);
+
+    const templateData = {
+        organizationName: organization.name,
+        serviceName: booking.serviceSnapshot.name,
+        date,
+        durationInMinutes: booking.serviceSnapshot.durationInMinutes,
+        mode: booking.serviceSnapshot.mode,
+        address: booking.serviceSnapshot.address,
+        meetingLink: booking.meeting?.link ?? null,
+    };
+
+    const bookerEmailHTML = bookingConfirmationBookerEmailTemplate({
+        ...templateData,
+        bookerName: booking.booker.name,
+        manageBookingUrl,
+    });
+
+    const ownerEmail = organization.owner?.email;
+
+    const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
+        ...templateData,
+
+        ownerName: organization.owner?.name,
+        bookerName: booking.booker.name,
+        bookerEmail: booking.booker.email,
+        bookerPhone: booking.booker.phone,
+    }) : null;
+
+
+    await Promise.allSettled([
+        sendEmail(booking.booker.email, "Booking confirmed - MySaaS", bookerEmailHTML, true),
+
+        ownerEmail && ownerEmailHTML
+            ? sendEmail(ownerEmail, `New booking for - ${booking.serviceSnapshot.name}`, ownerEmailHTML, true)
+            : Promise.resolve(),
+    ]);
+};

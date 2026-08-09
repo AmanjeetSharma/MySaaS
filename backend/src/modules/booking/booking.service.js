@@ -13,11 +13,16 @@ import {
     validateBookerDetails,
     validateStartTime,
     validateTimezone,
+    generateBookingAccessToken,
+    normalizeSlug,
+    validateRequestedSlot,
+    buildServiceSnapshot,
+    shouldCreateGoogleEvent,
+    buildManageBookingUrl,
+    sendBookingEmails,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import { createCalendarEvent } from "../providers/google/services/calendar.service.js";
-
-
 
 
 
@@ -54,7 +59,7 @@ const tryCreateGoogleEvent = async ({
             description: [
                 `Booking for ${service.name}`,
                 `Booker: ${booker.name} <${booker.email}>`,
-                manageBookingUrl ? `Manage booking: ${manageBookingUrl}` : null,
+                manageBookingUrl ? `Manage booking url for ${booker.name}: ${manageBookingUrl}` : null,
             ].filter(Boolean).join("\n"),
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
@@ -94,67 +99,14 @@ const tryCreateGoogleEvent = async ({
 
 
 
-
-
-
-
-
-
-const sendBookingEmails = async ({ booking, organization, manageBookingUrl }) => {
-    if (!env.EMAIL_ENABLED) return;
-
-    const date = new Intl.DateTimeFormat("en-IN", {
-        dateStyle: "medium",
-        timeStyle: "short",
-        timeZone: booking.timezone,
-    }).format(booking.startTime);
-
-    const customerMessage = [
-        `Hi ${booking.booker.name},`,
-        "",
-        `Your booking for ${booking.serviceSnapshot.name} with ${organization.name} is confirmed for ${date}.`,
-        booking.meeting?.link ? `Meeting link: ${booking.meeting.link}` : null,
-        manageBookingUrl ? `Manage booking: ${manageBookingUrl}` : null,
-    ].filter(Boolean).join("\n");
-
-    const ownerEmail = organization.owner?.email;
-    const ownerMessage = [
-        `New booking for ${booking.serviceSnapshot.name}.`,
-        "",
-        `Booker: ${booking.booker.name} <${booking.booker.email}>`,
-        `Time: ${date}`,
-        booking.meeting?.link ? `Meeting link: ${booking.meeting.link}` : null,
-    ].filter(Boolean).join("\n");
-
-    await Promise.allSettled([
-        sendEmail(booking.booker.email, "Booking confirmed", customerMessage),
-        ownerEmail ? sendEmail(ownerEmail, "New booking received", ownerMessage) : Promise.resolve(),
-    ]);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const createBookingService = async (payload = {}) => {
     const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
     const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
 
     validateBookerDetails(payload.booker);
+
     const startTime = validateStartTime(payload.startTime);
+
     validateTimezone(payload.timezone);
 
     const organization = await findOrganizationBySlug(organizationSlug);
@@ -169,7 +121,7 @@ export const createBookingService = async (payload = {}) => {
 
     const availability = await findAvailabilityByServiceId(service._id);
     if (!availability) {
-        throw new ApiError(400, "Bookings unavailable");
+        throw new ApiError(400, "Bookings are currently unavailable");
     }
 
     const endTime = validateRequestedSlot({
@@ -185,16 +137,18 @@ export const createBookingService = async (payload = {}) => {
     );
 
     if (conflictingBooking) {
-        throw new ApiError(409, "Slot already booked");
+        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
     }
 
-    const accessToken = generateBookingAccessToken();
-    const manageBookingUrl = `${env.CLIENT_URL}/booking/manage?token=${accessToken.rawToken}`;
     const booker = {
         name: payload.booker.name.trim(),
         email: payload.booker.email.trim().toLowerCase(),
         phone: payload.booker.phone?.trim() || null,
     };
+
+    const accessToken = generateBookingAccessToken();
+
+    const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
 
     const googleResult = await tryCreateGoogleEvent({
         organization,

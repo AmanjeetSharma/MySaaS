@@ -9,13 +9,16 @@ export const findOrganizationBySlug = async (slug) => {
         .select("+integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
 };
 
+
 export const findServiceBySlug = async (orgId, slug) => {
     return Service.findOne({ organization: orgId, slug });
 };
 
+
 export const findAvailabilityByServiceId = async (serviceId) => {
     return Availability.findOne({ service: serviceId });
 };
+
 
 export const findOverlappingOrganizationBooking = async (orgId, startTime, endTime) => {
     return Booking.findOne({
@@ -25,6 +28,7 @@ export const findOverlappingOrganizationBooking = async (orgId, startTime, endTi
         endTime: { $gt: startTime },
     });
 };
+
 
 export const createBooking = async (bookingData) => {
     return Booking.create(bookingData);

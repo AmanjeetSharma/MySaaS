@@ -336,7 +336,7 @@ export default function Availability() {
 
   if (isLoading || serviceLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center animate-pulse text-5xl font-black uppercase tracking-widest text-muted-foreground/40">
+      <div className="fixed inset-0 flex items-center justify-center animate-pulse text-xl font-black uppercase tracking-widest text-muted-foreground/40">
         Synchronizing Workspace...
       </div>
     );
