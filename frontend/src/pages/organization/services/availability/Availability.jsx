@@ -6,10 +6,9 @@ import {
   ChevronsUpDown,
   Edit3,
   Loader2,
-  RotateCcw,
   Plus,
+  RotateCcw,
   Save,
-  Trash2,
   X,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -45,6 +44,7 @@ import {
   formatServiceMeta,
   formatSlot,
   getActiveDaysCount,
+  getPresetSlotRange,
   getTotalSlotsCount,
   minutesToTime,
   sortSlots,
@@ -84,6 +84,11 @@ export default function Availability() {
   // Computed Summaries
   const activeDays = useMemo(() => getActiveDaysCount(form), [form]);
   const totalSlots = useMemo(() => getTotalSlotsCount(form), [form]);
+
+  const serviceDuration = useMemo(
+    () => service?.durationInMinutes || 60,
+    [service?.durationInMinutes]
+  );
 
   const savedForm = useMemo(
     () => (hasExistingAvailability ? toForm(availability) : createDefaultForm()),
@@ -148,9 +153,12 @@ export default function Availability() {
   const toggleDay = (dayKey, enabled) => {
     setForm((current) => {
       const day = current.days[dayKey];
+
+      // Default initial slot uses service.durationInMinutes
+      const defaultEndMins = Math.min(1440, 540 + serviceDuration);
       const slots = day.slots.length
         ? day.slots
-        : [{ startTime: '09:00', endTime: '12:00' }];
+        : [{ startTime: '09:00', endTime: minutesToTime(defaultEndMins) }];
 
       return {
         ...current,
@@ -169,19 +177,20 @@ export default function Availability() {
   const openAddSlot = (dayKey, preset = null) => {
     const existingSlots = form.days[dayKey].slots;
     let defaultStart = '09:00';
-    let defaultEnd = '17:00';
+    let defaultEnd = minutesToTime(Math.min(1440, 540 + serviceDuration));
 
     if (preset) {
-      defaultStart = preset.startTime;
-      defaultEnd = preset.endTime;
+      const presetRange = getPresetSlotRange(preset, serviceDuration);
+      defaultStart = presetRange.startTime;
+      defaultEnd = presetRange.endTime;
     } else if (existingSlots.length > 0) {
       const sorted = sortSlots(existingSlots);
       const lastSlot = sorted[sorted.length - 1];
       const lastEndMins = timeToMinutes(lastSlot.endTime);
 
-      if (lastEndMins < 1380) {
+      if (lastEndMins < 1440) {
         defaultStart = minutesToTime(lastEndMins);
-        defaultEnd = minutesToTime(Math.min(1440, lastEndMins + 60));
+        defaultEnd = minutesToTime(Math.min(1440, lastEndMins + serviceDuration));
       }
     }
 
@@ -191,7 +200,7 @@ export default function Availability() {
       slotIndex: null,
       startTime: defaultStart,
       endTime: defaultEnd,
-      title: preset?.label ? `${preset.label} slot` : 'Custom slot',
+      title: preset?.label ? `${preset.label} window` : 'Custom window',
     });
   };
 
@@ -203,7 +212,7 @@ export default function Availability() {
       slotIndex,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      title: 'Edit slot',
+      title: 'Edit window',
     });
   };
 
@@ -215,7 +224,7 @@ export default function Availability() {
 
       let nextEnd = current.endTime;
       if (currentEndMins <= newStartMins) {
-        nextEnd = minutesToTime(Math.min(1440, newStartMins + 60));
+        nextEnd = minutesToTime(Math.min(1440, newStartMins + serviceDuration));
       }
 
       return { ...current, startTime: value, endTime: nextEnd };
@@ -237,6 +246,12 @@ export default function Availability() {
       return;
     }
 
+    const availableMins = endMinutes - startMinutes;
+    if (availableMins < serviceDuration) {
+      toast.error(`Window must be at least ${serviceDuration} minutes long to fit an appointment`);
+      return;
+    }
+
     const existingSlots = form.days[slotModal.dayKey].slots;
     const hasOverlap = checkSlotOverlap(
       existingSlots,
@@ -246,7 +261,7 @@ export default function Availability() {
     );
 
     if (hasOverlap) {
-      toast.error('Time slot overlaps with an existing slot');
+      toast.error('Time window overlaps with an existing window');
       return;
     }
 
@@ -342,8 +357,6 @@ export default function Availability() {
     );
   }
 
-
-
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-3 py-7 sm:px-4 sm:py-10 md:py-14">
       {/* Header Section */}
@@ -365,7 +378,7 @@ export default function Availability() {
               Availability
             </div>
             <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
-              <h1 className="max-w-4xl break-words text-3xl font-black uppercase leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-4xl md:text-5xl">
+              <h1 className="max-w-4xl wrap-break-word text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl md:text-5xl">
                 {service?.name || 'Service Availability'}
               </h1>
               <div className="flex shrink-0 flex-wrap gap-2">
@@ -379,7 +392,7 @@ export default function Availability() {
                   variant="outline"
                   className="h-7 rounded-full bg-background px-3 text-xs font-black"
                 >
-                  {totalSlots} Time Slots
+                  {totalSlots} Windows
                 </Badge>
               </div>
             </div>
@@ -426,7 +439,11 @@ export default function Availability() {
               disabled={isSaving || isDeleting}
               className="h-11 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest shadow-md hover:shadow-primary/20 active:scale-95 transition-all"
             >
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-1 stroke-[2.5]" />
+              )}
               {hasExistingAvailability ? 'Save Changes' : 'Create Availability'}
             </Button>
           )}
@@ -516,7 +533,7 @@ export default function Availability() {
                       </h2>
                       <p className="text-xs font-bold text-muted-foreground">
                         {day.enabled
-                          ? `${day.slots.length} slot${day.slots.length === 1 ? '' : 's'} configured`
+                          ? `${day.slots.length} window${day.slots.length === 1 ? '' : 's'} configured`
                           : 'Unavailable'}
                       </p>
                     </div>
@@ -530,7 +547,7 @@ export default function Availability() {
                       className="h-8 shrink-0 cursor-pointer rounded-lg text-[11px] font-black uppercase tracking-widest active:scale-95 transition-all"
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />
-                      Add Slot
+                      Add Window
                     </Button>
                   )}
                 </div>
@@ -552,7 +569,7 @@ export default function Availability() {
                         ))
                       ) : (
                         <span className="inline-flex items-center rounded-full border border-border/80 bg-background/50 px-3 py-1 text-xs font-bold text-muted-foreground">
-                          No slots added yet
+                          No windows added yet
                         </span>
                       )}
                     </div>
@@ -576,7 +593,7 @@ export default function Availability() {
                   </>
                 ) : (
                   <p className="py-2 text-xs font-medium text-muted-foreground/70">
-                    Enable this day to configure booking hours.
+                    Enable this day to configure availability windows.
                   </p>
                 )}
               </div>
@@ -585,11 +602,12 @@ export default function Availability() {
         })}
       </div>
 
-      {/* Add / Edit Time Slot Modal */}
+      {/* Add / Edit Availability Window Modal */}
       <AddAvailabilityModal
         isOpen={!!slotModal}
         onClose={() => setSlotModal(null)}
         slotModal={slotModal}
+        service={service}
         onUpdateField={updateSlotModalField}
         onUpdateStartTime={updateSlotModalStartTime}
         onSave={commitSlotModal}

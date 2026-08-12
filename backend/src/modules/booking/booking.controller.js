@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import {
     createBookingService,
     cancelBookingService,
+    rescheduleBookingService,
 } from "./booking.service.js";
 
 
@@ -23,7 +24,7 @@ export const createBookingController = asyncHandler(async (req, res) => {
 export const cancelBookingController = asyncHandler(async (req, res) => {
     const { bookingId } = req.params;
     const { orgId, cancellationReason, } = req.body;
-    
+
     const data = await cancelBookingService({
         userId: req.user._id,
         orgId,
@@ -36,6 +37,28 @@ export const cancelBookingController = asyncHandler(async (req, res) => {
             200,
             data,
             "Booking cancelled successfully."
+        )
+    );
+}
+);
+
+
+export const rescheduleBookingController = asyncHandler(async (req, res) => {
+    const { bookingId, } = req.params;
+    const { orgId, startTime, } = req.body;
+
+    const data = await rescheduleBookingService({
+        userId: req.user._id,
+        orgId,
+        bookingId,
+        startTime,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking rescheduled successfully."
         )
     );
 }

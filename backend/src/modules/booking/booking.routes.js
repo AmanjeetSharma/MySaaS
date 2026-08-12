@@ -9,7 +9,7 @@ import {
 
     // updateBookingController,
     // updateBookingStatusController,
-    // rescheduleBookingController,
+    rescheduleBookingController,
 
     cancelBookingController,
     // deleteBookingController,
@@ -29,10 +29,8 @@ router.post("/", createBookingController);// public api
 // router.get("/:bookingId", verifyToken, getBookingByIdController);
 // router.patch("/:bookingId", verifyToken, updateBookingController);
 // router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
-// router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);
-
+router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);
 router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);
-// router.delete("/:bookingId", verifyToken, deleteBookingController);
 
 // router.get("/manage", getPublicBookingController);// public api
 // router.patch("/manage/reschedule", publicRescheduleBookingController);// public api

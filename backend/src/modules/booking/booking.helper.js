@@ -302,3 +302,23 @@ export const validateCancellation = (booking) => {
 
     return true;
 };
+
+
+
+
+
+export const validateRescheduling = (booking) => {
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
+    if (booking.status === "CANCELLED") {
+        throw new ApiError(400, "Cancelled bookings cannot be rescheduled.");
+    }
+
+    if (booking.status === "COMPLETED") {
+        throw new ApiError(400, "Completed bookings cannot be rescheduled.");
+    }
+
+    return true;
+};

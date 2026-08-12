@@ -11,6 +11,7 @@ import {
     findBookingByIdAndOrganization,
     cancelBooking,
     findOrganizationById,
+    updateBookingSchedule,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -25,6 +26,7 @@ import {
     buildManageBookingUrl,
     sendBookingEmails,
     validateCancellation,
+    validateRescheduling,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import {
@@ -247,7 +249,7 @@ export const cancelBookingService = async ({
                 throw new ApiError(500, "We encountered an error while cancelling the booking. Please try again later.");
             }
         }
-    }   
+    }
 
     const cancelledBooking = await cancelBooking(bookingId, cancellationReason?.trim() || null, userId);
     if (!cancelledBooking) {
@@ -257,4 +259,144 @@ export const cancelBookingService = async ({
     console.log(`[Booking] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
 
     return cancelledBooking;
+};
+
+
+
+
+
+
+
+
+
+export const rescheduleBookingService = async ({
+    userId,
+    orgId,
+    bookingId,
+    startTime,
+}) => {
+
+    validateObjectId(orgId, "Organization ID");
+    validateObjectId(bookingId, "Booking ID");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    const booking = await findBookingByIdAndOrganization(bookingId, orgId);
+
+    validateRescheduling(booking);
+
+    const newStartTime = validateStartTime(startTime);
+
+    const organization = await findOrganizationById(orgId);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
+
+    const availability = await findAvailabilityByServiceId(booking.service);
+    if (!availability) {
+        throw new ApiError(400, "Bookings are currently unavailable for this service.");
+    }
+
+    const newEndTime = validateRequestedSlot({
+        startTime: newStartTime,
+        availability,
+        durationInMinutes: booking.serviceSnapshot.durationInMinutes,
+    });
+
+    const conflictingBooking = await findOverlappingOrganizationBooking(orgId, newStartTime, newEndTime, bookingId);
+    if (conflictingBooking) {
+        throw new ApiError(409, "The requested time slot is already booked.");
+    }
+
+    let googleCalendarResult;
+
+    const calendarEvent = booking.calendarEvent;
+
+    if (
+        calendarEvent?.provider === "GOOGLE" &&
+        calendarEvent?.calendarId &&
+        calendarEvent?.eventId
+    ) {
+
+        const googleIntegration = organization.integrations?.google;
+
+        if (
+            !googleIntegration?.isConnected ||
+            !googleIntegration?.refreshToken?.encryptedData
+        ) {
+            throw new ApiError(400, "Google Calendar integration is no longer available for this booking.");
+        }
+
+        try {
+            const refreshToken = decryptRefreshToken(googleIntegration.refreshToken);
+
+            googleCalendarResult = await updateCalendarEvent({
+                refreshToken,
+                calendarId: calendarEvent.calendarId,
+
+                eventId: calendarEvent.eventId,
+
+                summary: `${booking.serviceSnapshot.name} with ${booking.booker.name}`,
+
+                description: [
+                    `Booking for ${booking.serviceSnapshot.name}`,
+                    `Booker: ${booking.booker.name} <${booking.booker.email}>`,
+                ].join("\n"),
+
+                startTime: newStartTime.toISOString(),
+
+                endTime: newEndTime.toISOString(),
+
+                timeZone: availability.timezone,
+
+                attendees: [
+                    {
+                        email: booking.booker.email,
+                        displayName: booking.booker.name,
+                    },
+                ],
+
+                sendUpdates: "all",
+            });
+        } catch (error) {
+            console.error("[Booking] Google Calendar event update failed:", error.message);
+            throw new ApiError(500, "We encountered an error while rescheduling the booking. Please try again later.");
+        }
+    }
+
+    const updatedBooking = await updateBookingSchedule({
+        bookingId,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        timezone: availability.timezone,
+    });
+
+    if (!updatedBooking) {
+        throw new ApiError(409, "Booking could not be rescheduled.");
+    }
+
+
+    if (googleCalendarResult) {
+
+        updatedBooking.calendarEvent = {
+
+            ...updatedBooking.calendarEvent,
+            eventId: googleCalendarResult.eventId,
+            htmlLink: googleCalendarResult.htmlLink,
+
+        };
+
+        if (googleCalendarResult.meetLink) {
+
+            updatedBooking.meeting = {
+                ...updatedBooking.meeting,
+                link: googleCalendarResult.meetLink,
+            };
+
+        }
+
+        await updatedBooking.save();
+    }
+
+    return updatedBooking;
 };

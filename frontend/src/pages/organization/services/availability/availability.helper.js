@@ -9,11 +9,33 @@ export const DAYS = [
 ];
 
 export const PRESETS = [
-    { key: 'morning', label: 'Morning', startTime: '10:00', endTime: '12:00' },
-    { key: 'afternoon', label: 'Afternoon', startTime: '13:00', endTime: '16:00' },
-    { key: 'evening', label: 'Evening', startTime: '17:00', endTime: '20:00' },
-    { key: 'night', label: 'Night', startTime: '20:00', endTime: '22:00' },
+    { key: 'morning', label: 'Morning', startHour: 10, targetHours: 2 },
+    { key: 'afternoon', label: 'Afternoon', startHour: 13, targetHours: 3 },
+    { key: 'evening', label: 'Evening', startHour: 17, targetHours: 3 },
+    { key: 'night', label: 'Night', startHour: 20, targetHours: 2 },
 ];
+
+/** 
+ * Helper to calculate start & end times for presets dynamically based on service duration.
+ * Ensures the generated window fits complete appointments matching or exceeding the target period.
+ */
+export const getPresetSlotRange = (preset, durationInMinutes = 60) => {
+    const validDuration = durationInMinutes > 0 ? durationInMinutes : 60;
+    const targetMinutes = preset.targetHours * 60;
+
+    // Fit at least 1 complete appointment, or as many as needed to cover target duration
+    const completeAppointments = Math.max(1, Math.round(targetMinutes / validDuration));
+    const totalMinutes = completeAppointments * validDuration;
+
+    const startMinutes = preset.startHour * 60;
+    const endMinutes = Math.min(1440, startMinutes + totalMinutes);
+
+    return {
+        startTime: minutesToTime(startMinutes),
+        endTime: minutesToTime(endMinutes),
+        label: preset.label,
+    };
+};
 
 // --- Time Conversion Helpers ---
 
@@ -148,7 +170,7 @@ export const validateForm = (form) => {
         const day = form.days[key];
 
         if (day.enabled && day.slots.length === 0) {
-            return `${label} needs at least one time slot`;
+            return `${label} needs at least one time window`;
         }
 
         const sortedSlots = sortSlots(day.slots);
@@ -158,14 +180,44 @@ export const validateForm = (form) => {
             const end = timeToMinutes(sortedSlots[i].endTime);
 
             if (end <= start) {
-                return `${label} has a slot where end time must be after start time`;
+                return `${label} has a window where end time must be after start time`;
             }
 
             if (i > 0 && start < timeToMinutes(sortedSlots[i - 1].endTime)) {
-                return `${label} has overlapping time slots`;
+                return `${label} has overlapping time windows`;
             }
         }
     }
 
     return null;
+};
+
+/** Calculates availability fit relative to service duration */
+export const getAvailabilityFit = ({ startTime, endTime, durationInMinutes }) => {
+    if (!startTime || !endTime || !durationInMinutes || durationInMinutes <= 0) {
+        return {
+            availableMinutes: 0,
+            completeAppointments: 0,
+            remainingMinutes: 0,
+            fitsExactly: false,
+            canFitAtLeastOne: false,
+        };
+    }
+
+    const startMins = timeToMinutes(startTime);
+    const endMins = timeToMinutes(endTime);
+    const availableMinutes = Math.max(0, endMins - startMins);
+
+    const completeAppointments = Math.floor(availableMinutes / durationInMinutes);
+    const remainingMinutes = availableMinutes % durationInMinutes;
+    const fitsExactly = availableMinutes > 0 && remainingMinutes === 0;
+    const canFitAtLeastOne = completeAppointments >= 1;
+
+    return {
+        availableMinutes,
+        completeAppointments,
+        remainingMinutes,
+        fitsExactly,
+        canFitAtLeastOne,
+    };
 };

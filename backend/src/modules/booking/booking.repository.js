@@ -20,13 +20,19 @@ export const findAvailabilityByServiceId = async (serviceId) => {
 };
 
 
-export const findOverlappingOrganizationBooking = async (orgId, startTime, endTime) => {
-    return Booking.findOne({
+export const findOverlappingOrganizationBooking = async (orgId, startTime, endTime, excludeBookingId = null) => {
+    const query = {
         organization: orgId,
         status: "CONFIRMED",
         startTime: { $lt: endTime },
         endTime: { $gt: startTime },
-    });
+    }
+
+    if (excludeBookingId) {
+        query._id = { $ne: excludeBookingId };
+    }
+
+    return Booking.findOne(query);
 };
 
 
@@ -68,4 +74,32 @@ export const cancelBooking = async (bookingId, cancellationReason, cancelledBy) 
 
 export const findOrganizationById = async (orgId) => {
     return Organization.findById(orgId).select("+integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
+};
+
+
+
+export const updateBookingSchedule = async ({
+    bookingId,
+    startTime,
+    endTime,
+    timezone,
+}) => {
+    return Booking.findOneAndUpdate(
+        {
+            _id: bookingId,
+            status: {
+                $nin: ["CANCELLED", "COMPLETED"],
+            },
+        },
+        {
+            $set: {
+                startTime,
+                endTime,
+                timezone,
+            },
+        },
+        {
+            returnDocument: "after",
+        }
+    );
 };
