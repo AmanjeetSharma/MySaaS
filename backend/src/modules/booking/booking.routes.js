@@ -15,7 +15,7 @@ import {
     // deleteBookingController,
 
     getPublicBookingController,
-    // publicRescheduleBookingController,
+    publicRescheduleBookingController,
     // publicCancelBookingController,
 } from './booking.controller.js';
 
@@ -33,7 +33,7 @@ router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController)
 router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);
 
 router.get("/manage", getPublicBookingController);// public api
-// router.patch("/manage/reschedule", publicRescheduleBookingController); // public api
+router.patch("/manage/rescheedule", publicRescheduleBookingController); // public api
 // router.patch("/manage/cancel", publicCancelBookingController); // public api
 
 export default router;

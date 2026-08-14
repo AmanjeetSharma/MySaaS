@@ -171,6 +171,23 @@ export const validateRequestedSlot = ({
 
 
 
+export const validateNotSameBookingTime = ({
+    booking,
+    newStartTime,
+    newEndTime,
+}) => {
+    if (
+        booking.startTime.getTime() === newStartTime.getTime() &&
+        booking.endTime.getTime() === newEndTime.getTime()
+    ) {
+        throw new ApiError(400, "The booking is already scheduled for this time.");
+    }
+};
+
+
+
+
+
 export const buildServiceSnapshot = (service) => ({
     name: service.name,
     slug: service.slug,
@@ -333,4 +350,23 @@ export const hashBookingAccessToken = (rawToken) => {
     }
 
     return crypto.createHash("sha256").update(rawToken).digest("hex");
+};
+
+
+
+
+
+export const validateBookingAccess = (booking) => {
+    if (!booking) {
+        throw new ApiError(404, "Invalid or expired booking link.");
+    }
+
+    if (
+        !booking.bookingAccess?.expiresAt ||
+        booking.bookingAccess.expiresAt <= new Date()
+    ) {
+        throw new ApiError(410, "This booking management link has expired.");
+    }
+
+    return true;
 };
