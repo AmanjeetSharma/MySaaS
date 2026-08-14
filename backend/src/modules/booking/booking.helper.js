@@ -390,3 +390,70 @@ export const validateBookingAccess = (booking) => {
 
     return true;
 };
+
+
+
+
+
+export const validateBookingUpdate = (payload = {}) => {
+    const allowedFields = ["booker", "notes",];
+    const updateData = {};
+
+    for (const field of allowedFields) {
+        if (payload[field] !== undefined) {
+            updateData[field] = payload[field];
+        }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+        throw new ApiError(400, "No valid booking fields were provided for update.");
+    }
+
+    if (updateData.booker !== undefined) {
+        if (
+            !updateData.booker ||
+            typeof updateData.booker !== "object"
+        ) {
+            throw new ApiError(400, "Invalid booker details.");
+        }
+
+        const { name, email, phone } = updateData.booker;
+
+        if (name !== undefined) {
+            const nameValidation = nameValidator(name);
+
+            if (!nameValidation.valid) {
+                throw new ApiError(400, nameValidation.errors.join(", "));
+            }
+
+            updateData.booker.name = name.trim();
+        }
+
+        if (email !== undefined) {
+            if (!emailValidator(email)) {
+                throw new ApiError(400, "Invalid email address.");
+            }
+
+            updateData.booker.email = email.trim().toLowerCase();
+        }
+
+        if (phone !== undefined) {
+            updateData.booker.phone = phone?.trim() || null;
+        }
+    }
+
+    if (updateData.notes !== undefined) {
+        if (
+            updateData.notes !== null &&
+            typeof updateData.notes !== "string"
+        ) {
+            throw new ApiError(400, "Notes must be a string.");
+        }
+
+        if (updateData.notes) {
+            updateData.notes = updateData.notes.trim();
+        }
+    }
+
+    return updateData;
+};

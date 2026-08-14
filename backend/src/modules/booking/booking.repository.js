@@ -122,3 +122,20 @@ export const findBookingByIdAndOrg = async (bookingId, orgId) => {
         .populate("organization", "name slug")
         .populate("service", "name slug");
 };
+
+
+export const updateBooking = async (bookingId, orgId, updateData) => {
+    return Booking.findOneAndUpdate(
+        {
+            _id: bookingId,
+            organization: orgId,
+        },
+        {
+            $set: updateData,
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
+};

@@ -14,6 +14,7 @@ import {
     updateBookingSchedule,
     findBookingByAccessToken,
     findBookingByIdAndOrg,
+    updateBooking,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -33,6 +34,7 @@ import {
     validateRescheduling,
     hashBookingAccessToken,
     validateBookingAccess,
+    validateBookingUpdate,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import {
@@ -780,6 +782,43 @@ export const getBookingByIdService = async ({
     }
 
     console.log(`[Booking] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
+
+    return booking;
+};
+
+
+
+
+
+
+
+
+
+
+
+export const updateBookingService = async ({
+    userId,
+    orgId,
+    bookingId,
+    payload,
+}) => {
+
+    validateObjectId(bookingId, "booking ID");
+    validateObjectId(orgId, "organization ID");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    const updateData = validateBookingUpdate(payload);
+
+    const booking = await updateBooking(
+        bookingId,
+        orgId,
+        updateData
+    );
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
 
     return booking;
 };

@@ -11,7 +11,7 @@ import {
     // getServiceBookingsController,
     
     getBookingByIdController,
-    // updateBookingController,
+    updateBookingController,
     // updateBookingStatusController,
 
     rescheduleBookingController,
@@ -32,7 +32,7 @@ router.patch("/manage/cancel", publicCancelBookingController);
 // router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
 
 router.get("/:bookingId", verifyToken, getBookingByIdController);
-// router.patch("/:bookingId", verifyToken, updateBookingController);
+router.patch("/:bookingId", verifyToken, updateBookingController);
 // router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
 
 router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);

@@ -8,6 +8,7 @@ import {
     publicRescheduleBookingService,
     publicCancelBookingService,
     getBookingByIdService,
+    updateBookingService,
 } from "./booking.service.js";
 
 
@@ -135,6 +136,27 @@ export const getBookingByIdController = asyncHandler(async (req, res) => {
             200,
             data,
             "Booking fetched successfully."
+        )
+    );
+});
+
+
+export const updateBookingController = asyncHandler(async (req, res) => {
+    const { bookingId } = req.params;
+    const { orgId } = req.body;
+
+    const data = await updateBookingService({
+        userId: req.user._id,
+        orgId,
+        bookingId,
+        payload: req.body,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking updated successfully."
         )
     );
 });
