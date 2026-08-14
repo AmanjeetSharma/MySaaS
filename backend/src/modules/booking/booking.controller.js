@@ -7,6 +7,7 @@ import {
     getPublicBookingService,
     publicRescheduleBookingService,
     publicCancelBookingService,
+    getBookingByIdService,
 } from "./booking.service.js";
 
 

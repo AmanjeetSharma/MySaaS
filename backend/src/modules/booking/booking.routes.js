@@ -10,7 +10,7 @@ import {
     // getOrganizationBookingsController,
     // getServiceBookingsController,
     
-    // getBookingByIdController,
+    getBookingByIdController,
     // updateBookingController,
     // updateBookingStatusController,
 
@@ -31,7 +31,7 @@ router.patch("/manage/cancel", publicCancelBookingController);
 // router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
 // router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
 
-// router.get("/:bookingId", verifyToken, getBookingByIdController);
+router.get("/:bookingId", verifyToken, getBookingByIdController);
 // router.patch("/:bookingId", verifyToken, updateBookingController);
 // router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
 
