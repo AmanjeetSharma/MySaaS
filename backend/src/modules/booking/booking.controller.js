@@ -6,6 +6,7 @@ import {
     rescheduleBookingService,
     getPublicBookingService,
     publicRescheduleBookingService,
+    publicCancelBookingService,
 } from "./booking.service.js";
 
 
@@ -97,3 +98,23 @@ export const publicRescheduleBookingController = asyncHandler(async (req, res) =
         )
     );
 });
+
+
+export const publicCancelBookingController = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+    const { cancellationReason, } = req.body;
+
+    const data = await publicCancelBookingService({
+        rawToken: token,
+        cancellationReason,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking cancelled successfully."
+        )
+    );
+}
+);

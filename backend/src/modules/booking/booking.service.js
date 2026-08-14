@@ -20,7 +20,7 @@ import {
     validateStartTime,
     generateBookingAccessToken,
     normalizeSlug,
-    validateRequestedSlot,  
+    validateRequestedSlot,
     validateNotSameBookingTime,
     buildServiceSnapshot,
     shouldCreateGoogleCalendarEvent,
@@ -244,7 +244,7 @@ export const createBookingService = async (payload = {}) => {
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
     console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
-console.log(googleResult)
+    console.log(googleResult)
     return {
         bookingId: booking._id,
         meetingLink: booking.meeting?.link ?? null,
@@ -475,16 +475,8 @@ export const getPublicBookingService = async ({ rawToken }) => {
     const hashedToken = hashBookingAccessToken(rawToken);
 
     const booking = await findBookingByAccessToken(hashedToken);
-    if (!booking) {
-        throw new ApiError(404, "Invalid or expired booking link.");
-    }
 
-    if (
-        !booking.bookingAccess?.expiresAt ||
-        booking.bookingAccess.expiresAt <= new Date()
-    ) {
-        throw new ApiError(410, "This booking management link has expired.");
-    }
+    validateBookingAccess(booking);
 
     const isManageable = !["CANCELLED", "COMPLETED"].includes(booking.status);
 
@@ -551,6 +543,9 @@ export const publicRescheduleBookingService = async ({
     const hashedToken = hashBookingAccessToken(rawToken);
 
     const booking = await findBookingByAccessToken(hashedToken);
+    if (!booking) {
+        throw new ApiError(404, "Invalid or expired booking link.");
+    }
 
     validateBookingAccess(booking);
     validateRescheduling(booking);
@@ -676,5 +671,81 @@ export const publicRescheduleBookingService = async ({
         endTime: updatedBooking.endTime,
         timezone: updatedBooking.timezone,
         meeting: updatedBooking.meeting,
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+export const publicCancelBookingService = async ({
+    rawToken,
+    cancellationReason,
+}) => {
+
+    const hashedToken = hashBookingAccessToken(rawToken);
+
+    const booking = await findBookingByAccessToken(hashedToken);
+
+    validateBookingAccess(booking);
+    validateCancellation(booking);
+
+    const organization = await findOrganizationById(booking.organization);
+
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
+
+    const calendarEvent = booking.calendarEvent;
+
+    if (
+        calendarEvent?.provider === "GOOGLE" &&
+        calendarEvent?.calendarId &&
+        calendarEvent?.eventId
+    ) {
+        const googleIntegration = organization.integrations?.google;
+
+        if (
+            !googleIntegration?.isConnected ||
+            !googleIntegration?.refreshToken?.encryptedData
+        ) {
+            throw new ApiError(400, "Google Calendar integration is no longer available for this booking.");
+        }
+
+        try {
+            const refreshToken = decryptRefreshToken(googleIntegration.refreshToken);
+
+            await deleteCalendarEvent({
+                refreshToken,
+                calendarId: calendarEvent.calendarId,
+                eventId: calendarEvent.eventId,
+
+                sendUpdates: "all",
+            });
+
+        } catch (error) {
+            console.error("[Public Booking] Google Calendar event deletion failed:", error.message);
+            throw new ApiError(500, "We encountered an error while cancelling the booking. Please try again later..");
+        }
+    }
+
+    const cancelledBooking = await cancelBooking(booking._id, cancellationReason?.trim() || null);
+    if (!cancelledBooking) {
+        throw new ApiError(409, "Booking could not be cancelled.");
+    }
+
+    console.log(`[Public Booking] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
+
+    return {
+        bookingId: cancelledBooking._id,
+        status: cancelledBooking.status,
+        cancellationReason: cancelledBooking.cancellationReason,
+        cancelledAt: cancelledBooking.cancelledAt,
     };
 };

@@ -329,7 +329,6 @@ export const validateCancellation = (booking) => {
     if (!booking) {
         throw new ApiError(404, "Booking not found.");
     }
-
     if (booking.status === "CANCELLED") {
         throw new ApiError(400, "Booking is already cancelled.");
     }
