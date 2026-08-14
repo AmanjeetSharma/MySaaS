@@ -45,7 +45,7 @@ export const findBookingByIdAndOrganization = async (bookingId, organizationId) 
     return Booking.findOne({
         _id: bookingId,
         organization: organizationId,
-    });
+    })
 };
 
 
@@ -108,6 +108,16 @@ export const updateBookingSchedule = async ({
 export const findBookingByAccessToken = async (hashedToken) => {
     return Booking.findOne({
         "bookingAccess.hashedToken": hashedToken,
+    })
+        .populate("organization", "name slug")
+        .populate("service", "name slug");
+};
+
+
+export const findBookingByIdAndOrg = async (bookingId, orgId) => {
+    return Booking.findOne({
+        _id: bookingId,
+        organization: orgId,
     })
         .populate("organization", "name slug")
         .populate("service", "name slug");

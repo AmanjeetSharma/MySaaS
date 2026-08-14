@@ -13,6 +13,7 @@ import {
     findOrganizationById,
     updateBookingSchedule,
     findBookingByAccessToken,
+    findBookingByIdAndOrg,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -55,7 +56,6 @@ const tryCreateGoogleEvent = async ({
     timezone,
     manageBookingUrl,
 }) => {
-    console.log({ organization, service, booker, startTime, endTime, timezone, manageBookingUrl });
     if (!shouldCreateGoogleCalendarEvent(organization)) {
         return {
             meeting: {
@@ -244,7 +244,7 @@ export const createBookingService = async (payload = {}) => {
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
     console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
-    console.log(googleResult)
+
     return {
         bookingId: booking._id,
         meetingLink: booking.meeting?.link ?? null,
@@ -479,6 +479,8 @@ export const getPublicBookingService = async ({ rawToken }) => {
     validateBookingAccess(booking);
 
     const isManageable = !["CANCELLED", "COMPLETED"].includes(booking.status);
+
+    console.log(`[Public Booking] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
 
     return {
         bookingId: booking._id,
@@ -748,4 +750,36 @@ export const publicCancelBookingService = async ({
         cancellationReason: cancelledBooking.cancellationReason,
         cancelledAt: cancelledBooking.cancelledAt,
     };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const getBookingByIdService = async ({
+    userId,
+    orgId,
+    bookingId,
+}) => {
+
+    validateObjectId(orgId, "Organization ID");
+    validateObjectId(bookingId, "Booking ID");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    const booking = await findBookingByIdAndOrg(bookingId, orgId);
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
+    console.log(`[Booking] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
+
+    return booking;
 };

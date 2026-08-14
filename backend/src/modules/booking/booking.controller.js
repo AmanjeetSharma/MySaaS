@@ -116,5 +116,24 @@ export const publicCancelBookingController = asyncHandler(async (req, res) => {
             "Booking cancelled successfully."
         )
     );
-}
-);
+});
+
+
+export const getBookingByIdController = asyncHandler(async (req, res) => {
+    const { bookingId } = req.params;
+    const { orgId } = req.query;
+
+    const data = await getBookingByIdService({
+        userId: req.user._id,
+        orgId,
+        bookingId,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking fetched successfully."
+        )
+    );
+});
