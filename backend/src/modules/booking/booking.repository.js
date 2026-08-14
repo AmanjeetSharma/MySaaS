@@ -103,3 +103,12 @@ export const updateBookingSchedule = async ({
         }
     );
 };
+
+
+export const findBookingByAccessToken = async (hashedToken) => {
+    return Booking.findOne({
+        "bookingAccess.hashedToken": hashedToken,
+    })
+        .populate("organization", "name slug")
+        .populate("service", "name slug");
+};

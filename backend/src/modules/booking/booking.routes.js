@@ -14,14 +14,14 @@ import {
     cancelBookingController,
     // deleteBookingController,
 
-    // getPublicBookingController,
+    getPublicBookingController,
     // publicRescheduleBookingController,
     // publicCancelBookingController,
 } from './booking.controller.js';
 
 const router = express.Router();
 
-router.post("/", createBookingController);// public api
+router.post("/", createBookingController); // public api
 
 // router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
 // router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
@@ -32,9 +32,9 @@ router.post("/", createBookingController);// public api
 router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);
 router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);
 
-// router.get("/manage", getPublicBookingController);// public api
-// router.patch("/manage/reschedule", publicRescheduleBookingController);// public api
-// router.patch("/manage/cancel", publicCancelBookingController);// public api
+router.get("/manage", getPublicBookingController);// public api
+// router.patch("/manage/reschedule", publicRescheduleBookingController); // public api
+// router.patch("/manage/cancel", publicCancelBookingController); // public api
 
 export default router;
 

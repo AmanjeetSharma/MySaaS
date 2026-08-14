@@ -322,3 +322,15 @@ export const validateRescheduling = (booking) => {
 
     return true;
 };
+
+
+
+
+
+export const hashBookingAccessToken = (rawToken) => {
+    if (!rawToken || typeof rawToken !== "string" || !rawToken.trim()) {
+        throw new ApiError(400, "Booking access token is required.");
+    }
+
+    return crypto.createHash("sha256").update(rawToken).digest("hex");
+};

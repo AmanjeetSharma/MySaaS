@@ -4,6 +4,7 @@ import {
     createBookingService,
     cancelBookingService,
     rescheduleBookingService,
+    getPublicBookingService,
 } from "./booking.service.js";
 
 
@@ -39,8 +40,7 @@ export const cancelBookingController = asyncHandler(async (req, res) => {
             "Booking cancelled successfully."
         )
     );
-}
-);
+});
 
 
 export const rescheduleBookingController = asyncHandler(async (req, res) => {
@@ -61,5 +61,19 @@ export const rescheduleBookingController = asyncHandler(async (req, res) => {
             "Booking rescheduled successfully."
         )
     );
-}
-);
+});
+
+
+export const getPublicBookingController = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+
+    const data = await getPublicBookingService({ rawToken: token });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Booking details fetched successfully."
+        )
+    );
+});

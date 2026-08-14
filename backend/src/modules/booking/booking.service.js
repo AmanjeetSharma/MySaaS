@@ -12,6 +12,7 @@ import {
     cancelBooking,
     findOrganizationById,
     updateBookingSchedule,
+    findBookingByAccessToken,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -27,6 +28,7 @@ import {
     sendBookingEmails,
     validateCancellation,
     validateRescheduling,
+    hashBookingAccessToken,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import {
@@ -190,7 +192,7 @@ export const createBookingService = async (payload = {}) => {
 
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
-    console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".`);
+    console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
 
     return {
         bookingId: booking._id,
@@ -399,4 +401,74 @@ export const rescheduleBookingService = async ({
     }
 
     return updatedBooking;
+};
+
+
+
+
+
+
+
+
+
+
+export const getPublicBookingService = async ({ rawToken }) => {
+    const hashedToken = hashBookingAccessToken(rawToken);
+
+    const booking = await findBookingByAccessToken(hashedToken);
+    if (!booking) {
+        throw new ApiError(404, "Invalid or expired booking link.");
+    }
+
+    if (
+        !booking.bookingAccess?.expiresAt ||
+        booking.bookingAccess.expiresAt <= new Date()
+    ) {
+        throw new ApiError(410, "This booking management link has expired.");
+    }
+
+    const isManageable = !["CANCELLED", "COMPLETED"].includes(booking.status);
+
+    return {
+        bookingId: booking._id,
+
+        organization: {
+            name: booking.organization?.name,
+            slug: booking.organization?.slug,
+        },
+
+        service: {
+            name: booking.serviceSnapshot?.name,
+            slug: booking.serviceSnapshot?.slug,
+        },
+
+        booker: {
+            name: booking.booker.name,
+            email: booking.booker.email,
+            phone: booking.booker.phone,
+        },
+
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        timezone: booking.timezone,
+
+        meeting: {
+            provider: booking.meeting?.provider ?? null,
+            link: booking.meeting?.link ?? null,
+        },
+
+        status: booking.status,
+
+        cancellationReason: booking.cancellationReason ?? null,
+
+        cancelledAt: booking.cancelledAt ?? null,
+
+        notes: booking.notes ?? null,
+
+        canReschedule: isManageable,
+
+        canCancel: isManageable,
+
+        accessTokenExpiresAt: booking.bookingAccess.expiresAt,
+    };
 };
