@@ -2,7 +2,6 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
 import { emailValidator, nameValidator } from "../../validations/auth.validators.js";
-import { timezoneValidator } from "../user/settings/settings.validator.js";
 import { bookingConfirmationBookerEmailTemplate } from "../../utils/email/bookingConfirmationBookerEmailTemplate.js";
 import { bookingConfirmationOwnerEmailTemplate } from "../../utils/email/bookingConfirmationOwnerEmailTemplate.js";
 import env from "../../config/env.config.js";
@@ -67,17 +66,6 @@ export const validateStartTime = (startTime) => {
     }
 
     return parsedStartTime;
-};
-
-
-
-
-
-export const validateTimezone = (timezone) => {
-    const timezoneValidation = timezoneValidator(timezone);
-    if (!timezoneValidation.valid) {
-        throw new ApiError(400, timezoneValidation.errors.join(", "));
-    }
 };
 
 
@@ -216,18 +204,51 @@ export const buildServiceSnapshot = (service) => ({
 
 
 
-export const shouldCreateGoogleEvent = (service, organization) => {
-
-    const google = organization.integrations?.google;
+export const shouldCreateGoogleCalendarEvent = (organization) => {
+    const google =
+        organization.integrations?.google;
 
     return (
-        service.mode === "ONLINE" &&
-        service.meetingProvider === "GOOGLE_MEET" &&
-        service.autoGenerateMeetingLink === true &&
         google?.isConnected === true &&
         google?.refreshToken?.encryptedData &&
         google?.calendarId
     );
+};
+
+
+
+
+
+export const shouldGenerateGoogleMeet = (service) => {
+    return (
+        service.mode === "ONLINE" &&
+        service.meetingProvider === "GOOGLE_MEET" &&
+        service.autoGenerateMeetingLink === true
+    );
+};
+
+
+
+
+
+export const buildServiceLocation = (service) => {
+    if (service.mode !== "OFFLINE") {
+        return null;
+    }
+
+    if (!service.address) {
+        return null;
+    }
+
+    return [
+        service.address.street,
+        service.address.city,
+        service.address.state,
+        service.address.country,
+        service.address.zipCode,
+    ]
+        .filter(Boolean) //to clean all falsy values
+        .join(", ");
 };
 
 

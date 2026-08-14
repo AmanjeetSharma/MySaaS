@@ -40,6 +40,7 @@ export const createCalendarEvent = async ({
     startTime,
     endTime,
     timeZone,
+    location = null,
     attendees = [],
     generateMeetLink = false,
     sendUpdates = "all",
@@ -53,6 +54,8 @@ export const createCalendarEvent = async ({
 
         const event = {
             summary,
+
+            ...(location ? { location, } : {}),
 
             description,
 
@@ -87,7 +90,7 @@ export const createCalendarEvent = async ({
             sendUpdates,
         });
 
-        if (!data || !data.id) {
+        if (!data?.id) {
             throw new ApiError(500, "Failed to create Google Calendar event.");
         }
 
@@ -130,6 +133,7 @@ export const updateCalendarEvent = async ({
     startTime,
     endTime,
     timeZone,
+    location = null,
     attendees = [],
     sendUpdates = "all",
 }) => {
@@ -146,6 +150,8 @@ export const updateCalendarEvent = async ({
 
         const event = {
             summary,
+
+            ...(location ? { location, } : {}),
 
             description,
 
@@ -172,7 +178,7 @@ export const updateCalendarEvent = async ({
             sendUpdates,
         });
 
-        if (!data || !data.id) {
+        if (!data?.id) {
             throw new ApiError(500, "Failed to update Google Calendar event.");
         }
 

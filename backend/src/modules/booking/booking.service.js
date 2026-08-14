@@ -18,13 +18,14 @@ import {
     validateObjectId,
     validateBookerDetails,
     validateStartTime,
-    validateTimezone,
     generateBookingAccessToken,
     normalizeSlug,
-    validateRequestedSlot,
+    validateRequestedSlot,  
     validateNotSameBookingTime,
     buildServiceSnapshot,
-    shouldCreateGoogleEvent,
+    shouldCreateGoogleCalendarEvent,
+    shouldGenerateGoogleMeet,
+    buildServiceLocation,
     buildManageBookingUrl,
     sendBookingEmails,
     validateCancellation,
@@ -54,40 +55,80 @@ const tryCreateGoogleEvent = async ({
     timezone,
     manageBookingUrl,
 }) => {
-    if (!shouldCreateGoogleEvent(service, organization)) {
+    console.log({ organization, service, booker, startTime, endTime, timezone, manageBookingUrl });
+    if (!shouldCreateGoogleCalendarEvent(organization)) {
         return {
             meeting: {
-                provider: service.mode === "ONLINE" ? service.meetingProvider : null,
+                provider: service.mode === "ONLINE"
+                    ? service.meetingProvider
+                    : null,
                 link: null,
             },
             calendarEvent: {},
         };
     }
 
+
     try {
-        const refreshToken = decryptRefreshToken(organization.integrations.google.refreshToken);
+        const refreshToken =
+            decryptRefreshToken(
+                organization.integrations.google.refreshToken
+            );
+
         const calendarId = organization.integrations.google.calendarId;
+
+        const generateMeetLink = shouldGenerateGoogleMeet(service);
+
+        const location = buildServiceLocation(service);
+
         const event = await createCalendarEvent({
             refreshToken,
             calendarId,
+
             summary: `${service.name} with ${booker.name}`,
+
             description: [
                 `Booking for ${service.name}`,
                 `Booker: ${booker.name} <${booker.email}>`,
-                manageBookingUrl ? `Manage booking url for ${booker.name}: ${manageBookingUrl}` : null,
-            ].filter(Boolean).join("\n"),
+
+                manageBookingUrl
+                    ? `Manage booking: ${manageBookingUrl}`
+                    : null,
+            ]
+                .filter(Boolean)
+                .join("\n"),
+
+            location,
+
             startTime: startTime.toISOString(),
+
             endTime: endTime.toISOString(),
+
             timeZone: timezone,
-            attendees: [{ email: booker.email, displayName: booker.name }],
-            generateMeetLink: true,
+
+            attendees: [
+                {
+                    email: booker.email,
+                    displayName: booker.name,
+                },
+            ],
+
+            generateMeetLink,
+
+            sendUpdates: "all",
         });
 
         return {
             meeting: {
-                provider: service.meetingProvider,
-                link: event.meetLink,
+                provider: service.mode === "ONLINE"
+                    ? service.meetingProvider
+                    : null,
+
+                link: generateMeetLink
+                    ? event.meetLink
+                    : null,
             },
+
             calendarEvent: {
                 provider: "GOOGLE",
                 calendarId,
@@ -95,12 +136,17 @@ const tryCreateGoogleEvent = async ({
                 htmlLink: event.htmlLink,
             },
         };
+
     } catch (error) {
-        console.error("[Booking] Google Calendar event creation failed:", error.message);
+
+        console.error("[Booking] Google Calendar event creation failed:", error?.response?.data || error);
 
         return {
             meeting: {
-                provider: service.meetingProvider,
+                provider: service.mode === "ONLINE"
+                    ? service.meetingProvider
+                    : null,
+
                 link: null,
             },
             calendarEvent: {},
@@ -122,22 +168,26 @@ export const createBookingService = async (payload = {}) => {
 
     const startTime = validateStartTime(payload.startTime);
 
-    validateTimezone(payload.timezone);
-
     const organization = await findOrganizationBySlug(organizationSlug);
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }
 
     const service = await findServiceBySlug(organization._id, serviceSlug);
-    if (!service || !service.isActive) {
+    if (!service) {
         throw new ApiError(404, "Service not found");
+    }
+
+    if (!service.isActive) {
+        throw new ApiError(400, "Service is not accepting bookings at the moment.");
     }
 
     const availability = await findAvailabilityByServiceId(service._id);
     if (!availability) {
         throw new ApiError(400, "Bookings are currently unavailable");
     }
+
+    const timezone = availability.timezone;
 
     const endTime = validateRequestedSlot({
         startTime,
@@ -170,7 +220,7 @@ export const createBookingService = async (payload = {}) => {
         booker,
         startTime,
         endTime,
-        timezone: payload.timezone,
+        timezone,
         manageBookingUrl,
     });
 
@@ -181,7 +231,7 @@ export const createBookingService = async (payload = {}) => {
         serviceSnapshot: buildServiceSnapshot(service),
         startTime,
         endTime,
-        timezone: payload.timezone,
+        timezone,
         meeting: googleResult.meeting,
         calendarEvent: googleResult.calendarEvent,
         notes: payload.notes?.trim() || null,
@@ -194,7 +244,7 @@ export const createBookingService = async (payload = {}) => {
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
     console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
-
+console.log(googleResult)
     return {
         bookingId: booking._id,
         meetingLink: booking.meeting?.link ?? null,
