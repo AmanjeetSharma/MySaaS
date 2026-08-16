@@ -139,3 +139,23 @@ export const updateBooking = async (bookingId, orgId, updateData) => {
         }
     );
 };
+
+
+export const updateBookingStatus = async (bookingId, orgId, status, updateData = {}) => {
+    return Booking.findOneAndUpdate(
+        {
+            _id: bookingId,
+            organization: orgId,
+        },
+        {
+            $set: {
+                status,
+                ...updateData,
+            },
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
+};

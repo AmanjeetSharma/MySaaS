@@ -15,6 +15,7 @@ import {
     findBookingByAccessToken,
     findBookingByIdAndOrg,
     updateBooking,
+    updateBookingStatus,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -35,6 +36,7 @@ import {
     hashBookingAccessToken,
     validateBookingAccess,
     validateBookingUpdate,
+    validateBookingStatusTransition,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import {
@@ -819,6 +821,54 @@ export const updateBookingService = async ({
         throw new ApiError(404, "Booking not found.");
     }
 
+    console.log(`[Booking] Booking updated for ${booking.booker.name} (${booking.booker.email}).`);
 
     return booking;
+};
+
+
+
+
+
+
+
+
+
+export const updateBookingStatusService = async ({
+    userId,
+    orgId,
+    bookingId,
+    status,
+}) => {
+
+    validateObjectId(bookingId, "booking ID");
+    validateObjectId(orgId, "organization ID");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    const booking = await findBookingByIdAndOrganization(bookingId, orgId);
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
+    validateBookingStatusTransition(booking.status, status);
+
+    const updateData = {};
+
+    if (status === "COMPLETED") {
+        updateData.completedAt = new Date();
+    }
+
+    if (status === "CANCELLED") {
+        updateData.cancelledAt = new Date();
+    }
+
+    const updatedBooking = await updateBookingStatus(bookingId, orgId, status, updateData);
+    if (!updatedBooking) {
+        throw new ApiError(409, "Booking status could not be updated.");
+    }
+
+    console.log(`[Booking] Booking status updated for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to "${updatedBooking.status}".`);
+
+    return updatedBooking;
 };

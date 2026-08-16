@@ -12,7 +12,7 @@ import {
     
     getBookingByIdController,
     updateBookingController,
-    // updateBookingStatusController,
+    updateBookingStatusController,
 
     rescheduleBookingController,
     cancelBookingController,
@@ -21,19 +21,20 @@ import {
 const router = express.Router();
 
 // Public booking routes
-router.post("/", createBookingController); // public api
+router.post("/", createBookingController);
 
-router.get("/manage", getPublicBookingController);
+router.get("/manage", getPublicBookingController); 
 router.patch("/manage/reschedule", publicRescheduleBookingController);
-router.patch("/manage/cancel", publicCancelBookingController);
+router.patch("/manage/cancel", publicCancelBookingController); 
 
 // Staff routes
+
 // router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
 // router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
 
 router.get("/:bookingId", verifyToken, getBookingByIdController);
 router.patch("/:bookingId", verifyToken, updateBookingController);
-// router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
+router.patch("/:bookingId/status", verifyToken, updateBookingStatusController);
 
 router.patch("/:bookingId/reschedule", verifyToken, rescheduleBookingController);
 router.patch("/:bookingId/cancel", verifyToken, cancelBookingController);

@@ -6,7 +6,7 @@ import { bookingConfirmationBookerEmailTemplate } from "../../utils/email/bookin
 import { bookingConfirmationOwnerEmailTemplate } from "../../utils/email/bookingConfirmationOwnerEmailTemplate.js";
 import env from "../../config/env.config.js";
 import { sendEmail } from "../../integrations/email.integration.js";
-
+import { BOOKING_STATUSES, BOOKING_STATUS_TRANSITIONS } from "./booking.constants.js";
 
 export const BOOKING_ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;// 30 days in ms
 
@@ -456,4 +456,33 @@ export const validateBookingUpdate = (payload = {}) => {
     }
 
     return updateData;
+};
+
+
+
+
+
+export const validateBookingStatus = (status) => {
+    if (!status || !BOOKING_STATUSES.includes(status)) {
+        throw new ApiError(400, `Invalid booking status. Allowed statuses: ${BOOKING_STATUSES.join(", ")}.`);
+    }
+
+    return true;
+};
+
+export const validateBookingStatusTransition = (currentStatus, newStatus) => {
+    
+    validateBookingStatus(newStatus);
+
+    if (currentStatus === newStatus) {
+        throw new ApiError(400, `Booking is already ${newStatus}.`);
+    }
+
+    const allowedTransitions = BOOKING_STATUS_TRANSITIONS[currentStatus] || [];
+
+    if (!allowedTransitions.includes(newStatus)) {
+        throw new ApiError(400, `Booking cannot be changed from ${currentStatus} to ${newStatus}.`);
+    }
+
+    return true;
 };
