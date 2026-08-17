@@ -11,6 +11,7 @@ import {
     updateBookingService,
     updateBookingStatusService,
     getOrganizationBookingsService,
+    getServiceBookingsService,
 } from "./booking.service.js";
 
 
@@ -191,6 +192,32 @@ export const getOrganizationBookingsController = asyncHandler(async (req, res) =
     const data = await getOrganizationBookingsService({
         userId: req.user._id,
         orgId: req.params.orgId,
+        query: {
+            page,
+            limit,
+            search,
+            status,
+            sortBy,
+            sortOrder,
+        }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Bookings retrieved successfully."
+        )
+    );
+});
+
+
+export const getServiceBookingsController = asyncHandler(async (req, res) => {
+    const { page, limit, search, status, sortBy, sortOrder, } = req.query;
+
+    const data = await getServiceBookingsService({
+        userId: req.user._id,
+        serviceId: req.params.serviceId,
         query: {
             page,
             limit,

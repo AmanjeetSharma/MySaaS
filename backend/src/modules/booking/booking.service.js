@@ -16,8 +16,9 @@ import {
     findBookingByIdAndOrg,
     updateBooking,
     updateBookingStatus,
-    findOrganizationBookings,
-    countOrganizationBookings,
+    findBookings,
+    countBookings,
+    findServiceById,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -965,15 +966,15 @@ export const getOrganizationBookingsService = async ({
 
     try {
         const [bookings, total, overallTotal] = await Promise.all([
-            findOrganizationBookings({
+            findBookings({
                 filter,
                 sort,
                 skip: pagination.skip,
                 limit: pagination.limit,
             }),
 
-            countOrganizationBookings(filter),
-            countOrganizationBookings(baseFilter),
+            countBookings(filter),
+            countBookings(baseFilter),
         ]);
 
         console.log(`[Booking] Retrieved ${bookings.length} ${bookings.length === 1 ? "booking" : "bookings"} for organization ${orgId}. Total: ${total}, Overall Total: ${overallTotal}.`);
@@ -992,5 +993,125 @@ export const getOrganizationBookingsService = async ({
     } catch (error) {
         console.error("Failed to fetch organization bookings:", error);
         throw new ApiError(500, "Failed to retrieve bookings, please try again.");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const getServiceBookingsService = async ({
+    userId,
+    serviceId,
+    query,
+}) => {
+    const { page, limit, search, status, sortBy, sortOrder, } = query;
+
+    validateObjectId(serviceId, "Service ID");
+
+    const service = await findServiceById(serviceId);
+    if (!service) {
+        throw new ApiError(404, "Service not found.");
+    }
+
+    await checkOrganizationAccess(userId, service.organization);
+
+    const baseFilter = { service: serviceId };
+
+    const filter = { ...baseFilter };
+
+    if (search?.trim()) {
+        const safeSearch = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            .split(/\s+/)
+            .join(".*");
+
+        filter.$or = [
+            {
+                "booker.name": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+            {
+                "booker.email": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+            {
+                "booker.phone": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+        ];
+    }
+
+    if (status) {
+        if (!BOOKING_STATUSES.includes(status)) {
+            throw new ApiError(400, `Invalid booking status. Allowed statuses: ${BOOKING_STATUSES.join(", ")}.`);
+        }
+
+        filter.status = status;
+    }
+
+    const maxLimit = 100;
+    const pagination = getPagination(page, limit, maxLimit);
+
+    console.log(`--------\n page: ${pagination.page} | limit: ${pagination.limit} | skip: ${pagination.skip}`); // debug log
+
+    const allowedSortFields = [
+        "createdAt",
+        "updatedAt",
+        "startTime",
+        "endTime",
+        "status",
+    ];
+
+    const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
+    const sort = {
+        [finalSortField]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    try {
+        const [bookings, total, overallTotal,] = await Promise.all([
+            findBookings({
+                filter,
+                sort,
+                skip: pagination.skip,
+                limit: pagination.limit,
+            }),
+
+            countBookings(filter),
+            countBookings(baseFilter),
+        ]);
+
+        console.log(`[Booking] Retrieved ${bookings.length} ${bookings.length === 1 ? "booking" : "bookings"} for service ${serviceId}. Total: ${total}, Overall Total: ${overallTotal}.`);
+
+
+        return {
+            bookings,
+            pagination: {
+                page: pagination.page,
+                limit: pagination.limit,
+                total,
+                overallTotal,
+                totalPages: Math.ceil(total / pagination.limit),
+            },
+        };
+
+    } catch (error) {
+        console.error("Failed to fetch service bookings:", error);
+        throw new ApiError(500, "Failed to retrieve service bookings, please try again.");
     }
 };

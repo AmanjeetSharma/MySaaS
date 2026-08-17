@@ -161,7 +161,7 @@ export const updateBookingStatus = async (bookingId, orgId, status, updateData =
 };
 
 
-export const findOrganizationBookings = async ({
+export const findBookings = async ({
     filter,
     sort,
     skip,
@@ -187,6 +187,17 @@ export const findOrganizationBookings = async ({
 };
 
 
-export const countOrganizationBookings = async (filter) => {
+export const countBookings = async (filter) => {
     return Booking.countDocuments(filter);
+};
+
+
+export const findServiceById = async (serviceId) => {
+    return Service.findById(
+        serviceId,
+        {
+            _id: 1,
+            organization: 1,
+        }
+    ).lean();
 };
