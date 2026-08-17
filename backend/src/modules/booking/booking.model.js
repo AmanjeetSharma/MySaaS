@@ -151,6 +151,13 @@ const bookingSchema = new Schema({
         index: true,
     },
 
+    payment: {
+        type: Schema.Types.ObjectId,
+        ref: "Payment",
+        default: null,
+        index: true,
+    },
+
     booker: {
         type: bookerSchema,
         required: true,

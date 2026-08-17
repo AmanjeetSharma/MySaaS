@@ -1,0 +1,86 @@
+import mongoose, { Schema } from "mongoose";
+import { PAYMENT_STATUSES } from "./payment.constants.js";
+
+const paymentSchema = new Schema(
+    {
+        organization: {
+            type: Schema.Types.ObjectId,
+            ref: "Organization",
+            required: true,
+            index: true,
+        },
+
+        booking: {
+            type: Schema.Types.ObjectId,
+            ref: "Booking",
+            required: true,
+            index: true,
+        },
+
+        provider: {
+            type: String,
+            enum: ["RAZORPAY"],
+            required: true,
+            default: "RAZORPAY",
+        },
+
+        amount: {
+            // Amount in smallest currency unit.
+            // ₹1200 = 120000 paise
+            type: Number,
+            required: true,
+            min: 1,
+        },
+
+        currency: {
+            type: String,
+            required: true,
+            uppercase: true,
+            default: "INR",
+        },
+
+        status: {
+            type: String,
+            enum: PAYMENT_STATUSES,
+            default: "CREATED",
+            index: true,
+        },
+
+        razorpayOrderId: {
+            type: String,
+            required: true,
+            unique: true,
+            index: true,
+        },
+
+        razorpayPaymentId: {
+            type: String,
+            default: null,
+            index: true,
+        },
+
+        failureReason: {
+            type: String,
+            default: null,
+            trim: true,
+        },
+
+        paidAt: {
+            type: Date,
+            default: null,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+// Index to optimize queries for payments by organization and creation date.
+paymentSchema.index({
+    organization: 1,
+    createdAt: -1,
+});
+
+export const Payment =
+    mongoose.models.Payment ||
+    mongoose.model("Payment", paymentSchema);
