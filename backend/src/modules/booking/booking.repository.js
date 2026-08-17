@@ -159,3 +159,34 @@ export const updateBookingStatus = async (bookingId, orgId, status, updateData =
         }
     );
 };
+
+
+export const findOrganizationBookings = async ({
+    filter,
+    sort,
+    skip,
+    limit,
+}) => {
+    return Booking.find(filter, {
+        _id: 1,
+        booker: 1,
+        service: 1,
+        startTime: 1,
+        endTime: 1,
+        timezone: 1,
+        status: 1,
+        "serviceSnapshot.price": 1,
+        "serviceSnapshot.currency": 1,
+        createdAt: 1,
+    })
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .populate("service", "name")
+        .lean();
+};
+
+
+export const countOrganizationBookings = async (filter) => {
+    return Booking.countDocuments(filter);
+};

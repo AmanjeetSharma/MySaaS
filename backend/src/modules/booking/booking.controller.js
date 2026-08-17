@@ -10,6 +10,7 @@ import {
     getBookingByIdService,
     updateBookingService,
     updateBookingStatusService,
+    getOrganizationBookingsService,
 } from "./booking.service.js";
 
 
@@ -179,6 +180,32 @@ export const updateBookingStatusController = asyncHandler(async (req, res) => {
             200,
             data,
             "Booking status updated successfully."
+        )
+    );
+});
+
+
+export const getOrganizationBookingsController = asyncHandler(async (req, res) => {
+    const { page, limit, search, status, sortBy, sortOrder, } = req.query;
+
+    const data = await getOrganizationBookingsService({
+        userId: req.user._id,
+        orgId: req.params.orgId,
+        query: {
+            page,
+            limit,
+            search,
+            status,
+            sortBy,
+            sortOrder,
+        }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Bookings retrieved successfully."
         )
     );
 });

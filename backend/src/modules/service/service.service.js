@@ -749,6 +749,8 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
             (service.mode === "OFFLINE" && !!service.address)
         );
 
+    console.log(`[Service: public api] Service fetched by slug | OrganizationId: ${organization._id} | ServiceId: ${service._id}) | Bookable: ${isBookable}`);
+
     return {
         organization: {
             name: organization.name,

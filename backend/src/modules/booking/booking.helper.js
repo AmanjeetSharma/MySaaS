@@ -471,7 +471,7 @@ export const validateBookingStatus = (status) => {
 };
 
 export const validateBookingStatusTransition = (currentStatus, newStatus) => {
-    
+
     validateBookingStatus(newStatus);
 
     if (currentStatus === newStatus) {
@@ -485,4 +485,26 @@ export const validateBookingStatusTransition = (currentStatus, newStatus) => {
     }
 
     return true;
+};
+
+
+
+
+
+export const getPagination = (page = 1, limit = 50, maxLimit = 100) => {
+
+    let pageNum = Number(page) || 1;
+    let limitNum = Number(limit) || 50;
+
+    pageNum = Math.max(1, Math.floor(pageNum));
+
+    limitNum = Math.min(maxLimit, Math.max(1, Math.floor(limitNum)));
+
+    const skip = (pageNum - 1) * limitNum;
+
+    return {
+        page: pageNum,
+        limit: limitNum,
+        skip,
+    };
 };

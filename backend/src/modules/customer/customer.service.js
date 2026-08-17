@@ -406,9 +406,9 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
                 totalPages: Math.ceil(total / limitNum)
             }
         };
-    } catch (err) {
-        console.error("Failed to fetch customers:", err);
-        throw new ApiError(500, "Failed to retrieve customers, please try again");
+    } catch (error) {
+        console.error("Failed to fetch customers:", error);
+        throw new ApiError(500, "Failed to retrieve customers, please try again.");
     }
 };
 

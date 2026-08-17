@@ -16,6 +16,8 @@ import {
     findBookingByIdAndOrg,
     updateBooking,
     updateBookingStatus,
+    findOrganizationBookings,
+    countOrganizationBookings,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -37,6 +39,7 @@ import {
     validateBookingAccess,
     validateBookingUpdate,
     validateBookingStatusTransition,
+    getPagination,
 } from "./booking.helper.js";
 import { decryptRefreshToken } from "../providers/google/google.utils.js";
 import {
@@ -247,7 +250,7 @@ export const createBookingService = async (payload = {}) => {
 
     await sendBookingEmails({ booking, organization, manageBookingUrl });
 
-    console.log(`[Booking] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
+    console.log(`[Booking: public api] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
 
     return {
         bookingId: booking._id,
@@ -484,7 +487,7 @@ export const getPublicBookingService = async ({ rawToken }) => {
 
     const isManageable = !["CANCELLED", "COMPLETED"].includes(booking.status);
 
-    console.log(`[Public Booking] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
+    console.log(`[Booking: public api] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
 
     return {
         bookingId: booking._id,
@@ -669,7 +672,7 @@ export const publicRescheduleBookingService = async ({
         await updatedBooking.save();
     }
 
-    console.log(`[Public Booking] Booking rescheduled for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to ${updatedBooking.startTime.toISOString()}.`);
+    console.log(`[Booking: public api] Booking rescheduled for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to ${updatedBooking.startTime.toISOString()}.`);
 
     return {
         bookingId: updatedBooking._id,
@@ -746,7 +749,7 @@ export const publicCancelBookingService = async ({
         throw new ApiError(409, "Booking could not be cancelled.");
     }
 
-    console.log(`[Public Booking] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
+    console.log(`[Booking: public api] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
 
     return {
         bookingId: cancelledBooking._id,
@@ -871,4 +874,123 @@ export const updateBookingStatusService = async ({
     console.log(`[Booking] Booking status updated for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to "${updatedBooking.status}".`);
 
     return updatedBooking;
+};
+
+
+
+
+
+
+
+
+
+
+
+export const getOrganizationBookingsService = async ({
+    userId,
+    orgId,
+    query
+}) => {
+    const { page, limit, search, status, sortBy, sortOrder } = query;
+
+    validateObjectId(orgId, "Organization ID");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    const baseFilter = { organization: orgId, };
+
+    const filter = { ...baseFilter, };
+
+    if (search?.trim()) {
+        const safeSearch = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            .split(/\s+/)
+            .join(".*");
+
+        filter.$or = [
+            {
+                "booker.name": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+            {
+                "booker.email": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+            {
+                "booker.phone": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+            {
+                "serviceSnapshot.name": {
+                    $regex: safeSearch,
+                    $options: "i",
+                },
+            },
+        ];
+    }
+
+    if (status) {
+        if (!BOOKING_STATUSES.includes(status)) {
+            throw new ApiError(400, `Invalid booking status. Allowed statuses: ${BOOKING_STATUSES.join(", ")}.`);
+        }
+
+        filter.status = status;
+    }
+
+    const maxLimit = 100;
+    const pagination = getPagination(page, limit, maxLimit);
+
+    console.log(`--------\npage: ${pagination.page} | limit: ${pagination.limit} | skip: ${pagination.skip}`); // debug log 
+
+    const allowedSortFields = [
+        "createdAt",
+        "updatedAt",
+        "startTime",
+        "endTime",
+        "status",
+    ];
+
+    const finalSortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
+    const sort = {
+        [finalSortField]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    try {
+        const [bookings, total, overallTotal] = await Promise.all([
+            findOrganizationBookings({
+                filter,
+                sort,
+                skip: pagination.skip,
+                limit: pagination.limit,
+            }),
+
+            countOrganizationBookings(filter),
+            countOrganizationBookings(baseFilter),
+        ]);
+
+        console.log(`[Booking] Retrieved ${bookings.length} ${bookings.length === 1 ? "booking" : "bookings"} for organization ${orgId}. Total: ${total}, Overall Total: ${overallTotal}.`);
+
+        return {
+            bookings,
+            pagination: {
+                page: pagination.page,
+                limit: pagination.limit,
+                total,
+                overallTotal,
+                totalPages: Math.ceil(total / pagination.limit),
+            },
+        };
+
+    } catch (error) {
+        console.error("Failed to fetch organization bookings:", error);
+        throw new ApiError(500, "Failed to retrieve bookings, please try again.");
+    }
 };

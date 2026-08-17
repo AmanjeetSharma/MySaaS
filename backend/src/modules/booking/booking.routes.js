@@ -7,7 +7,7 @@ import {
     publicRescheduleBookingController,
     publicCancelBookingController,
 
-    // getOrganizationBookingsController,
+    getOrganizationBookingsController,
     // getServiceBookingsController,
     
     getBookingByIdController,
@@ -29,7 +29,7 @@ router.patch("/manage/cancel", publicCancelBookingController);
 
 // Staff routes
 
-// router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
+router.get("/organization/:orgId", verifyToken, getOrganizationBookingsController);
 // router.get("/service/:serviceId", verifyToken, getServiceBookingsController);
 
 router.get("/:bookingId", verifyToken, getBookingByIdController);
