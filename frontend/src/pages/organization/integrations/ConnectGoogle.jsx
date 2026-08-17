@@ -267,7 +267,7 @@ const ConnectGoogle = () => {
                 Connect Google Calendar
               </h2>
               <p className="text-muted-foreground text-xs max-w-md mx-auto mt-1.5 sm:mt-2 leading-relaxed">
-                Automate your appointment scheduling and generate instant Google Meet links directly in your workspace.
+                Automate scheduling, generate instant Google Meet links, and connect your calendar to view all your appointments in one place.
               </p>
 
               <div className="mt-5 sm:mt-6 flex justify-center">
@@ -469,73 +469,73 @@ const ConnectGoogle = () => {
       </main>
 
       {/* DISCONNECT CONFIRMATION MODAL */}
-     {isDisconnectModalOpen && (
-  <div
-    className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200"
-    onClick={() => !isDisconnecting && setIsDisconnectModalOpen(false)}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="disconnect-modal-title"
-  >
-    <div
-      className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xl ring-1 ring-border/50 animate-in zoom-in-95 duration-200"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Close Icon Button */}
-      <button
-        type="button"
-        onClick={() => setIsDisconnectModalOpen(false)}
-        disabled={isDisconnecting}
-        className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 rounded-lg p-1 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 transition-all cursor-pointer disabled:opacity-50"
-        aria-label="Close modal"
-      >
-        <X className="w-4 h-4" />
-      </button>
-
-      {/* Warning Header & Icon */}
-      <div className="flex items-start gap-3 sm:gap-4">
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[var(--color-destructive)]/10 text-[var(--color-destructive)] flex items-center justify-center shrink-0 border border-[var(--color-destructive)]/20 ring-4 ring-[var(--color-destructive)]/5">
-          <AlertTriangle className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-        </div>
-        <div className="pr-4 sm:pr-6">
-          <h3 id="disconnect-modal-title" className="text-sm sm:text-base font-bold tracking-tight text-foreground">
-            Disconnect Google Calendar?
-          </h3>
-          <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 sm:mt-1.5 leading-relaxed">
-            Warning: Future bookings will no longer be automatically added to Google Calendar, and Google Meet links will no longer be generated. Existing calendar events and meetings will remain unchanged.
-          </p>
-        </div>
-      </div>
-
-      {/* 50/50 Responsive Action Buttons */}
-      <div className="flex items-center gap-2.5 mt-5 sm:mt-6 w-full">
-        <button
-          type="button"
-          onClick={() => setIsDisconnectModalOpen(false)}
-          disabled={isDisconnecting}
-          className="flex-1 inline-flex items-center justify-center rounded-xl border border-border bg-card hover:bg-muted/60 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-semibold text-foreground transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+      {isDisconnectModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200"
+          onClick={() => !isDisconnecting && setIsDisconnectModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="disconnect-modal-title"
         >
-          Cancel
-        </button>
+          <div
+            className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xl ring-1 ring-border/50 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Icon Button */}
+            <button
+              type="button"
+              onClick={() => setIsDisconnectModalOpen(false)}
+              disabled={isDisconnecting}
+              className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 rounded-lg p-1 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 transition-all cursor-pointer disabled:opacity-50"
+              aria-label="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
 
-        {/* Destructive Confirm Button */}
-        <button
-          type="button"
-          onClick={confirmDisconnect}
-          disabled={isDisconnecting}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-destructive text-primary-foreground hover:opacity-90 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-semibold shadow-2xs transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
-        >
-          {isDisconnecting ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Unplug className="w-3.5 h-3.5" />
-          )}
-          <span>{isDisconnecting ? 'Disconnecting...' : 'Disconnect'}</span>
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            {/* Warning Header & Icon */}
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[var(--color-destructive)]/10 text-[var(--color-destructive)] flex items-center justify-center shrink-0 border border-[var(--color-destructive)]/20 ring-4 ring-[var(--color-destructive)]/5">
+                <AlertTriangle className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+              </div>
+              <div className="pr-4 sm:pr-6">
+                <h3 id="disconnect-modal-title" className="text-sm sm:text-base font-bold tracking-tight text-foreground">
+                  Disconnect Google Calendar?
+                </h3>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 sm:mt-1.5 leading-relaxed">
+                  Warning: Future bookings will no longer be automatically added to Google Calendar, and Google Meet links will no longer be generated. Existing calendar events and meetings will remain unchanged.
+                </p>
+              </div>
+            </div>
+
+            {/* 50/50 Responsive Action Buttons */}
+            <div className="flex items-center gap-2.5 mt-5 sm:mt-6 w-full">
+              <button
+                type="button"
+                onClick={() => setIsDisconnectModalOpen(false)}
+                disabled={isDisconnecting}
+                className="flex-1 inline-flex items-center justify-center rounded-xl border border-border bg-card hover:bg-muted/60 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-semibold text-foreground transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+
+              {/* Destructive Confirm Button */}
+              <button
+                type="button"
+                onClick={confirmDisconnect}
+                disabled={isDisconnecting}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-destructive text-primary-foreground hover:opacity-90 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-semibold shadow-2xs transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+              >
+                {isDisconnecting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Unplug className="w-3.5 h-3.5" />
+                )}
+                <span>{isDisconnecting ? 'Disconnecting...' : 'Disconnect'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
