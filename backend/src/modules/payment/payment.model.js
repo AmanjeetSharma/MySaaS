@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { PAYMENT_STATUSES } from "./payment.constants.js";
+import { CURRENCY } from "../service/service.constants.js";
 
 const paymentSchema = new Schema(
     {
@@ -13,7 +14,7 @@ const paymentSchema = new Schema(
         booking: {
             type: Schema.Types.ObjectId,
             ref: "Booking",
-            required: true,
+            default: null,
             index: true,
         },
 
@@ -34,9 +35,10 @@ const paymentSchema = new Schema(
 
         currency: {
             type: String,
+            enum: CURRENCY,
+            default: "INR",
             required: true,
             uppercase: true,
-            default: "INR",
         },
 
         status: {
@@ -63,6 +65,11 @@ const paymentSchema = new Schema(
             type: String,
             default: null,
             trim: true,
+        },
+
+        failedAt: {
+            type: Date,
+            default: null,
         },
 
         paidAt: {

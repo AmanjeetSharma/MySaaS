@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { CURRENCY } from "./service.constants.js";
 
 const addressSchema = new Schema({
     street: { type: String, trim: true, default: null },
@@ -70,7 +71,7 @@ const serviceSchema = new Schema({
 
     currency: {
         type: String,
-        enum: ["INR", "USD", "EUR"],
+        enum: CURRENCY,
         default: "INR",
         required: true,
     },

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { BOOKING_STATUSES } from "./booking.constants.js";
+import { CURRENCY } from "../service/service.constants.js";
 
 const addressSnapshotSchema = new Schema({
     street: { type: String, trim: true, default: null },
@@ -55,6 +56,8 @@ const serviceSnapshotSchema = new Schema({
 
     currency: {
         type: String,
+        enum: CURRENCY,
+        default: "INR",
         required: true,
     },
 
@@ -196,7 +199,13 @@ const bookingSchema = new Schema({
     status: {
         type: String,
         enum: BOOKING_STATUSES,
-        default: "CONFIRMED",
+        default: "PENDING_PAYMENT",
+        index: true,
+    },
+    
+    paymentExpiresAt: {
+        type: Date,
+        default: null,
         index: true,
     },
 
