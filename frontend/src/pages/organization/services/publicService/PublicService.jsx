@@ -14,17 +14,23 @@ import {
     User,
     Mail,
     Phone,
+    FileText,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    AlertCircle,
+    Loader2
 } from "lucide-react";
 import { useServiceStore } from "@/stores";
+import { usePaymentStore } from "@/stores";
 import PublicService404 from "./PublicSerivce404";
 import {
     formatCurrency,
     getTodayMidnight,
     getMaxBookingDate,
     isDateDisabled,
-    generateBookableSlotsForDate
+    generateBookableSlotsForDate,
+    formatSlotToISO,
+    loadRazorpayScript
 } from "./publicService.helper";
 
 const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -50,7 +56,6 @@ const buildMonthGrid = (viewDate) => {
 };
 
 /* --- Custom Calendar Component --- */
-
 const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled }) => {
     const [viewDate, setViewDate] = useState(
         () => new Date(selected.getFullYear(), selected.getMonth(), 1)
@@ -76,7 +81,6 @@ const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled })
 
     return (
         <div className="w-full max-w-md select-none">
-            {/* Month Navigation Header */}
             <div className="flex items-center justify-between mb-4 px-1">
                 <button
                     type="button"
@@ -109,7 +113,6 @@ const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled })
                 </button>
             </div>
 
-            {/* Weekday Row */}
             <div className="grid grid-cols-7 mb-1.5">
                 {WEEKDAY_LABELS.map((label) => (
                     <div
@@ -121,15 +124,13 @@ const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled })
                 ))}
             </div>
 
-            {/* Day Grid */}
             <div key={monthLabel} className="space-y-1 animate-in fade-in duration-200">
                 {weeks.map((week, wi) => (
                     <div key={wi} className="grid grid-cols-7 gap-1">
                         {week.map((date, di) => {
                             if (!date) return <div key={di} className="h-10" />;
 
-                            const disabled =
-                                date < minDate || date > maxDate || isDayDisabled(date);
+                            const disabled = date < minDate || date > maxDate || isDayDisabled(date);
                             const isSelected = isSameDay(date, selected);
                             const isToday = isSameDay(date, today);
 
@@ -160,23 +161,28 @@ const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled })
     );
 };
 
+/* --- Main Public Service Component --- */
 const PublicService = () => {
     const { orgSlug, serviceSlug } = useParams();
     const { publicService, getServiceBySlug, isLoading, error, clearPublicService } = useServiceStore();
+    const { createPayment, verifyPayment, isCreatingPayment, isVerifyingPayment, paymentError, clearPayment } = usePaymentStore();
 
-    // Booking state
+    // Booking Form State
     const [selectedDate, setSelectedDate] = useState(getTodayMidnight());
     const [selectedSlot, setSelectedSlot] = useState(null);
-    const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-    const [isBooking, setIsBooking] = useState(false);
+    const [formData, setFormData] = useState({ name: "", email: "", phone: "", notes: "" });
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [uiError, setUiError] = useState(null);
 
     useEffect(() => {
         getServiceBySlug(orgSlug, serviceSlug);
-        return () => clearPublicService();
-    }, [orgSlug, serviceSlug, getServiceBySlug, clearPublicService]);
+        return () => {
+            clearPublicService();
+            clearPayment();
+        };
+    }, [orgSlug, serviceSlug, getServiceBySlug, clearPublicService, clearPayment]);
 
-    // Derived slots for selected date
+    // Available Slots
     const availableSlots = useMemo(() => {
         if (!publicService?.availability || !selectedDate) return [];
         return generateBookableSlotsForDate(
@@ -186,7 +192,7 @@ const PublicService = () => {
         );
     }, [selectedDate, publicService]);
 
-    // Validation logic
+    // Validation
     const isFormValid = useMemo(() => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return (
@@ -197,6 +203,8 @@ const PublicService = () => {
         );
     }, [selectedDate, selectedSlot, formData]);
 
+    const isProcessing = isCreatingPayment || isVerifyingPayment;
+
     if (isLoading) return <PublicServiceSkeleton />;
     if (error || !publicService) {
         return <PublicService404 message={error || "We couldn't find the requested booking page."} />;
@@ -204,7 +212,6 @@ const PublicService = () => {
 
     const { service, organization, availability, isBookable } = publicService;
 
-    // Disabled / Unbookable State
     if (!isBookable || !availability) {
         return (
             <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col justify-between">
@@ -236,15 +243,81 @@ const PublicService = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleBookingSubmit = (e) => {
+    const handleBookingSubmit = async (e) => {
         e?.preventDefault();
-        if (!isFormValid || isBooking) return;
+        setUiError(null);
 
-        setIsBooking(true);
-        setTimeout(() => {
-            setIsBooking(false);
-            setIsSubmitted(true);
-        }, 800);
+        if (!isFormValid || isProcessing) return;
+
+        try {
+            const isScriptLoaded = await loadRazorpayScript();
+            if (!isScriptLoaded) {
+                setUiError("Razorpay SDK failed to load. Please check your internet connection.");
+                return;
+            }
+
+            const startTimeISO = formatSlotToISO(selectedDate, selectedSlot);
+
+            const payload = {
+                organizationSlug: organization?.slug || orgSlug,
+                serviceSlug: service?.slug || serviceSlug,
+                booker: {
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone.trim() || undefined,
+                },
+                startTime: startTimeISO,
+                notes: formData.notes.trim() || undefined,
+            };
+
+            // 1. Create order
+            const paymentOrder = await createPayment(payload);
+
+            // 2. Configure options with keyId from backend response
+            const options = {
+                key: paymentOrder.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: paymentOrder.amount,
+                currency: paymentOrder.currency || "INR",
+                name: organization?.name || "Booking Service",
+                description: `${name} (${durationInMinutes} mins)`,
+                order_id: paymentOrder.razorpayOrderId,
+                prefill: {
+                    name: formData.name,
+                    email: formData.email,
+                    contact: formData.phone,
+                },
+                theme: {
+                    color: "#4f46e5",
+                },
+                handler: async (response) => {
+                    try {
+                        await verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        });
+
+                        setIsSubmitted(true);
+                    } catch (verifyErr) {
+                        setUiError(verifyErr?.response?.data?.message || "Payment verification failed.");
+                    }
+                },
+                modal: {
+                    ondismiss: () => {
+                        setUiError("Payment cancelled. You can retry anytime.");
+                    },
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on("payment.failed", (response) => {
+                setUiError(response.error.description || "Payment transaction failed.");
+            });
+
+            rzp.open();
+        } catch (err) {
+            setUiError(err?.response?.data?.message || "Failed to initiate payment. Please try again.");
+        }
     };
 
     if (isSubmitted) {
@@ -259,19 +332,18 @@ const PublicService = () => {
         );
     }
 
+    const activeErrorMessage = uiError || paymentError;
+
     return (
         <div className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased flex flex-col justify-between selection:bg-indigo-600 selection:text-white">
             <Header />
 
             <main className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 w-full">
-                {/* TWO-COLUMN GRID: 35% Left (Summary), 65% Right (Booking Controls) */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
-                    {/* LEFT COLUMN: Sticky Service Summary Card (~35% / 4 cols) */}
+                    {/* LEFT COLUMN: Service Summary */}
                     <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
                         <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-6">
-
-                            {/* Organization Badge & Title */}
                             <div>
                                 <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-600 mb-2 bg-indigo-50/80 px-2.5 py-1 rounded-full border border-indigo-100">
                                     <Building2 className="w-3 h-3 text-indigo-500" />
@@ -282,16 +354,13 @@ const PublicService = () => {
                                 </h1>
                             </div>
 
-                            {/* Service Description */}
                             {description && (
                                 <p className="text-slate-600 text-sm leading-relaxed border-b border-slate-100 pb-5">
                                     {description}
                                 </p>
                             )}
 
-                            {/* Key Attributes List */}
                             <div className="space-y-4 text-sm font-medium">
-                                {/* Price */}
                                 <div className="flex items-center justify-between">
                                     <span className="text-slate-500">Price</span>
                                     <span className="text-lg font-bold text-slate-900">
@@ -299,7 +368,6 @@ const PublicService = () => {
                                     </span>
                                 </div>
 
-                                {/* Duration */}
                                 <div className="flex items-center justify-between">
                                     <span className="text-slate-500">Duration</span>
                                     <div className="flex items-center gap-1.5 text-slate-800 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60 text-xs font-semibold">
@@ -308,7 +376,6 @@ const PublicService = () => {
                                     </div>
                                 </div>
 
-                                {/* Meeting Type */}
                                 <div className="flex items-start justify-between pt-2 border-t border-slate-100">
                                     <span className="text-slate-500 mt-0.5">Location</span>
                                     <div className="text-right">
@@ -328,7 +395,6 @@ const PublicService = () => {
                                     </div>
                                 </div>
 
-                                {/* Address card for Offline Mode */}
                                 {mode === "OFFLINE" && address && (
                                     <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 text-xs text-slate-600 space-y-0.5 mt-2">
                                         <p className="font-semibold text-slate-900">{address.street}</p>
@@ -338,7 +404,6 @@ const PublicService = () => {
                                 )}
                             </div>
 
-                            {/* Summary Footer Widget */}
                             {selectedDate && selectedSlot && (
                                 <div className="bg-indigo-50/50 border border-indigo-100 p-3.5 rounded-2xl space-y-1">
                                     <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Selected Appointment</p>
@@ -350,13 +415,19 @@ const PublicService = () => {
                         </div>
                     </aside>
 
-                    {/* RIGHT COLUMN: Interactive Booking Flow (~65% / 8 cols) */}
+                    {/* RIGHT COLUMN: Booking Flow */}
                     <section className="lg:col-span-8 space-y-8">
 
-                        {/* Step 1: Calendar & Time Slots Card */}
-                        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-8">
+                        {/* Error Alert Display */}
+                        {activeErrorMessage && (
+                            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm">
+                                <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+                                <span className="flex-1">{activeErrorMessage}</span>
+                            </div>
+                        )}
 
-                            {/* Calendar Header */}
+                        {/* Step 1: Calendar & Slots */}
+                        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-8">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-5">
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">Select Date & Time</h2>
@@ -367,7 +438,6 @@ const PublicService = () => {
                                 </div>
                             </div>
 
-                            {/* Custom Calendar Wrapper */}
                             <div className="flex justify-center p-4 sm:p-6 bg-slate-50/60 rounded-2xl border border-slate-100">
                                 <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-4 sm:p-5 w-full max-w-md">
                                     <CustomCalendar
@@ -383,7 +453,6 @@ const PublicService = () => {
                                 </div>
                             </div>
 
-                            {/* Time Slot Picker Grid */}
                             <div className="space-y-4 pt-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -426,11 +495,11 @@ const PublicService = () => {
                             </div>
                         </div>
 
-                        {/* Step 2: Attendee Details Form Card */}
+                        {/* Step 2: Attendee Details */}
                         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
                             <div className="border-b border-slate-100 pb-4">
                                 <h2 className="text-lg font-bold text-slate-900 tracking-tight">Your Details</h2>
-                                <p className="text-xs text-slate-500 mt-0.5">Please provide your contact information to finalize the booking.</p>
+                                <p className="text-xs text-slate-500 mt-0.5">Please provide your contact information to finalize and pay.</p>
                             </div>
 
                             <form onSubmit={handleBookingSubmit} className="space-y-4">
@@ -481,27 +550,47 @@ const PublicService = () => {
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            placeholder="+1 (555) 000-0000"
+                                            placeholder="+91 98765 43210"
                                             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
 
-                                {/* Desktop Submit CTA Button */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Notes or Specific Requests <span className="text-slate-400 font-normal">(Optional)</span>
+                                    </label>
+                                    <div className="relative">
+                                        <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                                        <input
+                                            type="text"
+                                            name="notes"
+                                            value={formData.notes}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g. Looking forward to custom PC assembly discussion"
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Desktop CTA */}
                                 <div className="pt-4 hidden sm:block">
                                     <button
                                         type="submit"
-                                        disabled={!isFormValid || isBooking}
-                                        className={`w-full py-3.5 px-4 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${isFormValid && !isBooking
+                                        disabled={!isFormValid || isProcessing}
+                                        className={`w-full py-3.5 px-4 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${isFormValid && !isProcessing
                                             ? "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/10 cursor-pointer active:scale-[0.99]"
                                             : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
                                             }`}
                                     >
-                                        {isBooking ? (
-                                            <span>Confirming Appointment...</span>
+                                        {isProcessing ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                                <span>{isVerifyingPayment ? "Verifying Payment..." : "Initializing Gateway..."}</span>
+                                            </>
                                         ) : (
                                             <>
-                                                <span>Complete Booking</span>
+                                                <span>Confirm & Pay {price > 0 ? formatCurrency(price, currency) : ""}</span>
                                                 <ArrowRight className="w-4 h-4" />
                                             </>
                                         )}
@@ -513,22 +602,25 @@ const PublicService = () => {
                 </div>
             </main>
 
-            {/* Mobile Fixed Sticky CTA Footer */}
+            {/* Mobile Fixed CTA */}
             <div className="sm:hidden sticky bottom-0 z-40 bg-white border-t border-slate-200 p-4 shadow-xl">
                 <button
                     type="button"
                     onClick={handleBookingSubmit}
-                    disabled={!isFormValid || isBooking}
-                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${isFormValid && !isBooking
+                    disabled={!isFormValid || isProcessing}
+                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${isFormValid && !isProcessing
                         ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
                         : "bg-slate-100 text-slate-400 cursor-not-allowed"
                         }`}
                 >
-                    {isBooking ? (
-                        <span>Processing...</span>
+                    {isProcessing ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>{isVerifyingPayment ? "Verifying..." : "Opening Checkout..."}</span>
+                        </>
                     ) : (
                         <>
-                            <span>{selectedSlot ? `Book for ${selectedSlot}` : "Select Slot to Book"}</span>
+                            <span>{selectedSlot ? `Pay & Book (${selectedSlot})` : "Select Slot to Book"}</span>
                             <ArrowRight className="w-4 h-4" />
                         </>
                     )}
@@ -541,15 +633,11 @@ const PublicService = () => {
 };
 
 /* --- Supplementary Layout Components --- */
-
 const Header = () => (
     <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            {/* Logo Link */}
             <a
-                href="http://mysaas-temp.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/"
                 className="flex items-center gap-2 group transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 rounded-lg p-1 -ml-1"
             >
                 <span className="font-extrabold text-slate-900 tracking-tight text-lg group-hover:opacity-80 transition-opacity">
@@ -557,7 +645,6 @@ const Header = () => (
                 </span>
             </a>
 
-            {/* Verified Badge */}
             <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200/60">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span className="hidden sm:inline">Verified Booking Page</span>
@@ -629,13 +716,13 @@ const ConfirmationSuccess = ({ serviceName, orgName, date, slot, attendee }) => 
 );
 
 const PublicServiceSkeleton = () => (
-    <div className="min-h-screen bg-[#F8FAFC] animate-pulse p-8 max-w-335 mx-auto space-y-8">
+    <div className="min-h-screen bg-[#F8FAFC] animate-pulse p-8 max-w-[1340px] mx-auto space-y-8">
         <div className="h-8 w-32 bg-slate-200 rounded-lg"></div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-4 h-112.5 bg-slate-200 rounded-3xl"></div>
+            <div className="lg:col-span-4 h-[450px] bg-slate-200 rounded-3xl"></div>
             <div className="lg:col-span-8 space-y-6">
-                <div className="h-95 bg-slate-200 rounded-3xl"></div>
-                <div className="h-55 bg-slate-200 rounded-3xl"></div>
+                <div className="h-[380px] bg-slate-200 rounded-3xl"></div>
+                <div className="h-[220px] bg-slate-200 rounded-3xl"></div>
             </div>
         </div>
     </div>

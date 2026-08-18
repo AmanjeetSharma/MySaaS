@@ -44,6 +44,24 @@ export const convertMinutesTo12HrTime = (totalMinutes) => {
 };
 
 /**
+ * Converts selected Date and 12-hour time string ("09:00 AM") to ISO UTC string
+ */
+export const formatSlotToISO = (date, slotTimeString) => {
+    if (!date || !slotTimeString) return null;
+
+    const [time, period] = slotTimeString.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (period === "PM" && hours < 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+
+    const targetDate = new Date(date);
+    targetDate.setHours(hours, minutes, 0, 0);
+
+    return targetDate.toISOString();
+};
+
+/**
  * Extracts day name from JavaScript Date object
  */
 export const getDayNameFromDate = (date) => {
@@ -73,7 +91,6 @@ export const isDateDisabled = (date, availabilityData) => {
 
 /**
  * Dynamically breaks down start/end time ranges into discrete bookable slots
- * based on the service duration (e.g. 30 mins)
  */
 export const generateBookableSlotsForDate = (date, availabilityData, durationInMinutes = 30) => {
     if (!date || !availabilityData || !availabilityData.days) return [];
@@ -97,4 +114,21 @@ export const generateBookableSlotsForDate = (date, availabilityData, durationInM
     });
 
     return slots;
+};
+
+/**
+ * Dynamically loads external Razorpay checkout script if not present
+ */
+export const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+        if (window.Razorpay) {
+            resolve(true);
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
 };

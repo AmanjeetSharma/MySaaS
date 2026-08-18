@@ -759,12 +759,12 @@ export default function ServiceDetails() {
                     {selectedService?.autoGenerateMeetingLink ? (
                       <>
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                        <span>Auto-generation enabled</span>
+                        <span>Auto-Link Generation Enabled</span>
                       </>
                     ) : (
                       <>
                         <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                        <span>Auto-generation disabled</span>
+                        <span>Auto-Link Generation Disabled</span>
                       </>
                     )}
                   </div>

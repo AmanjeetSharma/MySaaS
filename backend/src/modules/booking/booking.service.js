@@ -19,6 +19,7 @@ import {
     findBookings,
     countBookings,
     findServiceById,
+    findBookingById,
 } from "./booking.repository.js";
 import {
     validateObjectId,

@@ -10,6 +10,7 @@ export { useCustomerStore } from './customerStore';
 export { useDealStore } from './dealStore';
 export { useActivityStore } from './activityStore';
 export { useGoogleStore } from './googleStore';
+export { usePaymentStore } from './paymentStore';
 
 
 

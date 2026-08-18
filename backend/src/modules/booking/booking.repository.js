@@ -57,6 +57,11 @@ export const createBooking = async (bookingData) => {
 };
 
 
+export const findBookingById = async (bookingId) => {
+    return Booking.findById(bookingId);
+};
+
+
 export const findBookingByIdAndOrganization = async (bookingId, organizationId) => {
     return Booking.findOne({
         _id: bookingId,
@@ -150,7 +155,7 @@ export const updateBooking = async (bookingId, orgId, updateData) => {
             $set: updateData,
         },
         {
-            new: true,
+            returnDocument: "after",
             runValidators: true,
         }
     );
@@ -170,7 +175,7 @@ export const updateBookingStatus = async (bookingId, orgId, status, updateData =
             },
         },
         {
-            new: true,
+            returnDocument: "after",
             runValidators: true,
         }
     );

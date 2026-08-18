@@ -274,7 +274,7 @@ export const useServiceStore = create((set) => ({
                 `/services/public/${orgSlug}/${serviceSlug}`
             );
             const { data } = response.data;
-            console.log('Fetched public service:', data);
+            // console.log('Fetched public service:', data);
             set({
                 publicService: data,
                 isLoading: false,
