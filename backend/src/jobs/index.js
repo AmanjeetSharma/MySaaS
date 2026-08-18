@@ -2,6 +2,7 @@ import cron from "node-cron";
 import chalk from "chalk";
 import { runPendingUserCleanup } from "./pendingUserCleanup.js";
 import { runInvitationCleanup } from "./invitationCleanup.js";
+import { runExpiredBookingCleanup } from "./expiredBookingCleanup.js";
 
 export const startJobs = () => {
     console.log(`${chalk.blueBright("Starting background jobs...")}`);
@@ -15,6 +16,11 @@ export const startJobs = () => {
     // every 30 minutes
     cron.schedule("*/30 * * * *", async () => {
         await runInvitationCleanup();
+    });
+
+    // every 
+    cron.schedule("* * * * *", async () => {
+        await runExpiredBookingCleanup();
     });
 };
 

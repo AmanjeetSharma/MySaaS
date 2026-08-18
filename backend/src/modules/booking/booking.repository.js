@@ -20,13 +20,29 @@ export const findAvailabilityByServiceId = async (serviceId) => {
 };
 
 
-export const findOverlappingOrganizationBooking = async (orgId, startTime, endTime, excludeBookingId = null) => {
+export const findOverlappingOrganizationBooking = async (
+    orgId,
+    startTime,
+    endTime,
+    excludeBookingId = null
+) => {
+    const now = new Date();
+
     const query = {
         organization: orgId,
-        status: "CONFIRMED",
         startTime: { $lt: endTime },
         endTime: { $gt: startTime },
-    }
+
+        $or: [
+            {
+                status: "CONFIRMED",
+            },
+            {
+                status: "PENDING_PAYMENT",
+                paymentExpiresAt: { $gt: now },
+            },
+        ],
+    };
 
     if (excludeBookingId) {
         query._id = { $ne: excludeBookingId };
@@ -200,4 +216,22 @@ export const findServiceById = async (serviceId) => {
             organization: 1,
         }
     ).lean();
+};
+
+
+export const expirePendingBookings = async () => {
+    return Booking.updateMany(
+        {
+            status: "PENDING_PAYMENT",
+            paymentExpiresAt: {
+                $lte: new Date(),
+            },
+        },
+        {
+            $set: {
+                status: "EXPIRED",
+                paymentExpiresAt: null,
+            },
+        }
+    );
 };

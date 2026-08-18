@@ -348,7 +348,7 @@ export default function ServiceDetails() {
   if (isLoading && !selectedService) {
     return (
       <div className="flex h-[70vh] items-center justify-center p-4 text-center font-bold tracking-wider text-muted-foreground/60 text-xs uppercase">
-        Synchronizing Service Workspace...
+        Synchronizing Workspace...
       </div>
     );
   }
@@ -381,8 +381,8 @@ export default function ServiceDetails() {
               </h1>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${selectedService?.isActive
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                    : 'bg-muted text-muted-foreground border border-border/60'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                  : 'bg-muted text-muted-foreground border border-border/60'
                   }`}
               >
                 {selectedService?.isActive ? 'Active' : 'Inactive'}
@@ -639,8 +639,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'OFFLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'OFFLINE'
-                          ? 'text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -650,8 +650,8 @@ export default function ServiceDetails() {
                       type="button"
                       onClick={() => updateField('mode', 'ONLINE')}
                       className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'ONLINE'
-                          ? 'text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       <Video className="h-3.5 w-3.5 shrink-0" />

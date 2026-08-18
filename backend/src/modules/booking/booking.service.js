@@ -268,6 +268,201 @@ export const createBookingService = async (payload = {}) => {
 
 
 
+
+
+export const createPendingBookingService = async (payload = {}) => {
+    const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
+    const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
+
+    validateBookerDetails(payload.booker);
+
+    const startTime = validateStartTime(payload.startTime);
+
+    const organization = await findOrganizationBySlug(organizationSlug);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found");
+    }
+
+    const service = await findServiceBySlug(organization._id, serviceSlug);
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    if (!service.isActive) {
+        throw new ApiError(400, "Service is not accepting bookings at the moment.");
+    }
+
+    const availability = await findAvailabilityByServiceId(service._id);
+    if (!availability) {
+        throw new ApiError(400, "Bookings are currently unavailable");
+    }
+
+    const timezone = availability.timezone;
+
+    const endTime = validateRequestedSlot({
+        startTime,
+        availability,
+        durationInMinutes: service.durationInMinutes,
+    });
+
+    const conflictingBooking = await findOverlappingOrganizationBooking(organization._id, startTime, endTime);
+    if (conflictingBooking) {
+        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
+    }
+
+    const booker = {
+        name: payload.booker.name.trim(),
+        email: payload.booker.email.trim().toLowerCase(),
+        phone: payload.booker.phone?.trim() || null,
+    };
+
+    const paymentExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from the time of booking creation
+
+    let booking;
+
+    try {
+        booking = await createBooking({
+            organization: organization._id,
+            service: service._id,
+            booker,
+            serviceSnapshot: buildServiceSnapshot(service),
+            startTime,
+            endTime,
+            timezone,
+
+            status: "PENDING_PAYMENT",
+            paymentExpiresAt,
+
+            notes: payload.notes?.trim() || null,
+        });
+
+    } catch (error) {
+        console.error("[Booking] Failed to create pending booking:", error.message);
+        throw new ApiError(500, "Unable to create booking. Please try again.");
+    }
+
+    return {
+        booking,
+        bookingId: booking._id,
+        amount: service.price,
+        currency: service.currency,
+        paymentExpiresAt,
+    };
+};
+
+
+
+
+
+
+
+
+
+export const confirmBookingService = async ({
+    bookingId,
+}) => {
+
+    const booking = await findBookingById(bookingId);
+    if (!booking) {
+        throw new ApiError(404, "Booking not found.");
+    }
+
+    if (booking.status === "CONFIRMED") {
+        return booking;
+    }
+
+    if (booking.status !== "PENDING_PAYMENT") {
+        throw new ApiError(409, "Booking is no longer awaiting payment.");
+    }
+
+    const organization = await findOrganizationById(booking.organization);
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
+
+    const service = await findServiceById(booking.service);
+    if (!service) {
+        throw new ApiError(404, "Service not found.");
+    }
+
+    const accessToken = generateBookingAccessToken();
+    const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
+
+    const googleResult = await tryCreateGoogleEvent({
+        organization,
+        service,
+        booker: booking.booker,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        timezone: booking.timezone,
+        manageBookingUrl,
+    });
+
+
+    const confirmedBooking = await updateBookingStatus(
+        booking._id,
+        booking.organization,
+        "CONFIRMED",
+        {
+            meeting: googleResult.meeting,
+            calendarEvent: googleResult.calendarEvent,
+            paymentExpiresAt: null,
+            bookingAccess: {
+                hashedToken: accessToken.hashedToken,
+                expiresAt: accessToken.expiresAt,
+            },
+        }
+    );
+    if (!confirmedBooking) {
+        throw new ApiError(409, "Booking could not be confirmed. Your money will be refunded within 1 hour, if the payment was already processed.");
+    }
+
+
+    await sendBookingEmails({
+        booking: confirmedBooking,
+        organization,
+        manageBookingUrl,
+    });
+
+
+    return confirmedBooking;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const cancelBookingService = async ({
     userId,
     orgId,

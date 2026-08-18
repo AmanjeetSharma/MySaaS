@@ -27,7 +27,7 @@ import dealRoutes from "./modules/deal/deal.routes.js";
 import activityRoutes from "./modules/activity/activity.routes.js";
 import bookingRoutes from "./modules/booking/booking.routes.js";
 import googleRoutes from "./modules/providers/google/google.routes.js";
-// import paymentRoutes from "./modules/payment/payment.routes.js";
+import paymentRoutes from "./modules/payment/payment.routes.js";
 
 // Use routes
 app.use("/api/v1/auth", authRoutes);
@@ -40,7 +40,7 @@ app.use("/api/v1/deals", dealRoutes);
 app.use("/api/v1/activities", activityRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/providers/google", googleRoutes);
-// app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

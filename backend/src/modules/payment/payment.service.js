@@ -1,107 +1,177 @@
 import { ApiError } from "../../utils/ApiError.js";
 import {
+    createPendingBookingService,
+    confirmBookingService,
+} from "../booking/booking.service.js";
+import {
     createRazorpayOrder,
+    verifyRazorpayPaymentSignature,
 } from "../../integrations/razorpay.integration.js";
 import {
-    validatePaymentRequest,
-    validateBookingForPayment,
-} from "./payment.helper.js";
-import {
-    findBookingForPayment,
-    findPaymentByBooking,
     createPayment,
+    updateBookingStatus,
+    findPaymentByRazorpayOrderId,
+    markPaymentAsSuccess,
+    markPaymentAsFailed,
 } from "./payment.repository.js";
+import {
+    convertToSmallestCurrencyUnit,
+    generatePaymentReceipt,
+
+} from "./payment.helper.js";
+import env from "../../config/env.config.js";
 
 
-export const createPaymentService = async ({
-    bookingId,
-}) => {
-
-    validatePaymentRequest({ bookingId });
-
-    const booking = await findBookingForPayment(bookingId);
-    if(!booking){
-        console.log("Booking not found");
-    }
-
-    validateBookingForPayment(booking);
 
 
-    // 4. Check if payment already exists
-    const existingPayment = await findPaymentByBooking(
-        bookingId
-    );
-
-    if (existingPayment) {
-        return {
-            paymentId: existingPayment._id,
-            razorpayOrderId: existingPayment.razorpayOrderId,
-            amount: existingPayment.amount,
-            currency: existingPayment.currency,
-            status: existingPayment.status,
-        };
-    }
 
 
-    // 5. Get amount from trusted booking snapshot
-    const amount = Math.round(
-        booking.serviceSnapshot.price * 100
-    );
-
-    const currency =
-        booking.serviceSnapshot.currency.toUpperCase();
 
 
-    // 6. Create Razorpay receipt
-    const receipt = `booking_${booking._id}`;
 
 
-    // 7. Create Razorpay order
-    const razorpayOrder = await createRazorpayOrder({
+
+export const createPaymentService = async (payload = {}) => {
+
+    // create pending booking 
+    const {
+        booking,
+        bookingId,
         amount,
         currency,
-        receipt,
-    });
+        paymentExpiresAt,
+        manageBookingUrl,
+    } = await createPendingBookingService(payload);
+
+    const razorpayAmount = convertToSmallestCurrencyUnit(amount);
+
+    const receipt = generatePaymentReceipt(bookingId);
 
 
-    if (!razorpayOrder?.id) {
-        throw new ApiError(
-            502,
-            "Failed to create payment order."
-        );
+    let razorpayOrder;
+
+    try {
+        razorpayOrder = await createRazorpayOrder({
+            amount: razorpayAmount,
+            currency,
+            receipt,
+        });
+
+    } catch (error) {
+
+        console.error("[Payment] Failed to create Razorpay order:", error?.error?.description || error.message);
+        // Booking was created but payment initialization failed.
+
+        await updateBookingStatus(bookingId, booking.organization, "PAYMENT_FAILED", { paymentExpiresAt: null, });
+
+        throw new ApiError(502, "Unable to initialize payment. Please try again.");
     }
 
+    let payment;
 
-    // 8. Store payment in MongoDB
-    const payment = await createPayment({
-        organization: booking.organization,
-        booking: booking._id,
+    try {
+        payment = await createPayment({
+            organization: booking.organization,
+            booking: booking._id,
 
-        provider: "RAZORPAY",
+            provider: "RAZORPAY",
 
-        amount,
-        currency,
+            amount: razorpayAmount,
+            currency,
 
-        status: "CREATED",
+            status: "CREATED",
 
-        razorpayOrderId: razorpayOrder.id,
+            razorpayOrderId: razorpayOrder.id,
+        });
 
-        receipt,
-    });
+    } catch (error) {
+        console.error("[Payment] Failed to create payment record for booking ID:", booking._id, "-", error.message);
 
+        await updateBookingStatus(bookingId, booking.organization, "PAYMENT_FAILED", { paymentExpiresAt: null, });
 
-    // 9. Return only what frontend needs
+        throw new ApiError(500, "Unable to initialize payment. Please try again.");
+    }
+
     return {
+        bookingId: booking._id,
         paymentId: payment._id,
 
         razorpayOrderId: razorpayOrder.id,
 
-        amount: razorpayOrder.amount,
-
-        currency: razorpayOrder.currency,
+        amount: razorpayAmount,
+        currency,
 
         keyId: env.RAZORPAY_KEY_ID,
 
-        status: payment.status,
+        paymentExpiresAt,
+
+        manageBookingUrl,
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const verifyPaymentService = async ({
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+}) => {
+
+    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        throw new ApiError(400, "Razorpay payment details are required.");
+    }
+
+    const payment = await findPaymentByRazorpayOrderId(razorpayOrderId);
+    if (!payment) {
+        throw new ApiError(404, "Payment record not found.");
+    }
+
+    // Idempotency check
+    if (payment.status === "SUCCESS") {
+        return {
+            paymentId: payment._id,
+            bookingId: payment.booking,
+            status: "SUCCESS",
+            alreadyProcessed: true,
+        };
+    }
+
+
+    const isValidSignature = verifyRazorpayPaymentSignature({
+        orderId: razorpayOrderId,
+        paymentId: razorpayPaymentId,
+        signature: razorpaySignature,
+    });
+    if (!isValidSignature) {
+        throw new ApiError(400, "Invalid payment signature.");
+    }
+
+    const updatedPayment = await markPaymentAsSuccess({
+        paymentId: payment._id,
+        razorpayPaymentId,
+    });
+    if (!updatedPayment) {
+        throw new ApiError(409, "Payment could not be completed.");
+    }
+
+    const booking = await confirmBookingService({
+        bookingId: payment.booking,
+    });
+
+    return {
+        paymentId: updatedPayment._id,
+        bookingId: booking._id,
+        status: "SUCCESS",
+        bookingStatus: booking.status,
+        meetingLink: booking.meeting?.link ?? null,
     };
 };
