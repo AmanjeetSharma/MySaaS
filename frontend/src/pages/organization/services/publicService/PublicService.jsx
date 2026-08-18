@@ -340,7 +340,7 @@ const PublicService = () => {
             rzp.open();
         } catch (err) {
             toast.error(err?.response?.data?.message || "Failed to initiate payment. Please try again.", {
-                icon: toastIcon("error"),
+                timeout: 10000,
             });
         }
     };

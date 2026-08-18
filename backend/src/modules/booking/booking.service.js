@@ -29,6 +29,7 @@ import {
     generateBookingAccessToken,
     normalizeSlug,
     validateRequestedSlot,
+    handleBookingConflict,
     validateNotSameBookingTime,
     buildServiceSnapshot,
     shouldCreateGoogleCalendarEvent,
@@ -343,7 +344,7 @@ export const createPendingBookingService = async (payload = {}) => {
 
     if (existingPendingBooking) {
         console.log(`[Booking] Pending booking exists: ${existingPendingBooking._id} | ${booker.email} | expires ${existingPendingBooking.paymentExpiresAt.toISOString()}`);
-       
+
         return {
             booking: existingPendingBooking,
             bookingId: existingPendingBooking._id,
@@ -355,10 +356,10 @@ export const createPendingBookingService = async (payload = {}) => {
     }
 
     const conflictingBooking = await findOverlappingOrganizationBooking(organization._id, startTime, endTime);
-    if (conflictingBooking) {
-        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
-    }
 
+    if (conflictingBooking) {
+        handleBookingConflict(conflictingBooking);
+    }
 
     let booking;
 
@@ -383,7 +384,7 @@ export const createPendingBookingService = async (payload = {}) => {
         throw new ApiError(500, "Unable to create booking. Please try again.");
     }
 
-    console.log(`[Booking: public api] New pending booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}". Payment expires at: ${paymentExpiresAt.toISOString()}`);
+    console.log(`[Booking: public api] New pending booking: ${booking._id} | ${booking.booker.email} | expires ${paymentExpiresAt.toISOString()}`);
 
     return {
         booking,
@@ -425,7 +426,7 @@ export const confirmBookingService = async ({
         throw new ApiError(404, "Organization not found.");
     }
 
-    const service = await findServiceById(booking.service);
+    const service = booking.serviceSnapshot;
     if (!service) {
         throw new ApiError(404, "Service not found.");
     }

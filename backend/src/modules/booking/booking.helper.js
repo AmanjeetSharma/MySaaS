@@ -159,6 +159,32 @@ export const validateRequestedSlot = ({
 
 
 
+export const handleBookingConflict = (conflictingBooking) => {
+    if (conflictingBooking.status === "PENDING_PAYMENT") {
+        const expiresAt = conflictingBooking.paymentExpiresAt;
+
+        const remainingMs = expiresAt ? expiresAt.getTime() - Date.now() : 0;
+
+        const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
+
+        if (remainingMinutes > 0) {
+            throw new ApiError(
+                409,
+                `This time slot is temporarily reserved by another customer. ` +
+                `They may still be completing their booking. ` +
+                `If they leave without completing it, the slot may become available again in about ` +
+                `${remainingMinutes} minute${remainingMinutes === 1 ? "" : "s"}.`
+            );
+        }
+    }
+
+    throw new ApiError(409, "This slot has already been booked. Please choose a different slot.");
+};
+
+
+
+
+
 export const validateNotSameBookingTime = ({
     booking,
     newStartTime,

@@ -24,4 +24,4 @@ export const BOOKING_STATUS_TRANSITIONS = {
 
 
 // if value = 5 then 5 minutes from now
-export const PAYMENT_HOLD_DURATION_MINUTES = 0.5; 
+export const PAYMENT_HOLD_DURATION_MINUTES = 15; 

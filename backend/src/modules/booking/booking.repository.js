@@ -241,6 +241,11 @@ export const findServiceById = async (serviceId) => {
         {
             _id: 1,
             organization: 1,
+            name: 1,
+            mode: 1,
+            address: 1,
+            meetingProvider: 1,
+            autoGenerateMeetingLink: 1,
         }
     ).lean();
 };
@@ -249,7 +254,6 @@ export const findServiceById = async (serviceId) => {
 export const expirePendingBookings = async () => {
     const now = new Date();
 
-    // 1. Find pending bookings whose payment hold expired
     const expiredBookings = await Booking.find({
         status: "PENDING_PAYMENT",
         paymentExpiresAt: {
@@ -262,7 +266,6 @@ export const expirePendingBookings = async () => {
     let paymentModifiedCount = 0;
 
 
-    // 2. Expire newly expired bookings
     if (expiredBookings.length > 0) {
 
         const bookingIds = expiredBookings.map(
@@ -285,7 +288,6 @@ export const expirePendingBookings = async () => {
         bookingModifiedCount = bookingResult.modifiedCount;
 
 
-        // 3. Expire payments belonging to those bookings
         const paymentResult = await Payment.updateMany(
             {
                 booking: { $in: bookingIds },
@@ -300,7 +302,6 @@ export const expirePendingBookings = async () => {
 
         paymentModifiedCount = paymentResult.modifiedCount;
     }
-
 
     return {
         bookingModifiedCount,
