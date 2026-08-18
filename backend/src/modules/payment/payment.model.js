@@ -61,16 +61,6 @@ const paymentSchema = new Schema(
             index: true,
         },
 
-        failureReason: {
-            type: String,
-            default: null,
-            trim: true,
-        },
-
-        failedAt: {
-            type: Date,
-            default: null,
-        },
 
         paidAt: {
             type: Date,

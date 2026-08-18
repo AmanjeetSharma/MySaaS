@@ -18,7 +18,7 @@ export const updateBookingStatus = async (bookingId, orgId, status, updateData =
             },
         },
         {
-            new: true,
+            returnDocument: "after",
             runValidators: true,
         }
     );
@@ -28,6 +28,13 @@ export const updateBookingStatus = async (bookingId, orgId, status, updateData =
 export const findPaymentByRazorpayOrderId = async (razorpayOrderId) => {
     return Payment.findOne({
         razorpayOrderId,
+    });
+};
+
+
+export const findPaymentByBookingId = async (bookingId) => {
+    return Payment.findOne({
+        booking: bookingId,
     });
 };
 
@@ -48,38 +55,10 @@ export const markPaymentAsSuccess = async ({
                 status: "SUCCESS",
                 razorpayPaymentId,
                 paidAt: new Date(),
-                failureReason: null,
-                failedAt: null,
             },
         },
         {
-            new: true,
-            runValidators: true,
-        }
-    );
-};
-
-
-export const markPaymentAsFailed = async ({
-    paymentId,
-    failureReason,
-}) => {
-    return Payment.findOneAndUpdate(
-        {
-            _id: paymentId,
-            status: {
-                $nin: ["SUCCESS"],
-            },
-        },
-        {
-            $set: {
-                status: "FAILED",
-                failureReason: failureReason || null,
-                failedAt: new Date(),
-            },
-        },
-        {
-            new: true,
+            returnDocument: "after",
             runValidators: true,
         }
     );

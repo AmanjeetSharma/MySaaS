@@ -12,7 +12,7 @@ import {
     updateBookingStatus,
     findPaymentByRazorpayOrderId,
     markPaymentAsSuccess,
-    markPaymentAsFailed,
+    findPaymentByBookingId,
 } from "./payment.repository.js";
 import {
     convertToSmallestCurrencyUnit,
@@ -40,8 +40,32 @@ export const createPaymentService = async (payload = {}) => {
         amount,
         currency,
         paymentExpiresAt,
-        manageBookingUrl,
+        isExisting,
     } = await createPendingBookingService(payload);
+
+    if (isExisting) {
+        const existingPayment = await findPaymentByBookingId(
+            bookingId
+        );
+
+        if (!existingPayment) {
+            throw new ApiError(500, "Existing booking payment session could not be found.");
+        }
+
+        if (existingPayment.status === "SUCCESS") {
+            throw new ApiError(409, "This booking has already been confirmed.");
+        }
+
+        return {
+            bookingId: booking._id,
+            paymentId: existingPayment._id,
+            razorpayOrderId: existingPayment.razorpayOrderId,
+            amount: existingPayment.amount,
+            currency: existingPayment.currency,
+            keyId: env.RAZORPAY_KEY_ID,
+            paymentExpiresAt,
+        };
+    }
 
     const razorpayAmount = convertToSmallestCurrencyUnit(amount);
 
@@ -61,9 +85,6 @@ export const createPaymentService = async (payload = {}) => {
 
         console.error("[Payment] Failed to create Razorpay order:", error?.error?.description || error.message);
         // Booking was created but payment initialization failed.
-
-        await updateBookingStatus(bookingId, booking.organization, "PAYMENT_FAILED", { paymentExpiresAt: null, });
-
         throw new ApiError(502, "Unable to initialize payment. Please try again.");
     }
 
@@ -73,42 +94,31 @@ export const createPaymentService = async (payload = {}) => {
         payment = await createPayment({
             organization: booking.organization,
             booking: booking._id,
-
             provider: "RAZORPAY",
-
             amount: razorpayAmount,
             currency,
-
             status: "CREATED",
-
             razorpayOrderId: razorpayOrder.id,
         });
 
     } catch (error) {
         console.error("[Payment] Failed to create payment record for booking ID:", booking._id, "-", error.message);
-
-        await updateBookingStatus(bookingId, booking.organization, "PAYMENT_FAILED", { paymentExpiresAt: null, });
-
         throw new ApiError(500, "Unable to initialize payment. Please try again.");
     }
+
+    booking.payment = payment._id;
+    await booking.save();
 
     return {
         bookingId: booking._id,
         paymentId: payment._id,
-
         razorpayOrderId: razorpayOrder.id,
-
         amount: razorpayAmount,
         currency,
-
         keyId: env.RAZORPAY_KEY_ID,
-
         paymentExpiresAt,
-
-        manageBookingUrl,
     };
 };
-
 
 
 

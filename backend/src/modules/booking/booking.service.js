@@ -20,6 +20,7 @@ import {
     countBookings,
     findServiceById,
     findBookingById,
+    findActivePendingBooking,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -50,8 +51,7 @@ import {
     deleteCalendarEvent,
 } from "../providers/google/services/calendar.service.js";
 import { checkOrganizationAccess } from "../organization/organization.access.js";
-
-
+import { PAYMENT_HOLD_DURATION_MINUTES } from "./booking.constants.js";
 
 
 
@@ -271,6 +271,25 @@ export const createBookingService = async (payload = {}) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const createPendingBookingService = async (payload = {}) => {
     const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
     const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
@@ -306,18 +325,40 @@ export const createPendingBookingService = async (payload = {}) => {
         durationInMinutes: service.durationInMinutes,
     });
 
-    const conflictingBooking = await findOverlappingOrganizationBooking(organization._id, startTime, endTime);
-    if (conflictingBooking) {
-        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
-    }
-
     const booker = {
         name: payload.booker.name.trim(),
         email: payload.booker.email.trim().toLowerCase(),
         phone: payload.booker.phone?.trim() || null,
     };
 
-    const paymentExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from the time of booking creation
+    const paymentExpiresAt = new Date(Date.now() + PAYMENT_HOLD_DURATION_MINUTES * 60 * 1000);//if env = 5 then paymentExpiresAt = current time + 5 minutes
+
+    const existingPendingBooking = await findActivePendingBooking({
+        organizationId: organization._id,
+        serviceId: service._id,
+        startTime,
+        endTime,
+        bookerEmail: booker.email,
+    });
+
+    if (existingPendingBooking) {
+        console.log(`[Booking] Pending booking exists: ${existingPendingBooking._id} | ${booker.email} | expires ${existingPendingBooking.paymentExpiresAt.toISOString()}`);
+       
+        return {
+            booking: existingPendingBooking,
+            bookingId: existingPendingBooking._id,
+            amount: existingPendingBooking.serviceSnapshot.price,
+            currency: existingPendingBooking.serviceSnapshot.currency,
+            paymentExpiresAt: existingPendingBooking.paymentExpiresAt,
+            isExisting: true,
+        };
+    }
+
+    const conflictingBooking = await findOverlappingOrganizationBooking(organization._id, startTime, endTime);
+    if (conflictingBooking) {
+        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
+    }
+
 
     let booking;
 
@@ -342,12 +383,15 @@ export const createPendingBookingService = async (payload = {}) => {
         throw new ApiError(500, "Unable to create booking. Please try again.");
     }
 
+    console.log(`[Booking: public api] New pending booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}". Payment expires at: ${paymentExpiresAt.toISOString()}`);
+
     return {
         booking,
         bookingId: booking._id,
         amount: service.price,
         currency: service.currency,
         paymentExpiresAt,
+        isExisting: false,
     };
 };
 

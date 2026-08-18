@@ -1,6 +1,8 @@
 // src/pages/PublicService.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { toastIcon } from "@/constants/toastIcon.constant"; // adjust import path to your toastIcon helper
 import {
     Clock,
     MapPin,
@@ -17,7 +19,6 @@ import {
     FileText,
     ChevronLeft,
     ChevronRight,
-    AlertCircle,
     Loader2
 } from "lucide-react";
 import { useServiceStore } from "@/stores";
@@ -165,14 +166,13 @@ const CustomCalendar = ({ selected, onSelect, minDate, maxDate, isDayDisabled })
 const PublicService = () => {
     const { orgSlug, serviceSlug } = useParams();
     const { publicService, getServiceBySlug, isLoading, error, clearPublicService } = useServiceStore();
-    const { createPayment, verifyPayment, isCreatingPayment, isVerifyingPayment, paymentError, clearPayment } = usePaymentStore();
+    const { createPayment, verifyPayment, isCreatingPayment, isVerifyingPayment, clearPayment } = usePaymentStore();
 
     // Booking Form State
     const [selectedDate, setSelectedDate] = useState(getTodayMidnight());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", notes: "" });
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [uiError, setUiError] = useState(null);
 
     useEffect(() => {
         getServiceBySlug(orgSlug, serviceSlug);
@@ -245,14 +245,15 @@ const PublicService = () => {
 
     const handleBookingSubmit = async (e) => {
         e?.preventDefault();
-        setUiError(null);
 
         if (!isFormValid || isProcessing) return;
 
         try {
             const isScriptLoaded = await loadRazorpayScript();
             if (!isScriptLoaded) {
-                setUiError("Razorpay SDK failed to load. Please check your internet connection.");
+                toast.error("Razorpay SDK failed to load. Please check your internet connection.", {
+                    icon: toastIcon("error"),
+                });
                 return;
             }
 
@@ -273,22 +274,42 @@ const PublicService = () => {
             // 1. Create order
             const paymentOrder = await createPayment(payload);
 
+            // 2.1 paymentTimeout in seconds
+            const paymentTimeout = Math.max(1, Math.floor((new Date(paymentOrder.paymentExpiresAt).getTime() - Date.now()) / 1000));
+
             // 2. Configure options with keyId from backend response
             const options = {
                 key: paymentOrder.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: paymentOrder.amount,
                 currency: paymentOrder.currency || "INR",
-                name: organization?.name || "Booking Service",
-                description: `${name} (${durationInMinutes} mins)`,
                 order_id: paymentOrder.razorpayOrderId,
+
+                name: service?.name || "Booking Service",
+
                 prefill: {
                     name: formData.name,
                     email: formData.email,
                     contact: formData.phone,
                 },
+
+                timeout: paymentTimeout,
+
                 theme: {
-                    color: "#4f46e5",
+                    color: "#000000",
                 },
+
+                modal: {
+                    backdropclose: false,
+                    escape: false,
+                    confirm_close: true,
+
+                    ondismiss: () => {
+                        toast.info("The payment was not completed. Please try again to finish your booking.", {
+                            icon: toastIcon("info"),
+                        });
+                    },
+                },
+
                 handler: async (response) => {
                     try {
                         await verifyPayment({
@@ -297,26 +318,30 @@ const PublicService = () => {
                             razorpay_signature: response.razorpay_signature,
                         });
 
+                        toast.success("Appointment booked and payment verified successfully!", {
+                            icon: toastIcon("success"),
+                        });
                         setIsSubmitted(true);
                     } catch (verifyErr) {
-                        setUiError(verifyErr?.response?.data?.message || "Payment verification failed.");
+                        toast.error(verifyErr?.response?.data?.message || "Payment verification failed.", {
+                            icon: toastIcon("error"),
+                        });
                     }
-                },
-                modal: {
-                    ondismiss: () => {
-                        setUiError("Payment cancelled. You can retry anytime.");
-                    },
                 },
             };
 
             const rzp = new window.Razorpay(options);
             rzp.on("payment.failed", (response) => {
-                setUiError(response.error.description || "Payment transaction failed.");
+                toast.error(response.error.description || "Payment transaction failed.", {
+                    icon: toastIcon("error"),
+                });
             });
 
             rzp.open();
         } catch (err) {
-            setUiError(err?.response?.data?.message || "Failed to initiate payment. Please try again.");
+            toast.error(err?.response?.data?.message || "Failed to initiate payment. Please try again.", {
+                icon: toastIcon("error"),
+            });
         }
     };
 
@@ -331,8 +356,6 @@ const PublicService = () => {
             />
         );
     }
-
-    const activeErrorMessage = uiError || paymentError;
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased flex flex-col justify-between selection:bg-indigo-600 selection:text-white">
@@ -417,14 +440,6 @@ const PublicService = () => {
 
                     {/* RIGHT COLUMN: Booking Flow */}
                     <section className="lg:col-span-8 space-y-8">
-
-                        {/* Error Alert Display */}
-                        {activeErrorMessage && (
-                            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm">
-                                <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
-                                <span className="flex-1">{activeErrorMessage}</span>
-                            </div>
-                        )}
 
                         {/* Step 1: Calendar & Slots */}
                         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-8">

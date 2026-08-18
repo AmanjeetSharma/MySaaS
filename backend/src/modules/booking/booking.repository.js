@@ -2,6 +2,7 @@ import { Booking } from "./booking.model.js";
 import { Organization } from "../organization/organization.model.js";
 import { Service } from "../service/service.model.js";
 import { Availability } from "../availability/availability.model.js";
+import { Payment } from "../payment/payment.model.js";
 
 export const findOrganizationBySlug = async (slug) => {
     return Organization.findOne({ slug })
@@ -49,6 +50,27 @@ export const findOverlappingOrganizationBooking = async (
     }
 
     return Booking.findOne(query);
+};
+
+
+export const findActivePendingBooking = async ({
+    organizationId,
+    serviceId,
+    startTime,
+    endTime,
+    bookerEmail,
+}) => {
+    return Booking.findOne({
+        organization: organizationId,
+        service: serviceId,
+        status: "PENDING_PAYMENT",
+        paymentExpiresAt: {
+            $gt: new Date(),
+        },
+        startTime,
+        endTime,
+        "booker.email": bookerEmail,
+    });
 };
 
 
@@ -225,18 +247,63 @@ export const findServiceById = async (serviceId) => {
 
 
 export const expirePendingBookings = async () => {
-    return Booking.updateMany(
-        {
-            status: "PENDING_PAYMENT",
-            paymentExpiresAt: {
-                $lte: new Date(),
-            },
+    const now = new Date();
+
+    // 1. Find pending bookings whose payment hold expired
+    const expiredBookings = await Booking.find({
+        status: "PENDING_PAYMENT",
+        paymentExpiresAt: {
+            $lte: now,
         },
-        {
-            $set: {
-                status: "EXPIRED",
-                paymentExpiresAt: null,
+    }).select("_id");
+
+
+    let bookingModifiedCount = 0;
+    let paymentModifiedCount = 0;
+
+
+    // 2. Expire newly expired bookings
+    if (expiredBookings.length > 0) {
+
+        const bookingIds = expiredBookings.map(
+            (booking) => booking._id
+        );
+
+        const bookingResult = await Booking.updateMany(
+            {
+                _id: { $in: bookingIds },
+                status: "PENDING_PAYMENT",
             },
-        }
-    );
+            {
+                $set: {
+                    status: "EXPIRED",
+                    paymentExpiresAt: null,
+                },
+            }
+        );
+
+        bookingModifiedCount = bookingResult.modifiedCount;
+
+
+        // 3. Expire payments belonging to those bookings
+        const paymentResult = await Payment.updateMany(
+            {
+                booking: { $in: bookingIds },
+                status: "CREATED",
+            },
+            {
+                $set: {
+                    status: "EXPIRED",
+                },
+            }
+        );
+
+        paymentModifiedCount = paymentResult.modifiedCount;
+    }
+
+
+    return {
+        bookingModifiedCount,
+        paymentModifiedCount,
+    };
 };
