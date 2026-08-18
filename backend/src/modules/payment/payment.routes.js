@@ -2,7 +2,7 @@ import express from "express";
 import {
     createPaymentController,
     verifyPaymentController,
-    // handleRazorpayWebhookController,
+    handleRazorpayWebhookController,
     // getOrganizationPaymentsController,
     // getPaymentByIdController,
 } from "./payment.controller.js";
@@ -18,7 +18,7 @@ router.post("/create",  createPaymentController);
 router.post("/verify", verifyPaymentController);
 
 // Webhook for Razorpay payment events (e.g., payment captured, payment failed) more like a 
-// router.post("/webhook", handleRazorpayWebhookController);
+router.post("/webhook", handleRazorpayWebhookController);
 
 // Staff Routes
 // router.get("/organization", verifyToken, getOrganizationPaymentsController);

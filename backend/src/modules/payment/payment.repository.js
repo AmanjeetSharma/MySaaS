@@ -5,26 +5,6 @@ export const createPayment = async (paymentData) => {
 };
 
 
-export const updateBookingStatus = async (bookingId, orgId, status, updateData = {}) => {
-    return Booking.findOneAndUpdate(
-        {
-            _id: bookingId,
-            organization: orgId,
-        },
-        {
-            $set: {
-                status,
-                ...updateData,
-            },
-        },
-        {
-            returnDocument: "after",
-            runValidators: true,
-        }
-    );
-};
-
-
 export const findPaymentByRazorpayOrderId = async (razorpayOrderId) => {
     return Payment.findOne({
         razorpayOrderId,
@@ -46,9 +26,7 @@ export const markPaymentAsSuccess = async ({
     return Payment.findOneAndUpdate(
         {
             _id: paymentId,
-            status: {
-                $ne: "SUCCESS",
-            },
+            status: "CREATED",
         },
         {
             $set: {

@@ -6,10 +6,10 @@ import {
 import {
     createRazorpayOrder,
     verifyRazorpayPaymentSignature,
+    verifyRazorpayWebhookSignature,
 } from "../../integrations/razorpay.integration.js";
 import {
     createPayment,
-    updateBookingStatus,
     findPaymentByRazorpayOrderId,
     markPaymentAsSuccess,
     findPaymentByBookingId,
@@ -17,12 +17,8 @@ import {
 import {
     convertToSmallestCurrencyUnit,
     generatePaymentReceipt,
-
 } from "./payment.helper.js";
 import env from "../../config/env.config.js";
-
-
-
 
 
 
@@ -82,9 +78,7 @@ export const createPaymentService = async (payload = {}) => {
         });
 
     } catch (error) {
-
         console.error("[Payment] Failed to create Razorpay order:", error?.error?.description || error.message);
-        // Booking was created but payment initialization failed.
         throw new ApiError(502, "Unable to initialize payment. Please try again.");
     }
 
@@ -128,6 +122,62 @@ export const createPaymentService = async (payload = {}) => {
 
 
 
+const processSuccessfulPayment = async ({
+    razorpayOrderId,
+    razorpayPaymentId,
+}) => {
+
+    const payment = await findPaymentByRazorpayOrderId(razorpayOrderId);
+    if (!payment) {
+        throw new ApiError(404, "Payment record not found.");
+    }
+
+    if (payment.status === "SUCCESS") {
+        return {
+            paymentId: payment._id,
+            bookingId: payment.booking,
+            status: "SUCCESS",
+            alreadyProcessed: true,
+            bookingStatus: "CONFIRMED",
+        };
+    }
+
+    if (payment.status !== "CREATED") {
+        throw new ApiError(409, "This payment is no longer available for processing.");
+    }
+
+    const updatedPayment = await markPaymentAsSuccess({
+        paymentId: payment._id,
+        razorpayPaymentId,
+    });
+    if (!updatedPayment) {
+        throw new ApiError(409, "Payment could not be completed.");
+    }
+
+
+    const booking = await confirmBookingService({
+        bookingId: payment.booking,
+    });
+
+    console.log(`[Payment] Payment successful for booking ID: ${booking._id}, payment ID: ${updatedPayment._id}`);
+
+    return {
+        paymentId: updatedPayment._id,
+        bookingId: booking._id,
+        status: "SUCCESS",
+        bookingStatus: booking.status,
+        meetingLink: booking.meeting?.link ?? null,
+        alreadyProcessed: false,
+    };
+};
+
+
+
+
+
+
+
+
 
 
 export const verifyPaymentService = async ({
@@ -140,22 +190,6 @@ export const verifyPaymentService = async ({
         throw new ApiError(400, "Razorpay payment details are required.");
     }
 
-    const payment = await findPaymentByRazorpayOrderId(razorpayOrderId);
-    if (!payment) {
-        throw new ApiError(404, "Payment record not found.");
-    }
-
-    // Idempotency check
-    if (payment.status === "SUCCESS") {
-        return {
-            paymentId: payment._id,
-            bookingId: payment.booking,
-            status: "SUCCESS",
-            alreadyProcessed: true,
-        };
-    }
-
-
     const isValidSignature = verifyRazorpayPaymentSignature({
         orderId: razorpayOrderId,
         paymentId: razorpayPaymentId,
@@ -165,23 +199,99 @@ export const verifyPaymentService = async ({
         throw new ApiError(400, "Invalid payment signature.");
     }
 
-    const updatedPayment = await markPaymentAsSuccess({
-        paymentId: payment._id,
+    return processSuccessfulPayment({
+        razorpayOrderId,
         razorpayPaymentId,
     });
-    if (!updatedPayment) {
-        throw new ApiError(409, "Payment could not be completed.");
+};
+
+
+
+
+
+
+
+
+
+
+export const handleRazorpayWebhookService = async ({
+    payload,
+    signature,
+}) => {
+
+    if (!signature) {
+        throw new ApiError(400, "Razorpay webhook signature is missing.");
     }
 
-    const booking = await confirmBookingService({
-        bookingId: payment.booking,
+    const isValidSignature = verifyRazorpayWebhookSignature({
+        payload,
+        signature,
     });
+    if (!isValidSignature) {
+        throw new ApiError(400, "Invalid Razorpay webhook signature.");
+    }
+
+
+    let webhookEvent;
+
+    try {
+        webhookEvent = typeof payload === "string" ? JSON.parse(payload) : payload;
+    } catch (error) {
+        throw new ApiError(400, "Invalid Razorpay webhook payload.");
+    }
+
+
+    // Extracting event
+    const event = webhookEvent?.event;
+    if (!event) {
+        throw new ApiError(400, "Razorpay webhook event is missing.");
+    }
+
+    if (event === "payment.captured") {
+
+        const paymentEntity = webhookEvent?.payload?.payment?.entity;
+
+        if (!paymentEntity?.order_id || !paymentEntity?.id) {
+            throw new ApiError(400, "Razorpay payment details are missing from webhook.");
+        }
+
+        console.log(`[Razorpay Webhook] Payment captured successfully. Order: ${paymentEntity.order_id}, Payment: ${paymentEntity.id}`);
+
+        return await processSuccessfulPayment({
+            razorpayOrderId: paymentEntity.order_id,
+            razorpayPaymentId: paymentEntity.id,
+        });
+    }
+
+    if (event === "payment.failed") {
+
+        const paymentEntity = webhookEvent?.payload?.payment?.entity;
+
+        console.log(
+            `[Razorpay Webhook] Payment attempt failed.` +
+            ` Order: ${paymentEntity?.order_id || "unknown"}` +
+            ` Payment: ${paymentEntity?.id || "unknown"}`
+        );
+
+        console.log(`Reason: ${paymentEntity?.error_reason || "unknown"}` + ` Description: ${paymentEntity?.error_description || "No description provided."}`);
+
+        return {
+            event,
+            handled: true,
+            paymentAttemptFailed: true,
+            paymentFailureDetails: {
+                razorpayOrderId: paymentEntity?.order_id || null,
+                razorpayPaymentId: paymentEntity?.id || null,
+                reason: paymentEntity?.error_reason || "unknown",
+                description: paymentEntity?.error_description || "No description provided.",
+            },
+        };
+    }
+
+    console.log(`[Razorpay Webhook] Unhandled event type: ${event}. No action taken.`);
 
     return {
-        paymentId: updatedPayment._id,
-        bookingId: booking._id,
-        status: "SUCCESS",
-        bookingStatus: booking.status,
-        meetingLink: booking.meeting?.link ?? null,
+        event,
+        handled: false,
     };
 };

@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import {
     createPaymentService,
     verifyPaymentService,
+    handleRazorpayWebhookService,
 } from "./payment.service.js";
 
 
@@ -45,6 +46,23 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
             200,
             data,
             "Payment verified successfully."
+        )
+    );
+});
+
+
+export const handleRazorpayWebhookController = asyncHandler(async (req, res) => {
+    console.log("[Razorpay Webhook] Event Initiated:");
+    await handleRazorpayWebhookService({
+        payload: req.body,
+        signature: req.headers["x-razorpay-signature"],
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Webhook processed successfully."
         )
     );
 });
