@@ -231,11 +231,14 @@ export const handleRazorpayWebhookService = async ({
         throw new ApiError(400, "Invalid Razorpay webhook signature.");
     }
 
+    const parsedPayload = Buffer.isBuffer(payload)
+        ? payload.toString("utf8")
+        : payload;
 
     let webhookEvent;
 
     try {
-        webhookEvent = typeof payload === "string" ? JSON.parse(payload) : payload;
+        webhookEvent = typeof parsedPayload === "string" ? JSON.parse(parsedPayload) : parsedPayload;
     } catch (error) {
         throw new ApiError(400, "Invalid Razorpay webhook payload.");
     }
@@ -243,6 +246,7 @@ export const handleRazorpayWebhookService = async ({
 
     // Extracting event
     const event = webhookEvent?.event;
+    console.log("[Razorpay Webhook] Event:", event);
     if (!event) {
         throw new ApiError(400, "Razorpay webhook event is missing.");
     }
