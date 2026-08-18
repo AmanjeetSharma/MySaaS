@@ -21,13 +21,20 @@ app.get("/health", (req, res) => {
 connectDB()
     .then(() => {
         app.listen(env.PORT, () => {
-            console.log(chalk.yellowBright(`Server is live!`));
-            console.log(chalk.magentaBright(`🌐 Server is running on port:`));
-            console.log(chalk.cyanBright(`http://localhost:${env.PORT}`));
-            console.log(chalk.gray(`-----------------------------------------`));
-
+            if (env.NODE_ENV === "development") {
+                console.log(chalk.yellowBright(`Server is live!`));
+                console.log(chalk.magentaBright(`🌐 Server is running on:`));
+                console.log(chalk.cyanBright(`http://localhost:${env.PORT}`));
+                console.log(chalk.gray(`-----------------------------------------`));
+            } else {
+                console.log(chalk.greenBright(`Production Server is live!`));
+                console.log(chalk.cyanBright(`🌐 Port: ${env.PORT}`));
+                console.log(chalk.gray(`-----------------------------------------`));
+            }
             if (env.ENABLE_JOBS) {
                 startJobs(); // starting background jobs only after server goes live
+            }else{
+                console.log(chalk.yellowBright(`Background jobs are disabled.`));
             }
         });
     })
