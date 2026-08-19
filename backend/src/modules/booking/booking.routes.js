@@ -1,8 +1,6 @@
 import express from "express";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import {
-    createBookingController,
-
     getPublicBookingController,
     publicRescheduleBookingController,
     publicCancelBookingController,
@@ -21,7 +19,6 @@ import {
 const router = express.Router();
 
 // Public booking routes
-router.post("/", createBookingController);
 
 router.get("/manage", getPublicBookingController); 
 router.patch("/manage/reschedule", publicRescheduleBookingController);

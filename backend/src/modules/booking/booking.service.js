@@ -57,6 +57,13 @@ import { PAYMENT_HOLD_DURATION_MINUTES } from "./booking.constants.js";
 
 
 
+
+
+
+
+
+
+
 const tryCreateGoogleEvent = async ({
     organization,
     service,
@@ -163,118 +170,6 @@ const tryCreateGoogleEvent = async ({
         };
     }
 };
-
-
-
-
-
-
-
-export const createBookingService = async (payload = {}) => {
-    const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
-    const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
-
-    validateBookerDetails(payload.booker);
-
-    const startTime = validateStartTime(payload.startTime);
-
-    const organization = await findOrganizationBySlug(organizationSlug);
-    if (!organization) {
-        throw new ApiError(404, "Organization not found");
-    }
-
-    const service = await findServiceBySlug(organization._id, serviceSlug);
-    if (!service) {
-        throw new ApiError(404, "Service not found");
-    }
-
-    if (!service.isActive) {
-        throw new ApiError(400, "Service is not accepting bookings at the moment.");
-    }
-
-    const availability = await findAvailabilityByServiceId(service._id);
-    if (!availability) {
-        throw new ApiError(400, "Bookings are currently unavailable");
-    }
-
-    const timezone = availability.timezone;
-
-    const endTime = validateRequestedSlot({
-        startTime,
-        availability,
-        durationInMinutes: service.durationInMinutes,
-    });
-
-    const conflictingBooking = await findOverlappingOrganizationBooking(
-        organization._id,
-        startTime,
-        endTime
-    );
-    if (conflictingBooking) {
-        throw new ApiError(409, "The selected time slot is already booked. Please choose a different time.");
-    }
-
-    const booker = {
-        name: payload.booker.name.trim(),
-        email: payload.booker.email.trim().toLowerCase(),
-        phone: payload.booker.phone?.trim() || null,
-    };
-
-    const accessToken = generateBookingAccessToken();
-
-    const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
-
-    const googleResult = await tryCreateGoogleEvent({
-        organization,
-        service,
-        booker,
-        startTime,
-        endTime,
-        timezone,
-        manageBookingUrl,
-    });
-
-    const booking = await createBooking({
-        organization: organization._id,
-        service: service._id,
-        booker,
-        serviceSnapshot: buildServiceSnapshot(service),
-        startTime,
-        endTime,
-        timezone,
-        meeting: googleResult.meeting,
-        calendarEvent: googleResult.calendarEvent,
-        notes: payload.notes?.trim() || null,
-        bookingAccess: {
-            hashedToken: accessToken.hashedToken,
-            expiresAt: accessToken.expiresAt,
-        },
-    });
-
-    await sendBookingEmails({ booking, organization, manageBookingUrl });
-
-    console.log(`[Booking: public api] Booking created for ${booker.name} (${booker.email}) at ${startTime.toISOString()} for service "${service.name}" in organization "${organization.name}".\nToken: ${accessToken.rawToken}\nManage Booking URL: ${manageBookingUrl}`);
-
-    return {
-        bookingId: booking._id,
-        meetingLink: booking.meeting?.link ?? null,
-        manageBookingUrl,
-    };
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -403,7 +298,6 @@ export const createPendingBookingService = async (payload = {}) => {
 
 
 
-
 export const confirmBookingService = async ({
     bookingId,
 }) => {
@@ -473,22 +367,6 @@ export const confirmBookingService = async ({
 
     return confirmedBooking;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1018,6 +896,10 @@ export const getBookingByIdService = async ({
     bookingId,
 }) => {
 
+    const timezones = Intl.supportedValuesOf("timeZone");
+    console.log(timezones);
+    return;
+    
     validateObjectId(orgId, "Organization ID");
     validateObjectId(bookingId, "Booking ID");
 
