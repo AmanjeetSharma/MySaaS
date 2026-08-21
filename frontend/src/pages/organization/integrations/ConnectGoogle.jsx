@@ -198,7 +198,7 @@ const ConnectGoogle = () => {
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full bg-surface border border-border-subtle px-2 sm:px-2.5 py-0.5 text-[11px] sm:text-xs font-medium text-subtle-foreground shrink-0">
-                    Disconnected
+                    Not Connected
                   </span>
                 )}
               </div>
@@ -256,7 +256,7 @@ const ConnectGoogle = () => {
           </div>
         )}
 
-        {/* DISCONNECTED STATE */}
+        {/* NOT CONNECTED STATE */}
         {!isConnected ? (
           <div className="space-y-6 sm:space-y-8 py-1 sm:py-2">
             <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-6 sm:p-10 text-center shadow-xs">

@@ -100,7 +100,8 @@ const DealDetails = () => {
   };
 
   const handleDeleteDeal = async () => {
-    try { await deleteDeal(dealId); navigate(`/customers/${currentDeal.customerId}`); }
+    const customerId = currentDeal?.customer?._id; // Storing the customer ID before deleting the deal to avoid invalid reference after deletion
+    try { await deleteDeal(dealId); navigate(`/customers/${customerId}`); }
     catch (err) { console.error(err); }
   };
 
@@ -146,7 +147,7 @@ const DealDetails = () => {
     );
   }
 
-if (!currentDeal) {
+  if (!currentDeal) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
         <div className="space-y-2 max-w-sm">
