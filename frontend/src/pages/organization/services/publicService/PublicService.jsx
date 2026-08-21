@@ -265,10 +265,10 @@ const PublicService = () => {
                 booker: {
                     name: formData.name.trim(),
                     email: formData.email.trim(),
-                    phone: formData.phone.trim() || undefined,
+                    phone: formData.phone.trim() || "N/A",
                 },
                 startTime: startTimeISO,
-                notes: formData.notes.trim() || undefined,
+                notes: formData.notes.trim() || "No additional notes provided.",
             };
 
             // 1. Create order
@@ -556,13 +556,14 @@ const PublicService = () => {
 
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                        Phone Number <span className="text-slate-400 font-normal">(Optional)</span>
+                                        Phone Number  <span className="text-rose-500">*</span>
                                     </label>
                                     <div className="relative">
                                         <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                                         <input
                                             type="tel"
                                             name="phone"
+                                            required
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                             placeholder="+91 98765 43210"
@@ -573,7 +574,7 @@ const PublicService = () => {
 
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                        Notes or Specific Requests <span className="text-slate-400 font-normal">(Optional)</span>
+                                        Notes <span className="text-slate-400 font-normal">(Optional)</span>
                                     </label>
                                     <div className="relative">
                                         <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -582,7 +583,7 @@ const PublicService = () => {
                                             name="notes"
                                             value={formData.notes}
                                             onChange={handleInputChange}
-                                            placeholder="e.g. Looking forward to custom PC assembly discussion"
+                                            placeholder="Any specific requests or notes for the appointment"
                                             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
                                         />
                                     </div>

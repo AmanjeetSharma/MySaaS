@@ -296,17 +296,16 @@ const Appearance = () => {
                                                     sm:w-10
                                                     rounded-full
                                                     shrink-0
-
-                                                    ${themeOption.value === THEME_IDS.DEFAULT && 'bg-black'}
-                                                    ${themeOption.value === THEME_IDS.OCEAN_TEAL && 'bg-teal-500'}
-                                                    ${themeOption.value === THEME_IDS.MIDNIGHT_VIOLET && 'bg-violet-950'}
-                                                    ${themeOption.value === THEME_IDS.FOREST_AMBER && 'bg-linear-to-br from-amber-400 to-emerald-500'}
-                                                    ${themeOption.value === THEME_IDS.DUSTY_ROSE && 'bg-rose-700'}
-                                                    ${themeOption.value === THEME_IDS.COFFEE && 'bg-amber-700'}
-                                                    ${themeOption.value === THEME_IDS.SAKURA && 'bg-pink-400'}
-                                                    ${themeOption.value === THEME_IDS.PLATINUM && 'bg-slate-400'}
-                                                    ${themeOption.value === THEME_IDS.AZURE_BLUE && 'bg-blue-500'}
-                                                    ${themeOption.value === THEME_IDS.GRAPHITE_GOLD && 'bg-linear-to-br from-amber-400 to-yellow-500'}
+${themeOption.value === THEME_IDS.DEFAULT && 'bg-black'}
+${themeOption.value === THEME_IDS.OCEAN_TEAL && 'bg-linear-to-br from-teal-500 to-cyan-400'}
+${themeOption.value === THEME_IDS.MIDNIGHT_VIOLET && 'bg-linear-to-br from-violet-950 to-violet-600'}
+${themeOption.value === THEME_IDS.FOREST_WOOD && 'bg-linear-to-br from-emerald-700 to-amber-800'}
+${themeOption.value === THEME_IDS.VOLCANIC && 'bg-linear-to-br from-orange-400 to-red-700'}
+${themeOption.value === THEME_IDS.COFFEE && 'bg-linear-to-br from-amber-900 to-orange-200'}
+${themeOption.value === THEME_IDS.SAKURA && 'bg-linear-to-br from-pink-300 to-rose-500'}
+${themeOption.value === THEME_IDS.PLATINUM && 'bg-linear-to-br from-slate-500 to-zinc-300'}
+${themeOption.value === THEME_IDS.SKYLINE_AFTERDARK && 'bg-linear-to-br from-sky-200 to-indigo-600'}
+${themeOption.value === THEME_IDS.BUMBLEBEE && 'bg-linear-to-br from-black to-yellow-400'}
                                                 `}
                                                 />
 

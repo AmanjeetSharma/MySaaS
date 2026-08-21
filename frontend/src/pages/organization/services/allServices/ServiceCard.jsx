@@ -32,7 +32,7 @@ const formatPriceDisplay = (service) => {
 
   return (
     <span className="inline-flex items-center gap-0.5 font-bold text-foreground">
-      <CurrencyIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
+      <CurrencyIcon className="h-3 w-3 shrink-0 text-subtle-foreground" />
       {formattedAmount}
     </span>
   );
@@ -59,79 +59,81 @@ export default function ServiceCard({
 
   return (
     <div
-      className={`relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-300 ${service.isActive
-        ? 'border-border/80 bg-card shadow-2xs hover:border-primary/50 hover:shadow-[0_0_15px_rgba(var(--primary),0.18)] dark:hover:border-primary/60 dark:hover:shadow-[0_0_18px_rgba(255,255,255,0.08)]'
-        : 'border-border/50 bg-muted/20 opacity-85 hover:border-border/90 hover:opacity-100 hover:shadow-[0_0_12px_rgba(0,0,0,0.06)]'
-        }`}
+      className={`relative flex flex-col justify-between rounded-2xl border p-4 sm:p-5 transition-all duration-300 ${
+        service.isActive
+          ? 'border-border-subtle bg-surface-elevated shadow-xs hover:border-primary/50 hover:shadow-[0_0_18px_rgba(124,58,237,0.12)]'
+          : 'border-border-subtle bg-surface-sunken opacity-85 hover:border-border hover:opacity-100 hover:shadow-xs'
+      }`}
     >
       <div className="space-y-3">
         {/* Top Header Row */}
         <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-sm font-bold text-foreground sm:text-base">
+              <h3 className="font-heading truncate text-sm font-bold text-foreground sm:text-base">
                 {service.name}
               </h3>
             </div>
             <span
-              className={`mt-1 inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${service.isActive
-                ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                : 'border border-border/60 bg-muted text-muted-foreground'
-                }`}
+              className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                service.isActive
+                  ? 'border border-success/20 bg-success/10 text-success'
+                  : 'border border-border-subtle bg-surface text-subtle-foreground'
+              }`}
             >
               {service.isActive ? 'Active' : 'Inactive'}
             </span>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border/60 bg-background/80 px-2 py-1 shadow-2xs">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border-subtle bg-surface px-2 py-1 shadow-2xs">
             <Switch
               checked={!!service.isActive}
               onCheckedChange={() => onToggleStatus(service)}
               disabled={actionLoading?.status}
-              className="cursor-pointer ring-primary/20 data-checked:ring-2 data-unchecked:bg-muted-foreground/35 scale-90"
+              className="cursor-pointer scale-90 transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
             />
           </div>
         </div>
 
         {/* Short Description */}
-        <p className="line-clamp-2 min-h-8 text-xs font-medium text-muted-foreground leading-relaxed">
+        <p className="line-clamp-2 min-h-8 text-xs font-medium text-subtle-foreground leading-relaxed">
           {service.description || 'No description provided.'}
         </p>
 
         {/* Compact Metrics List with Separators */}
-        <div className="divide-y divide-border/40 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs">
+        <div className="divide-y divide-border-subtle rounded-xl border border-border-subtle bg-surface px-3 text-xs">
           {/* Duration */}
-          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+          <div className="flex items-center justify-between text-subtle-foreground py-2.5">
             <div className="flex items-center gap-2 font-semibold">
-              <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
+              <Clock className="h-3.5 w-3.5 text-accent shrink-0" />
               <span>Duration</span>
             </div>
             <span className="font-bold text-foreground">{service.durationInMinutes || 30} mins</span>
           </div>
 
           {/* Price */}
-          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+          <div className="flex items-center justify-between text-subtle-foreground py-2.5">
             <div className="flex items-center gap-2 font-semibold">
-              <HandCoins className="h-3.5 w-3.5 text-primary shrink-0" />
+              <HandCoins className="h-3.5 w-3.5 text-accent shrink-0" />
               <span>Price</span>
             </div>
             {formatPriceDisplay(service)}
           </div>
 
           {/* Location or Online Provider Icon */}
-          <div className="flex items-center justify-between text-muted-foreground py-2.5">
+          <div className="flex items-center justify-between text-subtle-foreground py-2.5">
             <div className="flex items-center gap-2 font-semibold">
               {isOffline ? (
-                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
               ) : (
-                <MonitorPlay className="h-3.5 w-3.5 text-primary shrink-0" />
+                <MonitorPlay className="h-3.5 w-3.5 text-accent shrink-0" />
               )}
               <span>{isOffline ? 'Location' : 'Provider'}</span>
             </div>
 
             <div className="flex items-center gap-1.5 min-w-0 max-w-[150px] justify-end">
               {!isOffline && ProviderIcon && (
-                <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
               )}
               <span className="truncate font-bold text-foreground">
                 {isOffline ? formatShortLocation(service.address) : providerName}
@@ -142,11 +144,11 @@ export default function ServiceCard({
       </div>
 
       {/* Action Button */}
-      <div className="mt-3.5">
+      <div className="mt-4">
         <Button
           type="button"
           onClick={() => onManageService(service)}
-          className="h-8 w-full cursor-pointer rounded-lg text-xs font-bold shadow-2xs hover:bg-primary/90 hover:shadow-sm active:scale-98 transition-all"
+          className="h-9 w-full cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle text-xs font-bold shadow-xs transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:shadow-accent/20 active:scale-98"
         >
           <Settings2 className="h-3.5 w-3.5 shrink-0" />
           Manage Service

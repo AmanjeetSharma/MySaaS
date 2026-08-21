@@ -8,7 +8,6 @@ import {
   Loader2,
   Plus,
   RotateCcw,
-  Save,
   X,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -154,7 +153,6 @@ export default function Availability() {
     setForm((current) => {
       const day = current.days[dayKey];
 
-      // Default initial slot uses service.durationInMinutes
       const defaultEndMins = Math.min(1440, 540 + serviceDuration);
       const slots = day.slots.length
         ? day.slots
@@ -351,7 +349,7 @@ export default function Availability() {
 
   if (isLoading || serviceLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center animate-pulse text-xl font-black uppercase tracking-widest text-muted-foreground/40">
+      <div className="fixed inset-0 flex items-center justify-center animate-pulse text-sm font-semibold uppercase tracking-widest text-subtle-foreground/60">
         Synchronizing Workspace...
       </div>
     );
@@ -366,37 +364,37 @@ export default function Availability() {
             type="button"
             variant="ghost"
             onClick={() => navigate(`/organizations/${service?.organization}/services/${serviceId}`)}
-            className="h-9 cursor-pointer rounded-lg px-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+            className="h-9 cursor-pointer rounded-xl px-2 text-xs font-bold uppercase tracking-wider text-subtle-foreground hover:bg-hover hover:text-hover-foreground active:scale-95 transition-all"
           >
             <ArrowLeft className="h-4 w-4 mr-1.5" />
             Back to Service
           </Button>
 
           <div className="min-w-0 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
               <CalendarClock className="h-4 w-4" />
               Availability
             </div>
             <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
-              <h1 className="max-w-4xl wrap-break-word text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl md:text-5xl">
+              <h1 className="font-heading max-w-4xl wrap-break-word text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
                 {service?.name || 'Service Availability'}
               </h1>
               <div className="flex shrink-0 flex-wrap gap-2">
                 <Badge
                   variant="secondary"
-                  className="h-7 rounded-full border border-primary/10 bg-primary/10 px-3 text-xs font-black text-primary"
+                  className="h-7 rounded-full border border-border-subtle bg-secondary px-3 text-xs font-bold text-secondary-foreground"
                 >
                   {activeDays}/7 Active Days
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="h-7 rounded-full bg-background px-3 text-xs font-black"
+                  className="h-7 rounded-full border-border-subtle bg-surface-elevated px-3 text-xs font-bold text-foreground"
                 >
                   {totalSlots} Windows
                 </Badge>
               </div>
             </div>
-            <p className="text-sm font-medium text-muted-foreground sm:text-base">
+            <p className="text-sm font-medium text-subtle-foreground sm:text-base">
               {formatServiceMeta(service)}
             </p>
           </div>
@@ -410,7 +408,7 @@ export default function Availability() {
               variant="outline"
               onClick={() => setForm(toForm(availability))}
               disabled={isSaving}
-              className="h-11 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all"
+              className="h-11 cursor-pointer rounded-xl border border-border bg-surface text-subtle-foreground text-xs font-bold transition-all hover:bg-surface-sunken hover:text-foreground hover:border-border-strong active:scale-95 shadow-xs"
             >
               <X className="h-4 w-4 mr-1" />
               Discard Changes
@@ -419,13 +417,12 @@ export default function Availability() {
           {hasExistingAvailability && (
             <Button
               type="button"
-              variant="outline"
               onClick={handleDelete}
               disabled={isDeleting || isSaving}
-              className="h-11 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all"
+              className="h-11 cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle text-xs font-bold uppercase tracking-wider shadow-xs transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95"
             >
               {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
               ) : (
                 <RotateCcw className="h-4 w-4 mr-1.5" />
               )}
@@ -437,10 +434,10 @@ export default function Availability() {
               type="button"
               onClick={handleSave}
               disabled={isSaving || isDeleting}
-              className="h-11 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest shadow-md hover:shadow-primary/20 active:scale-95 transition-all"
+              className="h-11 cursor-pointer rounded-xl bg-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 transition-all hover:opacity-90 active:scale-95"
             >
               {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
               ) : (
                 <Plus className="h-4 w-4 mr-1 stroke-[2.5]" />
               )}
@@ -451,12 +448,12 @@ export default function Availability() {
       </div>
 
       {/* Timezone Selector Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-primary/15 bg-card p-3 sm:p-4 md:flex-row md:items-center md:justify-between shadow-sm">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-elevated p-4 shadow-xs md:flex-row md:items-center md:justify-between text-surface-elevated-foreground">
         <div className="space-y-0.5">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
             Service Timezone
           </Label>
-          <p className="text-xs text-muted-foreground font-medium">
+          <p className="text-xs text-subtle-foreground font-medium">
             Slots are interpreted using this timezone offset.
           </p>
         </div>
@@ -468,17 +465,17 @@ export default function Availability() {
                 variant="outline"
                 role="combobox"
                 aria-expanded={timezoneSearchOpen}
-                className="h-10 w-full justify-between rounded-xl bg-background px-3 font-bold text-xs cursor-pointer hover:border-primary/50 transition-all shadow-sm"
+                className="h-10 w-full justify-between rounded-xl border-border bg-surface px-3 font-semibold text-xs text-foreground cursor-pointer hover:border-border-strong hover:bg-hover transition-all shadow-xs"
               >
                 <span className="truncate">{form.timezone}</span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-subtle-foreground" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-50" align="end">
-              <Command>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-50 border-border-strong bg-popover text-popover-foreground shadow-2xl rounded-xl" align="end">
+              <Command className="bg-popover text-popover-foreground">
                 <CommandInput placeholder="Search timezone..." className="h-9 text-xs" />
                 <CommandList className="max-h-56">
-                  <CommandEmpty className="py-2 text-center text-xs font-medium text-muted-foreground">
+                  <CommandEmpty className="py-2 text-center text-xs font-medium text-subtle-foreground">
                     No timezone found.
                   </CommandEmpty>
                   <CommandGroup>
@@ -487,11 +484,11 @@ export default function Availability() {
                         key={tz}
                         value={tz}
                         onSelect={() => updateTimezone(tz)}
-                        className="text-xs font-bold cursor-pointer"
+                        className="text-xs font-semibold cursor-pointer hover:bg-hover hover:text-hover-foreground"
                       >
                         <Check
                           className={cn(
-                            'mr-2 h-3.5 w-3.5',
+                            'mr-2 h-3.5 w-3.5 text-accent',
                             form.timezone === tz ? 'opacity-100' : 'opacity-0'
                           )}
                         />
@@ -515,8 +512,10 @@ export default function Availability() {
             <section
               key={key}
               className={cn(
-                'rounded-xl border bg-card p-4 transition-all shadow-sm sm:p-5',
-                day.enabled ? 'border-primary/25 hover:border-primary/40' : 'border-border/60 bg-card/40'
+                'rounded-2xl border p-4 sm:p-5 transition-all shadow-xs',
+                day.enabled
+                  ? 'border-border-subtle bg-surface-elevated text-surface-elevated-foreground hover:border-primary/40'
+                  : 'border-border-subtle bg-surface-sunken opacity-85 text-subtle-foreground'
               )}
             >
               <div className="flex flex-col justify-between gap-4">
@@ -525,13 +524,13 @@ export default function Availability() {
                     <Switch
                       checked={day.enabled}
                       onCheckedChange={(checked) => toggleDay(key, checked)}
-                      className="cursor-pointer ring-primary/20 data-checked:ring-2 transition-all"
+                      className="cursor-pointer transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
                     />
                     <div>
-                      <h2 className="text-base font-black uppercase tracking-tight">
+                      <h2 className="font-heading text-base font-bold tracking-tight text-foreground">
                         {label}
                       </h2>
-                      <p className="text-xs font-bold text-muted-foreground">
+                      <p className="text-xs font-medium text-subtle-foreground">
                         {day.enabled
                           ? `${day.slots.length} window${day.slots.length === 1 ? '' : 's'} configured`
                           : 'Unavailable'}
@@ -542,9 +541,8 @@ export default function Availability() {
                   {day.enabled && (
                     <Button
                       type="button"
-                      variant="outline"
                       onClick={() => openAddSlot(key)}
-                      className="h-8 shrink-0 cursor-pointer rounded-lg text-[11px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                      className="h-8 shrink-0 cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle text-[11px] font-bold tracking-wider shadow-xs transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:shadow-accent/20 active:scale-95"
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />
                       Add Window
@@ -561,21 +559,21 @@ export default function Availability() {
                             type="button"
                             key={`${key}-slot-${index}`}
                             onClick={() => openEditSlot(key, index)}
-                            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-black text-primary hover:bg-primary/20 active:scale-95 transition-all"
+                            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border-subtle bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground shadow-xs hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:shadow-accent/20 active:scale-95 transition-all"
                           >
                             {formatSlot(slot)}
                             <Edit3 className="h-3 w-3" />
                           </button>
                         ))
                       ) : (
-                        <span className="inline-flex items-center rounded-full border border-border/80 bg-background/50 px-3 py-1 text-xs font-bold text-muted-foreground">
+                        <span className="inline-flex items-center rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs font-medium text-subtle-foreground">
                           No windows added yet
                         </span>
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-3">
-                      <span className="mr-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-1.5 border-t border-border-subtle pt-3">
+                      <span className="mr-1 text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
                         Quick Add:
                       </span>
                       {PRESETS.map((preset) => (
@@ -584,7 +582,7 @@ export default function Availability() {
                           type="button"
                           variant="ghost"
                           onClick={() => openAddSlot(key, preset)}
-                          className="h-7 cursor-pointer rounded-md bg-muted/40 px-2 text-[10px] font-bold text-muted-foreground hover:bg-primary/15 hover:text-primary active:scale-95 transition-all"
+                          className="h-7 cursor-pointer rounded-lg bg-surface px-2 text-[10px] font-semibold text-subtle-foreground hover:bg-hover hover:text-hover-foreground active:scale-95 transition-all"
                         >
                           {preset.label}
                         </Button>
@@ -592,7 +590,7 @@ export default function Availability() {
                     </div>
                   </>
                 ) : (
-                  <p className="py-2 text-xs font-medium text-muted-foreground/70">
+                  <p className="py-2 text-xs font-medium text-subtle-foreground/80">
                     Enable this day to configure availability windows.
                   </p>
                 )}

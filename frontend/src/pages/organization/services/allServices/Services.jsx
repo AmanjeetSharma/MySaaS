@@ -94,7 +94,7 @@ export default function Services() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[70vh] items-center justify-center font-bold tracking-wider text-muted-foreground/60 text-xs uppercase">
+      <div className="flex h-[70vh] items-center justify-center font-semibold tracking-wider text-subtle-foreground/60 text-xs uppercase animate-pulse">
         Synchronizing Workspace...
       </div>
     );
@@ -103,14 +103,14 @@ export default function Services() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
       {/* Top Page Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border-subtle pb-4">
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            <h1 className="font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Services
             </h1>
           </div>
-          <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+          <p className="text-xs font-medium text-subtle-foreground sm:text-sm">
             Create and manage your bookable services
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function Services() {
         <Button
           type="button"
           onClick={openCreate}
-          className="h-9 min-h-[36px] w-full cursor-pointer rounded-lg px-4 text-xs font-bold uppercase tracking-wider shadow-xs transition-all active:scale-95 sm:w-auto"
+          className="h-10 min-h-[40px] w-full cursor-pointer rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 transition-all hover:opacity-90 active:scale-95 sm:h-9 sm:w-auto"
         >
           <Plus className="h-3.5 w-3.5 shrink-0" />
           New Service
@@ -126,7 +126,7 @@ export default function Services() {
       </div>
 
       {!activeOrganizationId && (
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+        <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 text-xs font-semibold text-warning">
           Select or create an active organization to manage services.
         </div>
       )}
@@ -147,19 +147,18 @@ export default function Services() {
       </div>
 
       {activeOrganizationId && services.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 px-4 py-12 text-center shadow-2xs">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
-            <Layers className="h-5 w-5" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border-strong bg-surface-elevated/50 px-4 py-12 text-center shadow-xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border-subtle bg-surface text-subtle-foreground">
+            <Layers className="h-6 w-6" />
           </div>
-          <h3 className="mt-3 text-sm font-bold text-foreground">No Services Found</h3>
-          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+          <h3 className="font-heading mt-3 text-sm font-bold text-foreground">No Services Found</h3>
+          <p className="mt-1 max-w-xs text-xs text-subtle-foreground">
             Get started by adding your first bookable consultation or offline service above.
           </p>
           <Button
             type="button"
-            variant="outline"
             onClick={openCreate}
-            className="mt-4 h-8 rounded-lg text-xs font-bold cursor-pointer"
+            className="mt-4 h-9 cursor-pointer rounded-xl bg-accent px-4 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90"
           >
             <Plus className="h-3.5 w-3.5" />
             Create Service

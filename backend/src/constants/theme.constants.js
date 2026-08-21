@@ -3,10 +3,10 @@ export const THEME_IDS = {
     PLATINUM: "platinum",
     OCEAN_TEAL: "ocean-teal",
     MIDNIGHT_VIOLET: "midnight-violet",
-    FOREST_AMBER: "forest-amber",
+    FOREST_WOOD: "forest-wood",
     COFFEE: "coffee",
     SAKURA: "sakura",
-    AZURE_BLUE: "azure-blue",
-    DUSTY_ROSE: "dusty-rose",
-    GRAPHITE_GOLD: "graphite-gold"
+    SKYLINE_AFTERDARK: "skyline-afterdark",
+    VOLCANIC: "volcanic",
+    BUMBLEBEE: "bumblebee"
 };

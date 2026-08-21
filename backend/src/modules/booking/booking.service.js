@@ -187,6 +187,7 @@ const tryCreateGoogleEvent = async ({
 
 
 export const createPendingBookingService = async (payload = {}) => {
+    console.log("[Booking] Creating pending booking with payload:", payload);
     const organizationSlug = normalizeSlug(payload.organizationSlug, "Organization slug");
     const serviceSlug = normalizeSlug(payload.serviceSlug, "Service slug");
 
@@ -212,7 +213,7 @@ export const createPendingBookingService = async (payload = {}) => {
     if (!availability) {
         throw new ApiError(400, "Bookings are currently unavailable");
     }
-
+    console.log(JSON.stringify(availability));//------------------------------------------------------------
     const timezone = availability.timezone;
 
     const endTime = validateRequestedSlot({

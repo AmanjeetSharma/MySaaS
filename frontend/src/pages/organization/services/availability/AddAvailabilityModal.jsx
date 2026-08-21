@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { AlertCircle, AlertTriangle, Calendar, Info, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -79,33 +79,33 @@ export default function AddAvailabilityModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-md rounded-2xl border border-border/80 bg-card/95 backdrop-blur-md p-6 shadow-2xl transition-all duration-200 z-50 [&>button]:cursor-pointer [&>button]:transition-all [&>button]:hover:opacity-100">
+            <DialogContent className="sm:max-w-md rounded-2xl border border-border-strong bg-surface-elevated text-surface-elevated-foreground p-6 shadow-2xl transition-all duration-200 z-50 [&>button]:cursor-pointer [&>button]:transition-all [&>button]:hover:opacity-100">
                 <DialogHeader className="space-y-1">
-                    <DialogTitle className="text-lg font-black uppercase tracking-tight text-foreground">
+                    <DialogTitle className="font-heading text-lg font-bold tracking-tight text-foreground">
                         {slotModal?.mode === 'edit' ? 'Configure Window' : 'Add Window'}
                     </DialogTitle>
-                    <DialogDescription className="text-xs font-semibold text-muted-foreground">
+                    <DialogDescription className="text-xs font-semibold text-subtle-foreground">
                         {slotModalDay?.label || 'Day'} · {slotModal?.title || 'Custom Window'}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="my-2 space-y-4 rounded-xl border border-border/60 bg-background/60 p-4">
+                <div className="my-2 space-y-4 rounded-2xl border border-border-subtle bg-surface-sunken p-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                         {/* Start Time Select */}
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
                                 Start Time
                             </Label>
                             <Select
                                 value={slotModal?.startTime || '09:00'}
                                 onValueChange={onUpdateStartTime}
                             >
-                                <SelectTrigger className="h-11 w-full rounded-xl bg-card font-bold text-xs shadow-sm transition-all hover:border-primary/50 focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                <SelectTrigger className="h-11 w-full rounded-xl border-border bg-surface font-semibold text-xs text-foreground shadow-xs transition-all hover:border-border-strong focus:ring-1 focus:ring-ring cursor-pointer">
                                     <SelectValue placeholder="Start time" />
                                 </SelectTrigger>
-                                <SelectContent className="max-h-52 w-[var(--radix-select-trigger-width)] z-[60]" position="popper">
+                                <SelectContent className="max-h-52 w-[var(--radix-select-trigger-width)] z-[60] bg-popover text-popover-foreground border-border" position="popper">
                                     {TIME_OPTIONS.map((opt) => (
-                                        <SelectItem key={`start-${opt.value}`} value={opt.value} className="text-xs font-bold cursor-pointer">
+                                        <SelectItem key={`start-${opt.value}`} value={opt.value} className="text-xs font-semibold cursor-pointer hover:bg-hover hover:text-hover-foreground">
                                             {formatTime(opt.value)}
                                         </SelectItem>
                                     ))}
@@ -115,19 +115,19 @@ export default function AddAvailabilityModal({
 
                         {/* End Time Select */}
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
                                 End Time
                             </Label>
                             <Select
                                 value={slotModal?.endTime || '17:00'}
                                 onValueChange={(val) => onUpdateField('endTime', val)}
                             >
-                                <SelectTrigger className="h-11 w-full rounded-xl bg-card font-bold text-xs shadow-sm transition-all hover:border-primary/50 focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                <SelectTrigger className="h-11 w-full rounded-xl border-border bg-surface font-semibold text-xs text-foreground shadow-xs transition-all hover:border-border-strong focus:ring-1 focus:ring-ring cursor-pointer">
                                     <SelectValue placeholder="End time" />
                                 </SelectTrigger>
-                                <SelectContent className="max-h-52 w-[var(--radix-select-trigger-width)] z-[60]" position="popper">
+                                <SelectContent className="max-h-52 w-[var(--radix-select-trigger-width)] z-[60] bg-popover text-popover-foreground border-border" position="popper">
                                     {filteredEndOptions.map((opt) => (
-                                        <SelectItem key={`end-${opt.value}`} value={opt.value} className="text-xs font-bold cursor-pointer">
+                                        <SelectItem key={`end-${opt.value}`} value={opt.value} className="text-xs font-semibold cursor-pointer hover:bg-hover hover:text-hover-foreground">
                                             {formatTime(opt.value)}
                                         </SelectItem>
                                     ))}
@@ -154,12 +154,12 @@ export default function AddAvailabilityModal({
 
                             {/* CASE 1 NON-BLOCKING WARNING: At least 1 fits, but remainder exists */}
                             {fit.canFitAtLeastOne && !fit.fitsExactly && (
-                                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-600 dark:text-amber-400 text-xs space-y-1">
+                                <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-warning text-xs space-y-1">
                                     <div className="flex items-center gap-1.5 font-bold">
                                         <AlertTriangle className="h-4 w-4 shrink-0" />
                                         <span>Availability doesn't fit evenly</span>
                                     </div>
-                                    <p className="text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90 font-medium">
+                                    <p className="text-[11px] leading-relaxed opacity-90 font-medium">
                                         This {formatMinutesText(fit.availableMinutes)} availability window supports {fit.completeAppointments} × {service.durationInMinutes}-minute appointments, with {fit.remainingMinutes} minutes remaining at the end. You can adjust the window, or keep the remaining time for breaks, buffers, or transitions.
                                     </p>
                                 </div>
@@ -168,9 +168,9 @@ export default function AddAvailabilityModal({
                     )}
 
                     {/* How slots are generated explanation */}
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1 text-primary">
+                    <div className="rounded-xl border border-secondary bg-secondary/50 p-3 space-y-1 text-secondary-foreground">
                         <div className="flex items-center gap-1.5 text-xs font-bold">
-                            <Info className="h-3.5 w-3.5 shrink-0" />
+                            <Info className="h-3.5 w-3.5 shrink-0 text-accent" />
                             <span>Booking Slot Generation</span>
                         </div>
                         <p className="text-[11px] font-medium leading-relaxed opacity-90">
@@ -200,7 +200,7 @@ export default function AddAvailabilityModal({
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="h-10 flex-1 cursor-pointer rounded-xl text-xs font-bold active:scale-95 transition-all sm:flex-none"
+                            className="h-10 flex-1 cursor-pointer rounded-xl border-border bg-surface text-subtle-foreground text-xs font-bold hover:bg-surface-sunken hover:text-foreground active:scale-95 transition-all sm:flex-none"
                         >
                             Cancel
                         </Button>
@@ -208,7 +208,7 @@ export default function AddAvailabilityModal({
                             type="button"
                             onClick={onSave}
                             disabled={isSaveDisabled}
-                            className="h-10 flex-1 cursor-pointer rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all shadow-sm sm:flex-none"
+                            className="h-10 flex-1 cursor-pointer rounded-xl bg-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:shadow-none sm:flex-none"
                         >
                             {slotModal?.mode === 'edit' ? (
                                 'Update'

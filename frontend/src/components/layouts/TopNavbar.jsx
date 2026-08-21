@@ -12,12 +12,16 @@ export function TopNavbar() {
     const navigate = useNavigate();
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-surface/95 px-4 md:px-6 backdrop-blur supports-backdrop-filter:bg-surface/75 text-surface-foreground shadow-xs">
             {/* Left Section */}
             <div className="flex items-center gap-2 md:gap-4">
                 {isMobile ? (
                     <MobileDrawer>
-                        <Button variant="ghost" size="icon" className="md:hidden">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="md:hidden hover:bg-hover hover:text-hover-foreground active:bg-active"
+                        >
                             <Menu className="h-5 w-5" />
                         </Button>
                     </MobileDrawer>
@@ -25,7 +29,7 @@ export function TopNavbar() {
 
                 <Link
                     to="/dashboard"
-                    className="text-lg md:text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                    className="font-heading text-lg md:text-xl font-bold tracking-tight text-foreground hover:opacity-85 transition-opacity"
                 >
                     MySaaS
                 </Link>
@@ -33,25 +37,23 @@ export function TopNavbar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-2 md:gap-4">
-
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate('/notifications')}
-                    className="group relative h-10 w-10 rounded-xl transition-all active:scale-90 cursor-pointer"
+                    className="group relative h-10 w-10 rounded-xl transition-all hover:bg-hover hover:text-hover-foreground active:bg-active active:scale-95 cursor-pointer"
                     aria-label="View notifications"
                 >
-                    <Bell className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+                    <Bell className="h-5 w-5 text-subtle-foreground transition-colors group-hover:text-foreground" />
 
-                    {/* Pulsing Dot */}
-                    <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-background bg-primary animate-pulse" />
+                    {/* Pulsing Notification Indicator */}
+                    <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-surface bg-primary animate-pulse" />
                 </Button>
 
                 {/* Divider */}
-                <div className="h-7 w-px bg-border hidden md:block" />
+                <div className="h-6 w-px bg-border-subtle hidden md:block" />
 
                 <ProfileDropdown user={user} />
-
             </div>
         </header>
     );

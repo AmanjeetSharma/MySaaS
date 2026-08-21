@@ -40,12 +40,10 @@ export function DesktopSidebar() {
     const isActive = (item) => {
         if (!item.href) return false;
 
-        // Exact match for dashboard or items with exactMatch flag
         if (item.exactMatch || item.href === '/dashboard') {
             return location.pathname === item.href;
         }
 
-        // Pattern-based matching for nested org routes
         if (item.pattern) {
             const patternParts = item.pattern.split('/');
             const pathParts = location.pathname.split('/');
@@ -53,15 +51,13 @@ export function DesktopSidebar() {
             if (patternParts.length !== pathParts.length) return false;
 
             return patternParts.every((part, i) => {
-                if (part.startsWith(':')) return true; // Dynamic segment
+                if (part.startsWith(':')) return true;
                 return part === pathParts[i];
             });
         }
 
-        // For non-organization nested routes
         if (location.pathname === item.href) return true;
 
-        // Check if current path is a direct child of this item's href
         const childPatterns = navigationConfig.mainNav
             .flatMap(nav => nav.items || [])
             .filter(sub => sub.href && sub.href.startsWith(item.href + '/'))
@@ -104,7 +100,7 @@ export function DesktopSidebar() {
     return (
         <SidebarContainer
             collapsible="icon"
-            className="border-r border-border/50"
+            className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
             style={{
                 '--sidebar-width-icon': '3rem',
                 '--sidebar-width': '16rem'
@@ -113,8 +109,8 @@ export function DesktopSidebar() {
             {/* Header */}
             <SidebarHeader
                 className={cn(
-                    "flex h-16 items-center border-b border-border/50 px-4",
-                    isCollapsed ? "justify-center" : "justify-end"
+                    "flex h-16 items-center border-b border-border-subtle px-4",
+                    isCollapsed ? "justify-center px-0" : "justify-end"
                 )}
             >
                 <TooltipProvider>
@@ -123,7 +119,7 @@ export function DesktopSidebar() {
                             <button
                                 onClick={toggleSidebar}
                                 className={cn(
-                                    "flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent transition-all duration-200 cursor-pointer",
+                                    "flex h-9 w-9 items-center justify-center rounded-md hover:bg-hover hover:text-hover-foreground active:bg-active transition-all duration-200 cursor-pointer text-sidebar-foreground",
                                     !isCollapsed && "ml-auto"
                                 )}
                             >
@@ -145,6 +141,7 @@ export function DesktopSidebar() {
             <SidebarContent className="py-4">
                 <SidebarGroup>
                     <SidebarGroupContent>
+                        {/* Removed px-2 to restore full width alignment */}
                         <SidebarMenu className="gap-1.5">
                             {navigationConfig.mainNav.map((item) => (
                                 <SidebarMenuItem key={item.title}>
@@ -159,13 +156,17 @@ export function DesktopSidebar() {
                                                     tooltip={item.title}
                                                     onClick={handleNavClick}
                                                     className={cn(
-                                                        "h-11 w-full cursor-pointer justify-between rounded-lg hover:bg-accent/70",
+                                                        "h-11 w-full cursor-pointer rounded-lg transition-all duration-150 hover:bg-accent/80 hover:text-accent-foreground",
+                                                        isCollapsed ? "justify-center px-0" : "justify-between",
                                                         isItemActive(item) &&
                                                         "bg-accent text-accent-foreground font-semibold shadow-sm"
                                                     )}
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        {item.icon && <item.icon className="h-5 w-5" />}
+                                                    <div className={cn(
+                                                        "flex items-center",
+                                                        isCollapsed ? "justify-center w-full" : "gap-3"
+                                                    )}>
+                                                        {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
                                                         <span className={cn(
                                                             "font-medium text-[15px]",
                                                             isCollapsed && "hidden"
@@ -176,8 +177,8 @@ export function DesktopSidebar() {
                                                     {!isCollapsed && (
                                                         <ChevronRight
                                                             className={cn(
-                                                                "h-4 w-4",
-                                                                (openMenus[item.title] ?? isItemActive(item)) && "rotate-90"
+                                                                "h-4 w-4 transition-transform duration-200 opacity-80",
+                                                                (openMenus[item.title] ?? isItemActive(item)) && "rotate-90 opacity-100"
                                                             )}
                                                         />
                                                     )}
@@ -185,20 +186,20 @@ export function DesktopSidebar() {
                                             </CollapsibleTrigger>
                                             {!isCollapsed && (
                                                 <CollapsibleContent>
-                                                    <SidebarMenu className="ml-6 mt-1 border-l border-border/50 pl-3 space-y-1">
+                                                    <SidebarMenu className="ml-6 mt-1 border-l border-border-subtle pl-3 space-y-1">
                                                         {item.items.map((subItem) => (
                                                             <SidebarMenuItem key={subItem.title}>
                                                                 <NavLink to={subItem.href} className="block cursor-pointer">
                                                                     <SidebarMenuButton
                                                                         tooltip={subItem.title}
                                                                         className={cn(
-                                                                            "h-10 w-full cursor-pointer rounded-lg hover:bg-accent/60",
+                                                                            "h-10 w-full cursor-pointer rounded-lg transition-all duration-150 hover:bg-accent/70 hover:text-accent-foreground text-subtle-foreground",
                                                                             isActive(subItem) &&
-                                                                            "bg-accent/60 text-accent-foreground font-semibold"
+                                                                            "bg-accent text-accent-foreground font-semibold shadow-xs"
                                                                         )}
                                                                     >
                                                                         <div className="flex items-center gap-3">
-                                                                            {subItem.icon && <subItem.icon className="h-4 w-4" />}
+                                                                            {subItem.icon && <subItem.icon className="h-4 w-4 shrink-0" />}
                                                                             <span className="text-sm">{subItem.title}</span>
                                                                         </div>
                                                                     </SidebarMenuButton>
@@ -215,13 +216,17 @@ export function DesktopSidebar() {
                                                 tooltip={item.title}
                                                 onClick={handleNavClick}
                                                 className={cn(
-                                                    "h-11 w-full cursor-pointer rounded-lg hover:bg-accent/70",
+                                                    "h-11 w-full cursor-pointer rounded-lg transition-all duration-150 hover:bg-accent/80 hover:text-accent-foreground",
+                                                    isCollapsed ? "justify-center px-0" : "justify-start",
                                                     isActive(item) &&
                                                     "bg-accent text-accent-foreground font-semibold shadow-sm"
                                                 )}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    {item.icon && <item.icon className="h-5 w-5" />}
+                                                <div className={cn(
+                                                    "flex items-center",
+                                                    isCollapsed ? "justify-center w-full" : "gap-3"
+                                                )}>
+                                                    {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
                                                     <span className={cn(
                                                         "font-medium text-[15px]",
                                                         isCollapsed && "hidden"
@@ -240,10 +245,10 @@ export function DesktopSidebar() {
             </SidebarContent>
 
             {/* Footer */}
-            <SidebarFooter className="border-t border-border/50 p-3">
+            <SidebarFooter className="border-t border-border-subtle p-3">
                 <div className={cn(
-                    "text-xs text-muted-foreground",
-                    isCollapsed && "hidden"
+                    "text-xs text-subtle-foreground",
+                    isCollapsed ? "hidden" : "px-2"
                 )}>
                     <p>© 2026 miniCRM</p>
                 </div>

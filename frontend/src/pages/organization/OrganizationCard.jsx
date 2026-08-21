@@ -24,10 +24,10 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
     return (
         <div
             onClick={() => !isActive && onSelect(org._id)}
-            className={`group relative flex flex-col justify-between rounded-[2rem] border border-border/40 p-5 sm:p-6 transition-all duration-300 ease-out overflow-visible
-             ${isActive
-                    ? 'border-primary/40 bg-primary/3 shadow-lg shadow-primary/10 ring-1 ring-primary/10'
-                    : 'border-border/20 bg-card hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.12)] cursor-pointer'
+            className={`group relative flex flex-col justify-between rounded-[2rem] p-5 sm:p-6 transition-all duration-300 ease-out overflow-visible border
+              ${isActive
+                    ? 'border-primary bg-surface-sunken shadow-lg shadow-primary/10 ring-1 ring-primary/20'
+                    : 'border-border-subtle bg-surface-elevated hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.12)] cursor-pointer'
                 }
             `}
         >
@@ -47,19 +47,19 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                     <div className={`
                         flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300
                         ${isActive
-                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                            : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                            : 'bg-surface text-subtle-foreground group-hover:bg-primary/10 group-hover:text-primary'
                         }
                     `}>
                         <Building2 className="h-6 w-6" />
                     </div>
 
                     {isOwner ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-warning border border-warning/20">
                             <Crown className="h-3 w-3" /> Owner
                         </span>
                     ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground border border-border-subtle">
                             <UserPlus className="h-3 w-3" /> Member
                         </span>
                     )}
@@ -67,7 +67,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
 
                 {/* Title and Connected Integration Icons with Tooltips */}
                 <div>
-                    <h3 className="text-xl font-bold tracking-tight text-foreground truncate  transition-colors">
+                    <h3 className="font-heading text-xl font-bold tracking-tight text-foreground truncate transition-colors">
                         {org.name}
                     </h3>
 
@@ -80,11 +80,11 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                                     return (
                                         <Tooltip key={item.integrationKey}>
                                             <TooltipTrigger asChild>
-                                                <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-transform hover:scale-105 cursor-pointer">
+                                                <div className="p-1.5 rounded-xl bg-success/10 text-success border border-success/20 transition-transform hover:scale-105 cursor-pointer">
                                                     <Icon className="h-3.5 w-3.5" />
                                                 </div>
                                             </TooltipTrigger>
-                                            <TooltipContent className="text-xs font-medium px-2.5 py-1">
+                                            <TooltipContent className="text-xs font-medium px-2.5 py-1 bg-popover text-popover-foreground border border-border">
                                                 {item.name}
                                             </TooltipContent>
                                         </Tooltip>
@@ -92,7 +92,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                                 })}
                             </TooltipProvider>
                         ) : (
-                            <span className="text-[11px] text-muted-foreground/50 italic">
+                            <span className="text-[11px] text-subtle-foreground/60 italic">
                                 No integrations connected
                             </span>
                         )}
@@ -100,19 +100,19 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                 </div>
 
                 {/* Compact Metrics Grid */}
-                <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/40 p-3 border border-border/40">
+                <div className="grid grid-cols-2 gap-2 rounded-2xl bg-surface p-3 border border-border-subtle">
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Team Size</span>
+                        <span className="text-[10px] font-semibold text-subtle-foreground uppercase tracking-wider">Team Size</span>
                         <div className="mt-1 flex items-center gap-1.5 text-foreground">
-                            <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-xs font-bold">{displayMemberCount} <span className="font-normal text-muted-foreground">members</span></span>
+                            <Users className="h-3.5 w-3.5 text-subtle-foreground" />
+                            <span className="text-xs font-bold">{displayMemberCount} <span className="font-normal text-subtle-foreground">members</span></span>
                         </div>
                     </div>
 
-                    <div className="flex flex-col border-l border-border/60 pl-3">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Plan Tier</span>
+                    <div className="flex flex-col border-l border-border-subtle pl-3">
+                        <span className="text-[10px] font-semibold text-subtle-foreground uppercase tracking-wider">Plan Tier</span>
                         <div className="mt-1 flex items-center gap-1.5 text-foreground">
-                            <Zap className={`h-3.5 w-3.5 ${org.subscription?.plan === 'pro' ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} />
+                            <Zap className={`h-3.5 w-3.5 ${org.subscription?.plan === 'pro' ? 'text-warning fill-warning' : 'text-subtle-foreground'}`} />
                             <span className="text-xs font-bold capitalize">{org.subscription?.plan || 'Free'}</span>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                 <Link
                     to={`/organizations/${org._id}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-secondary text-xs font-semibold text-secondary-foreground transition-all hover:bg-primary hover:text-primary-foreground active:scale-95 cursor-pointer"
+                    className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-secondary text-xs font-semibold text-secondary-foreground transition-all hover:bg-accent hover:text-accent-foreground active:scale-95 cursor-pointer shadow-xs"
                 >
                     Manage Details <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
@@ -135,7 +135,7 @@ export const OrganizationCard = ({ org, isActive, isOwner, onSelect, onDelete, i
                             onDelete(org);
                         }}
                         title="Delete Organization"
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-destructive/20 text-destructive transition-all hover:bg-destructive/20 hover:text-destructive-foreground active:scale-90 cursor-pointer shrink-0"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-destructive/20 text-destructive transition-all hover:bg-destructive/15 hover:text-destructive active:scale-90 cursor-pointer shrink-0"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>
@@ -152,35 +152,35 @@ export const CreateOrganizationCard = ({ onClick }) => {
             onClick={onClick}
             className="
                 group relative flex min-h-62.5 w-full flex-col items-center justify-center
-                rounded-[2rem] border-2 border-dashed border-border/80
-                bg-card/40 p-6
+                rounded-[2rem] border-2 border-dashed border-border-strong
+                bg-surface-elevated/50 p-6
                 transition-all duration-300 ease-out
-                hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] dark:hover:shadow-[0_0_20px_rgba(139,92,246,0.12)]
+                hover:border-primary hover:bg-surface-elevated hover:shadow-[0_0_20px_rgba(124,58,237,0.12)]
                 cursor-pointer
             "
         >
             <div className="
                 flex h-12 w-12 items-center justify-center
-                rounded-2xl bg-muted text-muted-foreground
+                rounded-2xl bg-surface text-subtle-foreground
                 transition-all duration-500
                 group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-90 group-hover:shadow-lg group-hover:shadow-primary/25
             ">
                 <Plus className="h-6 w-6" />
             </div>
 
-            <h3 className="mt-4 text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+            <h3 className="font-heading mt-4 text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                 New Workspace
             </h3>
 
-            <p className="mt-1 text-xs text-muted-foreground max-w-50 text-center leading-relaxed">
+            <p className="mt-1 text-xs text-subtle-foreground max-w-50 text-center leading-relaxed">
                 Set up an automated space for your team operations.
             </p>
 
             <div className="
                 mt-4 inline-flex items-center gap-1.5
-                rounded-xl bg-primary px-4 py-2
-                text-xs font-bold text-primary-foreground
-                shadow-md shadow-primary/20
+                rounded-xl bg-accent px-4 py-2
+                text-xs font-bold text-accent-foreground
+                shadow-md shadow-accent/20
                 opacity-0 translate-y-2
                 group-hover:opacity-100 group-hover:translate-y-0
                 transition-all duration-300

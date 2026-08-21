@@ -87,7 +87,7 @@ export default function Organizations() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center font-semibold text-sm uppercase tracking-widest text-muted-foreground/50 animate-pulse">
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center font-semibold text-sm uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
         Synchronizing Workspaces...
       </div>
     );
@@ -95,26 +95,25 @@ export default function Organizations() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-2 pb-8 md:pt-4 space-y-6">
-      {/* Header Section (Tighter top margin to sit directly below navbar) */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border/60 pb-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border-subtle pb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
             Manage Your Workspace
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+          <p className="mt-1 text-xs sm:text-sm text-subtle-foreground">
             Create, switch, or delete your workspaces. You can also manage members and integrations for each workspace.
           </p>
         </div>
 
         {hasNoActiveOrganization && (
-          <div className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+          <div className="inline-flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs text-warning">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
             <span>No active workspace selected. Please select or create one below.</span>
           </div>
         )}
       </div>
 
-      {/* Organizations Responsive Grid */}
       {/* Organizations Responsive Grid */}
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* 1. Owned Org */}
@@ -150,10 +149,10 @@ export default function Organizations() {
 
       {/* Create Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-md rounded-2xl  [&>button]:cursor-pointer">
+        <DialogContent className="sm:max-w-md rounded-2xl border-border-strong bg-surface-elevated text-surface-elevated-foreground [&>button]:cursor-pointer">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Launch Workspace</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogTitle className="font-heading text-xl font-bold text-foreground">Launch Workspace</DialogTitle>
+            <DialogDescription className="text-xs text-subtle-foreground">
               Give your new organization a name to get started.
             </DialogDescription>
           </DialogHeader>
@@ -164,11 +163,15 @@ export default function Organizations() {
                 autoFocus
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
-                className="h-10 rounded-xl text-sm"
+                className="h-10 rounded-xl text-sm bg-surface border-border focus-visible:ring-ring"
                 placeholder="e.g. My Organization"
               />
             </div>
-            <Button disabled={isUpdating} type="submit" className="w-full h-10 rounded-xl font-semibold cursor-pointer">
+            <Button 
+              disabled={isUpdating} 
+              type="submit" 
+              className="w-full h-10 rounded-xl font-semibold cursor-pointer bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.99] transition-all"
+            >
               {isUpdating ? 'Creating...' : 'Create Organization'}
             </Button>
           </form>
@@ -178,16 +181,28 @@ export default function Organizations() {
       {/* Delete Confirmation Modal */}
       {deleteOrg && (
         <Dialog open={!!deleteOrg} onOpenChange={() => setDeleteOrg(null)}>
-          <DialogContent className="sm:max-w-sm rounded-2xl">
+          <DialogContent className="sm:max-w-sm rounded-2xl border-border-strong bg-surface-elevated text-surface-elevated-foreground">
             <DialogHeader>
-              <DialogTitle className="text-destructive font-bold">Delete Organization</DialogTitle>
-              <DialogDescription className="text-xs">
+              <DialogTitle className="font-heading text-destructive font-bold">Delete Organization</DialogTitle>
+              <DialogDescription className="text-xs text-subtle-foreground">
                 Are you sure you want to delete <span className="font-semibold text-foreground underline">{deleteOrg.name}</span>? This action is permanent and cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 mt-4">
-              <Button variant="outline" className="flex-1 rounded-xl cursor-pointer text-xs" onClick={() => setDeleteOrg(null)}>Cancel</Button>
-              <Button variant="destructive" className="flex-1 rounded-xl cursor-pointer text-xs" onClick={() => handleDelete(deleteOrg._id)}>Delete</Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 rounded-xl cursor-pointer text-xs border-border hover:bg-hover hover:text-hover-foreground" 
+                onClick={() => setDeleteOrg(null)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="flex-1 rounded-xl cursor-pointer text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                onClick={() => handleDelete(deleteOrg._id)}
+              >
+                Delete
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

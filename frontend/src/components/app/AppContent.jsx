@@ -39,8 +39,7 @@ export const AppContent = () => {
     );
 
     const isOnAuthRoute = isAuthRoute(location.pathname);
-    const isProtectedHydrating =
-        !isOnAuthRoute && isAuthenticated && !userProfile;
+    const isProtectedHydrating = !isOnAuthRoute && isAuthenticated && !userProfile;
 
     if (!isAppReady || isProtectedHydrating) {
         return <AppLoader />;

@@ -34,7 +34,7 @@ const Card = ({ children, className = '', padding = 'md' }) => {
     };
     return (
         <div className={cn(
-            "bg-card border border-border rounded-xl shadow-sm",
+            "bg-surface-elevated border border-border-subtle rounded-xl shadow-xs text-surface-elevated-foreground",
             paddingClasses[padding],
             className
         )}>
@@ -47,17 +47,17 @@ const StatCard = ({ label, value, limit, icon: Icon, badge, action }) => {
     const percentage = ((value || 0) / (limit || 1)) * 100;
 
     return (
-        <Card padding="sm" className="hover:border-border/80 transition-colors">
+        <Card padding="sm" className="hover:border-border transition-colors">
             <div className="space-y-2 md:space-y-3">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 md:gap-2 text-muted-foreground">
-                        <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <div className="flex items-center gap-1.5 md:gap-2 text-subtle-foreground">
+                        <Icon className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
                         <span className="text-[10px] md:text-xs font-medium uppercase tracking-wide">
                             {label}
                         </span>
                     </div>
                     {badge && (
-                        <span className="text-[10px] md:text-xs text-muted-foreground">{badge}</span>
+                        <span className="text-[10px] md:text-xs text-subtle-foreground">{badge}</span>
                     )}
                 </div>
                 <div>
@@ -66,11 +66,11 @@ const StatCard = ({ label, value, limit, icon: Icon, badge, action }) => {
                             <span className="text-xl md:text-2xl font-semibold text-foreground">
                                 {value?.toLocaleString() ?? 0}
                             </span>
-                            <span className="text-xs md:text-sm text-muted-foreground">/ {limit?.toLocaleString()}</span>
+                            <span className="text-xs md:text-sm text-subtle-foreground">/ {limit?.toLocaleString()}</span>
                         </div>
                         {action}
                     </div>
-                    <div className="h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-1 md:h-1.5 bg-surface-sunken rounded-full overflow-hidden">
                         <div
                             className="h-full bg-primary rounded-full transition-all duration-500"
                             style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -86,13 +86,13 @@ const SectionHeader = ({ icon: Icon, title, description, action }) => (
     <div className="flex items-start justify-between">
         <div className="space-y-1">
             <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold text-foreground">
+                <Icon className="h-4 w-4 text-subtle-foreground" />
+                <h2 className="font-heading text-sm font-semibold text-foreground">
                     {title}
                 </h2>
             </div>
             {description && (
-                <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
+                <p className="text-xs sm:text-sm text-subtle-foreground">{description}</p>
             )}
         </div>
         {action}
@@ -102,31 +102,31 @@ const SectionHeader = ({ icon: Icon, title, description, action }) => (
 const IntegrationRow = ({ name, description, icon: Icon, connected, path }) => (
     <Link
         to={path}
-        className="flex items-center justify-between p-3 md:p-4 border border-border rounded-lg hover:bg-accent/5 hover:border-border/80 transition-all group cursor-pointer"
+        className="flex items-center justify-between p-3 md:p-4 border border-border-subtle rounded-lg hover:bg-hover hover:border-border transition-all group cursor-pointer"
     >
         <div className="flex items-center gap-3">
             <div className={cn(
                 "p-2 rounded-lg transition-colors",
                 connected
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    : "bg-muted text-muted-foreground border border-border"
+                    ? "bg-success/10 text-success border border-success/20"
+                    : "bg-surface text-subtle-foreground border border-border-subtle"
             )}>
                 <Icon className="h-4 w-4" />
             </div>
             <div>
-                <p className="text-sm font-medium text-foreground">{name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium text-foreground group-hover:text-hover-foreground transition-colors">{name}</p>
+                <p className="text-xs text-subtle-foreground">
                     {connected ? 'Connected' : description || 'Not configured'}
                 </p>
             </div>
         </div>
-        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <ExternalLink className="h-4 w-4 text-subtle-foreground group-hover:text-hover-foreground transition-colors" />
     </Link>
 );
 
 const DetailRow = ({ label, value, valueClassName }) => (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
-        <span className="text-sm text-muted-foreground">{label}</span>
+    <div className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0">
+        <span className="text-sm text-subtle-foreground">{label}</span>
         <span className={cn("text-sm font-medium text-foreground", valueClassName)}>
             {value}
         </span>
@@ -156,13 +156,13 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-lg w-full max-w-md shadow-lg">
-                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
-                    <h3 className="text-lg font-semibold text-foreground">Invite Team Member</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
+            <div className="bg-surface-elevated border border-border-strong rounded-2xl w-full max-w-md shadow-2xl text-surface-elevated-foreground animate-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border-subtle">
+                    <h3 className="font-heading text-lg font-semibold text-foreground">Invite Team Member</h3>
                     <button
                         onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        className="text-subtle-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-md hover:bg-hover"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -178,27 +178,27 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="colleague@company.com"
-                                className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm"
+                                className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm"
                                 autoFocus
                                 required
                             />
-                            <p className="mt-2 text-xs text-muted-foreground">
+                            <p className="mt-2 text-xs text-subtle-foreground">
                                 They'll receive an email with instructions to join your organization.
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-3 p-4 md:p-6 border-t border-border">
+                    <div className="flex gap-3 p-4 md:p-6 border-t border-border-subtle">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent/20 transition-colors cursor-pointer"
+                            className="flex-1 px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSending}
-                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                         >
                             {isSending ? (
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -327,7 +327,7 @@ export default function OrganizationDetails() {
     if (isLoading || !organization) {
         return (
             <div className="fixed inset-0 flex items-center justify-center bg-background">
-                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground/50">
+                <p className="text-sm font-semibold uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
                     Synchronizing Workspace...
                 </p>
             </div>
@@ -371,7 +371,7 @@ export default function OrganizationDetails() {
                     <div className="mb-6">
                         <button
                             onClick={() => navigate('/organizations')}
-                            className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
+                            className="group flex items-center gap-2 text-sm text-subtle-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
                         >
                             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                             Back to organizations
@@ -380,23 +380,23 @@ export default function OrganizationDetails() {
                         {/* Organization Header */}
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-muted rounded-lg flex items-center justify-center border border-border shrink-0">
-                                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
+                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-surface rounded-2xl flex items-center justify-center border border-border-subtle shrink-0">
+                                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-subtle-foreground" />
                                 </div>
                                 <div>
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground break-all">
+                                        <h1 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground break-all">
                                             {organization.name}
                                         </h1>
-                                        <span className="px-2 py-0.5 bg-muted text-[10px] sm:text-xs font-medium text-muted-foreground rounded-md">
+                                        <span className="px-2.5 py-0.5 bg-secondary text-[10px] sm:text-xs font-semibold text-secondary-foreground rounded-full border border-border-subtle">
                                             {organization.subscription?.plan?.toUpperCase() || 'FREE'}
                                         </span>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-subtle-foreground">
                                         <span>Created {new Date(organization.createdAt).toLocaleDateString()}</span>
                                         {isOwner && (
-                                            <span className="flex items-center gap-1">
-                                                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                                            <span className="flex items-center gap-1 font-medium text-warning">
+                                                <ShieldCheck className="h-3.5 w-3.5 text-warning" />
                                                 Owner
                                             </span>
                                         )}
@@ -407,7 +407,7 @@ export default function OrganizationDetails() {
                             {isOwner && !isEditing && (
                                 <button
                                     onClick={() => openEditMode('name')}
-                                    className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-accent/20 hover:border-border/80 transition-colors cursor-pointer flex items-center gap-1.5"
+                                    className="self-start sm:self-auto px-3.5 py-2 text-sm font-semibold text-foreground border border-border rounded-xl hover:bg-hover hover:text-hover-foreground hover:border-border-strong transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                                 >
                                     <Edit3 className="h-3.5 w-3.5" />
                                     Edit details
@@ -418,13 +418,13 @@ export default function OrganizationDetails() {
 
                     {/* Stale Slug Alert Banner */}
                     {organization.isSlugStale && (
-                        <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="mb-6 p-4 rounded-2xl border border-warning/30 bg-warning/10 text-warning flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex items-start gap-3">
-                                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-semibold">Public URL Out of Sync</h4>
+                                    <h4 className="text-sm font-bold">Public URL Out of Sync</h4>
                                     <p className="text-xs sm:text-sm opacity-90 mt-0.5">
-                                        Your organization name was updated, but your public URL (<code className="font-mono font-bold">{organization.slug}</code>) is still out of sync.
+                                        Your organization name was updated, but your public URL (<code className="font-mono font-bold bg-warning/15 px-1 rounded">{organization.slug}</code>) is still out of sync.
                                     </p>
                                 </div>
                             </div>
@@ -433,7 +433,7 @@ export default function OrganizationDetails() {
                                 <button
                                     onClick={() => setShowSyncModal(true)}
                                     disabled={isSyncingSlug || isUpdating}
-                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+                                    className="px-3.5 py-1.5 bg-warning hover:opacity-90 text-background rounded-xl text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
                                 >
                                     <RefreshCw className="h-3.5 w-3.5" />
                                     Sync URL Slug
@@ -471,7 +471,7 @@ export default function OrganizationDetails() {
                                                     type="text"
                                                     value={orgName}
                                                     onChange={(e) => setOrgName(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm"
+                                                    className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm"
                                                     placeholder="Organization name"
                                                 />
                                             </div>
@@ -483,7 +483,7 @@ export default function OrganizationDetails() {
                                                     </label>
                                                     <span className={cn(
                                                         "text-xs font-mono",
-                                                        orgDescription.length > DESCRIPTION_LIMIT ? "text-destructive font-medium" : "text-muted-foreground"
+                                                        orgDescription.length > DESCRIPTION_LIMIT ? "text-destructive font-medium" : "text-subtle-foreground"
                                                     )}>
                                                         {orgDescription.length}/{DESCRIPTION_LIMIT}
                                                     </span>
@@ -494,7 +494,7 @@ export default function OrganizationDetails() {
                                                     maxLength={DESCRIPTION_LIMIT}
                                                     value={orgDescription}
                                                     onChange={(e) => setOrgDescription(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground text-sm resize-y"
+                                                    className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm resize-y"
                                                     placeholder="Briefly describe your organization's mission or service..."
                                                 />
                                             </div>
@@ -506,14 +506,14 @@ export default function OrganizationDetails() {
                                                         setOrgName(organization.name);
                                                         setOrgDescription(organization.description || '');
                                                     }}
-                                                    className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent/20 transition-colors cursor-pointer"
+                                                    className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     onClick={handleUpdate}
                                                     disabled={isUpdating || orgDescription.length > DESCRIPTION_LIMIT}
-                                                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                                                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                                                 >
                                                     {isUpdating ? 'Saving...' : 'Save changes'}
                                                 </button>
@@ -522,9 +522,9 @@ export default function OrganizationDetails() {
                                     ) : (
                                         <div className="space-y-6">
                                             {/* Top Key Data Grid */}
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-border">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-border-subtle">
                                                 <div className="space-y-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                                                    <span className="text-xs text-subtle-foreground uppercase font-semibold tracking-wider">
                                                         Organization Name
                                                     </span>
                                                     <p className="text-sm font-medium text-foreground break-all">
@@ -533,19 +533,19 @@ export default function OrganizationDetails() {
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <span className="text-xs text-muted-foreground font-semibold tracking-wider">
-                                                        Public URL: Organization Path
+                                                    <span className="text-xs text-subtle-foreground font-semibold tracking-wider uppercase">
+                                                        Public URL: Path
                                                     </span>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-mono bg-muted/60 px-2 py-0.5 rounded text-foreground border border-border">
+                                                        <span className="text-sm font-mono bg-surface px-2.5 py-0.5 rounded-lg text-foreground border border-border-subtle">
                                                             /{organization.slug}
                                                         </span>
                                                         {organization.isSlugStale ? (
-                                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase tracking-wide">
+                                                            <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20 uppercase tracking-wide">
                                                                 Sync needed
                                                             </span>
                                                         ) : (
-                                                            <span className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
+                                                            <span className="text-xs text-success flex items-center gap-1 font-medium">
                                                                 <CheckCircle2 className="h-3.5 w-3.5" /> Synced
                                                             </span>
                                                         )}
@@ -556,24 +556,24 @@ export default function OrganizationDetails() {
                                             {/* Redesigned Description Card */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider flex items-center gap-1.5">
+                                                    <span className="text-xs text-subtle-foreground uppercase font-semibold tracking-wider flex items-center gap-1.5">
                                                         <FileText className="h-3.5 w-3.5" /> Description
                                                     </span>
                                                     {organization?.description && (
-                                                        <span className="text-[11px] font-mono text-muted-foreground/70">
+                                                        <span className="text-[11px] font-mono text-subtle-foreground/70">
                                                             {organization.description.length}/500 chars
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <div className="p-4 bg-muted/30 border border-border/80 rounded-lg">
+                                                <div className="p-4 bg-surface-sunken border border-border-subtle rounded-xl">
                                                     {organization?.description ? (
                                                         <p className="text-sm text-foreground leading-relaxed whitespace-pre-line break-words">
                                                             {organization.description}
                                                         </p>
                                                     ) : (
                                                         <div className="py-2 text-center sm:text-left">
-                                                            <p className="text-sm text-muted-foreground italic">
+                                                            <p className="text-sm text-subtle-foreground italic">
                                                                 No description provided yet.
                                                             </p>
                                                             {isOwner && (
@@ -590,7 +590,7 @@ export default function OrganizationDetails() {
                                             </div>
 
                                             {!isOwner && (
-                                                <div className="pt-1 text-xs text-muted-foreground flex items-center gap-1.5">
+                                                <div className="pt-1 text-xs text-subtle-foreground flex items-center gap-1.5">
                                                     <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                                                     Contact your organization owner to edit these details.
                                                 </div>
@@ -600,7 +600,7 @@ export default function OrganizationDetails() {
                                 </div>
                             </Card>
 
-                            {/* Integrations Section mapped directly from constants */}
+                            {/* Integrations Section */}
                             <Card>
                                 <SectionHeader
                                     icon={LayoutGrid}
@@ -639,7 +639,7 @@ export default function OrganizationDetails() {
                                     <DetailRow
                                         label="Current Plan"
                                         value={organization.subscription?.plan?.toUpperCase() || 'FREE'}
-                                        valueClassName="capitalize"
+                                        valueClassName="capitalize font-semibold text-primary"
                                     />
                                     <DetailRow
                                         label="Renewal Date"
@@ -647,7 +647,7 @@ export default function OrganizationDetails() {
                                             ? new Date(organization.subscription.endDate).toLocaleDateString()
                                             : 'No expiration'}
                                     />
-                                    <button className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer">
+                                    <button className="w-full mt-4 px-4 py-2.5 bg-accent text-accent-foreground rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md shadow-accent/20">
                                         Manage subscription
                                     </button>
                                 </div>
@@ -662,22 +662,22 @@ export default function OrganizationDetails() {
                                 <div className="mt-4">
                                     <button
                                         onClick={() => navigate(`/organizations/${orgId}/members`)}
-                                        className="w-full flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/5 transition-colors group cursor-pointer"
+                                        className="w-full flex items-center justify-between p-3 border border-border-subtle rounded-xl hover:bg-hover hover:border-border transition-all group cursor-pointer"
                                     >
-                                        <span className="text-sm font-medium text-foreground">View all members</span>
-                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        <span className="text-sm font-medium text-foreground group-hover:text-hover-foreground">View all members</span>
+                                        <ChevronRight className="h-4 w-4 text-subtle-foreground group-hover:text-hover-foreground transition-colors" />
                                     </button>
 
                                     {remainingSlots > 0 ? (
                                         <button
                                             onClick={() => setIsInviteModalOpen(true)}
-                                            className="w-full mt-3 px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors font-medium border border-dashed border-border rounded-lg hover:border-primary/50 cursor-pointer"
+                                            className="w-full mt-3 px-4 py-2.5 text-sm text-accent hover:text-accent-foreground hover:bg-accent font-semibold border border-dashed border-border-strong rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                         >
                                             + Invite members
                                         </button>
                                     ) : (
-                                        <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                                            <p className="text-xs text-muted-foreground text-center">
+                                        <div className="mt-4 p-3 bg-surface-sunken border border-border-subtle rounded-xl">
+                                            <p className="text-xs text-subtle-foreground text-center">
                                                 Member limit reached. Upgrade to add more members.
                                             </p>
                                         </div>
@@ -691,21 +691,20 @@ export default function OrganizationDetails() {
 
             {/* Sync Organization URL Slug Confirmation Modal */}
             {showSyncModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
-                    <div className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
+                    <div className="w-full max-w-md space-y-5 rounded-2xl border border-border-strong bg-surface-elevated p-6 shadow-2xl animate-in zoom-in-95 duration-150 text-surface-elevated-foreground">
                         {/* Content Block */}
                         <div className="flex items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning border border-warning/20">
                                 <AlertTriangle className="h-6 w-6" />
                             </div>
 
                             <div className="space-y-1.5 pt-0.5">
-                                <h3 className="text-lg font-bold text-foreground">Sync Organization URL?</h3>
-                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                <h3 className="font-heading text-lg font-bold text-foreground">Sync Organization URL?</h3>
+                                <p className="text-xs leading-relaxed text-subtle-foreground">
                                     Create a new booking link that matches the current organization name.
                                 </p>
-                                <p className="text-xs font-semibold leading-relaxed text-amber-600 dark:text-amber-400">
+                                <p className="text-xs font-semibold leading-relaxed text-warning">
                                     Warning: All existing links using this organization prefix will be disabled immediately.
                                 </p>
                             </div>
@@ -716,7 +715,7 @@ export default function OrganizationDetails() {
                                 type="button"
                                 disabled={isSyncingSlug}
                                 onClick={() => setShowSyncModal(false)}
-                                className="h-10 w-full rounded-xl border border-border bg-background text-xs font-bold text-foreground hover:bg-accent/20 transition-colors cursor-pointer disabled:opacity-50"
+                                className="h-10 w-full rounded-xl border border-border bg-surface text-xs font-bold text-foreground hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 Cancel
                             </button>
@@ -725,7 +724,7 @@ export default function OrganizationDetails() {
                                 type="button"
                                 disabled={isSyncingSlug}
                                 onClick={handleConfirmSyncSlug}
-                                className="h-10 w-full cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 transition-colors disabled:opacity-50"
+                                className="h-10 w-full cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-warning px-4 text-xs font-bold uppercase tracking-wider text-background shadow-xs hover:opacity-90 transition-opacity disabled:opacity-50"
                             >
                                 {isSyncingSlug ? (
                                     <>
@@ -737,7 +736,6 @@ export default function OrganizationDetails() {
                                 )}
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

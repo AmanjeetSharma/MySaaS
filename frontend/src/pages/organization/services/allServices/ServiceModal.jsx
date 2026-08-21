@@ -240,14 +240,14 @@ export default function ServiceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 sm:max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl [&>button]:cursor-pointer">
+      <DialogContent className="p-0 sm:max-w-2xl overflow-hidden rounded-2xl border border-border-strong bg-surface-elevated text-surface-elevated-foreground shadow-2xl [&>button]:cursor-pointer">
         {/* Header */}
-        <div className="border-b border-border px-6 py-4.5 bg-muted/20">
+        <div className="border-b border-border-subtle px-6 py-4.5 bg-surface-sunken">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <DialogTitle className="font-heading text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
               {isEdit ? 'Edit Service' : 'Create New Service'}
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-subtle-foreground">
               Configure parameters, pricing models, and location settings for client bookings.
             </DialogDescription>
           </DialogHeader>
@@ -259,13 +259,13 @@ export default function ServiceModal({
 
             {/* Section 1: Basic Service Metadata */}
             <div className="space-y-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-subtle-foreground">
                 1. General Details
               </div>
 
               {/* Service Name */}
               <div className="space-y-1.5">
-                <Label htmlFor="service-name" className="text-xs font-medium text-foreground">
+                <Label htmlFor="service-name" className="text-xs font-semibold text-foreground">
                   Service Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -274,7 +274,7 @@ export default function ServiceModal({
                   value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className={cn(
-                    "h-9 rounded-lg border-border/80 bg-background text-sm shadow-2xs transition-all focus-visible:ring-2 focus-visible:ring-primary/20",
+                    "h-10 rounded-xl border-border bg-surface text-sm text-foreground shadow-xs transition-all focus-visible:ring-1 focus-visible:ring-ring",
                     errors.name && "border-destructive focus-visible:ring-destructive/20"
                   )}
                   placeholder="e.g. Executive Strategy Consultation"
@@ -290,12 +290,12 @@ export default function ServiceModal({
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Duration Control matching Price & Currency style */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="service-duration" className="text-xs font-medium text-foreground">
+                  <Label htmlFor="service-duration" className="text-xs font-semibold text-foreground">
                     Duration <span className="text-destructive">*</span>
                   </Label>
                   <div
                     className={cn(
-                      "flex h-9 rounded-lg border border-border/80 bg-background shadow-2xs focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden",
+                      "flex h-10 rounded-xl border border-border bg-surface shadow-xs focus-within:ring-1 focus-within:ring-ring transition-all overflow-hidden",
                       errors.durationInMinutes && "border-destructive focus-within:ring-destructive/20"
                     )}
                   >
@@ -303,12 +303,12 @@ export default function ServiceModal({
                       value={isCustomDuration ? 'custom' : String(form.durationInMinutes)}
                       onValueChange={updateDurationPreset}
                     >
-                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-28 shrink-0">
+                      <SelectTrigger className="h-full border-0 border-r border-border rounded-none bg-surface-sunken px-3 text-xs font-semibold text-foreground focus:ring-0 cursor-pointer w-28 shrink-0">
                         <SelectValue placeholder="Duration" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover text-popover-foreground border-border">
                         {DURATION_PRESETS.map((preset) => (
-                          <SelectItem key={preset.value} value={preset.value} className="cursor-pointer text-xs font-medium">
+                          <SelectItem key={preset.value} value={preset.value} className="cursor-pointer text-xs font-medium hover:bg-hover hover:text-hover-foreground">
                             {preset.label}
                           </SelectItem>
                         ))}
@@ -316,7 +316,7 @@ export default function ServiceModal({
                     </Select>
 
                     <div className="relative flex-1 flex items-center">
-                      <Clock className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <Clock className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-subtle-foreground shrink-0" />
                       <Input
                         id="service-duration"
                         type="number"
@@ -329,10 +329,10 @@ export default function ServiceModal({
                           if (e.currentTarget.value === '0') e.currentTarget.select();
                         }}
                         onChange={(e) => updateCustomDuration(e.target.value)}
-                        className="h-full border-0 bg-transparent pl-8 pr-8 text-sm focus-visible:ring-0 shadow-none disabled:opacity-75 disabled:cursor-not-allowed"
+                        className="h-full border-0 bg-transparent pl-8 pr-10 text-sm text-foreground focus-visible:ring-0 shadow-none disabled:opacity-75 disabled:cursor-not-allowed"
                         placeholder="30"
                       />
-                      <span className="pointer-events-none absolute right-2.5 text-[10px] font-bold uppercase text-muted-foreground">
+                      <span className="pointer-events-none absolute right-2.5 text-[10px] font-bold uppercase text-subtle-foreground">
                         mins
                       </span>
                     </div>
@@ -346,26 +346,26 @@ export default function ServiceModal({
 
                 {/* Currency + Price Control */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="service-price" className="text-xs font-medium text-foreground">
+                  <Label htmlFor="service-price" className="text-xs font-semibold text-foreground">
                     Price & Currency <span className="text-destructive">*</span>
                   </Label>
-                  <div className="flex h-9 rounded-lg border border-border/80 bg-background shadow-2xs focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
+                  <div className="flex h-10 rounded-xl border border-border bg-surface shadow-xs focus-within:ring-1 focus-within:ring-ring transition-all overflow-hidden">
                     <Select
                       value={form.currency}
                       onValueChange={(value) => updateField('currency', value)}
                     >
-                      <SelectTrigger className="h-full border-0 border-r border-border/80 rounded-none bg-muted/30 px-2.5 text-xs font-semibold focus:ring-0 cursor-pointer w-22.5 shrink-0">
+                      <SelectTrigger className="h-full border-0 border-r border-border rounded-none bg-surface-sunken px-3 text-xs font-semibold text-foreground focus:ring-0 cursor-pointer w-22.5 shrink-0">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INR" className="cursor-pointer">INR (₹)</SelectItem>
-                        <SelectItem value="USD" className="cursor-pointer">USD ($)</SelectItem>
-                        <SelectItem value="EUR" className="cursor-pointer">EUR (€)</SelectItem>
+                      <SelectContent className="bg-popover text-popover-foreground border-border">
+                        <SelectItem value="INR" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">INR (₹)</SelectItem>
+                        <SelectItem value="USD" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">USD ($)</SelectItem>
+                        <SelectItem value="EUR" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">EUR (€)</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <div className="relative flex-1 flex items-center">
-                      <CurrencyIcon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <CurrencyIcon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-subtle-foreground shrink-0" />
                       <Input
                         id="service-price"
                         type="number"
@@ -377,7 +377,7 @@ export default function ServiceModal({
                           if (e.currentTarget.value === '0') e.currentTarget.select();
                         }}
                         onChange={(e) => updatePriceField(e.target.value)}
-                        className="h-full border-0 bg-transparent pl-8 pr-3 text-sm focus-visible:ring-0 shadow-none"
+                        className="h-full border-0 bg-transparent pl-8 pr-3 text-sm text-foreground focus-visible:ring-0 shadow-none"
                         placeholder="0"
                       />
                     </div>
@@ -386,27 +386,27 @@ export default function ServiceModal({
               </div>
             </div>
 
-            <div className="h-px w-full bg-border/60" />
+            <div className="h-px w-full bg-border-subtle" />
 
             {/* Section 2: Delivery Mode & Dynamic Settings */}
             <div className="space-y-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-subtle-foreground">
                 2. Location & Delivery
               </div>
 
               {/* Mode Segmented Control */}
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/40 border border-border/60">
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-surface-sunken border border-border-subtle">
                 <button
                   type="button"
                   onClick={() => updateField('mode', 'ONLINE')}
                   className={cn(
                     "flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                     form.mode === 'ONLINE'
-                      ? "bg-background text-foreground shadow-2xs border border-border/80"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-surface-elevated text-foreground shadow-xs border border-border font-bold"
+                      : "text-subtle-foreground hover:text-foreground"
                   )}
                 >
-                  <Video className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <Video className="h-3.5 w-3.5 text-accent shrink-0" />
                   Virtual / Online
                 </button>
 
@@ -416,36 +416,36 @@ export default function ServiceModal({
                   className={cn(
                     "flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                     form.mode === 'OFFLINE'
-                      ? "bg-background text-foreground shadow-2xs border border-border/80"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-surface-elevated text-foreground shadow-xs border border-border font-bold"
+                      : "text-subtle-foreground hover:text-foreground"
                   )}
                 >
-                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
                   In-Person / Offline
                 </button>
               </div>
 
               {/* ONLINE Mode: Integration Card */}
               {form.mode === 'ONLINE' && (
-                <div className="p-4 rounded-xl border border-border/80 bg-card space-y-4 animate-in fade-in-50 duration-150">
+                <div className="p-4 rounded-xl border border-border-subtle bg-surface space-y-4 animate-in fade-in-50 duration-150">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">
+                    <Label className="text-xs font-semibold text-foreground">
                       Meeting Platform
                     </Label>
                     <Select
                       value={form.meetingProvider}
                       onValueChange={(val) => updateField('meetingProvider', val)}
                     >
-                      <SelectTrigger className="h-9 w-full rounded-lg border-border/80 bg-background text-sm cursor-pointer shadow-2xs">
+                      <SelectTrigger className="h-10 w-full rounded-xl border-border bg-surface-elevated text-sm text-foreground cursor-pointer shadow-xs">
                         <SelectValue placeholder="Select platform" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover text-popover-foreground border-border">
                         {Object.entries(INTEGRATION_CONFIG).map(([key, config]) => {
                           const IconComponent = config.icon;
                           return (
-                            <SelectItem key={key} value={key} className="cursor-pointer">
+                            <SelectItem key={key} value={key} className="cursor-pointer hover:bg-hover hover:text-hover-foreground">
                               <div className="flex items-center gap-2 text-xs font-medium">
-                                {IconComponent && <IconComponent className="h-3.5 w-3.5 text-primary shrink-0" />}
+                                {IconComponent && <IconComponent className="h-3.5 w-3.5 text-accent shrink-0" />}
                                 <span>{config.name}</span>
                               </div>
                             </SelectItem>
@@ -455,19 +455,19 @@ export default function ServiceModal({
                     </Select>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-border/50">
+                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-border-subtle">
                     <div className="space-y-0.5 min-w-0">
-                      <div className="text-xs font-medium text-foreground">
+                      <div className="text-xs font-semibold text-foreground">
                         Auto-generate meeting link
                       </div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-[11px] text-subtle-foreground">
                         Automatically attach a unique link to confirmed bookings.
                       </div>
                     </div>
                     <Switch
                       checked={form.autoGenerateMeetingLink}
                       onCheckedChange={(val) => updateField('autoGenerateMeetingLink', val)}
-                      className="cursor-pointer"
+                      className="cursor-pointer transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
                     />
                   </div>
                 </div>
@@ -475,17 +475,17 @@ export default function ServiceModal({
 
               {/* OFFLINE Mode: Address Fields */}
               {form.mode === 'OFFLINE' && (
-                <div className="p-4 rounded-xl border border-border/80 bg-card space-y-3 animate-in fade-in-50 duration-150">
+                <div className="p-4 rounded-xl border border-border-subtle bg-surface space-y-3 animate-in fade-in-50 duration-150">
                   {/* Street */}
                   <div className="space-y-1">
-                    <Label className="text-xs font-medium text-foreground">
+                    <Label className="text-xs font-semibold text-foreground">
                       Street Address <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       value={form.address.street}
                       onChange={(e) => updateAddress('street', e.target.value)}
                       className={cn(
-                        "h-9 rounded-lg border-border/80 bg-background text-sm shadow-2xs",
+                        "h-10 rounded-xl border-border bg-surface-elevated text-sm text-foreground shadow-xs",
                         errors['address.street'] && "border-destructive"
                       )}
                       placeholder="e.g. 100 Innovation Way, Suite 300"
@@ -495,35 +495,35 @@ export default function ServiceModal({
                   {/* City + State + Zip */}
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-foreground">
+                      <Label className="text-[11px] font-semibold text-foreground">
                         City <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         value={form.address.city}
                         onChange={(e) => updateAddress('city', e.target.value)}
-                        className={cn("h-8 rounded-lg text-xs bg-background", errors['address.city'] && "border-destructive")}
+                        className={cn("h-9 rounded-xl text-xs bg-surface-elevated border-border text-foreground", errors['address.city'] && "border-destructive")}
                         placeholder="City"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground">
+                      <Label className="text-[11px] font-semibold text-subtle-foreground">
                         State
                       </Label>
                       <Input
                         value={form.address.state}
                         onChange={(e) => updateAddress('state', e.target.value)}
-                        className="h-8 rounded-lg text-xs bg-background"
+                        className="h-9 rounded-xl text-xs bg-surface-elevated border-border text-foreground"
                         placeholder="State / Prov"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground">
+                      <Label className="text-[11px] font-semibold text-subtle-foreground">
                         Zip
                       </Label>
                       <Input
                         value={form.address.zipCode}
                         onChange={(e) => updateAddress('zipCode', e.target.value)}
-                        className="h-8 rounded-lg text-xs bg-background"
+                        className="h-9 rounded-xl text-xs bg-surface-elevated border-border text-foreground"
                         placeholder="Postal Code"
                       />
                     </div>
@@ -531,13 +531,13 @@ export default function ServiceModal({
 
                   {/* Country */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-foreground">
+                    <Label className="text-[11px] font-semibold text-foreground">
                       Country <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       value={form.address.country}
                       onChange={(e) => updateAddress('country', e.target.value)}
-                      className={cn("h-8 rounded-lg text-xs bg-background", errors['address.country'] && "border-destructive")}
+                      className={cn("h-9 rounded-xl text-xs bg-surface-elevated border-border text-foreground", errors['address.country'] && "border-destructive")}
                       placeholder="e.g. United States"
                     />
                   </div>
@@ -545,26 +545,26 @@ export default function ServiceModal({
               )}
             </div>
 
-            <div className="h-px w-full bg-border/60" />
+            <div className="h-px w-full bg-border-subtle" />
 
             {/* Section 3: Optional Context */}
             <div className="space-y-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-subtle-foreground">
                 3. Additional Information
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="service-description" className="text-xs font-medium text-foreground">
+                  <Label htmlFor="service-description" className="text-xs font-semibold text-foreground">
                     Description
                   </Label>
-                  <span className="text-[10px] text-muted-foreground">(Optional)</span>
+                  <span className="text-[10px] text-subtle-foreground">(Optional)</span>
                 </div>
                 <Textarea
                   id="service-description"
                   value={form.description}
                   onChange={(e) => updateField('description', e.target.value)}
-                  className="min-h-16 rounded-lg border-border/80 bg-background p-2.5 font-normal text-xs sm:text-sm shadow-2xs resize-y focus-visible:ring-2 focus-visible:ring-primary/20"
+                  className="min-h-18 rounded-xl border-border bg-surface p-3 font-normal text-xs sm:text-sm text-foreground shadow-xs resize-y focus-visible:ring-1 focus-visible:ring-ring"
                   placeholder="Outline topics covered or preparation required for this session..."
                 />
               </div>
@@ -573,19 +573,19 @@ export default function ServiceModal({
           </div>
 
           {/* Locked Dialog Footer */}
-          <div className="flex items-center justify-end gap-2.5 border-t border-border px-6 py-3.5 bg-card">
+          <div className="flex items-center justify-end gap-2.5 border-t border-border-subtle px-6 py-3.5 bg-surface-sunken">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-9 rounded-lg text-xs font-semibold px-4 cursor-pointer hover:bg-accent"
+              className="h-10 min-h-[40px] rounded-xl border-border bg-surface px-4 text-xs font-bold text-subtle-foreground transition-all hover:bg-surface-elevated hover:text-foreground hover:border-border-strong active:scale-95 cursor-pointer shadow-xs"
             >
               Cancel
             </Button>
             <Button
               disabled={isUpdating}
               type="submit"
-              className="h-9 rounded-lg px-5 text-xs font-bold uppercase tracking-wider shadow-2xs cursor-pointer min-w-27.5"
+              className="h-10 min-h-[40px] rounded-xl bg-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 transition-all hover:opacity-90 active:scale-95 cursor-pointer min-w-27.5"
             >
               {isUpdating ? (
                 <>
