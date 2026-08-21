@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AccountInfo from './AccountInfo';
 import PhoneComponent from './PhoneComponent';
-import AvatarCropModal from './AvatarCropModal'; // <-- Implemented modal component
+import AvatarCropModal from './AvatarCropModal';
 
 const Profile = () => {
   const {
@@ -44,7 +44,7 @@ const Profile = () => {
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(null);
 
-  // New crop states
+  // Crop states
   const [selectedImageSrc, setSelectedImageSrc] = useState(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [selectedFileType, setSelectedFileType] = useState('image/jpeg');
@@ -78,7 +78,7 @@ const Profile = () => {
       setIsEditing(false);
 
       toast.success('Name updated successfully', {
-        icon: <Save className="h-4 w-4 text-primary" />,
+        icon: <Save className="h-4 w-4 text-accent" />,
         duration: 2000
       });
     } catch (error) {
@@ -96,7 +96,7 @@ const Profile = () => {
       await getUserProfile();
 
       toast.success('Avatar updated successfully', {
-        icon: <Camera className="h-4 w-4 text-primary" />,
+        icon: <Camera className="h-4 w-4 text-accent" />,
         duration: 2000
       });
     } catch (error) {
@@ -175,14 +175,11 @@ const Profile = () => {
     try {
       await updateUserAvatar(croppedFile);
 
-      // Clean up modal state
       cleanupCropState();
-
-      // Refresh user profile
       await getUserProfile();
 
       toast.success('Avatar updated successfully', {
-        icon: <Camera className="h-4 w-4 text-primary" />,
+        icon: <Camera className="h-4 w-4 text-accent" />,
         duration: 2000
       });
     } catch (error) {
@@ -216,11 +213,10 @@ const Profile = () => {
       await deleteUserAvatar();
 
       setPreviewAvatar(null);
-
       await getUserProfile();
 
       toast.success('Avatar removed successfully', {
-        icon: <Trash2 className="h-4 w-4 text-primary" />,
+        icon: <Trash2 className="h-4 w-4 text-accent" />,
         duration: 2000
       });
     } catch (error) {
@@ -245,39 +241,39 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">
+      <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-subtle-foreground/40 text-xs">
         Synchronizing Workspace...
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5 bg-background text-foreground">
       {/* Header */}
       <div className="space-y-0.5 sm:space-y-1">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
+        <h1 className="font-heading text-xl sm:text-3xl font-bold tracking-tight text-foreground">
           Profile
         </h1>
 
-        <p className="text-xs sm:text-base text-muted-foreground">
+        <p className="text-xs sm:text-base text-subtle-foreground">
           Manage your personal information and profile picture.
         </p>
       </div>
 
       {/* Profile Card */}
-      <Card className="border-border/50 bg-card/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.03)] overflow-hidden rounded-xl sm:rounded-2xl">
-        <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 border-b border-border/40 bg-muted/20">
+      <Card className="border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs overflow-hidden rounded-xl sm:rounded-2xl">
+        <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 border-b border-border-subtle bg-surface-sunken/40">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-primary/10 border border-primary/20">
-              <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/20">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
             </div>
 
             <div>
-              <CardTitle className="text-sm sm:text-lg font-semibold">
+              <CardTitle className="font-heading text-sm sm:text-lg font-semibold text-foreground">
                 Personal Information
               </CardTitle>
 
-              <CardDescription className="text-xs sm:text-sm mt-0.5 sm:mt-1">
+              <CardDescription className="text-xs sm:text-sm mt-0.5 sm:mt-1 text-subtle-foreground">
                 Update your name and profile picture.
               </CardDescription>
             </div>
@@ -295,7 +291,7 @@ const Profile = () => {
                   disabled={isAvatarUploading}
                   className="relative rounded-full cursor-pointer group focus:outline-none"
                 >
-                  <Avatar className="h-20 w-20 sm:h-28 sm:w-28 ring-2 ring-border/50 transition-all group-hover:ring-primary/60">
+                  <Avatar className="h-20 w-20 sm:h-28 sm:w-28 ring-2 ring-border-subtle transition-all group-hover:ring-accent">
                     {previewAvatar ? (
                       <img
                         src={previewAvatar}
@@ -311,7 +307,7 @@ const Profile = () => {
                           />
                         ) : null}
 
-                        <AvatarFallback className="text-xl sm:text-2xl bg-primary/10 text-primary">
+                        <AvatarFallback className="text-xl sm:text-2xl bg-accent/10 text-accent">
                           <UserRoundPen className="h-4 w-4 sm:h-5 sm:w-5" />
                         </AvatarFallback>
                       </>
@@ -320,7 +316,7 @@ const Profile = () => {
 
                   {/* Hover Overlay */}
                   {!isAvatarUploading && (
-                    <div className="absolute inset-0 rounded-full bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
                       <Camera className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
 
                       <span className="text-[10px] sm:text-xs font-medium">
@@ -332,7 +328,7 @@ const Profile = () => {
 
                 {/* Uploading Overlay */}
                 {isAvatarUploading && (
-                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
                     <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-white" />
                   </div>
                 )}
@@ -350,7 +346,6 @@ const Profile = () => {
 
               {/* Avatar Buttons */}
               <div className="flex gap-1.5 sm:gap-2">
-
                 {/* Remove */}
                 {userProfile?.avatar?.url && (
                   <Button
@@ -364,12 +359,13 @@ const Profile = () => {
                       text-xs sm:text-sm
                       cursor-pointer
                       rounded-xl
-                      text-destructive
-                      hover:text-destructive
+                      bg-secondary
+                      text-secondary-foreground
+                      border-border-subtle
+                      hover:border-destructive/40
                       hover:bg-destructive/10
-                      border-destructive/30
+                      hover:text-destructive
                       transition-all duration-200
-                      hover:shadow-md
                       active:scale-[0.98]
                     "
                   >
@@ -397,8 +393,14 @@ const Profile = () => {
                     text-xs sm:text-sm
                     cursor-pointer
                     rounded-xl
-                    transition-all duration-200
+                    bg-secondary
+                    text-secondary-foreground
+                    border-border-subtle
+                    hover:bg-accent
+                    hover:text-accent-foreground
                     hover:shadow-md
+                    hover:shadow-accent/20
+                    transition-all duration-200
                     active:scale-[0.98]
                   "
                 >
@@ -408,7 +410,6 @@ const Profile = () => {
                     {isAvatarUploading ? 'Uploading...' : 'Upload'}
                   </span>
                 </Button>
-
               </div>
 
               {/* Hidden Input */}
@@ -420,25 +421,25 @@ const Profile = () => {
                 className="hidden"
               />
 
-              <p className="text-[10px] sm:text-xs text-muted-foreground text-center wrap-break-word max-w-full hidden sm:block">
+              <p className="text-[10px] sm:text-xs text-subtle-foreground text-center wrap-break-word max-w-full hidden sm:block">
                 Supported formats: JPEG, PNG, GIF, WEBP. Max size: 5MB.
               </p>
             </div>
 
             {/* Desktop Vertical Separator */}
             <div className="hidden sm:flex absolute left-1/2 top-0 -translate-x-1/2 h-full items-center">
-              <Separator orientation="vertical" className="h-full" />
+              <Separator orientation="vertical" className="h-full bg-border-subtle" />
             </div>
 
             {/* Mobile Separator */}
-            <Separator className="sm:hidden" />
+            <Separator className="sm:hidden bg-border-subtle" />
 
             {/* Name Section */}
             <div className="w-full sm:w-1/2 space-y-3 sm:space-y-4 min-w-0">
               <div className="space-y-1.5 sm:space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-xs sm:text-sm font-medium"
+                  className="text-xs sm:text-sm font-medium text-foreground"
                 >
                   Email Address
                 </Label>
@@ -448,10 +449,10 @@ const Profile = () => {
                   type="email"
                   value={userProfile?.email || ''}
                   disabled
-                  className="bg-muted/50 cursor-not-allowed h-9 sm:h-10 text-sm"
+                  className="bg-surface-sunken/60 text-subtle-foreground border-border-subtle cursor-not-allowed h-9 sm:h-10 text-sm rounded-xl"
                 />
 
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-subtle-foreground">
                   Email address cannot be changed
                 </p>
               </div>
@@ -459,7 +460,7 @@ const Profile = () => {
               <div className="space-y-1.5 sm:space-y-2">
                 <Label
                   htmlFor="name"
-                  className="text-xs sm:text-sm font-medium"
+                  className="text-xs sm:text-sm font-medium text-foreground"
                 >
                   Full Name
                 </Label>
@@ -472,7 +473,7 @@ const Profile = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Enter your name"
-                      className="flex-1 h-9 sm:h-10 text-sm"
+                      className="flex-1 h-9 sm:h-10 text-sm bg-surface border-border focus-visible:ring-ring rounded-xl text-foreground"
                       autoFocus
                       disabled={isUpdating}
                     />
@@ -485,12 +486,17 @@ const Profile = () => {
                         h-9 sm:h-10 px-4
                         cursor-pointer
                         rounded-xl
-                        bg-primary
-                        text-primary-foreground
-                        hover:bg-primary/80
+                        bg-accent
+                        text-accent-foreground
+                        shadow-md
+                        shadow-accent/20
+                        hover:opacity-90
                         transition-all duration-200
                         active:scale-[0.98]
-                        font-medium
+                        font-bold
+                        text-xs
+                        uppercase
+                        tracking-wider
                         gap-2
                       "
                     >
@@ -513,15 +519,15 @@ const Profile = () => {
                         cursor-pointer
                         rounded-xl
                         border-border
-                        bg-card
-                        text-foreground
-                        hover:bg-accent
-                        hover:text-accent-foreground
-                        shadow-sm
-                        hover:shadow-md
+                        bg-surface
+                        text-subtle-foreground
+                        hover:bg-surface-sunken
+                        hover:text-foreground
+                        hover:border-border-strong
                         transition-all duration-200
                         active:scale-[0.98]
                         font-medium
+                        text-xs
                       "
                     >
                       Cancel
@@ -529,14 +535,14 @@ const Profile = () => {
                   </div>
                 ) : (
                   <div
-                    className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-surface rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-sunken transition-colors"
                     onClick={() => setIsEditing(true)}
                   >
-                    <span className="text-sm sm:text-base text-foreground truncate">
+                    <span className="text-sm sm:text-base font-medium text-foreground truncate">
                       {userProfile?.name || 'Not set'}
                     </span>
 
-                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-subtle-foreground" />
                   </div>
                 )}
               </div>

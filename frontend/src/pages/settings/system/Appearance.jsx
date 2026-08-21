@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/alert';
 
 import {
-    Loader2,
     Palette,
     Crown,
     CheckCircle2,
@@ -55,13 +54,8 @@ const Appearance = () => {
         setIsThemeUpdating(true);
 
         try {
-            const result = await updateTheme(themeName, themeMode);
+            await updateTheme(themeName, themeMode);
             setLocalThemeMode(themeMode);
-
-            const selectedTheme = availableThemes.find(
-                (t) => t.value === themeName
-            );
-
         } catch (error) {
         } finally {
             setIsThemeUpdating(false);
@@ -88,7 +82,7 @@ const Appearance = () => {
 
     if (isLoading) {
         return (
-            <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-muted-foreground/40">
+            <div className="fixed inset-0 flex items-center justify-center animate-pulse font-bold uppercase tracking-widest text-subtle-foreground/60 text-xs">
                 Synchronizing Workspace...
             </div>
         );
@@ -102,54 +96,44 @@ const Appearance = () => {
 
                 {/* Header */}
                 <div className="space-y-1">
-
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                         Appearance
                     </h1>
-
-                    <p className="text-sm sm:text-base text-muted-foreground">
+                    <p className="text-sm sm:text-base text-subtle-foreground">
                         Customize your workspace theme and colors.
                     </p>
-
                 </div>
 
                 {/* Main Card */}
-                <Card className="overflow-hidden border-border/50 bg-card/95 shadow-sm backdrop-blur-sm">
+                <Card className="overflow-hidden border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs">
 
                     {/* Header */}
-                    <CardHeader className="border-b border-border/50 bg-muted/30 px-4 py-4 sm:px-6 sm:py-5">
-
-                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                            <Palette className="h-5 w-5 text-primary shrink-0" />
+                    <CardHeader className="border-b border-border-subtle bg-surface px-4 py-4 sm:px-6 sm:py-5">
+                        <CardTitle className="font-heading flex items-center gap-2 text-lg sm:text-xl text-foreground">
+                            <Palette className="h-5 w-5 text-accent shrink-0" />
                             Theme Settings
                         </CardTitle>
-
                     </CardHeader>
 
                     {/* Content */}
-                    <CardContent className="p-3 sm:p-5 md:p-6 space-y-5 sm:space-y-7">
+                    <CardContent className="p-4 sm:p-6 md:p-7 space-y-6 sm:space-y-8">
 
                         {/* Theme Toggle */}
-                        <div className="flex flex-col gap-4 rounded-xl border border-border/40 p-3 sm:p-4">
-
+                        <div className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface p-4 sm:p-5">
                             <div className="space-y-1">
-
-                                <Label className="text-sm sm:text-base font-semibold">
+                                <Label className="text-sm sm:text-base font-semibold text-foreground">
                                     Color Mode
                                 </Label>
-
-                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-subtle-foreground">
                                     Choose light or dark mode.
                                 </p>
-
                             </div>
 
-                            <div className="flex items-center justify-center sm:justify-start gap-3 rounded-full border border-border/50 bg-muted/40 p-2 w-full sm:w-fit">
-
+                            <div className="flex items-center justify-center sm:justify-start gap-3 rounded-full border border-border-subtle bg-surface-sunken p-2 w-full sm:w-fit">
                                 <span
                                     className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors duration-200 ${selectedThemeMode === THEME_MODES.LIGHT
                                         ? 'text-foreground'
-                                        : 'text-muted-foreground/50'
+                                        : 'text-subtle-foreground/60'
                                         }`}
                                 >
                                     Light
@@ -161,85 +145,63 @@ const Appearance = () => {
                                     disabled={isThemeUpdating}
                                     role="switch"
                                     aria-checked={selectedThemeMode === THEME_MODES.DARK}
-                                    className={`group relative inline-flex h-7 w-14 sm:h-8 sm:w-16 items-center rounded-full border border-border bg-secondary overflow-hidden transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isThemeUpdating
+                                    className={`group relative inline-flex h-7 w-14 sm:h-8 sm:w-16 items-center rounded-full border border-border-subtle bg-surface overflow-hidden transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isThemeUpdating
                                         ? 'opacity-60 cursor-wait'
                                         : 'cursor-pointer hover:scale-[1.03] active:scale-[0.98]'
                                         }`}
                                 >
-
-                                    {/* Glow */}
-                                    <div
-                                        className={`absolute inset-0 transition-opacity duration-500 ${selectedThemeMode === THEME_MODES.DARK
-                                            ? 'bg-[radial-gradient(circle_at_75%_50%,rgba(255,255,255,0.08),transparent_42%)]'
-                                            : 'bg-[radial-gradient(circle_at_25%_50%,rgba(255,255,255,0.95),transparent_40%)]'
-                                            }`}
-                                    />
-
                                     {/* Surface */}
-                                    <div className="absolute inset-px rounded-full bg-background/80 backdrop-blur-md" />
+                                    <div className="absolute inset-px rounded-full bg-surface-sunken" />
 
                                     {/* Knob */}
                                     <span
-                                        className={`relative z-10 flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full border transition-all duration-500 ease-out shadow-[0_4px_14px_rgba(0,0,0,0.45)] ${selectedThemeMode === THEME_MODES.DARK
-                                            ? 'translate-x-7 sm:translate-x-8 border-border text-foreground bg-[linear-gradient(to_bottom_right,var(--secondary),var(--background))]'
-                                            : 'translate-x-0.5 border-border text-yellow-500 bg-[linear-gradient(to_bottom_right,#ffffff,var(--muted))]'
+                                        className={`relative z-10 flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full border border-border-subtle transition-all duration-500 ease-out shadow-xs ${selectedThemeMode === THEME_MODES.DARK
+                                            ? 'translate-x-7 sm:translate-x-8 text-foreground bg-surface-elevated'
+                                            : 'translate-x-0.5 text-warning bg-surface-elevated'
                                             }`}
                                     >
                                         {selectedThemeMode === THEME_MODES.DARK ? (
-                                            <Moon
-                                                className="h-3.5 w-3.5 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
-                                                strokeWidth={2.3}
-                                            />
+                                            <Moon className="h-3.5 w-3.5" strokeWidth={2.3} />
                                         ) : (
-                                            <Sun
-                                                className="h-3.5 w-3.5 drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]"
-                                                strokeWidth={2.3}
-                                            />
+                                            <Sun className="h-3.5 w-3.5" strokeWidth={2.3} />
                                         )}
                                     </span>
-
                                 </button>
 
                                 <span
                                     className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors duration-200 ${selectedThemeMode === THEME_MODES.DARK
                                         ? 'text-foreground'
-                                        : 'text-muted-foreground/50'
+                                        : 'text-subtle-foreground/60'
                                         }`}
                                 >
                                     Dark
                                 </span>
-
                             </div>
-
                         </div>
 
-                        <Separator className="bg-border/50" />
+                        <Separator className="bg-border-subtle" />
 
                         {/* Accent Themes */}
                         <div className="space-y-5">
-
                             {/* Top Row */}
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-
-                                <Label className="text-sm sm:text-base font-semibold">
+                                <Label className="text-sm sm:text-base font-semibold text-foreground">
                                     Accent Colors
                                 </Label>
 
                                 {!isPro && (
                                     <Badge
                                         variant="secondary"
-                                        className="w-fit gap-1.5 px-2.5 py-1 text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                        className="w-fit gap-1.5 px-2.5 py-1 text-xs bg-warning/10 text-warning border border-warning/20 rounded-full"
                                     >
                                         <Crown className="h-3.5 w-3.5" />
                                         Pro Themes
                                     </Badge>
                                 )}
-
                             </div>
 
                             {/* Theme Grid */}
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                 {availableThemes.map((themeOption) => {
                                     const isActive =
                                         theme.name === themeOption.value;
@@ -262,58 +224,50 @@ const Appearance = () => {
                                             disabled={
                                                 isLocked || isActive || isThemeUpdating
                                             }
-                                            className={`relative overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-200 text-left p-2 sm:p-4 ${isActive
-                                                ? 'border-primary/40 bg-primary/5'
-                                                : 'border-border/40 bg-muted/20 hover:bg-muted/40 hover:border-border'
+                                            className={`relative overflow-hidden rounded-2xl border transition-all duration-200 text-left p-3.5 sm:p-4.5 ${isActive
+                                                ? 'border-accent bg-surface-sunken ring-1 ring-accent/20 shadow-xs'
+                                                : 'border-border-subtle bg-surface hover:bg-hover hover:border-border'
                                                 } ${isLocked || isActive
-                                                    ? 'opacity-60 cursor-not-allowed'
-                                                    : 'cursor-pointer hover:-translate-y-px'
+                                                    ? 'opacity-65 cursor-not-allowed'
+                                                    : 'cursor-pointer hover:-translate-y-px active:scale-[0.99]'
                                                 }`}
                                         >
-
-                                            {/* Active */}
+                                            {/* Active Badge */}
                                             {isActive && (
-                                                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                                                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary fill-primary/15" />
+                                                <div className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5">
+                                                    <CheckCircle2 className="h-4 w-4 text-accent fill-accent/15" />
                                                 </div>
                                             )}
 
-                                            {/* Locked */}
+                                            {/* Locked Badge */}
                                             {isLocked && (
-                                                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                                                    <Crown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground/60" />
+                                                <div className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5">
+                                                    <Crown className="h-3.5 w-3.5 text-subtle-foreground/60" />
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-2 sm:gap-3">
-
+                                            <div className="flex items-center gap-2.5 sm:gap-3.5">
                                                 {/* Preview */}
                                                 <div
                                                     className={`
-                                                    h-7
-                                                    w-7
-                                                    sm:h-10
-                                                    sm:w-10
-                                                    rounded-full
-                                                    shrink-0
-${themeOption.value === THEME_IDS.DEFAULT && 'bg-black'}
-${themeOption.value === THEME_IDS.OCEAN_TEAL && 'bg-linear-to-br from-teal-500 to-cyan-400'}
-${themeOption.value === THEME_IDS.MIDNIGHT_VIOLET && 'bg-linear-to-br from-violet-950 to-violet-600'}
-${themeOption.value === THEME_IDS.FOREST_WOOD && 'bg-linear-to-br from-emerald-700 to-amber-800'}
-${themeOption.value === THEME_IDS.VOLCANIC && 'bg-linear-to-br from-orange-400 to-red-700'}
-${themeOption.value === THEME_IDS.COFFEE && 'bg-linear-to-br from-amber-900 to-orange-200'}
-${themeOption.value === THEME_IDS.SAKURA && 'bg-linear-to-br from-pink-300 to-rose-500'}
-${themeOption.value === THEME_IDS.PLATINUM && 'bg-linear-to-br from-slate-500 to-zinc-300'}
-${themeOption.value === THEME_IDS.SKYLINE_AFTERDARK && 'bg-linear-to-br from-sky-200 to-indigo-600'}
-${themeOption.value === THEME_IDS.BUMBLEBEE && 'bg-linear-to-br from-black to-yellow-400'}
+                                                    h-8 w-8 sm:h-10 sm:w-10 rounded-full shrink-0 shadow-2xs border border-border-subtle
+                                                    ${themeOption.value === THEME_IDS.DEFAULT && 'bg-black'}
+                                                    ${themeOption.value === THEME_IDS.OCEAN_TEAL && 'bg-linear-to-br from-teal-500 to-cyan-400'}
+                                                    ${themeOption.value === THEME_IDS.MIDNIGHT_VIOLET && 'bg-linear-to-br from-violet-950 to-violet-600'}
+                                                    ${themeOption.value === THEME_IDS.FOREST_WOOD && 'bg-linear-to-br from-emerald-700 to-amber-800'}
+                                                    ${themeOption.value === THEME_IDS.VOLCANIC && 'bg-linear-to-br from-orange-400 to-red-700'}
+                                                    ${themeOption.value === THEME_IDS.COFFEE && 'bg-linear-to-br from-amber-900 to-orange-200'}
+                                                    ${themeOption.value === THEME_IDS.SAKURA && 'bg-linear-to-br from-pink-300 to-rose-500'}
+                                                    ${themeOption.value === THEME_IDS.PLATINUM && 'bg-linear-to-br from-slate-500 to-zinc-300'}
+                                                    ${themeOption.value === THEME_IDS.SKYLINE_AFTERDARK && 'bg-linear-to-br from-sky-200 to-indigo-600'}
+                                                    ${themeOption.value === THEME_IDS.BUMBLEBEE && 'bg-linear-to-br from-black to-yellow-400'}
                                                 `}
                                                 />
 
                                                 {/* Content */}
                                                 <div className="min-w-0 flex-1 pr-4 sm:pr-6">
-
                                                     <p
-                                                        className={`text-xs sm:text-sm font-medium leading-tight wrap-break-word ${isActive
+                                                        className={`text-xs sm:text-sm font-semibold leading-tight break-words ${isActive
                                                             ? 'text-foreground'
                                                             : 'text-foreground/90'
                                                             }`}
@@ -322,38 +276,29 @@ ${themeOption.value === THEME_IDS.BUMBLEBEE && 'bg-linear-to-br from-black to-ye
                                                     </p>
 
                                                     {isLocked && (
-                                                        <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                                                        <p className="text-[10px] sm:text-xs text-subtle-foreground mt-0.5 leading-tight">
                                                             Premium Theme
                                                         </p>
                                                     )}
-
                                                 </div>
-
                                             </div>
-
                                         </button>
                                     );
                                 })}
-
                             </div>
 
                             {/* Alert */}
                             {!isPro && (
-                                <Alert className="mt-2 border-amber-500/30 bg-linear-to-r from-amber-500/10 to-transparent text-amber-700 dark:text-amber-400">
-
-                                    <Crown className="h-4 w-4 sm:h-5 sm:w-5 stroke-amber-600 dark:stroke-amber-400 shrink-0" />
-
+                                <Alert className="mt-2 rounded-2xl border-warning/30 bg-linear-to-r from-warning/10 to-transparent text-warning">
+                                    <Crown className="h-4 w-4 sm:h-5 sm:w-5 stroke-warning shrink-0" />
                                     <AlertDescription className="text-xs sm:text-sm leading-relaxed">
                                         Upgrade to Pro to unlock premium themes.
                                     </AlertDescription>
-
                                 </Alert>
                             )}
-
                         </div>
 
                     </CardContent>
-
                 </Card>
 
             </div>

@@ -900,7 +900,7 @@ export const getBookingByIdService = async ({
     const timezones = Intl.supportedValuesOf("timeZone");
     console.log(timezones);
     return;
-    
+
     validateObjectId(orgId, "Organization ID");
     validateObjectId(bookingId, "Booking ID");
 

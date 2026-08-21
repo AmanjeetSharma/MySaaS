@@ -40,9 +40,9 @@ const NotFound = () => {
                     controls.start({
                         textShadow: [
                             "0 0 0px transparent",
-                            "3px 0 0px color-mix(in srgb, var(--color-primary) 70%, transparent), -3px 0 0px color-mix(in srgb, var(--color-chart-2) 70%, transparent)",
-                            "-4px 0 0px color-mix(in srgb, var(--color-primary) 70%, transparent), 4px 0 0px color-mix(in srgb, var(--color-chart-2) 70%, transparent)",
-                            "2px 0 0px color-mix(in srgb, var(--color-primary) 70%, transparent), -2px 0 0px color-mix(in srgb, var(--color-chart-2) 70%, transparent)",
+                            "3px 0 0px color-mix(in srgb, var(--accent) 70%, transparent), -3px 0 0px color-mix(in srgb, var(--primary) 70%, transparent)",
+                            "-4px 0 0px color-mix(in srgb, var(--accent) 70%, transparent), 4px 0 0px color-mix(in srgb, var(--primary) 70%, transparent)",
+                            "2px 0 0px color-mix(in srgb, var(--accent) 70%, transparent), -2px 0 0px color-mix(in srgb, var(--primary) 70%, transparent)",
                             "0 0 0px transparent"
                         ],
                         transition: { duration: 0.25 }
@@ -69,52 +69,23 @@ const NotFound = () => {
     }, [controls, entranceControls]);
 
     return (
-        <div className="flex-1 overflow-auto">
-            <div
-                className="min-h-full flex items-center justify-center p-4 pt-8 md:pt-12 relative overflow-hidden"
-                style={{
-                    color: "var(--color-foreground)",
-                    fontFamily: "var(--font-sans)"
-                }}
-            >
+        <div className="flex-1 overflow-auto bg-background text-foreground">
+            <div className="min-h-full flex items-center justify-center p-4 pt-8 md:pt-12 relative overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={entranceControls}
                     className="text-center space-y-6 max-w-md w-full relative z-10"
                 >
-                    {/* 404 */}
+                    {/* 404 Header */}
                     <div className="relative">
                         <motion.h1
                             animate={controls}
-                            className="text-8xl md:text-9xl font-bold tracking-tighter"
-                            style={{
-                                background: `linear-gradient(
-                                    to right,
-                                    var(--color-primary),
-                                    color-mix(in srgb, var(--color-primary) 80%, white),
-                                    color-mix(in srgb, var(--color-primary) 60%, transparent)
-                                )`,
-                                WebkitBackgroundClip: "text",
-                                color: "transparent",
-                                willChange: "transform",
-                                display: "inline-block",
-                                fontFamily: "var(--font-heading)"
-                            }}
+                            className="font-heading text-8xl md:text-9xl font-bold tracking-tighter inline-block will-change-transform bg-gradient-to-r from-accent via-primary to-accent/60 bg-clip-text text-transparent"
                         >
                             404
                         </motion.h1>
 
-                        <div
-                            className="absolute -bottom-4 left-1/2 -translate-x-1/2 h-0.5 w-60"
-                            style={{
-                                background: `linear-gradient(
-                                    to right,
-                                    transparent,
-                                    color-mix(in srgb, var(--color-primary) 70%, transparent),
-                                    transparent
-                                )`
-                            }}
-                        />
+                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 h-0.5 w-60 bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
                     </div>
 
                     {/* Message */}
@@ -128,19 +99,11 @@ const NotFound = () => {
                         }}
                         className="space-y-3"
                     >
-                        <h2
-                            className="text-2xl md:text-3xl font-semibold tracking-tight"
-                            style={{ color: "var(--color-foreground)" }}
-                        >
+                        <h2 className="font-heading text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                             Oops! Looks like you're lost.
                         </h2>
 
-                        <p
-                            className="text-sm md:text-base leading-relaxed"
-                            style={{
-                                color: "color-mix(in srgb, var(--color-muted-foreground) 90%, transparent)"
-                            }}
-                        >
+                        <p className="text-sm md:text-base leading-relaxed text-subtle-foreground">
                             The page you're looking for doesn't exist or has been
                             moved to a different URL.
                         </p>
@@ -161,13 +124,7 @@ const NotFound = () => {
                             onClick={() => navigate(-1)}
                             variant="outline"
                             size="lg"
-                            className="gap-2 active:scale-95 transition-all duration-200 cursor-pointer"
-                            style={{
-                                borderColor: "var(--color-border)",
-                                background: "var(--color-card)",
-                                color: "var(--color-foreground)",
-                                borderRadius: "var(--radius-lg)"
-                            }}
+                            className="gap-2 rounded-xl bg-secondary text-secondary-foreground border border-border-subtle hover:bg-hover hover:text-hover-foreground active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
                         >
                             <ArrowLeft className="h-4 w-4" />
                             Go Back
@@ -176,12 +133,7 @@ const NotFound = () => {
                         <Button
                             onClick={() => navigate("/dashboard")}
                             size="lg"
-                            className="gap-2 active:scale-95 transition-all duration-200 cursor-pointer"
-                            style={{
-                                background: "var(--color-primary)",
-                                color: "var(--color-primary-foreground)",
-                                borderRadius: "var(--radius-lg)"
-                            }}
+                            className="gap-2 rounded-xl bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer"
                         >
                             <LayoutDashboard className="h-4 w-4" />
                             Go To Dashboard
@@ -198,14 +150,13 @@ const NotFound = () => {
                         }}
                         className="pt-4"
                     >
-                        <div className="flex items-center justify-center gap-2 text-xs">
-                            <Compass className="h-3 w-3" style={{ color: "var(--color-muted-foreground)" }} />
-                            <span style={{ color: "var(--color-muted-foreground)" }}>
+                        <div className="flex items-center justify-center gap-2 text-xs text-subtle-foreground">
+                            <Compass className="h-3.5 w-3.5 shrink-0 text-accent" />
+                            <span>
                                 Need help? Or want to report this issue? Contact{" "}
                                 <button
                                     onClick={() => navigate("/support")}
-                                    className="underline hover:no-underline transition-all cursor-pointer"
-                                    style={{ color: "var(--color-primary)" }}
+                                    className="font-semibold text-accent hover:underline transition-all cursor-pointer"
                                 >
                                     Support
                                 </button>

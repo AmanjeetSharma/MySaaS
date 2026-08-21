@@ -21,7 +21,6 @@ const INITIAL_FORM = {
   phone: "",
 };
 
-// Added onSuccess parameter into destructuring arguments definition
 const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess }) => {
   const { createCustomer, isUpdating } = useCustomerStore();
   const [form, setForm] = useState(INITIAL_FORM);
@@ -74,7 +73,6 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
     try {
       await createCustomer(payload);
 
-      // Execute the sync callback hook if provided by parent container
       if (typeof onSuccess === "function") {
         onSuccess();
       }
@@ -87,26 +85,26 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-4 gap-3.5 rounded-lg border border-border bg-background">
-        <DialogHeader className="space-y-1">
-          <DialogTitle className="text-sm font-semibold tracking-tight text-foreground">
+      <DialogContent className="sm:max-w-md p-5 gap-3.5 rounded-2xl border border-border-strong bg-surface-elevated text-surface-elevated-foreground shadow-2xl [&>button]:cursor-pointer [&>button]:rounded-xl [&>button]:hover:bg-hover [&>button]:text-subtle-foreground [&>button]:hover:text-foreground [&>button]:transition-all">
+        <DialogHeader className="space-y-1 pr-6">
+          <DialogTitle className="font-heading text-sm sm:text-base font-bold tracking-tight text-foreground">
             Create Customer
           </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+          <DialogDescription className="text-xs text-subtle-foreground">
             Add a clear reference account data record below.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
           {/* REQUIRED FIELD: FULL NAME */}
-          <div className="space-y-1">
-            <Label htmlFor="customer-name" className="text-xs font-medium text-muted-foreground">
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-name" className="text-xs font-semibold text-foreground">
               Full Name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="customer-name"
               placeholder="e.g., Amanjeet Sharma"
-              className="h-8 text-xs bg-background border-border placeholder:text-muted-foreground/50 focus-visible:ring-1"
+              className="h-9 text-xs bg-surface border-border text-foreground placeholder:text-subtle-foreground/60 rounded-xl focus-visible:ring-1 focus-visible:ring-ring"
               value={form.name}
               onChange={handleChange("name")}
               disabled={isUpdating}
@@ -115,12 +113,12 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
           </div>
 
           {/* OPTIONAL FIELD: PHONE NUMBER */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <Label htmlFor="customer-phone" className="text-xs font-medium text-muted-foreground">
-                Phone Number <span className="text-muted-foreground/40 font-normal">(Optional)</span>
+              <Label htmlFor="customer-phone" className="text-xs font-semibold text-foreground">
+                Phone Number <span className="text-subtle-foreground font-normal text-[11px]">(Optional)</span>
               </Label>
-              <span className="text-[10px] text-muted-foreground/60 font-mono select-none">
+              <span className="text-[10px] text-subtle-foreground font-mono select-none">
                 {form.phone.length}/10
               </span>
             </div>
@@ -129,7 +127,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
               type="text"
               inputMode="numeric"
               placeholder="10-digit number"
-              className="h-8 text-xs font-mono bg-background border-border placeholder:text-muted-foreground/50 focus-visible:ring-1"
+              className="h-9 text-xs font-mono bg-surface border-border text-foreground placeholder:text-subtle-foreground/60 rounded-xl focus-visible:ring-1 focus-visible:ring-ring"
               value={form.phone}
               onChange={handleChange("phone")}
               disabled={isUpdating}
@@ -137,15 +135,15 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
           </div>
 
           {/* OPTIONAL FIELD: EMAIL ADDRESS */}
-          <div className="space-y-1">
-            <Label htmlFor="customer-email" className="text-xs font-medium text-muted-foreground">
-              Email Address <span className="text-muted-foreground/40 font-normal">(Optional)</span>
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-email" className="text-xs font-semibold text-foreground">
+              Email Address <span className="text-subtle-foreground font-normal text-[11px]">(Optional)</span>
             </Label>
             <Input
               id="customer-email"
               type="email"
               placeholder="name@company.com"
-              className="h-8 text-xs bg-background border-border placeholder:text-muted-foreground/50 focus-visible:ring-1"
+              className="h-9 text-xs bg-surface border-border text-foreground placeholder:text-subtle-foreground/60 rounded-xl focus-visible:ring-1 focus-visible:ring-ring"
               value={form.email}
               onChange={handleChange("email")}
               disabled={isUpdating}
@@ -153,12 +151,12 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
           </div>
 
           {/* Footer Component Actions */}
-          <DialogFooter className="pt-2 flex flex-row items-center justify-end gap-x-2 border-t border-border/40 mt-4 sm:space-x-0">
+          <DialogFooter className="pt-3 flex flex-row items-center justify-end gap-x-2.5 border-t border-border-subtle mt-4 sm:space-x-0">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 text-xs px-3 border-border bg-background hover:bg-muted cursor-pointer"
+              className="h-8 text-xs font-semibold px-4 rounded-xl border-border bg-surface text-subtle-foreground hover:bg-surface-sunken hover:text-foreground cursor-pointer transition-all active:scale-95"
               onClick={() => onOpenChange(false)}
               disabled={isUpdating}
             >
@@ -167,7 +165,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
             <Button
               type="submit"
               size="sm"
-              className="h-8 text-xs gap-1 px-3 cursor-pointer hover:bg-primary/90"
+              className="h-8 text-xs font-bold uppercase tracking-wider gap-1.5 px-4 rounded-xl bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90 cursor-pointer transition-all active:scale-95"
               disabled={!isValid || isUpdating}
             >
               {isUpdating ? (
@@ -177,7 +175,7 @@ const CustomerCreateDialog = ({ open, onOpenChange, organizationId, onSuccess })
                 </>
               ) : (
                 <>
-                  <Plus className="size-3" />
+                  <Plus className="size-3 stroke-[2.5]" />
                   <span>Save Contact</span>
                 </>
               )}
