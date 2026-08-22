@@ -151,7 +151,6 @@ export const AppRoutes = () => {
             {/* Public Service Route */}
             <Route path="/book/:orgSlug/:serviceSlug" element={<PublicService />} />
 
-
         </Routes>
     );
 };
