@@ -202,14 +202,14 @@ const PublicService = () => {
                     setBookingStatus("verifying");
 
                     try {
-                        // Ensure at least 1500ms loader runtime
+                        // Ensure at least 2000ms loader runtime
                         await Promise.all([
                             verifyPayment({
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
                             }),
-                            new Promise((resolve) => setTimeout(resolve, 1500))
+                            new Promise((resolve) => setTimeout(resolve, 2000))
                         ]);
 
                         // Direct atomic switch to success state without exiting overlay
