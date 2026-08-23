@@ -2,8 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { http } from '../api/httpClient';
 import { useAppStore } from './appStore';
+import { useSettingsStore } from './settingsStore';
 import { toastIcon } from '../constants/toastIcon.constant';
 import { toast } from 'sonner';
+import { clearThemeFromLocalStorage } from '../theme/themeSync.utils';
+import { applyPublicTheme } from '../theme/theme.utils';
 
 export const useAuthStore = create(persist(
     (set, get) => ({
@@ -117,6 +120,9 @@ export const useAuthStore = create(persist(
                     error: null
                 });
                 useAppStore.getState().setAppReady(true);
+                useSettingsStore.getState().resetSettings();
+                clearThemeFromLocalStorage();
+                applyPublicTheme();
 
                 // Clear persisted data
                 localStorage.removeItem('auth-storage');
@@ -130,6 +136,9 @@ export const useAuthStore = create(persist(
                     error: null
                 });
                 useAppStore.getState().setAppReady(true);
+                useSettingsStore.getState().resetSettings();
+                clearThemeFromLocalStorage();
+                applyPublicTheme();
                 localStorage.removeItem('auth-storage');
             }
         },

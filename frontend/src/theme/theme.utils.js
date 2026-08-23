@@ -2,6 +2,11 @@
 import { themeProfiles } from '../config/theme.config.js';
 import { THEME_IDS, THEME_MODES } from './theme.constant.js';
 
+export const PUBLIC_THEME = {
+    name: THEME_IDS.DEFAULT,
+    mode: THEME_MODES.LIGHT
+};
+
 /**
  * Applies the theme to the document root based on backend response
  * @param {string} backendThemeId - e.g., "slate-orange"
@@ -28,4 +33,8 @@ export const applyUserTheme = (backendThemeId, backendMode) => {
     Object.entries(cssVariables).forEach(([cssVar, hexValue]) => {
         root.style.setProperty(cssVar, hexValue);
     });
+};
+
+export const applyPublicTheme = () => {
+    applyUserTheme(PUBLIC_THEME.name, PUBLIC_THEME.mode);
 };

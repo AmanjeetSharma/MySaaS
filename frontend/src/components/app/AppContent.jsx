@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 import { AppRoutes } from '../../routes/AppRoutes';
 import { AppLoader } from '../loader/AppLoader';
@@ -7,19 +8,22 @@ import { useAppStore } from '@/stores/appStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppBootstrap } from '@/hooks/useAppBootstrap';
 import { useUserStore } from '@/stores/userStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { applyPublicTheme, applyUserTheme } from '@/theme/theme.utils';
 
-const AUTH_PATHS = [
+const PUBLIC_PATHS = [
     '/',
-    '/login',
-    '/register',
+    '/signin',
+    '/signup',
     '/forgot-password',
     '/reset-password',
 ];
 
-const isAuthRoute = (pathname) => {
+const isPublicRoute = (pathname) => {
     return (
-        AUTH_PATHS.includes(pathname) ||
-        pathname.startsWith('/verify/')
+        PUBLIC_PATHS.includes(pathname) ||
+        pathname.startsWith('/verify/') ||
+        pathname.startsWith('/book/')
     );
 };
 
@@ -37,9 +41,22 @@ export const AppContent = () => {
     const userProfile = useUserStore(
         (state) => state.userProfile
     );
+    const theme = useSettingsStore((state) => state.theme);
 
-    const isOnAuthRoute = isAuthRoute(location.pathname);
-    const isProtectedHydrating = !isOnAuthRoute && isAuthenticated && !userProfile;
+    const isOnPublicRoute = isPublicRoute(location.pathname);
+
+    useEffect(() => {
+        if (isOnPublicRoute) {
+            applyPublicTheme();
+            return;
+        }
+
+        if (isAuthenticated) {
+            applyUserTheme(theme.name, theme.mode);
+        }
+    }, [isOnPublicRoute, isAuthenticated, theme.name, theme.mode]);
+
+    const isProtectedHydrating = !isOnPublicRoute && isAuthenticated && !userProfile;
 
     if (!isAppReady || isProtectedHydrating) {
         return <AppLoader />;
