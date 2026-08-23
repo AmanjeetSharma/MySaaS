@@ -35,6 +35,8 @@ import ConfirmationSuccess from "@/components/publicService/ConfirmationSuccess"
 import TimezoneCombobox from "@/components/publicService/TimezoneCombobox";
 import VerifyPaymentPage from "@/components/publicService/VerifyPaymentPage";
 
+import PublicServiceSkeleton from "./PublicServiceSkeleton";
+
 const PublicService = () => {
     const { orgSlug, serviceSlug } = useParams();
     const { publicService, getServiceBySlug, isLoading, error, clearPublicService } = useServiceStore();
@@ -97,7 +99,9 @@ const PublicService = () => {
         return <VerifyPaymentPage isSuccess={bookingStatus === "success"} />;
     }
 
-    if (isLoading) return <PublicServiceSkeleton />;
+    if (isLoading) {
+        return <PublicServiceSkeleton />;
+    }
     if (error || !publicService) {
         return <PublicService404 message={error || "We couldn't find the requested booking page."} />;
     }
@@ -413,11 +417,10 @@ const PublicService = () => {
                     type="button"
                     onClick={handleBookingSubmit}
                     disabled={!isFormValid || isCreatingPayment}
-                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${
-                        isFormValid && !isCreatingPayment
-                            ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    }`}
+                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${isFormValid && !isCreatingPayment
+                        ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        }`}
                 >
                     {isCreatingPayment ? (
                         <>
@@ -472,19 +475,6 @@ const EmptyState = ({ title, description }) => (
         </div>
         <h3 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h3>
         <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">{description}</p>
-    </div>
-);
-
-const PublicServiceSkeleton = () => (
-    <div className="min-h-screen bg-[#F8FAFC] animate-pulse p-8 max-w-[1340px] mx-auto space-y-8">
-        <div className="h-8 w-32 bg-slate-200 rounded-lg"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-4 h-[450px] bg-slate-200 rounded-3xl"></div>
-            <div className="lg:col-span-8 space-y-6">
-                <div className="h-[380px] bg-slate-200 rounded-3xl"></div>
-                <div className="h-[220px] bg-slate-200 rounded-3xl"></div>
-            </div>
-        </div>
     </div>
 );
 

@@ -27,6 +27,8 @@ const isPublicRoute = (pathname) => {
     );
 };
 
+const isPublicBookingRoute = (pathname) => pathname.startsWith('/book/');
+
 export const AppContent = () => {
     const location = useLocation();
 
@@ -44,6 +46,7 @@ export const AppContent = () => {
     const theme = useSettingsStore((state) => state.theme);
 
     const isOnPublicRoute = isPublicRoute(location.pathname);
+    const isOnPublicBookingRoute = isPublicBookingRoute(location.pathname);
 
     useEffect(() => {
         if (isOnPublicRoute) {
@@ -58,7 +61,7 @@ export const AppContent = () => {
 
     const isProtectedHydrating = !isOnPublicRoute && isAuthenticated && !userProfile;
 
-    if (!isAppReady || isProtectedHydrating) {
+    if (!isOnPublicBookingRoute && (!isAppReady || isProtectedHydrating)) {
         return <AppLoader />;
     }
 
