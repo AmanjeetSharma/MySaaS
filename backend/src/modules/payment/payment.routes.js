@@ -12,7 +12,7 @@ const router = express.Router();
 
 // Public Routes
 // Create Razorpay payment order
-router.post("/create",  createPaymentController);
+router.post("/create", createPaymentController);
 
 // Verify Razorpay payment
 router.post("/verify", verifyPaymentController);

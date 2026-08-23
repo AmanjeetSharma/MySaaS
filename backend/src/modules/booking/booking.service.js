@@ -1,7 +1,4 @@
-import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
-import env from "../../config/env.config.js";
-import { sendEmail } from "../../integrations/email.integration.js";
 import {
     createBooking,
     findAvailabilityByServiceId,
@@ -52,7 +49,7 @@ import {
     deleteCalendarEvent,
 } from "../providers/google/services/calendar.service.js";
 import { checkOrganizationAccess } from "../organization/organization.access.js";
-import { PAYMENT_HOLD_DURATION_MINUTES } from "./booking.constants.js";
+import { PAYMENT_HOLD_DURATION_MINUTES, BOOKING_STATUSES } from "./booking.constants.js";
 
 
 

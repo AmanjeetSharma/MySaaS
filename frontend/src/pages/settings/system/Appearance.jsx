@@ -43,8 +43,7 @@ const Appearance = () => {
 
     const availableThemes = getAvailableThemes();
     const isPro = isProTier();
-    const selectedThemeMode =
-        localThemeMode || theme?.mode || THEME_MODES.LIGHT;
+    const selectedThemeMode = localThemeMode || theme?.mode || THEME_MODES.LIGHT;
 
     useEffect(() => {
         fetchSettings();
@@ -90,7 +89,9 @@ const Appearance = () => {
 
     return (
         <>
-            {isThemeUpdating && <ThemeLoader />}
+            {isThemeUpdating && (
+                <ThemeLoader mode={selectedThemeMode} />
+            )}
 
             <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 space-y-5 sm:space-y-7 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
