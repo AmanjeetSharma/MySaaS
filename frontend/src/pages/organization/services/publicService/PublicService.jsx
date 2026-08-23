@@ -38,7 +38,10 @@ import VerifyPaymentPage from "@/components/publicService/VerifyPaymentPage";
 const PublicService = () => {
     const { orgSlug, serviceSlug } = useParams();
     const { publicService, getServiceBySlug, isLoading, error, clearPublicService } = useServiceStore();
-    const { createPayment, verifyPayment, isCreatingPayment, isVerifyingPayment, clearPayment } = usePaymentStore();
+    const { createPayment, verifyPayment, isCreatingPayment, clearPayment } = usePaymentStore();
+
+    // Unified payment & verification status: "idle" | "verifying" | "success" | "confirmed"
+    const [bookingStatus, setBookingStatus] = useState("idle");
 
     // Timezone State
     const [displayTimezone, setDisplayTimezone] = useState(() => getUserBrowserTimezone());
@@ -47,10 +50,6 @@ const PublicService = () => {
     const [selectedDate, setSelectedDate] = useState(() => new Date());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", notes: "" });
-    const [isSubmitted, setIsSubmitted] = useState(false);
-
-    // Animation Gateway State
-    const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
     useEffect(() => {
         getServiceBySlug(orgSlug, serviceSlug);
@@ -93,9 +92,9 @@ const PublicService = () => {
         );
     }, [selectedDate, selectedSlot, formData]);
 
-    // Full screen verification state (handles minimum verification delay + success animation)
-    if (isVerifyingPayment || showSuccessAnimation) {
-        return <VerifyPaymentPage isSuccess={showSuccessAnimation} />;
+    // Continuous full-screen overlay for both verifying & success states
+    if (bookingStatus === "verifying" || bookingStatus === "success") {
+        return <VerifyPaymentPage isSuccess={bookingStatus === "success"} />;
     }
 
     if (isLoading) return <PublicServiceSkeleton />;
@@ -142,7 +141,7 @@ const PublicService = () => {
 
     const handleBookingSubmit = async (e) => {
         e?.preventDefault();
-        if (!isFormValid || isCreatingPayment || isVerifyingPayment || !selectedSlot?.isoString) return;
+        if (!isFormValid || isCreatingPayment || bookingStatus !== "idle" || !selectedSlot?.isoString) return;
 
         try {
             const isScriptLoaded = await loadRazorpayScript();
@@ -195,8 +194,11 @@ const PublicService = () => {
                     },
                 },
                 handler: async (response) => {
+                    // Lock into verifying state immediately
+                    setBookingStatus("verifying");
+
                     try {
-                        // Enforce minimum 1500ms delay alongside verify API call
+                        // Ensure at least 1500ms loader runtime
                         await Promise.all([
                             verifyPayment({
                                 razorpay_order_id: response.razorpay_order_id,
@@ -206,18 +208,19 @@ const PublicService = () => {
                             new Promise((resolve) => setTimeout(resolve, 1500))
                         ]);
 
-                        // Show the Success state for 2 seconds before showing the final confirmation
-                        setShowSuccessAnimation(true);
+                        // Direct atomic switch to success state without exiting overlay
+                        setBookingStatus("success");
 
+                        // Hold success badge for 2s before final confirmation
                         setTimeout(() => {
-                            setShowSuccessAnimation(false);
-                            setIsSubmitted(true);
+                            setBookingStatus("confirmed");
                             toast.success("Appointment booked and payment verified successfully!", {
                                 icon: toastIcon("success")
                             });
                         }, 2000);
 
                     } catch (verifyErr) {
+                        setBookingStatus("idle");
                         toast.error(verifyErr?.response?.data?.message || "Payment verification failed.", {
                             icon: toastIcon("error")
                         });
@@ -227,17 +230,19 @@ const PublicService = () => {
 
             const rzp = new window.Razorpay(options);
             rzp.on("payment.failed", (response) => {
+                setBookingStatus("idle");
                 toast.error(response.error.description || "Payment transaction failed.", {
                     icon: toastIcon("error")
                 });
             });
             rzp.open();
         } catch (err) {
+            setBookingStatus("idle");
             toast.error(err?.response?.data?.message || "Failed to initiate payment. Please try again.");
         }
     };
 
-    if (isSubmitted) {
+    if (bookingStatus === "confirmed") {
         return (
             <ConfirmationSuccess
                 serviceName={name}
@@ -310,7 +315,6 @@ const PublicService = () => {
                                     </div>
                                 </div>
 
-                                {/* Service Provider Timezone Badge */}
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                                     <span className="text-slate-500">Service Timezone</span>
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200/60 text-xs font-semibold text-slate-800">
@@ -409,10 +413,11 @@ const PublicService = () => {
                     type="button"
                     onClick={handleBookingSubmit}
                     disabled={!isFormValid || isCreatingPayment}
-                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${isFormValid && !isCreatingPayment
+                    className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${
+                        isFormValid && !isCreatingPayment
                             ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
                             : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        }`}
+                    }`}
                 >
                     {isCreatingPayment ? (
                         <>
