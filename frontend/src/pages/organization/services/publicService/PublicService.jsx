@@ -93,7 +93,7 @@ const PublicService = () => {
         );
     }, [selectedDate, selectedSlot, formData]);
 
-    // Full screen verification state (handles BOTH Loading & Success Animation)
+    // Full screen verification state (handles minimum verification delay + success animation)
     if (isVerifyingPayment || showSuccessAnimation) {
         return <VerifyPaymentPage isSuccess={showSuccessAnimation} />;
     }
@@ -196,20 +196,26 @@ const PublicService = () => {
                 },
                 handler: async (response) => {
                     try {
-                        await verifyPayment({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                        });
+                        // Enforce minimum 1500ms delay alongside verify API call
+                        await Promise.all([
+                            verifyPayment({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                            }),
+                            new Promise((resolve) => setTimeout(resolve, 1500))
+                        ]);
 
-                        // Start the Success Animation Flow
+                        // Show the Success state for 2 seconds before showing the final confirmation
                         setShowSuccessAnimation(true);
 
-                        // Wait for 2.5 seconds to let the animation play out, then show Final screen
                         setTimeout(() => {
                             setShowSuccessAnimation(false);
                             setIsSubmitted(true);
-                        }, 2500);
+                            toast.success("Appointment booked and payment verified successfully!", {
+                                icon: toastIcon("success")
+                            });
+                        }, 2000);
 
                     } catch (verifyErr) {
                         toast.error(verifyErr?.response?.data?.message || "Payment verification failed.", {
@@ -404,8 +410,8 @@ const PublicService = () => {
                     onClick={handleBookingSubmit}
                     disabled={!isFormValid || isCreatingPayment}
                     className={`w-full py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${isFormValid && !isCreatingPayment
-                        ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                            ? "bg-indigo-600 text-white cursor-pointer active:scale-[0.98]"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
                         }`}
                 >
                     {isCreatingPayment ? (

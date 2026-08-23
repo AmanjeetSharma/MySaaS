@@ -19,7 +19,7 @@ const VerifyPaymentPage = ({ isSuccess = false }) => {
         if (isSuccess) return;
         const interval = setInterval(() => {
             setStepIndex((prev) => (prev + 1) % VERIFICATION_STEPS.length);
-        }, 1000);
+        }, 1800);
         return () => clearInterval(interval);
     }, [isSuccess]);
 

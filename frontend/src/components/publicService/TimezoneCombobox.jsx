@@ -78,7 +78,7 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                         )}
 
                         {Object.entries(groupedTimezones).map(([region, tzs]) => (
-                            <CommandGroup key={region} heading={region} className="text-slate-500 [&_[cmdk-group-heading]]:text-slate-500">
+                            <CommandGroup key={region} heading={region} className="text-slate-500 **:[[cmdk-group-heading]]:text-slate-500">
                                 {tzs.map((tz) => {
                                     const isSelected = value === tz;
                                     return (
