@@ -102,7 +102,7 @@ const AttendeeForm = ({
                         {isProcessing ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                                <span>Initializing Gateway...</span>
+                                <span>Just a moment, we're getting everything ready for you...</span>
                             </>
                         ) : (
                             <>
