@@ -4,7 +4,7 @@ import { THEME_IDS, THEME_MODES } from './theme.constant.js';
 
 export const PUBLIC_THEME = {
     name: THEME_IDS.DEFAULT,
-    mode: THEME_MODES.LIGHT
+    mode: THEME_MODES.DARK,
 };
 
 /**

@@ -53,9 +53,9 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                 </button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-70 p-0 rounded-2xl shadow-xl border-slate-200/80" align="end">
-                <Command>
-                    <CommandInput placeholder="Search timezone (e.g. Kolkata)..." className="h-9 text-xs" />
+            <PopoverContent className="w-70 p-0 rounded-2xl border border-slate-200/80 bg-white text-slate-900 shadow-xl ring-slate-200/80" align="end">
+                <Command className="bg-white text-slate-900 **:data-[slot=input-group]:border-slate-200! **:data-[slot=input-group]:bg-white! **:data-[slot=input-group]:text-slate-900! **:data-[slot=input-group-addon]:text-slate-400!">
+                    <CommandInput placeholder="Search timezone (e.g. Kolkata)..." className="h-9 text-xs text-slate-900 placeholder:text-slate-400" />
                     <CommandList className="max-h-60 overflow-y-auto p-1">
                         <CommandEmpty className="py-6 text-center text-xs text-slate-400">
                             No timezone found.
@@ -69,7 +69,7 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                                         onChange(value);
                                         setOpen(false);
                                     }}
-                                    className="text-xs cursor-pointer rounded-lg"
+                                    className="text-xs cursor-pointer rounded-lg text-slate-700 data-selected:bg-indigo-50 data-selected:text-indigo-700"
                                 >
                                     <Check className="mr-2 h-3.5 w-3.5 text-indigo-600 opacity-100" />
                                     <span>{formattedLabel(value)}</span>
@@ -78,7 +78,7 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                         )}
 
                         {Object.entries(groupedTimezones).map(([region, tzs]) => (
-                            <CommandGroup key={region} heading={region} className="text-slate-500">
+                            <CommandGroup key={region} heading={region} className="text-slate-500 [&_[cmdk-group-heading]]:text-slate-500">
                                 {tzs.map((tz) => {
                                     const isSelected = value === tz;
                                     return (
@@ -89,7 +89,7 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                                                 onChange(tz);
                                                 setOpen(false);
                                             }}
-                                            className="text-xs cursor-pointer rounded-lg flex items-center justify-between text-slate-700 aria-selected:bg-indigo-50 aria-selected:text-indigo-700"
+                                            className="text-xs cursor-pointer rounded-lg flex items-center justify-between text-slate-700 data-selected:bg-indigo-50 data-selected:text-indigo-700"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Check
