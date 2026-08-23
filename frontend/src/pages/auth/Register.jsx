@@ -144,7 +144,7 @@ const Register = () => {
       } else {
         // Verification disabled: open countdown modal
         setShowSuccessDialog(true);
-        
+
         const timer = setInterval(() => {
           setCountdown((prev) => {
             if (prev <= 1) {
@@ -195,25 +195,25 @@ const Register = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative font-sans text-foreground">
 
         {/* HOME BUTTON */}
         <Button
           variant="outline"
-          className="absolute top-4 left-4"
+          className="absolute top-4 left-4 cursor-pointer"
           onClick={() => navigate('/')}
         >
           <Home className="h-4 w-4 mr-2" />
           Home
         </Button>
 
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md bg-card text-card-foreground border-border">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-2xl font-heading">
               Create an account
             </CardTitle>
 
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Enter your information to get started
             </CardDescription>
           </CardHeader>
@@ -240,7 +240,7 @@ const Register = () => {
                     id="name"
                     type="text"
                     placeholder="Your full name"
-                    className="pl-9"
+                    className="pl-9 bg-input border-border"
                     {...register('name')}
                   />
                 </div>
@@ -263,7 +263,7 @@ const Register = () => {
                     id="email"
                     type="email"
                     placeholder="name@example.com"
-                    className="pl-9"
+                    className="pl-9 bg-input border-border"
                     {...register('email')}
                   />
                 </div>
@@ -286,7 +286,7 @@ const Register = () => {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-9 pr-10"
+                    className="pl-9 pr-10 bg-input border-border"
                     {...register('password')}
                   />
 
@@ -296,7 +296,7 @@ const Register = () => {
                     onClick={() =>
                       setShowPassword(!showPassword)
                     }
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground cursor-pointer"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -326,7 +326,7 @@ const Register = () => {
                       <img
                         src={avatarPreview}
                         alt="Avatar preview"
-                        className="h-full w-full object-cover transition-scale duration-300 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
                       <Image className="h-5 w-5 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground" />
@@ -343,7 +343,7 @@ const Register = () => {
                     </p>
                   </div>
 
-                  {/* Hidden native input overlaying the premium container layout */}
+                  {/* Hidden native input */}
                   <Input
                     id="avatar"
                     type="file"
@@ -356,7 +356,7 @@ const Register = () => {
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="text-xs font-medium pointer-events-none group-hover:bg-accent h-8 px-3"
+                    className="text-xs font-medium pointer-events-none bg-secondary text-secondary-foreground group-hover:bg-accent group-hover:text-accent-foreground transition-colors h-8 px-3"
                   >
                     Browse
                   </Button>
@@ -367,7 +367,7 @@ const Register = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
               >
                 {isLoading ? (
                   <>
@@ -383,11 +383,11 @@ const Register = () => {
             {/* DIVIDER */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-border-subtle" />
               </div>
 
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
+                <span className="bg-card px-2 text-muted-foreground">
                   Or continue with
                 </span>
               </div>
@@ -429,16 +429,16 @@ const Register = () => {
         open={showDialog}
         onOpenChange={setShowDialog}
       >
-        <DialogContent>
+        <DialogContent className="bg-surface text-surface-foreground border-border">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="font-heading">
               Verify Your Email
             </DialogTitle>
 
-            <DialogDescription className="space-y-2 pt-4">
+            <DialogDescription className="space-y-2 pt-4 text-muted-foreground">
               <p>
                 We've sent a verification email to{' '}
-                <strong>{registeredEmail}</strong>.
+                <strong className="text-foreground">{registeredEmail}</strong>.
               </p>
 
               <p>
@@ -453,7 +453,7 @@ const Register = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <Button onClick={() => navigate('/signin')} className="mt-2 cursor-pointer">
+          <Button onClick={() => navigate('/signin')} className="mt-2 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
             Go to Sign In
           </Button>
         </DialogContent>
@@ -463,14 +463,13 @@ const Register = () => {
       <Dialog
         open={showSuccessDialog}
         onOpenChange={(open) => {
-          // Block closure by clicking backdrop or ESC key during countdown redirect
           if (!open) return;
           setShowSuccessDialog(open);
         }}
       >
-        <DialogContent className="sm:max-w-md text-center p-8 space-y-6">
+        <DialogContent className="sm:max-w-md text-center p-8 space-y-6 bg-surface text-surface-foreground border-border">
           <DialogHeader className="space-y-3">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-800/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success border border-success/30">
               <svg
                 className="h-6 w-6 animate-in zoom-in-50 duration-300"
                 fill="none"
@@ -481,18 +480,18 @@ const Register = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            
-            <DialogTitle className="text-2xl font-semibold tracking-tight">
+
+            <DialogTitle className="text-2xl font-semibold tracking-tight font-heading">
               Account Created!
             </DialogTitle>
-            
+
             <DialogDescription className="text-sm text-muted-foreground pt-1">
               Now you can sign in and start using your account. Redirecting you to the sign in page shortly.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-muted/40 rounded-xl p-4 border border-border/50 flex flex-col items-center justify-center space-y-1">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+          <div className="bg-surface-sunken rounded-xl p-4 border border-border-subtle flex flex-col items-center justify-center space-y-1">
+            <span className="text-xs text-subtle-foreground font-medium uppercase tracking-wider">
               Redirecting to Sign In
             </span>
             <div className="flex items-baseline gap-1">
@@ -503,8 +502,8 @@ const Register = () => {
             </div>
           </div>
 
-          <Button 
-            className="w-full cursor-pointer" 
+          <Button
+            className="w-full cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             onClick={() => navigate('/signin')}
           >
             Go to Sign In Now

@@ -29,7 +29,7 @@ import {
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.email('Please enter a valid email address'),
+  email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -92,8 +92,6 @@ const Login = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-
-      // Update your store to accept an object containing the credential and device
       await googleLogin({
         token: credentialResponse.credential,
         device: getDeviceName(),
@@ -124,26 +122,25 @@ const Login = () => {
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative font-sans text-foreground">
       {/* HOME BUTTON */}
       <Button
         variant="outline"
-        className="absolute top-4 left-4"
+        className="absolute top-4 left-4 cursor-pointer"
         onClick={() => navigate('/')}
       >
         <Home className="h-4 w-4 mr-2" />
         Home
       </Button>
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl font-heading">
             Welcome back
           </CardTitle>
 
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             Enter your email and password to access your account
           </CardDescription>
         </CardHeader>
@@ -172,7 +169,7 @@ const Login = () => {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-9"
+                  className="pl-9 bg-input border-border"
                   {...register('email')}
                 />
               </div>
@@ -206,7 +203,7 @@ const Login = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="pl-9 pr-10"
+                  className="pl-9 pr-10 bg-input border-border"
                   {...register('password')}
                 />
 
@@ -214,7 +211,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground cursor-pointer"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -234,7 +231,7 @@ const Login = () => {
             {/* SUBMIT */}
             <Button
               type="submit"
-              className="w-full cursor-pointer"
+              className="w-full cursor-pointer bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -251,11 +248,11 @@ const Login = () => {
           {/* DIVIDER */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-border-subtle" />
             </div>
 
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              <span className="bg-card px-2 text-muted-foreground">
                 Or continue with
               </span>
             </div>

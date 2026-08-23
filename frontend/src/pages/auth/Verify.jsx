@@ -54,12 +54,12 @@ const Verify = () => {
 
   if (verificationStatus === 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 font-sans text-foreground">
+        <Card className="w-full max-w-md text-center bg-card text-card-foreground border-border">
           <CardContent className="pt-8">
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <h3 className="text-lg font-semibold">Verifying Your Email</h3>
+              <h3 className="text-lg font-semibold font-heading">Verifying Your Email</h3>
               <p className="text-sm text-muted-foreground">
                 Please wait while we verify your email address...
               </p>
@@ -72,16 +72,16 @@ const Verify = () => {
 
   if (verificationStatus === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 font-sans text-foreground">
+        <Card className="w-full max-w-md bg-card text-card-foreground border-border">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="h-16 w-16 rounded-full bg-success/10 text-success border border-success/30 flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Email Verified!</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-heading">Email Verified!</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Your email has been successfully verified.
             </CardDescription>
           </CardHeader>
@@ -91,7 +91,10 @@ const Verify = () => {
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={() => navigate('/signin')} className="gap-2 cursor-pointer">
+            <Button
+              onClick={() => navigate('/signin')}
+              className="gap-2 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
               <Mail className="h-4 w-4" />
               Go to Sign In Now
             </Button>
@@ -102,16 +105,16 @@ const Verify = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 font-sans text-foreground">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            <div className="h-16 w-16 rounded-full bg-destructive/10 text-destructive border border-destructive/30 flex items-center justify-center">
+              <XCircle className="h-8 w-8 text-destructive" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Verification Failed</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-heading">Verification Failed</CardTitle>
+          <CardDescription className="text-muted-foreground">
             We couldn't verify your email address.
           </CardDescription>
         </CardHeader>
@@ -123,16 +126,23 @@ const Verify = () => {
           </Alert>
         </CardContent>
         <CardFooter className="flex justify-center gap-2">
-          <Button onClick={() => navigate('/signup')} className="cursor-pointer">
+          <Button
+            onClick={() => navigate('/signup')}
+            className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
+          >
             Sign Up Again
           </Button>
-          <Button variant="outline" onClick={() => navigate('/signin')} className="cursor-pointer">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/signin')}
+            className="cursor-pointer border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
             Back to Sign In
           </Button>
         </CardFooter>
       </Card>
     </div>
   );
-}
+};
 
 export default Verify;

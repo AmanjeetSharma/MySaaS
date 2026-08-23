@@ -22,6 +22,7 @@ import {
   Mail,
   ArrowLeft,
   Home,
+  CheckCircle,
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -80,25 +81,25 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative font-sans text-foreground">
 
       {/* HOME BUTTON */}
       <Button
         variant="outline"
-        className="absolute top-4 left-4"
+        className="absolute top-4 left-4 cursor-pointer"
         onClick={() => navigate('/')}
       >
         <Home className="h-4 w-4 mr-2" />
         Home
       </Button>
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl font-heading">
             Forgot Password?
           </CardTitle>
 
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             Enter your email address and we'll send you
             a link to reset your password
           </CardDescription>
@@ -114,8 +115,10 @@ const ForgotPassword = () => {
           )}
 
           {isSuccess && (
-            <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
-              <AlertDescription className="text-green-800 dark:text-green-300">
+            <Alert className="border-success/40 bg-success/10 text-success">
+              <CheckCircle className="h-4 w-4 text-success" />
+
+              <AlertDescription className="text-foreground">
                 {successMessage ||
                   'Password reset link sent to your email address.'}
               </AlertDescription>
@@ -138,7 +141,7 @@ const ForgotPassword = () => {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-9"
+                  className="pl-9 bg-input border-border"
                   {...register('email')}
                   disabled={isSuccess}
                 />
@@ -153,7 +156,7 @@ const ForgotPassword = () => {
 
             <Button
               type="submit"
-              className="w-full cursor-pointer"
+              className="w-full cursor-pointer bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
               disabled={isLoading || isSuccess}
             >
               {isLoading ? (

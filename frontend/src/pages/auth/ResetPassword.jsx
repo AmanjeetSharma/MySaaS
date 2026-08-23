@@ -1,5 +1,3 @@
-// RESET PASSWORD PAGE
-
 import { useState, useEffect } from 'react';
 import {
   useNavigate,
@@ -161,7 +159,7 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background to-muted p-4 relative font-sans text-foreground">
 
       {/* HOME BUTTON */}
       <Button
@@ -173,13 +171,13 @@ const ResetPassword = () => {
         Home
       </Button>
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-card text-card-foreground border-border">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl font-heading">
             Create New Password
           </CardTitle>
 
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             Enter your new password below
           </CardDescription>
         </CardHeader>
@@ -194,10 +192,10 @@ const ResetPassword = () => {
           )}
 
           {isSuccess && (
-            <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Alert className="border-success/40 bg-success/10 text-success">
+              <CheckCircle className="h-4 w-4 text-success" />
 
-              <AlertDescription className="text-green-800 dark:text-green-300">
+              <AlertDescription className="text-foreground">
                 {successMessage ||
                   'Password reset successfully! Redirecting to login...'}
               </AlertDescription>
@@ -226,7 +224,7 @@ const ResetPassword = () => {
                         : 'password'
                     }
                     placeholder="••••••••"
-                    className="pl-9 pr-10"
+                    className="pl-9 pr-10 bg-input border-border"
                     {...register('newPassword')}
                     disabled={isLoading}
                   />
@@ -237,7 +235,7 @@ const ResetPassword = () => {
                     onClick={() =>
                       setShowPassword(!showPassword)
                     }
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -276,7 +274,7 @@ const ResetPassword = () => {
                         : 'password'
                     }
                     placeholder="••••••••"
-                    className="pl-9 pr-10"
+                    className="pl-9 pr-10 bg-input border-border"
                     {...register('confirmPassword')}
                     disabled={isLoading}
                   />
@@ -289,7 +287,7 @@ const ResetPassword = () => {
                         !showConfirmPassword
                       )
                     }
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -309,7 +307,7 @@ const ResetPassword = () => {
               {/* BUTTON */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 disabled={isLoading}
               >
                 {isLoading ? (
