@@ -3,6 +3,9 @@ import fs from "fs";
 import sharp from "sharp";
 import path from "path";
 import env from "../config/env.config.js";
+import logger from "../config/logger.js";
+
+const log = logger.child({ module: "cloudinary" });
 
 cloudinary.config({
     cloud_name: env.CLOUDINARY_CLOUD_NAME,
@@ -13,7 +16,7 @@ cloudinary.config({
 // Upload avatar
 export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
     let compressedPath;
-    
+
     try {
         if (!localFilePath) return null;
 
@@ -25,7 +28,15 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
                 resource_type: "image",
             });
 
-            console.log(`GIF file uploaded to Cloudinary successfully. Local file removed: ${path.basename(localFilePath)}`);
+            log.info(
+                {
+                    file: path.basename(localFilePath),
+                    folder,
+                    resourceType: "image",
+                },
+                "GIF uploaded to Cloudinary"
+            );
+
             return {
                 url: result.secure_url,
                 publicId: result.public_id,
@@ -36,18 +47,44 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
 
         // converting image size to 400x400 and compressing it to 70% quality for faster uploads and optimized storage
         const compressedImage = await sharp(localFilePath)
-            .resize({ width: 400, height: 400, fit: "cover" })
-            .jpeg({ quality: 70 })
+            .resize({
+                width: 400,
+                height: 400,
+                fit: "cover"
+            })
+            .jpeg({
+                quality: 70
+            })
             .toFile(compressedPath);
 
         // debug log to compare original and compressed image sizes
-        // console.log(`Previous image size: ${(fs.statSync(localFilePath).size / 1024).toFixed(2)} KB, Compressed image size: ${(compressedImage.size / 1024).toFixed(2)} KB`);
+        // log.debug(
+        //     {
+        //         originalFile: path.basename(localFilePath),
+        //         compressedFile: path.basename(compressedPath),
+        //         originalSizeKB: (
+        //             fs.statSync(localFilePath).size / 1024
+        //         ).toFixed(2),
+        //         compressedSizeKB: (
+        //             compressedImage.size / 1024
+        //         ).toFixed(2),
+        //     },
+        //     "Image compression completed"
+        // );
 
         const result = await cloudinary.uploader.upload(compressedPath, {
             folder: folder,
         });
 
-        console.log(`File uploaded to Cloudinary successfully. Local files removed: ${path.basename(localFilePath)}, ${path.basename(compressedPath)}`);
+        log.info(
+            {
+                file: path.basename(localFilePath),
+                compressedFile: path.basename(compressedPath),
+                folder,
+                publicId: result.public_id,
+            },
+            "File uploaded to Cloudinary"
+        );
 
         return {
             url: result.secure_url,
@@ -55,8 +92,20 @@ export const uploadOnCloudinary = async (localFilePath, folder = "avatars") => {
         };
 
     } catch (error) {
-        console.error("Cloudinary upload failed:", error.message);
+
+        log.error(
+            {
+                err: error,
+                file: localFilePath
+                    ? path.basename(localFilePath)
+                    : undefined,
+                folder,
+            },
+            "Cloudinary upload failed"
+        );
+
         return null;
+
     } finally {
         // Clean up local files
         if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
@@ -68,8 +117,19 @@ export const deleteFromCloudinary = async (publicId) => {
     try {
         if (!publicId) return;
         await cloudinary.uploader.destroy(publicId);
-        console.log(`Old file with publicId ${publicId} deleted from Cloudinary successfully.`);
+        log.info(
+            {
+                publicId,
+            },
+            "File deleted from Cloudinary"
+        );
     } catch (error) {
-        console.error(`Failed to delete file with publicId ${publicId} from Cloudinary:`, error.message);
+        log.error(
+            {
+                err: error,
+                publicId,
+            },
+            "Cloudinary file deletion failed"
+        );
     }
 };

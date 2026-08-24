@@ -1,17 +1,29 @@
 import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
 import env from "../config/env.config.js";
+import logger from "../config/logger.js";
 
 const errorHandler = (err, req, res, next) => {
-
     let error = err;
-    
+
     if (err instanceof mongoose.Error.ValidationError) {
 
         const errors = Object.values(err.errors).map(error => ({
             field: error.path,
             message: error.message,
         }));
+
+        logger.warn(
+            {
+                requestId: req.id,
+                method: req.method,
+                path: req.originalUrl,
+                statusCode: 400,
+                isOperational: true,
+                errors
+            },
+            "Request validation failed"
+        );
 
         return res.status(400).json({
             statusCode: 400,
@@ -33,16 +45,17 @@ const errorHandler = (err, req, res, next) => {
         error.isOperational = false;
     }
 
-    // error logging
-    // console.error("ERROR 💥:", error);
-    console.error("ERROR 💥:", {
-        message: error.message,
-        statusCode: error.statusCode,
-        isOperational: error.isOperational,
-        path: req.originalUrl,
-        method: req.method,
-        stack: error.stack
-    });
+    logger.error(
+        {
+            err: error,
+            requestId: req.id,
+            method: req.method,
+            path: req.originalUrl,
+            statusCode: error.statusCode,
+            isOperational: error.isOperational
+        },
+        "Request failed"
+    );
 
     const statusCode = error.statusCode || 500;
 

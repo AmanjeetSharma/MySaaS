@@ -1,7 +1,6 @@
 import fs from "fs";
 import multer from "multer";
 import path from "path";
-import { ApiError } from "../utils/ApiError.js";
 
 const tempDir = "./public/temp";
 
