@@ -5,7 +5,7 @@ import path from "path";
 import env from "../config/env.config.js";
 import logger from "../config/logger.js";
 
-const log = logger.child({ module: "cloudinary" });
+const log = logger.child({ module: "cloudinary.integration" });
 
 cloudinary.config({
     cloud_name: env.CLOUDINARY_CLOUD_NAME,
