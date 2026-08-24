@@ -4,6 +4,8 @@ const env = {
     MONGO_URI: process.env.MONGO_URI,
     DB_NAME: process.env.DB_NAME,
     PORT: process.env.PORT || 3000,
+    LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
+    SERVICE_NAME: process.env.SERVICE_NAME || 'mysaas-api',
 
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
     CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',

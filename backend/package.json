@@ -30,11 +30,14 @@
     "nanoid": "^5.1.11",
     "node-cron": "^4.2.1",
     "nodemailer": "^9.0.3",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "razorpay": "^2.9.8",
     "sharp": "^0.35.3",
     "slugify": "^1.6.9"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "pino-pretty": "^13.1.3"
   }
 }

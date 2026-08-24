@@ -2,9 +2,12 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import errorHandler from "./middlewares/error.middleware.js";
+import httpLogger from "./middlewares/httpLogger.middleware.js";
 import env from "./config/env.config.js";
 
 const app = express();
+
+app.use(httpLogger);
 
 app.use(cors({
     origin: env.CORS_ORIGIN,
