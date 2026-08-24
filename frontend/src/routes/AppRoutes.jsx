@@ -43,6 +43,7 @@ import DealDetails from '@/pages/crm/deals/DealDetails';
 
 // Bookings imports
 import Bookings from '@/pages/bookings/Bookings';
+import BookingDetails from '@/pages/bookings/BookingDetails';
 
 // Reminder imports
 import Reminder from '@/pages/reminder/Reminder';
@@ -112,7 +113,8 @@ export const AppRoutes = () => {
 
                     {/* Bookings Route */}
                     <Route path="/bookings" element={<Bookings />} />
-
+                    <Route path="/bookings/:bookingId" element={<BookingDetails />} />
+                    
                     {/* Integrations Routes */}
                     <Route path="/integrations/connect-google" element={<ConnectGoogle />} />
                     <Route path="/integrations/connect-whatsapp" element={<WhatsApp />} />

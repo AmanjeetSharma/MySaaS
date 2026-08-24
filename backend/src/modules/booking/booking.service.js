@@ -892,10 +892,6 @@ export const getBookingByIdService = async ({
     bookingId,
 }) => {
 
-    const timezones = Intl.supportedValuesOf("timeZone");
-    console.log(timezones);
-    return;
-
     validateObjectId(orgId, "Organization ID");
     validateObjectId(bookingId, "Booking ID");
 

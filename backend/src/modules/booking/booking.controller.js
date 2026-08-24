@@ -111,7 +111,7 @@ export const publicCancelBookingController = asyncHandler(async (req, res) => {
 
 export const getBookingByIdController = asyncHandler(async (req, res) => {
     const { bookingId } = req.params;
-    const { orgId } = req.body;
+    const { orgId } = req.query;
 
     const data = await getBookingByIdService({
         userId: req.user._id,
