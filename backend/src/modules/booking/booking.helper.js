@@ -496,6 +496,10 @@ export const validateBookingStatus = (status) => {
     return true;
 };
 
+
+
+
+
 export const validateBookingStatusTransition = (currentStatus, newStatus) => {
 
     validateBookingStatus(newStatus);

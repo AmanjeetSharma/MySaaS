@@ -26,7 +26,8 @@ const logger = pino({
             "password",
             "accessToken",
             "refreshToken",
-            "token"
+            "*.password",
+            "*.token",
         ],
         censor: "[REDACTED]"
     },

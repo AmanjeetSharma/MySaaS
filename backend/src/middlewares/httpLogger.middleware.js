@@ -7,9 +7,12 @@ const isProduction = env.NODE_ENV === "production";
 const httpLogger = pinoHttp({
     logger,
 
+    customProps: () => ({
+        type: "http"
+    }),
+
     serializers: {
         req(req) {
-
             const request = {
                 id: req.id,
                 method: req.method,
