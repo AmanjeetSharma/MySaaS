@@ -1,4 +1,4 @@
-import { Calendar, Clock, Mail, Phone, User } from "lucide-react";
+import { Calendar, Clock, Mail, Phone, User, Video, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_VARIANTS = {
@@ -7,6 +7,8 @@ const STATUS_VARIANTS = {
   CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
   NO_SHOW: "bg-rose-500/10 text-rose-600 border-rose-500/20",
   EXPIRED: "bg-muted text-subtle-foreground border-border",
+  PENDING_PAYMENT: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  PAYMENT_FAILED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const formatDate = (dateString) => {
@@ -46,6 +48,9 @@ const BookingRow = ({ booking, onOpen }) => {
     serviceSnapshot,
   } = booking;
 
+  const mode = serviceSnapshot?.mode || "Not Specified";
+  const isOnline = mode.toUpperCase() === "ONLINE";
+
   const formattedPrice = formatPrice(
     serviceSnapshot?.price,
     serviceSnapshot?.currency
@@ -64,19 +69,35 @@ const BookingRow = ({ booking, onOpen }) => {
       }}
       className="group relative flex flex-col justify-between gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl border border-border-subtle bg-surface-elevated p-3 sm:p-4 shadow-xs transition-all hover:border-border hover:bg-surface-elevated/80 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-ring active:scale-[0.99]"
     >
-      {/* 1. Top Section: Service & Status */}
+      {/* 1. Top Section: Service & Badges (Mode + Status) */}
       <div className="flex items-center justify-between gap-2 border-b border-border-subtle/50 pb-2 sm:pb-2.5">
         <h3 className="font-heading text-xs sm:text-sm font-bold tracking-tight text-foreground group-hover:text-accent transition-colors line-clamp-1">
-          {service?.name || "Standard Booking"}
+          {serviceSnapshot?.name || service?.name || "Standard Booking"}
         </h3>
-        <Badge
-          variant="outline"
-          className={`shrink-0 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md select-none ${
-            STATUS_VARIANTS[status] || "bg-secondary text-secondary-foreground"
-          }`}
-        >
-          {status.replace("_", " ")}
-        </Badge>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Mode Indicator Badge */}
+          <Badge
+            variant="outline"
+            className="text-[9px] sm:text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-md border-border-subtle bg-surface text-subtle-foreground select-none gap-1 inline-flex items-center"
+          >
+            {isOnline ? (
+              <Video className="size-2.5 sm:size-3 text-accent" />
+            ) : (
+              <MapPin className="size-2.5 sm:size-3 text-amber-500" />
+            )}
+            <span>{mode}</span>
+          </Badge>
+
+          {/* Status Badge */}
+          <Badge
+            variant="outline"
+            className={`text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md select-none ${STATUS_VARIANTS[status] || "bg-secondary text-secondary-foreground"
+              }`}
+          >
+            {status.replace(/_/g, " ")}
+          </Badge>
+        </div>
       </div>
 
       {/* 2. Middle Section: Customer Details */}

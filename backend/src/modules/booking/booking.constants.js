@@ -19,7 +19,6 @@ export const BOOKING_STATUS_TRANSITIONS = {
     NO_SHOW: [],
 
     EXPIRED: [],
-
 };
 
 

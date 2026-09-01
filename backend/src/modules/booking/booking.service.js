@@ -664,7 +664,7 @@ export const publicRescheduleBookingService = async ({
     rawToken,
     startTime,
 }) => {
-
+    
     const hashedToken = hashBookingAccessToken(rawToken);
 
     const booking = await findBookingByAccessToken(hashedToken);

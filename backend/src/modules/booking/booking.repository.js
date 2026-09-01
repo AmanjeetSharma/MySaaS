@@ -220,6 +220,7 @@ export const findBookings = async ({
         status: 1,
         "serviceSnapshot.price": 1,
         "serviceSnapshot.currency": 1,
+        "serviceSnapshot.mode": 1,
         createdAt: 1,
     })
         .sort(sort)

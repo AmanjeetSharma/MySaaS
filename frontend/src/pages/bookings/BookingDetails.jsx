@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import {
     ArrowLeft,
-    Calendar,
+    Calendar as CalendarIcon,
     Clock,
     User,
     Mail,
@@ -14,43 +15,46 @@ import {
     FileText,
     AlertTriangle,
     RotateCcw,
-    Ban,
+    CalendarOff,
     CheckCircle2,
     Edit3,
     Globe,
     Building2,
+    Copy,
+    Check,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 
 import { useUserStore, useBookingStore } from "@/stores";
+import { toastIcon } from "@/constants/toastIcon.constant";
+
+import BookingEditDialog from "../../components/booking/bookingDetails/BookingEditDialog";
+import BookingStatusDialog from "../../components/booking/bookingDetails/BookingStatusDialog";
+import BookingRescheduleDialog from "../../components/booking/bookingDetails/BookingRescheduleDialog";
+import BookingCancelDialog from "../../components/booking/bookingDetails/BookingCancelDialog";
+
+export const BOOKING_STATUS_TRANSITIONS = {
+    PENDING_PAYMENT: ["PAYMENT_FAILED", "CONFIRMED", "EXPIRED"],
+    CONFIRMED: ["COMPLETED", "NO_SHOW"],
+    COMPLETED: [],
+    CANCELLED: [],
+    NO_SHOW: [],
+    EXPIRED: [],
+    PAYMENT_FAILED: [],
+};
 
 const STATUS_VARIANTS = {
-    CONFIRMED: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    CONFIRMED: "bg-success/10 text-success border-success/20",
     COMPLETED: "bg-accent/10 text-accent border-accent/20",
     CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
-    NO_SHOW: "bg-rose-500/10 text-rose-600 border-rose-500/20",
-    EXPIRED: "bg-muted text-subtle-foreground border-border",
+    NO_SHOW: "bg-destructive/10 text-destructive border-destructive/20",
+    EXPIRED: "bg-muted text-subtle-foreground border-border-subtle",
+    PENDING_PAYMENT: "bg-warning/10 text-warning border-warning/20",
+    PAYMENT_FAILED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const formatDate = (dateString) => {
@@ -100,24 +104,22 @@ const BookingDetails = () => {
         cancelBooking,
     } = useBookingStore();
 
-    // Dialog States
-    const [isNotesOpen, setIsNotesOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
     const [isCancelOpen, setIsCancelOpen] = useState(false);
 
-    // Dialog Inputs
-    const [notesInput, setNotesInput] = useState("");
-    const [statusInput, setStatusInput] = useState("");
-    const [rescheduleInput, setRescheduleInput] = useState("");
     const [cancellationReasonInput, setCancellationReasonInput] = useState("");
+    const [copied, setCopied] = useState(false);
 
     const fetchBooking = useCallback(async () => {
         if (!bookingId || !organizationId) return;
         try {
             await getBookingById({ bookingId, orgId: organizationId });
         } catch (error) {
-            console.error(error);
+            toast.error(error?.response?.data?.message || "Failed to load booking details.", {
+                icon: toastIcon("error"),
+            });
         }
     }, [bookingId, organizationId, getBookingById]);
 
@@ -125,69 +127,71 @@ const BookingDetails = () => {
         fetchBooking();
     }, [fetchBooking]);
 
-    const handleOpenNotesDialog = () => {
-        setNotesInput(booking?.notes || "");
-        setIsNotesOpen(true);
+    const handleCopyId = () => {
+        if (!booking?._id) return;
+        navigator.clipboard.writeText(booking._id);
+        setCopied(true);
+        toast.success("Booking ID copied to clipboard", {
+            icon: toastIcon("success"),
+        });
+        setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleOpenStatusDialog = () => {
-        setStatusInput(booking?.status || "CONFIRMED");
-        setIsStatusOpen(true);
-    };
-
-    const handleOpenRescheduleDialog = () => {
-        if (booking?.startTime) {
-            const localIso = new Date(booking.startTime)
-                .toISOString()
-                .slice(0, 16);
-            setRescheduleInput(localIso);
-        }
-        setIsRescheduleOpen(true);
-    };
-
-    const handleUpdateNotes = async (e) => {
-        e.preventDefault();
+    const handleSaveDetails = async (payload) => {
         try {
             await updateBooking({
                 bookingId,
                 orgId: organizationId,
-                payload: { notes: notesInput },
+                payload,
             });
-            setIsNotesOpen(false);
+            setIsEditOpen(false);
+            toast.success("Booking details updated successfully.", {
+                icon: toastIcon("success"),
+            });
         } catch (error) {
-            console.error(error);
+            toast.error(error?.response?.data?.message || "Failed to update booking details.", {
+                icon: toastIcon("error"),
+            });
         }
     };
 
-    const handleUpdateStatus = async () => {
+    const handleStatusChange = async (newStatus) => {
         try {
             await updateBookingStatus({
                 bookingId,
                 orgId: organizationId,
-                status: statusInput,
+                status: newStatus,
             });
             setIsStatusOpen(false);
+            toast.success(`Booking status changed to ${newStatus.replace(/_/g, " ")}.`, {
+                icon: toastIcon("success"),
+            });
         } catch (error) {
-            console.error(error);
+            toast.error(error?.response?.data?.message || "Failed to update booking status.", {
+                icon: toastIcon("error"),
+            });
         }
     };
 
-    const handleReschedule = async (e) => {
-        e.preventDefault();
-        if (!rescheduleInput) return;
+    const handleRescheduleConfirm = async (newStartTime) => {
         try {
             await rescheduleBooking({
                 bookingId,
                 orgId: organizationId,
-                startTime: new Date(rescheduleInput).toISOString(),
+                startTime: newStartTime,
             });
             setIsRescheduleOpen(false);
+            toast.success("Appointment rescheduled successfully.", {
+                icon: toastIcon("success"),
+            });
         } catch (error) {
-            console.error(error);
+            toast.error(error?.response?.data?.message || "Failed to reschedule appointment.", {
+                icon: toastIcon("error"),
+            });
         }
     };
 
-    const handleCancelBooking = async (e) => {
+    const handleCancelConfirm = async (e) => {
         e.preventDefault();
         try {
             await cancelBooking({
@@ -196,19 +200,29 @@ const BookingDetails = () => {
                 cancellationReason: cancellationReasonInput,
             });
             setIsCancelOpen(false);
+            setCancellationReasonInput("");
+            toast.success("Booking cancelled successfully.", {
+                icon: toastIcon("delete"),
+            });
         } catch (error) {
-            console.error(error);
+            toast.error(error?.response?.data?.message || "Failed to cancel booking.", {
+                icon: toastIcon("error"),
+            });
         }
     };
 
+    const allowedTransitions = useMemo(() => {
+        return BOOKING_STATUS_TRANSITIONS[booking?.status] || [];
+    }, [booking?.status]);
+
     if (isLoadingBooking && !booking) {
         return (
-            <div className="space-y-4 max-w-5xl mx-auto px-4 sm:px-6 py-6" aria-busy="true">
-                <Skeleton className="h-9 w-36 rounded-xl bg-surface-sunken" />
-                <Skeleton className="h-44 w-full rounded-2xl bg-surface-sunken" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Skeleton className="h-56 w-full rounded-2xl bg-surface-sunken" />
-                    <Skeleton className="h-56 w-full rounded-2xl bg-surface-sunken" />
+            <div className="space-y-3 max-w-5xl mx-auto px-3 sm:px-6 py-4" aria-busy="true">
+                <Skeleton className="h-8 w-32 rounded-xl bg-surface-sunken" />
+                <Skeleton className="h-36 w-full rounded-2xl bg-surface-sunken" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Skeleton className="h-44 w-full rounded-2xl bg-surface-sunken" />
+                    <Skeleton className="h-44 w-full rounded-2xl bg-surface-sunken" />
                 </div>
             </div>
         );
@@ -216,18 +230,18 @@ const BookingDetails = () => {
 
     if (!booking) {
         return (
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+            <div className="max-w-5xl mx-auto px-3 sm:px-6 py-8">
                 <Card className="border-border-strong border-dashed bg-surface-elevated/40 rounded-2xl">
-                    <CardContent className="flex min-h-[300px] flex-col items-center justify-center gap-3 p-6 text-center">
+                    <CardContent className="flex min-h-[240px] flex-col items-center justify-center gap-3 p-6 text-center">
                         <Building2 className="size-8 text-subtle-foreground/60" />
-                        <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+                        <h2 className="font-heading text-base font-semibold tracking-tight text-foreground">
                             Booking Not Found
                         </h2>
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => navigate("/bookings")}
-                            className="rounded-xl border-border bg-surface text-subtle-foreground hover:bg-surface-sunken hover:text-foreground active:scale-95 transition-all cursor-pointer text-xs font-semibold"
+                            className="rounded-xl border-border bg-surface text-subtle-foreground hover:bg-hover hover:text-foreground active:scale-95 transition-all cursor-pointer text-xs font-semibold"
                         >
                             Back to Bookings
                         </Button>
@@ -244,231 +258,294 @@ const BookingDetails = () => {
         startTime,
         endTime,
         timezone,
-        status = "PENDING",
+        status = "PENDING_PAYMENT",
         meeting,
         calendarEvent,
         notes,
         cancellationReason,
-        cancelledAt,
-        createdAt,
     } = booking;
 
-    const isCancelled = status === "CANCELLED";
-    const isCompleted = status === "COMPLETED";
+    const isTerminal = ["COMPLETED", "CANCELLED", "NO_SHOW", "EXPIRED", "PAYMENT_FAILED"].includes(status);
+    const canReschedule = status === "CONFIRMED" || status === "PENDING_PAYMENT";
+    const canCancel = !isTerminal;
 
     return (
-        <div className="space-y-5 max-w-5xl mx-auto px-4 sm:px-6 py-4 bg-background text-foreground">
-            {/* Top Breadcrumb & Action Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-3 sm:space-y-4 max-w-5xl mx-auto px-3 sm:px-6 py-3 bg-background text-foreground">
+            {/* 1. HEADER ACTIONS */}
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate("/bookings")}
-                    className="gap-2 px-2 text-subtle-foreground hover:text-foreground hover:bg-hover transition-colors rounded-xl cursor-pointer"
+                    className="w-fit -ml-2 gap-1.5 px-2 text-subtle-foreground hover:text-foreground hover:bg-hover transition-colors rounded-xl cursor-pointer h-8"
                 >
                     <ArrowLeft className="size-4" />
                     <span className="text-xs font-medium">Back to Bookings</span>
                 </Button>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleOpenStatusDialog}
-                        className="h-8 gap-1.5 px-3 rounded-xl border-border-subtle bg-surface text-foreground hover:bg-hover text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
+                        onClick={() => setIsEditOpen(true)}
+                        className="h-8 gap-1.5 px-2.5 sm:px-3 rounded-xl border-border-subtle bg-surface text-subtle-foreground hover:text-foreground hover:bg-hover text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
                     >
-                        <CheckCircle2 className="size-3.5 text-accent" />
-                        <span>Update Status</span>
+                        <Edit3 className="size-3.5" />
+                        <span>Edit</span>
                     </Button>
 
-                    {!isCancelled && !isCompleted && (
-                        <>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleOpenRescheduleDialog}
-                                className="h-8 gap-1.5 px-3 rounded-xl border-border-subtle bg-surface text-foreground hover:bg-hover text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
-                            >
-                                <RotateCcw className="size-3.5 text-amber-500" />
-                                <span>Reschedule</span>
-                            </Button>
+                    {allowedTransitions.length > 0 && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsStatusOpen(true)}
+                            className="h-8 gap-1.5 px-2.5 sm:px-3 rounded-xl border-border-subtle bg-surface text-subtle-foreground hover:text-foreground hover:bg-hover text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
+                        >
+                            <CheckCircle2 className="size-3.5" />
+                            <span>Change Status</span>
+                        </Button>
+                    )}
 
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    setCancellationReasonInput("");
-                                    setIsCancelOpen(true);
-                                }}
-                                className="h-8 gap-1.5 px-3 rounded-xl border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10 text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
-                            >
-                                <Ban className="size-3.5" />
-                                <span>Cancel</span>
-                            </Button>
-                        </>
+                    {canReschedule && (
+                        <Button
+                            size="sm"
+                            onClick={() => setIsRescheduleOpen(true)}
+                            className="h-8 gap-1.5 px-3 sm:px-3.5 rounded-xl bg-accent text-accent-foreground hover:opacity-90 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs transition-all active:scale-95"
+                        >
+                            <RotateCcw className="size-3.5" />
+                            <span>Reschedule Booking</span>
+                        </Button>
+                    )}
+
+                    {canCancel && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setCancellationReasonInput("");
+                                setIsCancelOpen(true);
+                            }}
+                            className="h-8 gap-1.5 px-2 sm:px-3 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive text-xs font-semibold cursor-pointer transition-all active:scale-95"
+                        >
+                            <CalendarOff className="size-3.5" />
+                            <span>Cancel</span>
+                        </Button>
                     )}
                 </div>
             </div>
 
-            {/* Main Booking Hero Banner */}
+            {/* 2 & 3. MAIN HEADER & APPOINTMENT METADATA */}
             <Card className="border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs rounded-2xl">
-                <CardContent className="p-5 sm:p-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-border-subtle/60 pb-4">
+                <CardContent className="p-3.5 sm:p-5 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-border-subtle/50 pb-3">
                         <div className="space-y-1 min-w-0">
-                            <div className="flex items-center gap-2.5">
-                                <h1 className="font-heading text-lg sm:text-xl font-bold tracking-tight text-foreground">
-                                    {serviceSnapshot?.name || service?.name || "Standard Booking"}
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h1 className="font-heading text-base sm:text-lg font-bold tracking-tight text-foreground truncate">
+                                    {serviceSnapshot?.name || service?.name || "Appointment"}
                                 </h1>
                                 <Badge
                                     variant="outline"
-                                    className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-lg select-none ${STATUS_VARIANTS[status] || "bg-secondary text-secondary-foreground"
+                                    className={`text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md select-none ${STATUS_VARIANTS[status] || "bg-secondary text-secondary-foreground"
                                         }`}
                                 >
-                                    {status.replace("_", " ")}
+                                    {status.replace(/_/g, " ")}
                                 </Badge>
                             </div>
-                            <p className="text-xs text-subtle-foreground font-mono">
-                                Booking ID: {booking._id}
-                            </p>
+
+                            {/* Full Booking ID with Explicit Copy Button */}
+                            <div className="flex items-center gap-1.5 text-[11px] text-subtle-foreground font-mono">
+                                <span className="font-sans text-subtle-foreground/70">ID:</span>
+                                <span className="truncate max-w-[200px] sm:max-w-none">{booking._id}</span>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyId}
+                                    title="Copy full Booking ID"
+                                    className="p-1 rounded-md hover:bg-hover hover:text-foreground text-subtle-foreground/80 transition-colors cursor-pointer"
+                                >
+                                    {copied ? (
+                                        <Check className="size-3.5 text-success" />
+                                    ) : (
+                                        <Copy className="size-3.5" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="text-left sm:text-right shrink-0">
                             <div className="font-heading text-lg sm:text-xl font-bold text-foreground">
                                 {formatPrice(serviceSnapshot?.price, serviceSnapshot?.currency)}
                             </div>
-                            <span className="text-[11px] text-subtle-foreground">
-                                {serviceSnapshot?.durationInMinutes ? `${serviceSnapshot.durationInMinutes} mins duration` : "Confirmed Fee"}
-                            </span>
                         </div>
                     </div>
 
-                    {/* Core Appointment Timing Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
-                        <div className="flex items-center gap-2 p-3 rounded-xl bg-surface border border-border-subtle">
-                            <Calendar className="size-4 text-accent shrink-0" />
-                            <div>
-                                <p className="text-[10px] uppercase font-semibold text-subtle-foreground">Date</p>
-                                <p className="font-medium text-foreground">{formatDate(startTime)}</p>
-                            </div>
+                    {/* Compact Appointment Metadata Bar */}
+                    <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-5 gap-y-1.5 text-xs pt-0.5">
+                        <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                            <Clock className="size-3.5 text-accent shrink-0" />
+                            <span>
+                                {formatTime(startTime)} – {formatTime(endTime)}
+                            </span>
+                            {serviceSnapshot?.durationInMinutes && (
+                                <span className="text-[11px] font-normal text-subtle-foreground">
+                                    ({serviceSnapshot.durationInMinutes}m)
+                                </span>
+                            )}
                         </div>
 
-                        <div className="flex items-center gap-2 p-3 rounded-xl bg-surface border border-border-subtle">
-                            <Clock className="size-4 text-accent shrink-0" />
-                            <div>
-                                <p className="text-[10px] uppercase font-semibold text-subtle-foreground">Time Window</p>
-                                <p className="font-medium text-foreground">
-                                    {formatTime(startTime)} – {formatTime(endTime)}
-                                </p>
-                            </div>
+                        <div className="flex items-center gap-1.5 text-subtle-foreground font-medium">
+                            <CalendarIcon className="size-3.5 text-subtle-foreground/70 shrink-0" />
+                            <span>{formatDate(startTime)}</span>
                         </div>
 
-                        <div className="flex items-center gap-2 p-3 rounded-xl bg-surface border border-border-subtle">
-                            <Globe className="size-4 text-accent shrink-0" />
-                            <div>
-                                <p className="text-[10px] uppercase font-semibold text-subtle-foreground">Timezone</p>
-                                <p className="font-medium text-foreground truncate">{timezone || "Local"}</p>
-                            </div>
+                        <div className="flex items-center gap-1.5 text-subtle-foreground">
+                            <Globe className="size-3.5 text-subtle-foreground/70 shrink-0" />
+                            <span className="truncate">{timezone || "Asia/Kolkata"}</span>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* 2-Column Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Customer Information Card */}
+            {/* 4 & 5. TWO-COLUMN LAYOUT: CUSTOMER + MEETING/CALENDAR */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
+                {/* CUSTOMER CARD (Includes Customer-provided Notes) */}
                 <Card className="border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs rounded-2xl">
-                    <CardContent className="p-5 space-y-3.5">
-                        <h2 className="font-heading text-sm font-bold tracking-tight text-foreground flex items-center gap-2 border-b border-border-subtle/60 pb-2.5">
-                            <User className="size-4 text-accent" />
-                            <span>Customer Details</span>
+                    <CardContent className="p-3.5 sm:p-4 space-y-3">
+                        <h2 className="font-heading text-xs font-bold tracking-wider uppercase text-subtle-foreground flex items-center gap-1.5 border-b border-border-subtle/50 pb-2">
+                            <User className="size-3.5 text-accent" />
+                            <span>Customer</span>
                         </h2>
 
-                        <div className="space-y-2.5 text-xs">
-                            <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
-                                <span className="text-subtle-foreground font-medium">Name:</span>
-                                <span className="text-foreground font-semibold">{booker?.name || "-"}</span>
+                        <div className="space-y-2 text-xs">
+                            <div>
+                                <p className="font-heading text-sm font-semibold text-foreground truncate">
+                                    {booker?.name || "Unknown Booker"}
+                                </p>
                             </div>
-                            <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
-                                <span className="text-subtle-foreground font-medium">Email:</span>
-                                <a
-                                    href={`mailto:${booker?.email}`}
-                                    className="text-foreground hover:text-accent font-medium flex items-center gap-1 transition-colors"
-                                >
-                                    <Mail className="size-3 text-subtle-foreground/60" />
-                                    <span>{booker?.email || "-"}</span>
-                                </a>
+
+                            <div className="flex flex-col gap-1.5 text-subtle-foreground select-text">
+                                {booker?.email && (
+                                    <div className="inline-flex items-center gap-2 truncate max-w-full cursor-default">
+                                        <Mail className="size-3.5 text-subtle-foreground/60 shrink-0" />
+                                        <span className="truncate">{booker.email}</span>
+                                    </div>
+                                )}
+                                {booker?.phone && (
+                                    <div className="inline-flex items-center gap-2 cursor-default">
+                                        <Phone className="size-3.5 text-subtle-foreground/60 shrink-0" />
+                                        <span>{booker.phone}</span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
-                                <span className="text-subtle-foreground font-medium">Phone:</span>
-                                <a
-                                    href={`tel:${booker?.phone}`}
-                                    className="text-foreground hover:text-accent font-medium flex items-center gap-1 transition-colors"
-                                >
-                                    <Phone className="size-3 text-subtle-foreground/60" />
-                                    <span>{booker?.phone || "-"}</span>
-                                </a>
-                            </div>
-                            <div className="flex items-center justify-between py-1">
-                                <span className="text-subtle-foreground font-medium">Created On:</span>
-                                <span className="text-subtle-foreground">{formatDate(createdAt)}</span>
+
+                            {/* Customer Booking Note Section */}
+                            <div className="pt-2 border-t border-border-subtle/40 space-y-1">
+                                <span className="text-[11px] font-semibold text-subtle-foreground flex items-center gap-1.5">
+                                    <FileText className="size-3 text-accent shrink-0" />
+                                    <span>Customer Note</span>
+                                </span>
+                                <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-surface p-2.5 rounded-xl border border-border-subtle/60">
+                                    {notes?.trim() ? notes : "No note provided by customer."}
+                                </p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Meeting & Location Card */}
+                {/* MEETING & CALENDAR */}
                 <Card className="border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs rounded-2xl">
-                    <CardContent className="p-5 space-y-3.5">
-                        <h2 className="font-heading text-sm font-bold tracking-tight text-foreground flex items-center gap-2 border-b border-border-subtle/60 pb-2.5">
-                            <Video className="size-4 text-accent" />
-                            <span>Meeting & Integrations</span>
+                    <CardContent className="p-3.5 sm:p-4 space-y-3">
+                        <h2 className="font-heading text-xs font-bold tracking-wider uppercase text-subtle-foreground flex items-center gap-1.5 border-b border-border-subtle/50 pb-2">
+                            <Video className="size-3.5 text-accent" />
+                            <span>Meeting & Calendar</span>
                         </h2>
 
                         <div className="space-y-2.5 text-xs">
-                            <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
+                            <div className="flex items-center justify-between">
                                 <span className="text-subtle-foreground font-medium">Mode:</span>
-                                <span className="text-foreground font-semibold">{serviceSnapshot?.mode || "ONLINE"}</span>
+                                <Badge
+                                    variant="outline"
+                                    className="text-[10px] font-bold rounded-md bg-surface text-foreground"
+                                >
+                                    {serviceSnapshot?.mode || "ONLINE"}
+                                </Badge>
                             </div>
 
-                            {meeting?.link ? (
-                                <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
-                                    <span className="text-subtle-foreground font-medium">Meeting Link:</span>
-                                    <a
-                                        href={meeting.link}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-accent hover:underline font-semibold"
-                                    >
-                                        <span>Join Call</span>
-                                        <ExternalLink className="size-3" />
-                                    </a>
-                                </div>
-                            ) : serviceSnapshot?.address ? (
-                                <div className="flex items-start justify-between py-1 border-b border-border-subtle/30 gap-2">
-                                    <span className="text-subtle-foreground font-medium shrink-0">Address:</span>
-                                    <span className="text-foreground text-right">{serviceSnapshot.address}</span>
-                                </div>
-                            ) : null}
+                            {serviceSnapshot?.mode === "OFFLINE" ? (
+                                <div className="space-y-1.5 pt-1">
+                                    <span className="text-[11px] font-semibold text-subtle-foreground flex items-center gap-1.5">
+                                        <MapPin className="size-3.5 text-accent shrink-0" />
+                                        <span>Appointment Location</span>
+                                    </span>
 
-                            {calendarEvent?.htmlLink && (
-                                <div className="flex items-center justify-between py-1 border-b border-border-subtle/30">
-                                    <span className="text-subtle-foreground font-medium">Calendar Event:</span>
+                                    {serviceSnapshot?.address ? (
+                                        <div className="rounded-xl border border-border-subtle bg-surface p-2.5 sm:p-3 space-y-1 text-xs">
+                                            {serviceSnapshot.address.street && (
+                                                <p className="font-medium text-foreground leading-relaxed">
+                                                    {serviceSnapshot.address.street}
+                                                </p>
+                                            )}
+                                            <p className="text-subtle-foreground">
+                                                {[
+                                                    serviceSnapshot.address.city,
+                                                    serviceSnapshot.address.state,
+                                                    serviceSnapshot.address.zipCode,
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(", ")}
+                                            </p>
+                                            {serviceSnapshot.address.country && (
+                                                <p className="text-[11px] font-medium text-subtle-foreground/80 pt-0.5">
+                                                    {serviceSnapshot.address.country}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-[11px] text-subtle-foreground/70 italic">
+                                            In-person address not specified
+                                        </p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-subtle-foreground font-medium">Meeting Link:</span>
+                                    {meeting?.link ? (
+                                        <a
+                                            href={meeting.link}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-accent hover:underline font-semibold cursor-pointer"
+                                        >
+                                            <span>Join Call</span>
+                                            <ExternalLink className="size-3" />
+                                        </a>
+                                    ) : (
+                                        <span className="text-subtle-foreground/60">No link generated</span>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-1">
+                                <span className="text-subtle-foreground font-medium">Calendar:</span>
+                                {calendarEvent?.htmlLink ? (
                                     <a
                                         href={calendarEvent.htmlLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-accent hover:underline font-semibold"
+                                        className="inline-flex items-center gap-1 text-accent hover:underline font-semibold cursor-pointer"
                                     >
                                         <CalendarDays className="size-3.5" />
-                                        <span>Open in Google Calendar</span>
+                                        <span>Google Calendar</span>
+                                        <ExternalLink className="size-3 ml-0.5" />
                                     </a>
-                                </div>
-                            )}
+                                ) : (
+                                    <span className="text-subtle-foreground/60">Not synced</span>
+                                )}
+                            </div>
 
-                            {isCancelled && cancellationReason && (
-                                <div className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1">
-                                    <div className="flex items-center gap-1.5 font-bold">
-                                        <AlertTriangle className="size-3.5" />
+                            {status === "CANCELLED" && cancellationReason && (
+                                <div className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1 mt-2">
+                                    <div className="flex items-center gap-1 font-bold">
+                                        <AlertTriangle className="size-3 shrink-0" />
                                         <span>Cancellation Reason</span>
                                     </div>
                                     <p className="text-[11px] leading-relaxed">{cancellationReason}</p>
@@ -479,210 +556,42 @@ const BookingDetails = () => {
                 </Card>
             </div>
 
-            {/* Internal Staff Notes Card */}
-            <Card className="border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs rounded-2xl">
-                <CardContent className="p-5 space-y-3">
-                    <div className="flex items-center justify-between border-b border-border-subtle/60 pb-2.5">
-                        <h2 className="font-heading text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
-                            <FileText className="size-4 text-accent" />
-                            <span>Internal Notes</span>
-                        </h2>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleOpenNotesDialog}
-                            className="h-7 gap-1 px-2.5 text-xs font-semibold rounded-lg border-border bg-surface text-subtle-foreground hover:bg-hover hover:text-foreground cursor-pointer shadow-xs transition-all active:scale-95"
-                        >
-                            <Edit3 className="size-3" />
-                            <span>Edit Notes</span>
-                        </Button>
-                    </div>
-                    <p className="text-xs text-subtle-foreground leading-relaxed whitespace-pre-wrap">
-                        {notes?.trim() ? notes : "No staff notes attached to this booking yet."}
-                    </p>
-                </CardContent>
-            </Card>
+            {/* COMPONENT DIALOGS */}
+            <BookingEditDialog
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                booking={booking}
+                onSave={handleSaveDetails}
+                isSaving={isUpdating}
+            />
 
-            {/* 1. EDIT NOTES DIALOG */}
-            <Dialog open={isNotesOpen} onOpenChange={setIsNotesOpen}>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-surface-elevated border-border text-foreground">
-                    <form onSubmit={handleUpdateNotes}>
-                        <DialogHeader>
-                            <DialogTitle className="font-heading text-base font-bold">Edit Booking Notes</DialogTitle>
-                            <DialogDescription className="text-xs text-subtle-foreground">
-                                Add private notes or instructions regarding this client appointment.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4">
-                            <Textarea
-                                rows={4}
-                                value={notesInput}
-                                onChange={(e) => setNotesInput(e.target.value)}
-                                placeholder="Enter booking notes..."
-                                className="text-xs bg-surface border-border text-foreground placeholder:text-subtle-foreground/60 rounded-xl"
-                            />
-                        </div>
-                        <DialogFooter className="gap-2 sm:space-x-0">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsNotesOpen(false)}
-                                className="rounded-xl text-xs font-semibold cursor-pointer"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                size="sm"
-                                disabled={isUpdating}
-                                className="rounded-xl bg-accent text-accent-foreground text-xs font-bold uppercase tracking-wider cursor-pointer active:scale-95 shadow-xs"
-                            >
-                                {isUpdating ? "Saving..." : "Save Notes"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <BookingStatusDialog
+                open={isStatusOpen}
+                onOpenChange={setIsStatusOpen}
+                currentStatus={status}
+                allowedTransitions={allowedTransitions}
+                onUpdate={handleStatusChange}
+                isUpdating={isUpdatingStatus}
+            />
 
-            {/* 2. UPDATE STATUS DIALOG */}
-            <Dialog open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-surface-elevated border-border text-foreground">
-                    <DialogHeader>
-                        <DialogTitle className="font-heading text-base font-bold">Update Booking Status</DialogTitle>
-                        <DialogDescription className="text-xs text-subtle-foreground">
-                            Modify the lifecycle status of this booking.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4 space-y-2">
-                        <Select value={statusInput} onValueChange={setStatusInput}>
-                            <SelectTrigger className="w-full text-xs rounded-xl border-border bg-surface text-foreground cursor-pointer">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover text-popover-foreground border-border">
-                                <SelectItem value="CONFIRMED" className="text-xs hover:bg-hover cursor-pointer">Confirmed</SelectItem>
-                                <SelectItem value="COMPLETED" className="text-xs hover:bg-hover cursor-pointer">Completed</SelectItem>
-                                <SelectItem value="CANCELLED" className="text-xs hover:bg-hover cursor-pointer">Cancelled</SelectItem>
-                                <SelectItem value="NO_SHOW" className="text-xs hover:bg-hover cursor-pointer">No Show</SelectItem>
-                                <SelectItem value="EXPIRED" className="text-xs hover:bg-hover cursor-pointer">Expired</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <DialogFooter className="gap-2 sm:space-x-0">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsStatusOpen(false)}
-                            className="rounded-xl text-xs font-semibold cursor-pointer"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
-                            disabled={isUpdatingStatus}
-                            onClick={handleUpdateStatus}
-                            className="rounded-xl bg-accent text-accent-foreground text-xs font-bold uppercase tracking-wider cursor-pointer active:scale-95 shadow-xs"
-                        >
-                            {isUpdatingStatus ? "Updating..." : "Update Status"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <BookingRescheduleDialog
+                open={isRescheduleOpen}
+                onOpenChange={setIsRescheduleOpen}
+                initialStartTime={startTime}
+                initialEndTime={endTime}
+                durationInMinutes={serviceSnapshot?.durationInMinutes || 45}
+                onReschedule={handleRescheduleConfirm}
+                isRescheduling={isRescheduling}
+            />
 
-            {/* 3. RESCHEDULE DIALOG */}
-            <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-surface-elevated border-border text-foreground">
-                    <form onSubmit={handleReschedule}>
-                        <DialogHeader>
-                            <DialogTitle className="font-heading text-base font-bold">Reschedule Appointment</DialogTitle>
-                            <DialogDescription className="text-xs text-subtle-foreground">
-                                Select a new start date and time for this appointment.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4 space-y-2">
-                            <label htmlFor="reschedule-time" className="text-[11px] font-semibold text-subtle-foreground">
-                                New Start Time
-                            </label>
-                            <Input
-                                id="reschedule-time"
-                                type="datetime-local"
-                                value={rescheduleInput}
-                                onChange={(e) => setRescheduleInput(e.target.value)}
-                                required
-                                className="text-xs bg-surface border-border text-foreground rounded-xl"
-                            />
-                        </div>
-                        <DialogFooter className="gap-2 sm:space-x-0">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsRescheduleOpen(false)}
-                                className="rounded-xl text-xs font-semibold cursor-pointer"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                size="sm"
-                                disabled={isRescheduling}
-                                className="rounded-xl bg-accent text-accent-foreground text-xs font-bold uppercase tracking-wider cursor-pointer active:scale-95 shadow-xs"
-                            >
-                                {isRescheduling ? "Rescheduling..." : "Confirm Reschedule"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
-            {/* 4. CANCEL BOOKING DIALOG */}
-            <Dialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-surface-elevated border-border text-foreground">
-                    <form onSubmit={handleCancelBooking}>
-                        <DialogHeader>
-                            <DialogTitle className="font-heading text-base font-bold text-destructive">Cancel Booking</DialogTitle>
-                            <DialogDescription className="text-xs text-subtle-foreground">
-                                Provide a reason for cancelling this appointment.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4 space-y-2">
-                            <label htmlFor="cancellation-reason" className="text-[11px] font-semibold text-subtle-foreground">
-                                Cancellation Reason
-                            </label>
-                            <Textarea
-                                id="cancellation-reason"
-                                rows={3}
-                                value={cancellationReasonInput}
-                                onChange={(e) => setCancellationReasonInput(e.target.value)}
-                                placeholder="e.g., Client requested cancellation or schedule conflict"
-                                required
-                                className="text-xs bg-surface border-border text-foreground placeholder:text-subtle-foreground/60 rounded-xl"
-                            />
-                        </div>
-                        <DialogFooter className="gap-2 sm:space-x-0">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsCancelOpen(false)}
-                                className="rounded-xl text-xs font-semibold cursor-pointer"
-                            >
-                                Keep Booking
-                            </Button>
-                            <Button
-                                type="submit"
-                                size="sm"
-                                disabled={isCancelling}
-                                className="rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold uppercase tracking-wider cursor-pointer active:scale-95 shadow-xs"
-                            >
-                                {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <BookingCancelDialog
+                open={isCancelOpen}
+                onOpenChange={setIsCancelOpen}
+                reason={cancellationReasonInput}
+                onReasonChange={setCancellationReasonInput}
+                onConfirm={handleCancelConfirm}
+                isCancelling={isCancelling}
+            />
         </div>
     );
 };

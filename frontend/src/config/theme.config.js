@@ -179,8 +179,8 @@ export const themeProfiles = {
                 "--muted": "#eaf8f5",
                 "--muted-foreground": "#668783",
 
-                "--accent": "#00FFFF",
-                "--accent-foreground": "#003333",
+                "--accent": "#14b8a6",
+                "--accent-foreground": "#ffffff",
 
                 "--destructive": "#dc2626",
                 "--success": "#059669",
@@ -191,7 +191,7 @@ export const themeProfiles = {
                 "--border-strong": "#9bcac2",
 
                 "--input": "#d8ebe7",
-                "--ring": "#00D9D9",
+                "--ring": "#0f766e",
 
                 "--subtle-foreground": "#4f716d",
 
@@ -215,10 +215,10 @@ export const themeProfiles = {
                 "--sidebar-primary-foreground": "#ffffff",
 
                 "--sidebar-accent": "#e8f7f4",
-                "--sidebar-accent-foreground": "#006666",
+                "--sidebar-accent-foreground": "#0f766e",
 
                 "--sidebar-border": "#c8e2dd",
-                "--sidebar-ring": "#00D9D9",
+                "--sidebar-ring": "#0f766e",
             },
 
             dark: {
@@ -249,8 +249,8 @@ export const themeProfiles = {
                 "--muted": "#112121",
                 "--muted-foreground": "#7da49f",
 
-                "--accent": "#00FFFF",
-                "--accent-foreground": "#001313",
+                "--accent": "#0d9488",
+                "--accent-foreground": "#f0fdfa",
 
                 "--destructive": "#ef4444",
                 "--success": "#22c55e",
@@ -261,7 +261,7 @@ export const themeProfiles = {
                 "--border-strong": "#285451",
 
                 "--input": "#102424",
-                "--ring": "#00FFFF",
+                "--ring": "#2dd4bf",
 
                 "--subtle-foreground": "#a3c7c2",
 
@@ -285,10 +285,10 @@ export const themeProfiles = {
                 "--sidebar-primary-foreground": "#001312",
 
                 "--sidebar-accent": "#0e2423",
-                "--sidebar-accent-foreground": "#00FFFF",
+                "--sidebar-accent-foreground": "#5eead4",
 
                 "--sidebar-border": "#173535",
-                "--sidebar-ring": "#00FFFF",
+                "--sidebar-ring": "#2dd4bf",
             }
         }
     },
@@ -587,141 +587,143 @@ export const themeProfiles = {
         tier: "pro",
         mode: {
             light: {
-                "--background": "#EF6905",
-                "--foreground": "#2A0A02",
+                "--background": "#fdf7f4",
+                "--foreground": "#2b140e",
 
-                "--surface": "#F47A20",
-                "--surface-foreground": "#320C03",
+                "--surface": "#f8ece6",
+                "--surface-foreground": "#361b13",
 
-                "--surface-elevated": "#FF8A32",
-                "--surface-elevated-foreground": "#2A0A02",
+                "--surface-elevated": "#ffffff",
+                "--surface-elevated-foreground": "#2b140e",
 
-                "--surface-sunken": "#D85C03",
-                "--surface-sunken-foreground": "#FFE8D4",
+                "--surface-sunken": "#f0dfd7",
+                "--surface-sunken-foreground": "#633c30",
 
-                "--card": "#F77B21",
-                "--card-foreground": "#2A0A02",
+                "--card": "#ffffff",
+                "--card-foreground": "#2b140e",
 
-                "--popover": "#FF8A32",
-                "--popover-foreground": "#2A0A02",
+                "--popover": "#ffffff",
+                "--popover-foreground": "#2b140e",
 
-                "--primary": "#FF1616",
-                "--primary-foreground": "#FFFFFF",
+                "--primary": "#c83318",
+                "--primary-foreground": "#ffffff",
 
-                "--secondary": "#D95B03",
-                "--secondary-foreground": "#FFF0E2",
+                "--secondary": "#f4dfd8",
+                "--secondary-foreground": "#6b2313",
 
-                "--muted": "#E56608",
-                "--muted-foreground": "#FFE0C7",
+                "--muted": "#f2e4de",
+                "--muted-foreground": "#85584c",
 
-                "--accent": "#FF2020",
-                "--accent-foreground": "#FFFFFF",
+                "--accent": "#ea580c",
+                "--accent-foreground": "#ffffff",
 
-                "--destructive": "#B91C1C",
-                "--success": "#16A34A",
-                "--warning": "#FFD000",
+                "--destructive": "#b91c1c",
+                "--success": "#15803d",
+                "--warning": "#b45309",
 
-                "--border-subtle": "#F47A20",
-                "--border": "#C95303",
-                "--border-strong": "#A94302",
+                "--border-subtle": "#faede7",
+                "--border": "#e8cfc4",
+                "--border-strong": "#cfaaa0",
 
-                "--input": "#D85C03",
-                "--ring": "#FF1616",
+                "--input": "#f4dfd8",
+                "--ring": "#c83318",
 
-                "--subtle-foreground": "#FFE2CB",
+                "--subtle-foreground": "#6e4b41",
 
-                "--hover": "#F98128",
-                "--hover-foreground": "#FFFFFF",
+                "--hover": "#faeae3",
+                "--hover-foreground": "#6b2313",
 
-                "--active": "#D95803",
-                "--active-foreground": "#FFFFFF",
+                "--active": "#f0d5ca",
+                "--active-foreground": "#521609",
 
-                "--selected": "#C84D02",
-                "--selected-foreground": "#FFFFFF",
+                "--selected": "#ebd0c4",
+                "--selected-foreground": "#4a1206",
 
-                "--overlay": "rgba(42, 10, 2, 0.45)",
+                "--overlay": "rgba(43, 20, 14, 0.45)",
 
                 "--radius": "0.5rem",
 
-                "--sidebar": "#D95B03",
-                "--sidebar-foreground": "#FFF0E2",
+                "--sidebar": "#f8ede7",
+                "--sidebar-foreground": "#2b140e",
 
-                "--sidebar-primary": "#FF1616",
-                "--sidebar-primary-foreground": "#FFFFFF",
+                "--sidebar-primary": "#c83318",
+                "--sidebar-primary-foreground": "#ffffff",
 
-                "--sidebar-accent": "#E86A08",
-                "--sidebar-accent-foreground": "#FFF0E2",
+                "--sidebar-accent": "#edd3c7",
+                "--sidebar-accent-foreground": "#6b2313",
 
-                "--sidebar-border": "#C95303",
-                "--sidebar-ring": "#FF1616",
+                "--sidebar-border": "#e8cfc4",
+                "--sidebar-ring": "#c83318",
             },
 
             dark: {
-                "--background": "#120400",
-                "--foreground": "#FFF0E5",
+                "--background": "#120502",
+                "--foreground": "#fceee9",
 
-                "--surface": "#1C0702",
-                "--surface-foreground": "#FFE1D0",
+                "--surface": "#1c0b06",
+                "--surface-foreground": "#f8ded5",
 
-                "--surface-elevated": "#270B03",
-                "--surface-elevated-foreground": "#FFF5EE",
+                "--surface-elevated": "#261009",
+                "--surface-elevated-foreground": "#ffffff",
 
-                "--surface-sunken": "#080200",
-                "--surface-sunken-foreground": "#A97862",
+                "--surface-sunken": "#0a0200",
+                "--surface-sunken-foreground": "#a47366",
 
-                "--card": "#210802",
-                "--card-foreground": "#FFF0E5",
+                "--card": "#180804",
+                "--card-foreground": "#fceee9",
 
-                "--popover": "#300D03",
-                "--popover-foreground": "#FFF5EE",
+                "--popover": "#230e07",
+                "--popover-foreground": "#ffffff",
 
-                "--primary": "#FF1A1A",
-                "--primary-foreground": "#FFFFFF",
+                "--primary": "#ff4d2e",
+                "--primary-foreground": "#260600",
 
-                "--secondary": "#3A1004",
-                "--secondary-foreground": "#FFE0D0",
+                "--secondary": "#2e120a",
+                "--secondary-foreground": "#f9ded6",
 
-                "--muted": "#280B03",
-                "--muted-foreground": "#B9846C",
+                "--muted": "#230e07",
+                "--muted-foreground": "#b57d6f",
 
-                "--accent": "#FF2929",
-                "--accent-foreground": "#FFFFFF",
+                "--accent": "#f97316",
+                "--accent-foreground": "#1c0702",
 
-                "--destructive": "#FF4545",
-                "--success": "#22C55E",
-                "--warning": "#F59E0B",
+                "--destructive": "#ef4444",
+                "--success": "#22c55e",
+                "--warning": "#f59e0b",
 
-                "--border-subtle": "#321006",
-                "--border": "#4D1708",
-                "--border-strong": "#6B220A",
+                "--border-subtle": "#2b0f07",
+                "--border": "#47190d",
+                "--border-strong": "#692514",
 
-                "--input": "#3A1004",
-                "--ring": "#FF2929",
+                "--input": "#2c1109",
+                "--ring": "#ff4d2e",
 
-                "--subtle-foreground": "#D4A18C",
+                "--subtle-foreground": "#cfa093",
 
-                "--hover": "#421306",
-                "--hover-foreground": "#FFF0E8",
+                "--hover": "#2e120a",
+                "--hover-foreground": "#fff1ec",
 
-                "--active": "#55170A",
-                "--active-foreground": "#FFF5EF",
+                "--active": "#3f190e",
+                "--active-foreground": "#ffffff",
 
-                "--selected": "#681D0D",
-                "--selected-foreground": "#FFF0E8",
+                "--selected": "#4a1c10",
+                "--selected-foreground": "#ffffff",
 
-                "--overlay": "rgba(18, 4, 0, 0.82)",
+                "--overlay": "rgba(10, 2, 0, 0.75)",
 
-                "--sidebar": "#0B0200",
-                "--sidebar-foreground": "#FFF0E5",
+                "--radius": "0.5rem",
 
-                "--sidebar-primary": "#FF1A1A",
-                "--sidebar-primary-foreground": "#FFFFFF",
+                "--sidebar": "#0e0301",
+                "--sidebar-foreground": "#fceee9",
 
-                "--sidebar-accent": "#260A03",
-                "--sidebar-accent-foreground": "#FFE0D0",
+                "--sidebar-primary": "#ff4d2e",
+                "--sidebar-primary-foreground": "#260600",
 
-                "--sidebar-border": "#4D1708",
-                "--sidebar-ring": "#FF2929",
+                "--sidebar-accent": "#260d06",
+                "--sidebar-accent-foreground": "#ff9a85",
+
+                "--sidebar-border": "#3a1309",
+                "--sidebar-ring": "#ff4d2e",
             }
         }
     },
@@ -1310,143 +1312,143 @@ export const themeProfiles = {
         tier: "pro",
         mode: {
             light: {
-                "--background": "#FAFAF7",
-                "--foreground": "#181818",
+                "--background": "#FFFFFF",
+                "--foreground": "#0A0A0A",
 
-                "--surface": "#F2F2EE",
-                "--surface-foreground": "#242424",
+                "--surface": "#F4F4F5",
+                "--surface-foreground": "#18181B",
 
                 "--surface-elevated": "#FFFFFF",
-                "--surface-elevated-foreground": "#181818",
+                "--surface-elevated-foreground": "#0A0A0A",
 
-                "--surface-sunken": "#E7E7E1",
-                "--surface-sunken-foreground": "#5C5C55",
+                "--surface-sunken": "#E4E4E7",
+                "--surface-sunken-foreground": "#52525B",
 
                 "--card": "#FFFFFF",
-                "--card-foreground": "#181818",
+                "--card-foreground": "#0A0A0A",
 
                 "--popover": "#FFFFFF",
-                "--popover-foreground": "#181818",
+                "--popover-foreground": "#0A0A0A",
 
-                "--primary": "#FFFF00",
-                "--primary-foreground": "#111111",
+                "--primary": "#0A0A0A",
+                "--primary-foreground": "#FFD000",
 
-                "--secondary": "#E5E5E1",
-                "--secondary-foreground": "#242424",
+                "--secondary": "#FFFBEB",
+                "--secondary-foreground": "#78350F",
 
-                "--muted": "#EEEEEA",
-                "--muted-foreground": "#707068",
+                "--muted": "#F4F4F5",
+                "--muted-foreground": "#71717A",
 
-                "--accent": "#FFFF00",
-                "--accent-foreground": "#111111",
+                "--accent": "#FFD000",
+                "--accent-foreground": "#000000",
 
                 "--destructive": "#DC2626",
                 "--success": "#16A34A",
                 "--warning": "#D97706",
 
-                "--border-subtle": "#F0F0EC",
-                "--border": "#D9D9D3",
-                "--border-strong": "#BEBEB6",
+                "--border-subtle": "#F4F4F5",
+                "--border": "#E4E4E7",
+                "--border-strong": "#A1A1AA",
 
-                "--input": "#D9D9D3",
-                "--ring": "#FFFF00",
+                "--input": "#E4E4E7",
+                "--ring": "#FFD000",
 
-                "--subtle-foreground": "#5D5D56",
+                "--subtle-foreground": "#52525B",
 
-                "--hover": "#E9E9E4",
-                "--hover-foreground": "#222222",
+                "--hover": "#FEF3C7",
+                "--hover-foreground": "#000000",
 
-                "--active": "#DDDDD7",
-                "--active-foreground": "#181818",
+                "--active": "#FDE68A",
+                "--active-foreground": "#000000",
 
-                "--selected": "#D1D1C9",
-                "--selected-foreground": "#151515",
+                "--selected": "#FDE047",
+                "--selected-foreground": "#000000",
 
-                "--overlay": "rgba(24, 24, 24, 0.45)",
+                "--overlay": "rgba(0, 0, 0, 0.60)",
 
                 "--radius": "0.5rem",
 
-                "--sidebar": "#F5F5F1",
-                "--sidebar-foreground": "#181818",
+                "--sidebar": "#FAFAFA",
+                "--sidebar-foreground": "#0A0A0A",
 
-                "--sidebar-primary": "#FFFF00",
-                "--sidebar-primary-foreground": "#111111",
+                "--sidebar-primary": "#0A0A0A",
+                "--sidebar-primary-foreground": "#FFD000",
 
-                "--sidebar-accent": "#E9E9E4",
-                "--sidebar-accent-foreground": "#242424",
+                "--sidebar-accent": "#FEF3C7",
+                "--sidebar-accent-foreground": "#000000",
 
-                "--sidebar-border": "#D9D9D3",
-                "--sidebar-ring": "#FFFF00",
+                "--sidebar-border": "#E4E4E7",
+                "--sidebar-ring": "#FFD000",
             },
 
             dark: {
-                "--background": "#030303",
-                "--foreground": "#F5F5F5",
+                "--background": "#000000",
+                "--foreground": "#FFFFFF",
 
                 "--surface": "#080808",
-                "--surface-foreground": "#E8E8E8",
+                "--surface-foreground": "#F4F4F5",
 
-                "--surface-elevated": "#111111",
+                "--surface-elevated": "#121212",
                 "--surface-elevated-foreground": "#FFFFFF",
 
                 "--surface-sunken": "#000000",
-                "--surface-sunken-foreground": "#858585",
+                "--surface-sunken-foreground": "#71717A",
 
-                "--card": "#0B0B0B",
-                "--card-foreground": "#F5F5F5",
+                "--card": "#0A0A0A",
+                "--card-foreground": "#FFFFFF",
 
-                "--popover": "#151515",
+                "--popover": "#121212",
                 "--popover-foreground": "#FFFFFF",
 
-                "--primary": "#FFFF00",
+                "--primary": "#FFD000",
                 "--primary-foreground": "#000000",
 
-                "--secondary": "#181818",
-                "--secondary-foreground": "#EEEEEE",
+                "--secondary": "#171717",
+                "--secondary-foreground": "#FFD000",
 
-                "--muted": "#111111",
-                "--muted-foreground": "#A1A1A1",
+                "--muted": "#121212",
+                "--muted-foreground": "#8E8E93",
 
-                "--accent": "#FFFF00",
+                "--accent": "#FFE500",
                 "--accent-foreground": "#000000",
 
                 "--destructive": "#EF4444",
                 "--success": "#22C55E",
                 "--warning": "#F59E0B",
 
-                "--border-subtle": "#151515",
-                "--border": "#262626",
-                "--border-strong": "#3A3A3A",
+                "--border-subtle": "#141414",
+                "--border": "#242424",
+                "--border-strong": "#383838",
 
-                "--input": "#191919",
-                "--ring": "#FFFF00",
+                "--input": "#171717",
+                "--ring": "#FFD000",
 
-                "--subtle-foreground": "#C2C2C2",
+                "--subtle-foreground": "#A1A1AA",
 
-                "--hover": "#191919",
-                "--hover-foreground": "#F8F8F8",
+                "--hover": "#1A1A1A",
+                "--hover-foreground": "#FFD000",
 
-                "--active": "#232323",
+                "--active": "#262626",
                 "--active-foreground": "#FFFFFF",
 
-                "--selected": "#303030",
-                "--selected-foreground": "#FFFFFF",
+                "--selected": "#FFD000",
+                "--selected-foreground": "#000000",
 
-                "--overlay": "rgba(0, 0, 0, 0.80)",
+                "--overlay": "rgba(0, 0, 0, 0.85)",
 
                 "--radius": "0.5rem",
 
-                "--sidebar": "#010101",
-                "--sidebar-foreground": "#F5F5F5",
+                "--sidebar": "#050505",
+                "--sidebar-foreground": "#FFFFFF",
 
-                "--sidebar-primary": "#FFFF00",
+                "--sidebar-primary": "#FFD000",
                 "--sidebar-primary-foreground": "#000000",
 
-                "--sidebar-accent": "#111111",
-                "--sidebar-accent-foreground": "#EEEEEE",
+                "--sidebar-accent": "#141414",
+                "--sidebar-accent-foreground": "#FFD000",
 
-                "--sidebar-border": "#262626",
-                "--sidebar-ring": "#FFFF00",
+                "--sidebar-border": "#242424",
+                "--sidebar-ring": "#FFD000",
             }
         }
     },
