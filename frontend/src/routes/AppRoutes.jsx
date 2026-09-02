@@ -44,6 +44,7 @@ import DealDetails from '@/pages/crm/deals/DealDetails';
 // Bookings imports
 import Bookings from '@/pages/bookings/Bookings';
 import BookingDetails from '@/pages/bookings/BookingDetails';
+import ManagePublicBooking from '@/pages/bookings/ManagePublicBooking';
 
 // Reminder imports
 import Reminder from '@/pages/reminder/Reminder';
@@ -152,6 +153,7 @@ export const AppRoutes = () => {
 
             {/* Public Service Route */}
             <Route path="/book/:orgSlug/:serviceSlug" element={<PublicService />} />
+            <Route path="/book/manage" element={<ManagePublicBooking />} />
 
         </Routes>
     );

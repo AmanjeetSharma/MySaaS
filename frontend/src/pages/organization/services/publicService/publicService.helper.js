@@ -1,6 +1,6 @@
 // src/pages/publicService.helper.js
 
-const WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+export const WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 /**
  * Format currency with ISO code fallback

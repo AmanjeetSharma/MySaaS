@@ -135,7 +135,7 @@ const processSuccessfulPayment = async ({
     }
 
     if (payment.status === "SUCCESS") {
-        console.log(`[Payment] Payment already processed for booking ID: ${payment.booking} by Razorpay Webhook, payment ID: ${payment._id}`);
+        console.log(`[Payment] Payment already processed by Razorpay Webhook | booking ID: ${payment.booking} | payment ID: ${payment._id}`);
         return {
             paymentId: payment._id,
             bookingId: payment.booking,

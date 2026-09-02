@@ -324,7 +324,7 @@ export const confirmBookingService = async ({
 
     const accessToken = generateBookingAccessToken();
     const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
-
+    
     const googleResult = await tryCreateGoogleEvent({
         organization,
         service,
