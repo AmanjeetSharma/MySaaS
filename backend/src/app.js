@@ -7,7 +7,9 @@ import env from "./config/env.config.js";
 
 const app = express();
 
-app.use(httpLogger);
+if(env.NODE_ENV === "production") {
+    app.use(httpLogger);
+}
 
 app.use(cors({
     origin: env.CORS_ORIGIN,
@@ -17,7 +19,7 @@ app.use(cors({
 app.use(
     "/api/v1/payments/webhook",
     express.raw({ type: "application/json" })
-)
+);
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public/temp"));

@@ -289,12 +289,12 @@ export const buildManageBookingUrl = (rawToken) => {
 
 
 
-export const sendBookingEmails = async ({
-    booking,
-    organization,
-    manageBookingUrl,
-}) => {
-    if (!env.EMAIL_ENABLED) return;
+    export const sendBookingEmails = async ({
+        booking,
+        organization,
+        manageBookingUrl,
+    }) => {
+        if (!env.EMAIL_ENABLED) return;
 
     const date = new Intl.DateTimeFormat("en-IN", {
         dateStyle: "medium",

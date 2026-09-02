@@ -275,7 +275,7 @@ export const createPendingBookingService = async (payload = {}) => {
         throw new ApiError(500, "Unable to create booking. Please try again.");
     }
 
-    console.log(`[Booking: public api] New pending booking: ${booking._id} | ${booking.booker.email} | expires ${paymentExpiresAt.toISOString()}`);
+    console.log(`[Booking: public api] New pending booking created: ${booking._id} | ${booking.booker.email} | expires ${paymentExpiresAt.toISOString()}`);
 
     return {
         booking,
@@ -297,7 +297,7 @@ export const createPendingBookingService = async (payload = {}) => {
 export const confirmBookingService = async ({
     bookingId,
 }) => {
-
+    console.log(`[Booking] Confirming booking: ${bookingId}`);
     const booking = await findBookingById(bookingId);
     if (!booking) {
         throw new ApiError(404, "Booking not found.");
@@ -323,6 +323,7 @@ export const confirmBookingService = async ({
 
     const accessToken = generateBookingAccessToken();
     const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
+    console.log(`[Booking] Link= ${manageBookingUrl} | raw token: ${accessToken.rawToken} | ExpiresAt: ${accessToken.expiresAt.toISOString()}`);
 
     const googleResult = await tryCreateGoogleEvent({
         organization,
@@ -359,8 +360,7 @@ export const confirmBookingService = async ({
         organization,
         manageBookingUrl,
     });
-
-
+    
     return confirmedBooking;
 };
 
@@ -664,7 +664,7 @@ export const publicRescheduleBookingService = async ({
     rawToken,
     startTime,
 }) => {
-    
+
     const hashedToken = hashBookingAccessToken(rawToken);
 
     const booking = await findBookingByAccessToken(hashedToken);

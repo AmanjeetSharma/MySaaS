@@ -103,6 +103,8 @@ export const createPaymentService = async (payload = {}) => {
     booking.payment = payment._id;
     await booking.save();
 
+    console.log(`[Payment] Payment session created for booking ID: ${booking._id}, payment ID: ${payment._id}, Razorpay order ID: ${razorpayOrder.id}`);
+
     return {
         bookingId: booking._id,
         paymentId: payment._id,
@@ -198,6 +200,8 @@ export const verifyPaymentService = async ({
     if (!isValidSignature) {
         throw new ApiError(400, "Invalid payment signature.");
     }
+
+    console.log(`[Payment] Payment verified successfully. Order: ${razorpayOrderId}, Payment: ${razorpayPaymentId}`);
 
     return processSuccessfulPayment({
         razorpayOrderId,
