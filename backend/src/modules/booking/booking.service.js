@@ -16,6 +16,7 @@ import {
     findBookings,
     countBookings,
     findServiceById,
+    findServiceForPublicBooking,
     findBookingById,
     findActivePendingBooking,
 } from "./booking.repository.js";
@@ -359,7 +360,7 @@ export const confirmBookingService = async ({
         organization,
         manageBookingUrl,
     });
-    
+
     return confirmedBooking;
 };
 
@@ -600,21 +601,48 @@ export const getPublicBookingService = async ({ rawToken }) => {
 
     validateBookingAccess(booking);
 
-    const isManageable = !["CANCELLED", "COMPLETED"].includes(booking.status);
+    const service = await findServiceForPublicBooking(booking.service);
+    if (!service) {
+        throw new ApiError(404, "Service not found.");
+    }
 
-    console.log(`[Booking: public api] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
+    const availability = await findAvailabilityByServiceId(service._id);
+
+    const hasBookableAvailability = Object.values(availability?.days ?? {}).some(
+        day => day.enabled && Array.isArray(day.slots) && day.slots.length > 0
+    );
+
+    const isServiceActive = service.isActive;
+
+    const isServiceBookable =
+        isServiceActive &&
+        hasBookableAvailability &&
+        (
+            service.mode === "ONLINE" ||
+            (
+                service.mode === "OFFLINE" &&
+                Boolean(service.address)
+            )
+        );
+
+    const isBookingManageable = !["CANCELLED", "COMPLETED", "NO_SHOW"].includes(booking.status);    
+
+    const canReschedule = isBookingManageable && isServiceBookable;
+    const canCancel = isBookingManageable;
+
+    console.log(`[Booking: public api] Booking details fetched for ${booking.booker.name} (${booking.booker.email}) by manageBookingURL.`);
 
     return {
-        bookingId: booking._id,
-
         organization: {
             name: booking.organization?.name,
-            slug: booking.organization?.slug,
         },
 
         service: {
             name: booking.serviceSnapshot?.name,
-            slug: booking.serviceSnapshot?.slug,
+            durationInMinutes: booking.serviceSnapshot?.durationInMinutes,
+            mode: booking.serviceSnapshot?.mode,
+            price: booking.serviceSnapshot?.price,
+            currency: booking.serviceSnapshot?.currency,
         },
 
         booker: {
@@ -623,28 +651,44 @@ export const getPublicBookingService = async ({ rawToken }) => {
             phone: booking.booker.phone,
         },
 
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        timezone: booking.timezone,
+        booking: {
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            timezone: booking.timezone,
+            status: booking.status,
+            notes: booking.notes ?? null,
+        },
 
         meeting: {
             provider: booking.meeting?.provider ?? null,
             link: booking.meeting?.link ?? null,
         },
 
-        status: booking.status,
 
-        cancellationReason: booking.cancellationReason ?? null,
+        cancellation: {
+            reason: booking.cancellationReason ?? null,
+            cancelledAt: booking.cancelledAt ?? null,
+        },
 
-        cancelledAt: booking.cancelledAt ?? null,
+        permissions: {
+            canReschedule,
+            canCancel,
+        },
 
-        notes: booking.notes ?? null,
+        rescheduling: {
+            available: canReschedule,
 
-        canReschedule: isManageable,
+            availability: canReschedule && availability
+                ? {
+                    timezone: availability.timezone,
+                    days: availability.days,
+                }
+                : null,
+        },
 
-        canCancel: isManageable,
-
-        accessTokenExpiresAt: booking.bookingAccess.expiresAt,
+        access: {
+            expiresAt: booking.bookingAccess.expiresAt,
+        },
     };
 };
 

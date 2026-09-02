@@ -165,7 +165,7 @@ const PublicService = () => {
                     phone: formData.phone.trim() || "N/A",
                 },
                 startTime: selectedSlot.isoString,
-                notes: formData.notes.trim() || "No additional notes provided.",
+                notes: formData.notes.trim() || "No additional notes were provided.",
             };
 
             const paymentOrder = await createPayment(payload);

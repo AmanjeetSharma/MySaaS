@@ -252,6 +252,11 @@ export const findServiceById = async (serviceId) => {
 };
 
 
+export const findServiceForPublicBooking = async (serviceId) => {
+    return Service.findById(serviceId);
+}
+
+
 export const expirePendingBookings = async () => {
     const now = new Date();
 

@@ -289,12 +289,12 @@ export const buildManageBookingUrl = (rawToken) => {
 
 
 
-    export const sendBookingEmails = async ({
-        booking,
-        organization,
-        manageBookingUrl,
-    }) => {
-        if (!env.EMAIL_ENABLED) return;
+export const sendBookingEmails = async ({
+    booking,
+    organization,
+    manageBookingUrl,
+}) => {
+    if (!env.EMAIL_ENABLED) return;
 
     const date = new Intl.DateTimeFormat("en-IN", {
         dateStyle: "medium",
@@ -404,7 +404,7 @@ export const hashBookingAccessToken = (rawToken) => {
 
 export const validateBookingAccess = (booking) => {
     if (!booking) {
-        throw new ApiError(404, "Invalid or expired booking link.");
+        throw new ApiError(404, "This booking management link is invalid.");
     }
 
     if (

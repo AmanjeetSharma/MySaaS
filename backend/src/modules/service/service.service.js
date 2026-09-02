@@ -732,11 +732,6 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
 
     const availability = await findAvailabilityByServiceId(service._id);
 
-    const responseObject = {
-        service: service.toObject(),
-        availability: availability ? { ...availability.toObject() } : null,
-    };
-
     const hasBookableAvailability = Object.values(availability?.days ?? {}).some(
         day => day.enabled && Array.isArray(day.slots) && day.slots.length > 0
     );
