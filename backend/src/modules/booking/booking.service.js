@@ -297,7 +297,7 @@ export const createPendingBookingService = async (payload = {}) => {
 export const confirmBookingService = async ({
     bookingId,
 }) => {
-    console.log(`[Booking] Confirming booking: ${bookingId}`);
+
     const booking = await findBookingById(bookingId);
     if (!booking) {
         throw new ApiError(404, "Booking not found.");
@@ -323,7 +323,6 @@ export const confirmBookingService = async ({
 
     const accessToken = generateBookingAccessToken();
     const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
-    console.log(`[Booking] Link= ${manageBookingUrl} | raw token: ${accessToken.rawToken} | ExpiresAt: ${accessToken.expiresAt.toISOString()}`);
 
     const googleResult = await tryCreateGoogleEvent({
         organization,
