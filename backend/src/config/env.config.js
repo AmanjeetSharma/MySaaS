@@ -1,14 +1,14 @@
 const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
-    VERIFICATION_REQUIRED: process.env.VERIFICATION_REQUIRED === 'true', // Converting to boolean
+    VERIFICATION_REQUIRED: process.env.VERIFICATION_REQUIRED === 'true',
     MONGO_URI: process.env.MONGO_URI,
     DB_NAME: process.env.DB_NAME,
     PORT: process.env.PORT || 3000,
     LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
     SERVICE_NAME: process.env.SERVICE_NAME || 'mysaas-api',
 
-    CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+    CORS_ORIGIN: process.env.CORS_ORIGIN,
+    CLIENT_URL: process.env.CLIENT_URL,
 
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
@@ -19,7 +19,7 @@ const env = {
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
 
-    EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true', // Converting to boolean
+    EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true',
     ENABLE_JOBS: process.env.ENABLE_JOBS === 'true',
 
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
@@ -38,6 +38,9 @@ const env = {
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
+
+    REDIS_URL: process.env.REDIS_URL,
+    REDIS_MAX_OUTAGE_MS: parseInt(process.env.REDIS_MAX_OUTAGE_MS) || 3600000, // 1 hour
 };
 
 export default env;

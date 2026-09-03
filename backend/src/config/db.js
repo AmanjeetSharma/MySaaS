@@ -4,22 +4,22 @@ import env from "./env.config.js";
 import dns from "dns";
 import logger from "./logger.js";
 
-if (env.NODE_ENV === "development") {
-    dns.setServers(["1.1.1.1", "8.8.8.8"]);
-}
+// if (env.NODE_ENV === "development") {
+//     dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// }
 
 
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(`${env.MONGO_URI}/${env.DB_NAME}`);
-        console.log(`${chalk.yellowBright("--> MongoDB Connected")} | HOST: ${chalk.gray(conn.connection.host)}`);
+        const connection = await mongoose.connect(`${env.MONGO_URI}/${env.DB_NAME}`);
+        console.log(`${chalk.yellowBright("--> MongoDB Connected")} | HOST: ${chalk.gray(connection.connection.host)}`);
     } catch (error) {
         logger.fatal(
             {
                 err: error,
             },
             "MongoDB Connection failed"
-        )
+        );
         process.exit(1);
     }
 };

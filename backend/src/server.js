@@ -5,6 +5,8 @@ import chalk from "chalk";
 import launchPage from "./config/launchPage.js"
 import env from "./config/env.config.js";
 import { startJobs } from "./jobs/index.js";
+import { connectRedis } from "./infrastructure/redis/redis.client.js";
+
 
 dotenv.config({
     path: "./.env"
@@ -19,7 +21,10 @@ app.get("/health", (req, res) => {
 });
 
 connectDB()
-    .then(() => {
+    .then(async () => {
+
+        await connectRedis()
+
         app.listen(env.PORT, () => {
             if (env.NODE_ENV === "development") {
                 console.log(chalk.yellowBright(`Server is live!`));
@@ -31,13 +36,12 @@ connectDB()
                 console.log(chalk.cyanBright(`🌐 Port: ${env.PORT}`));
                 console.log(chalk.gray(`-----------------------------------------`));
             }
+
             if (env.ENABLE_JOBS) {
                 startJobs(); // starting background jobs only after server goes live
-            }else{
+            } else {
                 console.log(chalk.yellowBright(`Background jobs are disabled.`));
             }
+
         });
     })
-    .catch((error) => {
-        console.log("MongoDB Connection failed: ", error);
-    });
