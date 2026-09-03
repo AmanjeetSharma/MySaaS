@@ -58,7 +58,7 @@ redis.on("close", () => {
         );
 
         process.exit(1);
-    }, env.REDIS_MAX_OUTAGE_MS);
+    }, env.REDIS_MAX_OUTAGE_DURATION_MS);
 });
 
 
@@ -68,7 +68,7 @@ let lastErrorLogTime = 0;
 redis.on("error", (error) => {
     const now = Date.now();
 
-    if (now - lastErrorLogTime > 60000) { // Log error at most once every 60 seconds
+    if (now - lastErrorLogTime > env.REDIS_ERROR_LOG_THROTTLE_MS) {
         lastErrorLogTime = now;
 
         logger.error(
@@ -90,6 +90,16 @@ export const connectRedis = async () => {
 
         process.exit(1);
     }
-}
+};
+
+export const disconnectRedis = async () => {
+    if (redis.status === "end") {
+        return;
+    }
+
+    await redis.quit();
+};
+
+
 
 export default redis;

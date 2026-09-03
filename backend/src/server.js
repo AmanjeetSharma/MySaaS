@@ -6,6 +6,7 @@ import launchPage from "./config/launchPage.js"
 import env from "./config/env.config.js";
 import { startJobs } from "./jobs/index.js";
 import { connectRedis } from "./infrastructure/redis/redis.client.js";
+import { gracefulShutdown } from "./infrastructure/shutdown/gracefulShutdown.js";
 
 
 dotenv.config({
@@ -25,7 +26,7 @@ connectDB()
 
         await connectRedis()
 
-        app.listen(env.PORT, () => {
+        const server = app.listen(env.PORT, () => {
             if (env.NODE_ENV === "development") {
                 console.log(chalk.yellowBright(`Server is live!`));
                 console.log(chalk.magentaBright(`🌐 Server is running on:`));
@@ -44,4 +45,6 @@ connectDB()
             }
 
         });
+
+        gracefulShutdown(server);
     })

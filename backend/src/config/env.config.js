@@ -40,7 +40,10 @@ const env = {
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
 
     REDIS_URL: process.env.REDIS_URL,
-    REDIS_MAX_OUTAGE_MS: parseInt(process.env.REDIS_MAX_OUTAGE_MS) || 3600000, // 1 hour
+    REDIS_MAX_OUTAGE_DURATION_MS: parseInt(process.env.REDIS_MAX_OUTAGE_DURATION_MS),
+    REDIS_ERROR_LOG_THROTTLE_MS: parseInt(process.env.REDIS_ERROR_LOG_THROTTLE_MS),
+
+    SERVER_SHUTDOWN_TIMEOUT_MS: parseInt(process.env.SERVER_SHUTDOWN_TIMEOUT_MS),
 };
 
 export default env;
