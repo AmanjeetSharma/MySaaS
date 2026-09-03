@@ -50,16 +50,10 @@ export const gracefulShutdown = (getServer) => {
             logger.info("HTTP server closed");
 
             await disconnectRedis();
-            logger.info(
-                { service: "Redis" },
-                "Connection closed"
-            );
+            logger.info("Redis connection closed");
 
             await mongoose.disconnect();
-            logger.info(
-                { service: "MongoDB" },
-                "MongoDB connection closed"
-            );
+            logger.info("MongoDB connection closed");
 
             clearTimeout(forceShutdownTimer);
 
