@@ -2,6 +2,13 @@ import Redis from "ioredis";
 import env from "../../config/env.config.js";
 import logger from "../../config/logger.js";
 
+let redisShutdownHandler = null;
+
+export const setRedisShutdownHandler = (handler) => {
+    redisShutdownHandler = handler;
+}
+
+let isRedisShuttingDown = false;
 let redisOutageStartedAt = null;
 let redisOutageTimer = null;
 
@@ -32,6 +39,8 @@ const redis = new Redis(env.REDIS_URL, {
 // });
 
 redis.on("ready", () => {
+    if (isRedisShuttingDown) return;
+
     if (redisOutageTimer) {
         clearTimeout(redisOutageTimer);
         redisOutageTimer = null;
@@ -45,6 +54,7 @@ redis.on("ready", () => {
 
 
 redis.on("close", () => {
+    if (isRedisShuttingDown) return;
     if (redisOutageStartedAt) return;
 
     redisOutageStartedAt = Date.now();
@@ -57,7 +67,9 @@ redis.on("close", () => {
             "Redis has been unavailable for too long. Shutting down."
         );
 
-        process.exit(1);
+        if (redisShutdownHandler) {
+            redisShutdownHandler("REDIS_OUTAGE", 1);
+        }
     }, env.REDIS_MAX_OUTAGE_DURATION_MS);
 });
 
@@ -85,14 +97,23 @@ export const connectRedis = async () => {
     } catch (error) {
         logger.fatal(
             { err: error },
-            "Redis connection failed, exiting the process..."
+            "Redis connection failed"
         );
 
-        process.exit(1);
+        throw error;
     }
 };
 
 export const disconnectRedis = async () => {
+    isRedisShuttingDown = true;
+
+    if(redisOutageTimer) {
+        clearTimeout(redisOutageTimer);
+        redisOutageTimer = null;
+    }
+
+    redisOutageStartedAt = null;
+
     if (redis.status === "end") {
         return;
     }

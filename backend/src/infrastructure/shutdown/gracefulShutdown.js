@@ -1,16 +1,15 @@
 import mongoose from "mongoose";
 import logger from "../../config/logger.js";
-import { disconnectRedis } from "../redis/redis.client.js";
 import env from "../../config/env.config.js";
+import { disconnectRedis } from "../redis/redis.client.js";
+import { stopJobs } from "../../jobs/index.js";
 
 let isShuttingDown = false;
 
-export const gracefulShutdown = (server) => {
-    const shutdown = async (signal) => {
+export const gracefulShutdown = (getServer) => {
+    const shutdown = async (signal, exitCode = 0) => {
         if (isShuttingDown) {
-            logger.warn(
-                "Shutdown already in progress..."
-            );
+            logger.warn("Shutdown already in progress...");
 
             return;
         }
@@ -23,14 +22,22 @@ export const gracefulShutdown = (server) => {
         );
 
         const forceShutdownTimer = setTimeout(() => {
-            logger.fatal(
-                "Graceful shutdown timed out. Forcing process exit."
-            );
+            logger.fatal("Graceful shutdown timed out. Forcibly exiting...");
             process.exit(1);
         }, env.SERVER_SHUTDOWN_TIMEOUT_MS);
 
         try {
+            stopJobs();
+            logger.info("Background jobs stopped");
+
+            const server = getServer();
+
             await new Promise((resolve, reject) => {
+                if (!server) {
+                    resolve();
+                    return;
+                }
+
                 server.close((error) => {
                     if (error) {
                         reject(error);
@@ -43,16 +50,22 @@ export const gracefulShutdown = (server) => {
             logger.info("HTTP server closed");
 
             await disconnectRedis();
-            logger.info("Redis connection closed");
+            logger.info(
+                { service: "Redis" },
+                "Connection closed"
+            );
 
             await mongoose.disconnect();
-            logger.info("MongoDB connection closed");
+            logger.info(
+                { service: "MongoDB" },
+                "MongoDB connection closed"
+            );
 
             clearTimeout(forceShutdownTimer);
 
             logger.info("Graceful shutdown completed");
 
-            process.exit(0);
+            process.exit(exitCode);
 
         } catch (error) {
 
@@ -69,4 +82,6 @@ export const gracefulShutdown = (server) => {
 
     process.on("SIGTERM", () => shutdown("SIGTERM"));
     process.on("SIGINT", () => shutdown("SIGINT"));
+
+    return shutdown;
 };
