@@ -16,7 +16,6 @@ const globalRateLimiter = new RateLimiterRedis({
 
 
 const globalRateLimiterMiddleware = async (req, res, next) => {
-    console.log("Global rate limiter middleware triggered for IP:", req.ip);
     const key = rateLimitConfig.global.key(req.ip);
 
     try {
@@ -26,6 +25,16 @@ const globalRateLimiterMiddleware = async (req, res, next) => {
     } catch (error) {
         if (error?.remainingPoints !== undefined) {
             const retryAfter = Math.ceil(error.msBeforeNext / 1000);
+
+            logger.warn(
+                {
+                    module: "global-rate-limiter",
+                    ip: req.ip,
+                    path: req.originalUrl,
+                    retryAfter: retryAfter,
+                },
+                "Rate limit exceeded"
+            );
 
             res.set("Retry-After", String(retryAfter));
 
@@ -40,9 +49,10 @@ const globalRateLimiterMiddleware = async (req, res, next) => {
 
         logger.error(
             {
-                err: error,
+                module: "global-rate-limiter",
                 ip: req.ip,
                 path: req.originalUrl,
+                err: error,
             },
             "Global rate limiter Redis error"
         );

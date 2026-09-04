@@ -11,7 +11,10 @@ const app = express();
 
 app.set("trust proxy", 1);
 app.use(securityHeaders);
-app.use(httpLogger);
+
+if (env.NODE_ENV === "production") {
+    app.use(httpLogger);
+}
 
 app.use(cors({
     origin: env.CORS_ORIGIN,

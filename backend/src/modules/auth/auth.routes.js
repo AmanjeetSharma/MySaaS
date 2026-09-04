@@ -9,19 +9,27 @@ import {
     refreshTokenController
 } from "./auth.controller.js";
 import { googleLoginController } from "./oauth/google/google.controller.js";
+import {
+    loginRateLimiter,
+    registerRateLimiter,
+    verifyEmailRateLimiter,
+    googleLoginRateLimiter,
+    refreshRateLimiter,
+    logoutRateLimiter
+} from "../../infrastructure/security/rateLimiters/auth.rateLimiter.js";
 
 const router = express.Router();
 
-router.post("/register", upload.single("avatar"), registerController);
+router.post("/register", registerRateLimiter, upload.single("avatar"), registerController);
 
-router.post("/verify-email/:token", verifyEmailController);
+router.post("/verify-email/:token", verifyEmailRateLimiter, verifyEmailController);
 
-router.post("/login", loginController);
+router.post("/login", loginRateLimiter, loginController);
 
-router.post("/login/google", googleLoginController);
+router.post("/login/google", googleLoginRateLimiter, googleLoginController);
 
-router.post("/logout", verifyToken, logoutController);
+router.post("/logout", verifyToken, logoutRateLimiter, logoutController);
 
-router.post("/refresh", refreshTokenController);
+router.post("/refresh", refreshRateLimiter, refreshTokenController);
 
 export default router;
