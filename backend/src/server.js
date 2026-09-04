@@ -9,7 +9,6 @@ import { startJobs } from "./jobs/index.js";
 import { connectRedis, setRedisShutdownHandler } from "./infrastructure/redis/redis.client.js";
 import { gracefulShutdown } from "./infrastructure/shutdown/gracefulShutdown.js";
 
-
 dotenv.config({
     path: "./.env"
 });

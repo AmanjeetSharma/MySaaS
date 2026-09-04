@@ -64,7 +64,7 @@ redis.on("close", () => {
 
         logger.fatal(
             { duration },
-            "Redis has been unavailable for too long. Shutting down."
+            "Redis has been unavailable for too long, shutdown initiated..."
         );
 
         if (redisShutdownHandler) {
