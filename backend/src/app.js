@@ -7,9 +7,7 @@ import env from "./config/env.config.js";
 
 const app = express();
 
-if(env.NODE_ENV === "production") {
-    app.use(httpLogger);
-}
+app.use(httpLogger);
 
 app.use(cors({
     origin: env.CORS_ORIGIN,

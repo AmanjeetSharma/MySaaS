@@ -19,10 +19,10 @@ export const getUserService = async (userId) => {
         throw new ApiError(404, "User not found");
     }
 
-    logger.info("user.retrieved", {
+    logger.info({
         userId: user._id,
         email: user.email,
-    });
+    }, "user.retrieved");
 
     return user;
 };
@@ -52,11 +52,11 @@ export const updateUserService = async (userId, payload) => {
 
     await user.save();
 
-    logger.info("user.updated", {
+    logger.info({
         userId: user._id,
         email: user.email,
         updatedFields: Object.keys(payload),
-    });
+    }, "user.updated");
 
     return {
         _id: user._id,
@@ -125,11 +125,11 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
         await deleteFromCloudinary(oldAvatarPublicId);
     }
 
-    logger.info("user.avatar.updated", {
+    logger.info({
         userId: user._id,
         email: user.email,
         publicId: avatarPublicId,
-    });
+    }, "user.avatar.updated");
 
     return {
         _id: user._id,
@@ -173,19 +173,19 @@ export const deleteUserAvatarService = async (userId) => {
             await deleteFromCloudinary(avatarPublicId);
         }
     } catch (err) {
-        logger.error("user.avatar.cloudinary_delete_failed", {
+        logger.error({
             userId: user._id,
             avatarPublicId,
             error: err.message,
             stack: err.stack,
-        });
+        }, "user.avatar.cloudinary_delete_failed");
     }
 
-    logger.info("user.avatar.deleted", {
+    logger.info({
         userId: user._id,
         email: user.email,
         publicId: avatarPublicId,
-    });
+    }, "user.avatar.deleted");
 
     return {
         _id: user._id,
@@ -208,12 +208,12 @@ export const deleteUserService = async (userId) => {
         try {
             await deleteFromCloudinary(user.avatar.publicId);
         } catch (err) {
-            logger.error("user.avatar.cloudinary_delete_failed", {
+            logger.error({
                 userId: user._id,
                 avatarPublicId: user.avatar.publicId,
                 error: err.message,
                 stack: err.stack,
-            });
+            }, "user.avatar.cloudinary_delete_failed");
         }
     }
 
@@ -264,19 +264,20 @@ export const deleteUserService = async (userId) => {
     try {
         await user.save();
     } catch (err) {
-        logger.error("user.account.delete_failed", {
+        logger.error({
             userId: user._id,
             email: user.email,
             error: err.message,
             stack: err.stack,
-        });
+        }, "user.account.delete_failed");
+
         throw new ApiError(500, "Failed to delete user account");
     }
 
-    logger.info("user.account.deleted", {
+    logger.info({
         userId: user._id,
         email: user.email,
-    });
+    }, "user.account.deleted");
 
     return {
         _id: user._id,
