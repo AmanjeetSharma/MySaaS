@@ -336,6 +336,16 @@ export const loginService = async (body) => {
         }
     }
 
+    const emailError = emailValidator(normalizedEmail);
+    if (!emailError) {
+        throw new ApiError(400, "Please provide a valid email address");
+    }
+
+    const passwordError = passwordValidator(password);
+    if (!passwordError.valid) {
+        throw new ApiError(400, `Password is invalid: ${passwordError.errors.join(", ")}`);
+    }
+
     const user = await findUserByEmail(normalizedEmail, "+password");
 
     if (!user) {

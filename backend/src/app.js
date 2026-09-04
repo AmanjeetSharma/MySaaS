@@ -4,8 +4,11 @@ import cookieParser from "cookie-parser";
 import errorHandler from "./middlewares/error.middleware.js";
 import httpLogger from "./middlewares/httpLogger.middleware.js";
 import env from "./config/env.config.js";
+import securityHeaders from "./infrastructure/security/securityHeaders/securityHeaders.config.js";
 
 const app = express();
+
+app.use(securityHeaders);
 
 app.use(httpLogger);
 
