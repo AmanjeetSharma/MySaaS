@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { AppRoutes } from '../../routes/AppRoutes';
 import { AppLoader } from '../loader/AppLoader';
+import { RateLimitFallback } from './RateLimitFallback';
 
 import { useAppStore } from '@/stores/appStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -37,6 +38,7 @@ export const AppContent = () => {
     const isAppReady = useAppStore(
         (state) => state.isAppReady
     );
+    const rateLimit = useAppStore((state) => state.rateLimit);
     const isAuthenticated = useAuthStore(
         (state) => state.isAuthenticated
     );
@@ -62,8 +64,18 @@ export const AppContent = () => {
     const isProtectedHydrating = !isOnPublicRoute && isAuthenticated && !userProfile;
 
     if (!isOnPublicBookingRoute && (!isAppReady || isProtectedHydrating)) {
-        return <AppLoader />;
+        return (
+            <>
+                <AppLoader />
+                {rateLimit && <RateLimitFallback rateLimit={rateLimit} />}
+            </>
+        );
     }
 
-    return <AppRoutes />;
+    return (
+        <>
+            <AppRoutes />
+            {rateLimit && <RateLimitFallback rateLimit={rateLimit} />}
+        </>
+    );
 };

@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { useAppStore } from "@/stores/appStore";
+
 export const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     withCredentials: true,
@@ -19,10 +21,68 @@ const skipRefreshEndpoints = [
     "/auth/login/google"
 ];
 
+const parseRetryAfter = (retryAfterHeader, responseMessage = "") => {
+    if (retryAfterHeader) {
+        const numericRetryAfter = Number(retryAfterHeader);
+
+        if (Number.isFinite(numericRetryAfter)) {
+            return Math.max(0, Math.ceil(numericRetryAfter));
+        }
+
+        const retryAfterDate = Date.parse(retryAfterHeader);
+
+        if (!Number.isNaN(retryAfterDate)) {
+            return Math.max(0, Math.ceil((retryAfterDate - Date.now()) / 1000));
+        }
+    }
+
+    const retryAfterMatch = String(responseMessage || "")
+        .match(/after\s+(\d+)\s+seconds?/i);
+
+    return retryAfterMatch ? Number(retryAfterMatch[1]) : null;
+};
+
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const status = error.response?.status;
+
+        if (status === 429) {
+            const responseData = error.response?.data;
+            const responseMessage = responseData?.message;
+            const retryAfter = parseRetryAfter(
+                error.response?.headers?.["retry-after"],
+                responseMessage
+            );
+            const message = responseMessage ||
+                (retryAfter
+                    ? `Too many requests. Please try again after ${retryAfter} seconds.`
+                    : "Too many requests. Please try again shortly.");
+
+            error.isRateLimited = true;
+            error.retryAfter = retryAfter;
+            error.retryAt = retryAfter ? Date.now() + retryAfter * 1000 : null;
+
+            if (error.response) {
+                error.response.data = {
+                    ...(typeof responseData === "object" && responseData !== null
+                        ? responseData
+                        : {}),
+                    message,
+                    retryAfter,
+                    retryAt: error.retryAt
+                };
+            }
+
+            useAppStore.getState().setRateLimit({
+                message,
+                retryAfter,
+                retryAt: error.retryAt
+            });
+
+            return Promise.reject(error);
+        }
 
         // Check if this endpoint should skip refresh
         const shouldSkipRefresh = skipRefreshEndpoints.some(endpoint =>
@@ -35,7 +95,7 @@ axiosInstance.interceptors.response.use(
         }
 
         // If unauthorized (401) → Try refresh token
-        if (error.response?.status === 401) {
+        if (status === 401) {
             originalRequest._retry = true;
 
             try {

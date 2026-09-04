@@ -5,6 +5,7 @@ import errorHandler from "./middlewares/error.middleware.js";
 import httpLogger from "./middlewares/httpLogger.middleware.js";
 import env from "./config/env.config.js";
 import securityHeaders from "./infrastructure/security/securityHeaders/securityHeaders.config.js";
+import globalRateLimiterMiddleware from "./infrastructure/security/rateLimiters/global.rateLimiter.js";
 
 const app = express();
 
@@ -14,7 +15,8 @@ app.use(httpLogger);
 
 app.use(cors({
     origin: env.CORS_ORIGIN,
-    credentials: true
+    credentials: true,
+    exposedHeaders: ["Retry-After"]
 }));
 
 app.use(
@@ -25,6 +27,9 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public/temp"));
 app.use(cookieParser());
+
+// Global rate limiter middleware
+app.use("/api/v1", globalRateLimiterMiddleware);
 
 // Import routes
 import authRoutes from "./modules/auth/auth.routes.js";

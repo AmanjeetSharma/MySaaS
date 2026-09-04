@@ -64,6 +64,8 @@ const hydrateUserStores = (user) => {
 
 export const useAppBootstrap = () => {
     const setAppReady = useAppStore((state) => state.setAppReady);
+    const setRateLimit = useAppStore((state) => state.setRateLimit);
+    const clearRateLimit = useAppStore((state) => state.clearRateLimit);
     const isAuthenticated = useAuthStore(
         (state) => state.isAuthenticated
     );
@@ -73,6 +75,7 @@ export const useAppBootstrap = () => {
 
         const bootstrap = async () => {
             if (!isAuthenticated) {
+                clearRateLimit();
                 useUserStore.getState().resetUserStore();
                 setAppReady(true);
                 return;
@@ -89,12 +92,30 @@ export const useAppBootstrap = () => {
                 const { data } = response.data;
 
                 if (isMounted) {
+                    clearRateLimit();
                     hydrateUserStores(data);
                 }
             } catch (error) {
                 console.error('Bootstrap failed:', error);
 
                 if (isMounted) {
+                    if (error.isRateLimited || error.response?.status === 429) {
+                        setRateLimit({
+                            message:
+                                error.response?.data?.message ||
+                                'Too many requests. Please try again shortly.',
+                            retryAfter:
+                                error.response?.data?.retryAfter ??
+                                error.retryAfter ??
+                                null,
+                            retryAt:
+                                error.response?.data?.retryAt ??
+                                error.retryAt ??
+                                null
+                        });
+                        return;
+                    }
+
                     useAuthStore.setState({
                         user: null,
                         isAuthenticated: false,
@@ -115,5 +136,5 @@ export const useAppBootstrap = () => {
         return () => {
             isMounted = false;
         };
-    }, [isAuthenticated, setAppReady]);
+    }, [clearRateLimit, isAuthenticated, setAppReady, setRateLimit]);
 };
