@@ -92,7 +92,7 @@ export const RateLimitFallback = ({ rateLimit }) => {
                             }`}
                     />
                     <span className="transition-all duration-300">
-                        {canRetry ? 'Rate limit lifted' : 'Rate limit active'}
+                        {canRetry ? 'Access Restored' : 'Access Temporarily Restricted'}
                     </span>
                 </div>
 

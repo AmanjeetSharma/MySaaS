@@ -1,11 +1,9 @@
 const abuseProtectionConfig = {
     login: {
         ip: {
-            failures: 3,
-            failureWindow: 10 * 60,
-            blockDuration: 15 * 60,
-            // failureWindow: 300,
-            // blockDuration: 30,
+            failures: 15,
+            failureWindow: 10 * 60, // 10 minutes
+            blockDuration: 15 * 60, // 15 minutes
 
             failureKey: (ip) => `abuse:auth:login:failures:ip:${ip}`,
             blockKey: (ip) => `abuse:auth:login:block:ip:${ip}`,
@@ -13,15 +11,13 @@ const abuseProtectionConfig = {
         },
 
         account: {
-            failures: 3,
-            failureWindow: 10 * 60, 
-            blockDuration: 15 * 60,
-            // failureWindow: 300,
-            // blockDuration: 30,
+            failures: 15,
+            failureWindow: 10 * 60, // 10 minutes
+            blockDuration: 15 * 60, // 15 minutes
 
             failureKey: (email) => `abuse:auth:login:failures:account:${email}`,
             blockKey: (email) => `abuse:auth:login:block:account:${email}`,
-            message: "Too many failed login attempts. Please try again later. account blocked.",
+            message: "Too many failed login attempts on this account. Please try again later.",
         },
     },
 };
