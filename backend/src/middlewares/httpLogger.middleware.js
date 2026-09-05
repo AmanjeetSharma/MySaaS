@@ -20,8 +20,8 @@ const httpLogger = pinoHttp({
 
             }
             if (isProduction) {
+                request.ip = req.ip;
                 request.userAgent = req.headers["user-agent"];
-                request.remoteAddress = req.socket?.remoteAddress;
             }
             return request;
         },

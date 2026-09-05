@@ -17,6 +17,7 @@ import {
     refreshRateLimiter,
     logoutRateLimiter
 } from "../../infrastructure/security/rateLimiters/auth.rateLimiter.js";
+import loginAbuseProtection from "../../infrastructure/security/abuseProtection/login.abuseProtection.js";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.post("/register", registerRateLimiter, upload.single("avatar"), registerC
 
 router.post("/verify-email/:token", verifyEmailRateLimiter, verifyEmailController);
 
-router.post("/login", loginRateLimiter, loginController);
+router.post("/login", loginRateLimiter, loginAbuseProtection, loginController);
 
 router.post("/login/google", googleLoginRateLimiter, googleLoginController);
 

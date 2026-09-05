@@ -10,6 +10,15 @@ const getRemainingSeconds = (retryAt) => {
     return Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
 };
 
+const formatRemainingTime = (totalSeconds) => {
+    if (totalSeconds < 60) {
+        return `${totalSeconds}s`;
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+};
+
 export const RateLimitFallback = ({ rateLimit }) => {
     const clearRateLimit = useAppStore((state) => state.clearRateLimit);
     const retryAt = rateLimit?.retryAt;
@@ -121,7 +130,7 @@ export const RateLimitFallback = ({ rateLimit }) => {
                                 <span>Time remaining:</span>
                                 <div className="inline-flex items-center gap-1 font-mono font-bold text-neutral-200">
                                     <Clock className="size-3.5 text-neutral-400 stroke-2" />
-                                    <span>{remainingSeconds}s</span>
+                                    <span>{formatRemainingTime(remainingSeconds)}</span>
                                 </div>
                             </div>
                         </div>

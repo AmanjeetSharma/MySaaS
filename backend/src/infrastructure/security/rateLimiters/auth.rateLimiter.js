@@ -41,7 +41,7 @@ const createAuthRateLimiter = (config) => {
                     new ApiResponse(
                         429,
                         null,
-                        "You've made too many requests in a short period of time. Please wait until the cooldown ends before trying again."
+                        config.message || "You've made too many requests in a short period of time. Please wait until the cooldown ends before trying again."
                     )
                 );
             }
