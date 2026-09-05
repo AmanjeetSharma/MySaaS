@@ -25,6 +25,8 @@ const globalRateLimiterMiddleware = async (req, res, next) => {
             forwardedFor: req.headers["x-forwarded-for"],
             realIp: req.headers["x-real-ip"],
             path: req.originalUrl,
+            socketIp: req.socket.remoteAddress,
+            trustProxy: req.app.get("trust proxy"),
         },
         "Rate limiter request"
     );
