@@ -17,7 +17,17 @@ const globalRateLimiter = new RateLimiterRedis({
 
 const globalRateLimiterMiddleware = async (req, res, next) => {
     const key = rateLimitConfig.global.key(req.ip);
-
+    logger.info(
+        {
+            module: "global-rate-limiter",
+            ip: req.ip,
+            ips: req.ips,
+            forwardedFor: req.headers["x-forwarded-for"],
+            realIp: req.headers["x-real-ip"],
+            path: req.originalUrl,
+        },
+        "Rate limiter request"
+    );
     try {
         await globalRateLimiter.consume(key);
 
