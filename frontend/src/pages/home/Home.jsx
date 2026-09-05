@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,14 +12,19 @@ import {
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
+import { HomeBackground } from './HomeBackground';
+
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[#050505] selection:bg-indigo-500/30 text-slate-200">
+    <div className="relative h-dvh w-full flex flex-col justify-between bg-[#050505] selection:bg-indigo-500/30 text-slate-200 overflow-hidden select-none">
 
-      {/* Header Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 bg-transparent">
+      {/* Background layer (z-0) */}
+      <HomeBackground />
+
+      {/* Header Navigation (z-50) */}
+      <header className="relative z-50 w-full px-6 py-6 md:px-12 bg-transparent shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between relative">
 
           <div className="text-2xl font-bold tracking-tighter text-white z-20 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
@@ -35,11 +40,10 @@ const Home = () => {
               Sign In
             </a>
 
-            {/* CTA Button: Darker slate with a crisp border */}
-            <Button className="rounded-full bg-slate-100 text-black hover:bg-white/90 px-5 py-4 h-9 text-xs font-bold hover:scale-103 cursor-pointer"
+            <Button
+              className="rounded-full bg-slate-100 text-black hover:bg-white/90 px-5 py-4 h-9 text-xs font-bold hover:scale-105 cursor-pointer transition-all"
               onClick={() => navigate("/signup")}
             >
-              {/* <Sparkles className="w-3.5 h-3.5 mr-2 fill-current" /> */}
               Get Started
             </Button>
           </div>
@@ -82,14 +86,11 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center pt-20 relative overflow-hidden">
-        {/* Subtle Background Glow for "Excellent" Look */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-indigo-500/50 blur-[120px] pointer-events-none rounded-full" />
-
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 z-10">
-          {/* Badge: Darker with Indigo accent */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/5 border border-indigo-500/20 backdrop-blur-md text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-indigo-300 font-semibold">
+      {/* Hero Section (Fills remaining height dead-center, z-10) */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-1000">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-indigo-300 font-semibold">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
@@ -97,21 +98,22 @@ const Home = () => {
             Pre-Release Build(v0.1)
           </div>
 
-          {/* Heading: Pure White to Slate gradient */}
-          <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">
+          {/* Heading */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[0.9]">
             The miniCRM for <br />
-            <span className="text-transparent bg-clip-text bg-linear-to-b from-white via-white to-slate-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500">
               effortless growth.
             </span>
           </h1>
 
-          <p className="text-slate-400 text-lg md:text-xl max-w-xl mx-auto font-light leading-relaxed">
+          <p className="text-slate-400 text-base md:text-lg max-w-xl mx-auto font-light leading-relaxed">
             A professional workspace designed to manage leads without the clutter of traditional enterprise software.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-4">
-            <Button size="lg"
-              className="h-16 px-12 text-xl rounded-2xl bg-white text-black hover:bg-slate-200 cursor-pointer transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95"
+          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-2">
+            <Button
+              size="lg"
+              className="h-14 px-10 text-lg rounded-2xl bg-white text-black hover:bg-slate-200 cursor-pointer transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95"
               onClick={() => navigate("/signup")}
             >
               Start Free Trial
@@ -120,12 +122,13 @@ const Home = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-8 text-center border-t border-white/5 bg-[#050505]">
+      {/* Footer (Pinned to bottom without overflowing, z-10) */}
+      <footer className="relative z-10 w-full py-4 text-center border-t border-white/5 bg-[#050505]/40 backdrop-blur-md shrink-0">
         <p className="text-[10px] text-slate-500 tracking-[0.4em] uppercase font-bold">
-          &copy; {new Date().getFullYear()} miniCRM. <span className="text-slate-700">Engineered for Speed.</span>
+          &copy; {new Date().getFullYear()} miniCRM. All rights reserved.
         </p>
       </footer>
+
     </div>
   );
 };

@@ -7,7 +7,7 @@ const rateLimitConfig = {
     auth: {
         login: {
             key: (ip) => `rl:auth:login:${ip}`,
-            points: 5,
+            points: 10,
             duration: 60,
         },
 
