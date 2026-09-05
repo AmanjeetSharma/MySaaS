@@ -9,7 +9,7 @@ import globalRateLimiterMiddleware from "./infrastructure/security/rateLimiters/
 
 const app = express();
 
-app.set("trust proxy", 1);
+app.set("trust proxy", 3);
 app.use(securityHeaders);
 
 if (env.NODE_ENV === "production") {
