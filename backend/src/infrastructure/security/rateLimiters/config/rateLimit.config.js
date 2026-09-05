@@ -1,8 +1,8 @@
 const rateLimitConfig = {
     global: {
         key: (ip) => `rl:global:${ip}`,
-        points: 100,
-        duration: 60,
+        points: 10,
+        duration: 30,
     },
     auth: {
         login: {
