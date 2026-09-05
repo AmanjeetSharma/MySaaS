@@ -44,6 +44,8 @@ const env = {
     REDIS_ERROR_LOG_THROTTLE_MS: parseInt(process.env.REDIS_ERROR_LOG_THROTTLE_MS),
 
     SERVER_SHUTDOWN_TIMEOUT_MS: parseInt(process.env.SERVER_SHUTDOWN_TIMEOUT_MS),
+
+    ARCJET_API_KEY: process.env.ARCJET_API_KEY,
 };
 
 export default env;
