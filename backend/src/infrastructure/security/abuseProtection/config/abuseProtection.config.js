@@ -4,6 +4,8 @@ const abuseProtectionConfig = {
             failures: 3,
             failureWindow: 10 * 60,
             blockDuration: 15 * 60,
+            // failureWindow: 300,
+            // blockDuration: 30,
 
             failureKey: (ip) => `abuse:auth:login:failures:ip:${ip}`,
             blockKey: (ip) => `abuse:auth:login:block:ip:${ip}`,
@@ -11,9 +13,11 @@ const abuseProtectionConfig = {
         },
 
         account: {
-            failures: 5,
-            failureWindow: 10 * 60,
+            failures: 3,
+            failureWindow: 10 * 60, 
             blockDuration: 15 * 60,
+            // failureWindow: 300,
+            // blockDuration: 30,
 
             failureKey: (email) => `abuse:auth:login:failures:account:${email}`,
             blockKey: (email) => `abuse:auth:login:block:account:${email}`,

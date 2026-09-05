@@ -14,7 +14,7 @@ const rateLimitConfig = {
 
         register: {
             key: (ip) => `rl:auth:register:${ip}`,
-            points: 5,
+            points: 6,
             duration: 60,
             message: "You've made too many registration attempts in a short period of time. Please wait until the cooldown ends before trying again.",
         },

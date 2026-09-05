@@ -56,7 +56,7 @@ const loginAbuseProtection = async (req, res, next) => {
                 );
 
                 res.set("Retry-After", String(accountBlockTtl));
-s
+
                 return res.status(429).json(
                     new ApiResponse(
                         429,
@@ -68,6 +68,7 @@ s
         }
 
         next();
+
     } catch (error) {
         logger.error(
             {
@@ -84,3 +85,62 @@ s
 };
 
 export default loginAbuseProtection;
+
+
+
+
+
+
+
+
+
+export const recordLoginFailure = async (ip, email) => {
+    const { ip: ipConfig, account: accountConfig } = abuseProtectionConfig.login;
+
+    const ipFailureKey = ipConfig.failureKey(ip);
+    const ipFailures = await redis.incr(ipFailureKey);
+
+    if (ipFailures === 1) {
+        await redis.expire(
+            ipFailureKey,
+            ipConfig.failureWindow // ttl 
+        );
+    }
+
+    if (ipFailures >= ipConfig.failures) {
+        const ipBlockKey = ipConfig.blockKey(ip);
+
+        await redis.set(
+            ipBlockKey,
+            "1",
+            "EX",
+            ipConfig.blockDuration // ttl
+        );
+    }
+
+
+
+
+    if (email) {
+        const accountFailureKey = accountConfig.failureKey(email);
+        const accountFailures = await redis.incr(accountFailureKey);
+
+        if (accountFailures === 1) {
+            await redis.expire(
+                accountFailureKey,
+                accountConfig.failureWindow // ttl
+            );
+        }
+
+        if (accountFailures >= accountConfig.failures) {
+            const accountBlockKey = accountConfig.blockKey(email);
+
+            await redis.set(
+                accountBlockKey,
+                "1",
+                "EX",
+                accountConfig.blockDuration // ttl
+            );
+        }
+    }
+};

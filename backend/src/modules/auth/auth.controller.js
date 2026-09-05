@@ -46,9 +46,15 @@ export const verifyEmailController = asyncHandler(async (req, res) => {
 
 
 export const loginController = asyncHandler(async (req, res) => {
-    const data = await loginService(
-        req.body
-    );
+    const { email, password, device } = req.body;
+    const ip = req.ip;
+
+    const data = await loginService({
+        email,
+        password,
+        device,
+        ip
+    });
 
     return res
         .status(200)

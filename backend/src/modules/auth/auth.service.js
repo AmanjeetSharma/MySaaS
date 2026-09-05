@@ -23,7 +23,7 @@ import {
     createUser,
 } from "./auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
-
+import { recordLoginFailure } from "../../infrastructure/security/abuseProtection/login.abuseProtection.js";
 
 
 
@@ -325,7 +325,7 @@ export const verifyEmailService = async (token) => {
 
 
 export const loginService = async (body) => {
-    const { email, password, device = "unknown device" } = body;
+    const { email, password, device = "unknown device", ip } = body;
 
     const normalizedEmail = email?.toLowerCase().trim();
 
@@ -347,8 +347,8 @@ export const loginService = async (body) => {
     }
 
     const user = await findUserByEmail(normalizedEmail, "+password");
-
     if (!user) {
+        await recordLoginFailure(ip, normalizedEmail);
         throw new ApiError(401, "User not found");
     }
 
@@ -363,6 +363,7 @@ export const loginService = async (body) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+        await recordLoginFailure(ip, normalizedEmail);
         throw new ApiError(401, "Invalid email or password");
     }
 
