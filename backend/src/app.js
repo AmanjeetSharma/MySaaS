@@ -6,8 +6,7 @@ import httpLogger from "./middlewares/httpLogger.middleware.js";
 import env from "./config/env.config.js";
 import securityHeaders from "./infrastructure/security/securityHeaders/securityHeaders.config.js";
 import globalRateLimiterMiddleware from "./infrastructure/security/rateLimiters/global.rateLimiter.js";
-import arcjetMiddleware from "./infrastructure/security/arcjet/arcjet.middleware.js";
-
+// import arcjetMiddleware from "./infrastructure/security/arcjet/arcjet.middleware.js";
 
 const app = express();
 

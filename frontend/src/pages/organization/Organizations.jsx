@@ -32,6 +32,9 @@ export default function Organizations() {
   const [deleteOrg, setDeleteOrg] = useState(null);
   const [newOrgName, setNewOrgName] = useState('');
 
+  // Track specifically which organization is being switched to
+  const [switchingOrgId, setSwitchingOrgId] = useState(null);
+
   useEffect(() => {
     getOrganizations();
     getUserProfile();
@@ -41,6 +44,11 @@ export default function Organizations() {
   const hasNoActiveOrganization = Boolean(userProfile) && !activeOrganizationId;
 
   const handleSwitch = async (orgId) => {
+    // Prevent switching if a request is inflight or the org is already active
+    if (switchingOrgId || orgId === activeOrganizationId) return;
+
+    setSwitchingOrgId(orgId);
+
     try {
       useUserStore.setState((state) => ({
         userProfile: {
@@ -56,7 +64,9 @@ export default function Organizations() {
       });
     } catch (error) {
       toast.error('Failed to switch organization');
-      getUserProfile();
+      await getUserProfile();
+    } finally {
+      setSwitchingOrgId(null);
     }
   };
 
@@ -93,6 +103,17 @@ export default function Organizations() {
     );
   }
 
+  const isBusy = isUpdating || Boolean(switchingOrgId);
+
+  // Helper to dim non-targeted cards and apply a pulse effect to the active target
+  const getCardSwitchStyle = (orgId) => {
+    if (!switchingOrgId) return 'transition-opacity duration-200';
+    if (switchingOrgId === orgId) {
+      return 'relative z-10 animate-pulse pointer-events-none transition-opacity duration-200';
+    }
+    return 'opacity-30 pointer-events-none select-none transition-opacity duration-200';
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 pt-2 pb-8 md:pt-4 space-y-6">
       {/* Header Section */}
@@ -118,32 +139,37 @@ export default function Organizations() {
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* 1. Owned Org */}
         {ownedOrganization && (
-          <OrganizationCard
-            org={ownedOrganization}
-            isActive={activeOrganizationId === ownedOrganization._id}
-            isOwner={true}
-            onSelect={handleSwitch}
-            onDelete={(org) => setDeleteOrg(org)}
-            isUpdating={isUpdating}
-          />
+          <div className={getCardSwitchStyle(ownedOrganization._id)}>
+            <OrganizationCard
+              org={ownedOrganization}
+              isActive={activeOrganizationId === ownedOrganization._id}
+              isOwner={true}
+              onSelect={handleSwitch}
+              onDelete={(org) => setDeleteOrg(org)}
+              isUpdating={isBusy}
+            />
+          </div>
         )}
 
         {/* 2. Create Workspace Card */}
         {!ownedOrganization && (
-          <CreateOrganizationCard onClick={() => setShowCreateModal(true)} />
+          <div className={switchingOrgId ? 'opacity-30 pointer-events-none select-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
+            <CreateOrganizationCard onClick={() => setShowCreateModal(true)} />
+          </div>
         )}
 
         {/* 3. Member Orgs List */}
         {memberOrganizations.map((org) => (
-          <OrganizationCard
-            key={org._id}
-            org={org}
-            isActive={activeOrganizationId === org._id}
-            isOwner={false}
-            onSelect={handleSwitch}
-            onDelete={(org) => setDeleteOrg(org)}
-            isUpdating={isUpdating}
-          />
+          <div key={org._id} className={getCardSwitchStyle(org._id)}>
+            <OrganizationCard
+              org={org}
+              isActive={activeOrganizationId === org._id}
+              isOwner={false}
+              onSelect={handleSwitch}
+              onDelete={(org) => setDeleteOrg(org)}
+              isUpdating={isBusy}
+            />
+          </div>
         ))}
       </div>
 
@@ -167,12 +193,12 @@ export default function Organizations() {
                 placeholder="e.g. My Organization"
               />
             </div>
-            <Button 
-              disabled={isUpdating} 
-              type="submit" 
+            <Button
+              disabled={isBusy}
+              type="submit"
               className="w-full h-10 rounded-xl font-semibold cursor-pointer bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.99] transition-all"
             >
-              {isUpdating ? 'Creating...' : 'Create Organization'}
+              {isBusy ? 'Creating...' : 'Create Organization'}
             </Button>
           </form>
         </DialogContent>
@@ -189,16 +215,16 @@ export default function Organizations() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 mt-4">
-              <Button 
-                variant="outline" 
-                className="flex-1 rounded-xl cursor-pointer text-xs border-border hover:bg-hover hover:text-hover-foreground" 
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl cursor-pointer text-xs border-border hover:bg-hover hover:text-hover-foreground"
                 onClick={() => setDeleteOrg(null)}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                className="flex-1 rounded-xl cursor-pointer text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              <Button
+                variant="destructive"
+                className="flex-1 rounded-xl cursor-pointer text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => handleDelete(deleteOrg._id)}
               >
                 Delete
