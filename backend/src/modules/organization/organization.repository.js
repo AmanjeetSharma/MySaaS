@@ -83,10 +83,3 @@ export const findOrganizationsByUserId = async (userId) => {
     }).select("-__v").sort({ createdAt: -1 });
 };
 
-
-export const countCustomersInOrganization = async (orgId) => {
-    return await Customer.countDocuments({
-        organization: orgId,
-        isDeleted: false
-    });
-};

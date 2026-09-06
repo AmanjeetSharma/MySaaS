@@ -2,7 +2,7 @@ import { ApiError } from "../../../utils/ApiError.js";
 import { themeValidator, timezoneValidator, notificationValidator } from "./settings.validator.js";
 import { getUserById, updateUserSettingsField } from "../user.repository.js";
 import { THEME_IDS } from '../../../constants/theme.constants.js';
-
+import logger from "#/config/logger.js";
 
 
 
@@ -42,7 +42,13 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
         "settings.theme.mode": themeMode
     });
 
-    console.log(`Theme updated for user ${userId}: ${settings.theme}`);
+    logger.info(
+        {
+            userId,
+            theme: settings.theme,
+        },
+        "user.theme_updated"
+    );
 
     return {
         theme: settings.theme,
@@ -65,7 +71,13 @@ export const updateTimezoneService = async (userId, timezone) => {
         "settings.timezone": timezone
     });
 
-    console.log(`Timezone updated for user ${userId}: ${settings.timezone}`);
+    logger.info(
+        {
+            userId,
+            timezone: settings.timezone,
+        },
+        "user.timezone_updated"
+    );
 
     return {
         timezone: settings.timezone,
@@ -89,7 +101,13 @@ export const updateNotificationsService = async (userId, notifications) => {
         "settings.notifications.inApp": notifications.inApp
     });
 
-    console.log(`Notification preferences updated for user ${userId}: Email - ${settings.notifications.email}, In-App - ${settings.notifications.inApp}`);
+    logger.info(
+        {
+            userId,
+            notifications: settings.notifications,
+        },
+        "user.notifications_updated"
+    );
 
     return {
         notifications: settings.notifications,
@@ -115,7 +133,18 @@ export const getSettingsService = async (userId) => {
     };
     const themesAvailable = settings.theme.tier === "free" ? [THEME_IDS.DEFAULT] : Object.values(THEME_IDS);
 
-    console.log(`Settings retrieved for user ${userId}: Theme - ${settings.theme.name} (${settings.theme.mode}), Timezone - ${settings.timezone}, Notifications - Email: ${settings.notifications.email}, In-App: ${settings.notifications.inApp}`);
+    logger.info(
+        {
+            userId,
+            theme: settings.theme.name,
+            themeMode: settings.theme.mode,
+            themeTier: settings.theme.tier,
+            timezone: settings.timezone,
+            emailNotifications: settings.notifications.email,
+            inAppNotifications: settings.notifications.inApp,
+        },
+        "user.settings_retrieved"
+    );
 
     return {
         settings,

@@ -51,7 +51,7 @@ import {
 } from "../providers/google/services/calendar.service.js";
 import { checkOrganizationAccess } from "../organization/organization.access.js";
 import { PAYMENT_HOLD_DURATION_MINUTES, BOOKING_STATUSES } from "./booking.constants.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -154,7 +154,12 @@ const tryCreateGoogleEvent = async ({
 
     } catch (error) {
 
-        console.error("[Booking] Google Calendar event creation failed:", error?.response?.data || error);
+        logger.error(
+            {
+                error: error.message,
+            },
+            "booking.google_calendar_event_creation_failed"
+        );
 
         return {
             meeting: {
@@ -235,7 +240,14 @@ export const createPendingBookingService = async (payload = {}) => {
     });
 
     if (existingPendingBooking) {
-        console.log(`[Booking] Pending booking exists: ${existingPendingBooking._id} | ${booker.email} | expires ${existingPendingBooking.paymentExpiresAt.toISOString()}`);
+        logger.info(
+            {
+                bookingId: existingPendingBooking._id,
+                email: booker.email,
+                paymentExpiresAt: existingPendingBooking.paymentExpiresAt.toISOString(),
+            },
+            "booking.pending_booking_exists"
+        );
 
         return {
             booking: existingPendingBooking,
@@ -272,11 +284,24 @@ export const createPendingBookingService = async (payload = {}) => {
         });
 
     } catch (error) {
-        console.error("[Booking] Failed to create pending booking:", error.message);
+        logger.error(
+            {
+                error: error.message,
+            },
+            "booking.pending_booking_creation_failed"
+        );
+
         throw new ApiError(500, "Unable to create booking. Please try again.");
     }
 
-    console.log(`[Booking: public api] New pending booking created: ${booking._id} | ${booking.booker.email} | expires ${paymentExpiresAt.toISOString()}`);
+    logger.info(
+        {
+            bookingId: booking._id,
+            email: booking.booker.email,
+            paymentExpiresAt: paymentExpiresAt.toISOString(),
+        },
+        "booking.pending_booking_created"
+    );
 
     return {
         booking,
@@ -324,7 +349,7 @@ export const confirmBookingService = async ({
 
     const accessToken = generateBookingAccessToken();
     const manageBookingUrl = buildManageBookingUrl(accessToken.rawToken);
-    
+
     const googleResult = await tryCreateGoogleEvent({
         organization,
         service,
@@ -334,7 +359,6 @@ export const confirmBookingService = async ({
         timezone: booking.timezone,
         manageBookingUrl,
     });
-
 
     const confirmedBooking = await updateBookingStatus(
         booking._id,
@@ -354,6 +378,14 @@ export const confirmBookingService = async ({
         throw new ApiError(409, "Booking could not be confirmed. Your money will be refunded within 1 hour, if the payment was already processed.");
     }
 
+    logger.info(
+        {
+            bookingId: confirmedBooking._id,
+            email: confirmedBooking.booker.email,
+            accessTokenExpiresAt: confirmedBooking.bookingAccess.expiresAt.toISOString(),
+        },
+        "booking.confirmed"
+    );
 
     await sendBookingEmails({
         booking: confirmedBooking,
@@ -392,14 +424,12 @@ export const cancelBookingService = async ({
     validateObjectId(orgId, "Organization ID");
     validateObjectId(bookingId, "Booking ID");
 
-    // Staff authorization
     await checkOrganizationAccess(userId, orgId);
 
     const booking = await findBookingByIdAndOrganization(bookingId, orgId);
 
     validateCancellation(booking);
 
-    // delete Google Calendar event if it exists otherwise exit with api error
     if (
         booking.calendarEvent?.provider === "GOOGLE" &&
         booking.calendarEvent?.calendarId &&
@@ -421,7 +451,15 @@ export const cancelBookingService = async ({
                     sendUpdates: "all",
                 });
             } catch (error) {
-                console.error("[Booking] Failed to delete Google Calendar event:", error.message);
+                logger.error(
+                    {
+                        bookingId: booking._id,
+                        email: booking.booker.email,
+                        error: error.message,
+                    },
+                    "booking.google_calendar_event_deletion_failed"
+                );
+
                 throw new ApiError(500, "We encountered an error while cancelling the booking. Please try again later.");
             }
         }
@@ -432,7 +470,15 @@ export const cancelBookingService = async ({
         throw new ApiError(409, "Booking could not be cancelled.");
     }
 
-    console.log(`[Booking] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
+    logger.info(
+        {
+            bookingId: cancelledBooking._id,
+            name: cancelledBooking.booker.name,
+            email: cancelledBooking.booker.email,
+            cancelledAt: cancelledBooking.cancelledAt,
+        },
+        "booking.cancelled"
+    );
 
     return cancelledBooking;
 };
@@ -541,7 +587,15 @@ export const rescheduleBookingService = async ({
                 sendUpdates: "all",
             });
         } catch (error) {
-            console.error("[Booking] Google Calendar event update failed:", error.message);
+            logger.error(
+                {
+                    bookingId: booking._id,
+                    email: booking.booker.email,
+                    error: error.message,
+                },
+                "booking.google_calendar_event_update_failed"
+            );
+
             throw new ApiError(500, "We encountered an error while rescheduling the booking. Please try again later.");
         }
     }
@@ -580,7 +634,16 @@ export const rescheduleBookingService = async ({
         await updatedBooking.save();
     }
 
-    console.log(`[Booking] Booking rescheduled for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to ${updatedBooking.startTime.toISOString()}.`);
+    logger.info(
+        {
+            bookingId: updatedBooking._id,
+            name: updatedBooking.booker.name,
+            email: updatedBooking.booker.email,
+            newStartTime: updatedBooking.startTime,
+            newEndTime: updatedBooking.endTime,
+        },
+        "booking.rescheduled"
+    );
 
     return updatedBooking;
 };
@@ -625,12 +688,19 @@ export const getPublicBookingService = async ({ rawToken }) => {
             )
         );
 
-    const isBookingManageable = !["CANCELLED", "COMPLETED", "NO_SHOW"].includes(booking.status);    
+    const isBookingManageable = !["CANCELLED", "COMPLETED", "NO_SHOW"].includes(booking.status);
 
     const canReschedule = isBookingManageable && isServiceBookable;
     const canCancel = isBookingManageable;
 
-    console.log(`[Booking: public api] Booking details fetched for ${booking.booker.name} (${booking.booker.email}) by manageBookingURL.`);
+    logger.info(
+        {
+            bookingId: booking._id,
+            name: booking.booker.name,
+            email: booking.booker.email,
+        },
+        "booking.details.fetched"
+    );
 
     return {
         organization: {
@@ -795,7 +865,14 @@ export const publicRescheduleBookingService = async ({
             });
 
         } catch (error) {
-            console.error("[Public Booking] Google Calendar event update failed:", error.message);
+            logger.error(
+                {
+                    bookingId: booking._id,
+                    email: booking.booker.email,
+                    error: error.message,
+                },
+                "booking.google_calendar_event_update_failed"
+            );
             throw new ApiError(500, "Booking could not be rescheduled because the Google Calendar event could not be updated.");
         }
     }
@@ -831,7 +908,15 @@ export const publicRescheduleBookingService = async ({
         await updatedBooking.save();
     }
 
-    console.log(`[Booking: public api] Booking rescheduled for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to ${updatedBooking.startTime.toISOString()}.`);
+    logger.info(
+        {
+            name: updatedBooking.booker.name,
+            email: updatedBooking.booker.email,
+            startTime: updatedBooking.startTime.toISOString(),
+            endTime: updatedBooking.endTime.toISOString(),
+        },
+        "booking.rescheduled"
+    );
 
     return {
         bookingId: updatedBooking._id,
@@ -898,7 +983,15 @@ export const publicCancelBookingService = async ({
             });
 
         } catch (error) {
-            console.error("[Public Booking] Google Calendar event deletion failed:", error.message);
+            logger.error(
+                {
+                    bookingId: booking._id,
+                    email: booking.booker.email,
+                    error: error.message,
+                },
+                "booking.google_calendar_event_deletion_failed"
+            );
+
             throw new ApiError(500, "We encountered an error while cancelling the booking. Please try again later..");
         }
     }
@@ -908,7 +1001,14 @@ export const publicCancelBookingService = async ({
         throw new ApiError(409, "Booking could not be cancelled.");
     }
 
-    console.log(`[Booking: public api] Booking cancelled for ${cancelledBooking.booker.name} (${cancelledBooking.booker.email}) at ${cancelledBooking.cancelledAt.toISOString()}.`);
+    logger.info(
+        {
+            name: cancelledBooking.booker.name,
+            email: cancelledBooking.booker.email,
+            cancelledAt: cancelledBooking.cancelledAt.toISOString(),
+        },
+        "booking.cancelled"
+    );
 
     return {
         bookingId: cancelledBooking._id,
@@ -945,7 +1045,14 @@ export const getBookingByIdService = async ({
         throw new ApiError(404, "Booking not found.");
     }
 
-    console.log(`[Booking] Booking details fetched for ${booking.booker.name} (${booking.booker.email}).`);
+    logger.info(
+        {
+            bookingId: booking._id,
+            name: booking.booker.name,
+            email: booking.booker.email,
+        },
+        "booking.details_fetched"
+    );
 
     return booking;
 };
@@ -983,7 +1090,14 @@ export const updateBookingService = async ({
         throw new ApiError(404, "Booking not found.");
     }
 
-    console.log(`[Booking] Booking updated for ${booking.booker.name} (${booking.booker.email}).`);
+    logger.info(
+        {
+            bookingId: booking._id,
+            name: booking.booker.name,
+            email: booking.booker.email,
+        },
+        "booking.updated"
+    );
 
     return booking;
 };
@@ -1030,7 +1144,15 @@ export const updateBookingStatusService = async ({
         throw new ApiError(409, "Booking status could not be updated.");
     }
 
-    console.log(`[Booking] Booking status updated for ${updatedBooking.booker.name} (${updatedBooking.booker.email}) to "${updatedBooking.status}".`);
+    logger.info(
+        {
+            bookingId: updatedBooking._id,
+            name: updatedBooking.booker.name,
+            email: updatedBooking.booker.email,
+            status: updatedBooking.status,
+        },
+        "booking.status_updated"
+    );
 
     return updatedBooking;
 };
@@ -1106,7 +1228,14 @@ export const getOrganizationBookingsService = async ({
     const maxLimit = 100;
     const pagination = getPagination(page, limit, maxLimit);
 
-    console.log(`--------\npage: ${pagination.page} | limit: ${pagination.limit} | skip: ${pagination.skip}`); // debug log 
+    logger.info(
+        {
+            page: pagination.page,
+            limit: pagination.limit,
+            skip: pagination.skip,
+        },
+        "booking.pagination"
+    );
 
     const allowedSortFields = [
         "createdAt",
@@ -1135,7 +1264,15 @@ export const getOrganizationBookingsService = async ({
             countBookings(baseFilter),
         ]);
 
-        console.log(`[Booking] Retrieved ${bookings.length} ${bookings.length === 1 ? "booking" : "bookings"} for organization ${orgId}. Total: ${total}, Overall Total: ${overallTotal}.`);
+        logger.info(
+            {
+                page: pagination.page,
+                limit: pagination.limit,
+                total: total,
+                overallTotal: overallTotal,
+            },
+            "booking.retrieved"
+        );
 
         return {
             bookings,
@@ -1149,7 +1286,13 @@ export const getOrganizationBookingsService = async ({
         };
 
     } catch (error) {
-        console.error("Failed to fetch organization bookings:", error);
+        logger.error(
+            {
+                error: error.message,
+            },
+            "booking.retrieval_failed"
+        );
+
         throw new ApiError(500, "Failed to retrieve bookings, please try again.");
     }
 };
@@ -1225,7 +1368,14 @@ export const getServiceBookingsService = async ({
     const maxLimit = 100;
     const pagination = getPagination(page, limit, maxLimit);
 
-    console.log(`--------\n page: ${pagination.page} | limit: ${pagination.limit} | skip: ${pagination.skip}`); // debug log
+    logger.info(
+        {
+            page: pagination.page,
+            limit: pagination.limit,
+            skip: pagination.skip,
+        },
+        "booking.pagination"
+    );
 
     const allowedSortFields = [
         "createdAt",
@@ -1254,7 +1404,15 @@ export const getServiceBookingsService = async ({
             countBookings(baseFilter),
         ]);
 
-        console.log(`[Booking] Retrieved ${bookings.length} ${bookings.length === 1 ? "booking" : "bookings"} for service ${serviceId}. Total: ${total}, Overall Total: ${overallTotal}.`);
+        logger.info(
+            {
+                page: pagination.page,
+                limit: pagination.limit,
+                total: total,
+                overallTotal: overallTotal,
+            },
+            "booking.retrieved"
+        );
 
 
         return {
@@ -1269,7 +1427,13 @@ export const getServiceBookingsService = async ({
         };
 
     } catch (error) {
-        console.error("Failed to fetch service bookings:", error);
+        logger.error(
+            {
+                error: error.message,
+            },
+            "booking.retrieval_failed"
+        );
+
         throw new ApiError(500, "Failed to retrieve service bookings, please try again.");
     }
 };

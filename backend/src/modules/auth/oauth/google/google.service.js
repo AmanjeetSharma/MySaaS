@@ -6,6 +6,7 @@ import { generateSessionId, generateAccessToken, generateRefreshToken } from "..
 import { welcomeEmailTemplate } from "../../../../utils/email/welcomeEmailTemplate.js";
 import { sendEmail } from "../../../../integrations/email.integration.js";
 import { generateOrgSlug } from "../../auth.helper.js";
+import logger from "#/config/logger.js";
 
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -72,10 +73,24 @@ export const googleLoginService = async (body) => {
             if (org) {
                 user.activeOrganization = org._id;
                 await user.save();
-                console.log(`Default organization created for user ${user.email} | orgId: ${org._id}`);
+
+                logger.info(
+                    {
+                        email: user.email,
+                        orgId: org._id,
+                    },
+                    "auth.organization.default_created"
+                );
             }
+
         } catch (err) {
-            console.error(`Error creating default organization for user ${user.email} while google login | Error: ${err.message}`);
+            logger.error(
+                {
+                    email: user.email,
+                    error: err.message,
+                },
+                "auth.organization.default_creation_failed"
+            );
         }
 
         isNewUser = true;
@@ -130,7 +145,6 @@ export const googleLoginService = async (body) => {
     try {
         await user.save();
     } catch (err) {
-        console.error(`[Google Login err log] Error saving user session for ${user.email} | Error: ${err.message}`);
         throw new ApiError(500, "An error occurred while logging in with Google. Please try again.");
     }
 
@@ -142,14 +156,26 @@ export const googleLoginService = async (body) => {
             if (env.EMAIL_ENABLED) {
                 await sendEmail(user.email, "Welcome to MySaaS", emailHTML, true);
             } else {
-                console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
+                logger.info(
+                    {
+                        email: user.email,
+                    },
+                    "email.welcome.skipped"
+                );
             }
         } catch (err) {
             // ignore: already handled in sendEmail
         }
     }
 
-    console.log(`${isNewUser ? "New user created and logged in with Google" : "Existing user logged in with Google"} | User: ${user.email} | Device: ${device}`);
+    logger.info(
+        {
+            email: user.email,
+            device,
+            isNewUser,
+        },
+        "auth.user.google_login"
+    );
 
     return {
         user: {

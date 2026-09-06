@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { ApiError } from "../../../utils/ApiError.js";
 import { getUserById } from "../user.repository.js";
+import logger from "#/config/logger.js";
 
 
 export const getUserSessionsService = async (userId, currentSessionId) => {
@@ -10,7 +11,14 @@ export const getUserSessionsService = async (userId, currentSessionId) => {
         throw new ApiError(404, "User not found");
     }
 
-    console.log(`User sessions fetched | name: ${user.name}, email: ${user.email}, sessions: ${user.sessions.length}`);
+    logger.info(
+        {
+            name: user.name,
+            email: user.email,
+            sessionCount: user.sessions.length,
+        },
+        "user.sessions_retrieved"
+    );
 
     return {
         name: user.name,
@@ -58,7 +66,14 @@ export const logoutSessionByIdService = async (userId, sessionId) => {
 
     await user.save();
 
-    console.log(`Session invalidated | user: ${user.email} | sessionId: ${sessionId} | device: ${session.device}`);
+    logger.info(
+        {
+            userId: user._id,
+            sessionId,
+            device: session.device
+        },
+        "user.session_invalidated"
+    );
 
     return {
         name: user.name,
@@ -116,7 +131,14 @@ export const logoutAllSessionsService = async (userId, currentSessionId) => {
 
     await user.save();
 
-    console.log(`User logged out from all other devices | Email: ${user.email} | Current Device: ${currentSession.device}`);
+    logger.info(
+        {
+            userId: user._id,
+            email: user.email,
+            currentDevice: currentSession.device
+        },
+        "user.logged_out_all_sessions"
+    );
 
     return {
         message: "Logged out from all other devices successfully",

@@ -145,39 +145,34 @@ export const registerService = async (body, avatarFile) => {
 
                     logger.info(
                         {
-                            module: "auth",
-                            action: "create_default_organization",
                             userId: user._id,
                             email: user.email,
                             orgId: org._id,
                             emailVerificationBypass: true,
                         },
-                        "Default organization created for user"
+                        "auth.organization.default_created"
                     );
                 }
 
             } catch (err) {
                 logger.error(
                     {
-                        module: "auth",
-                        action: "default_organization_creation",
+                        userId: user._id,
                         email: user.email,
                         error: err.message,
                         emailVerificationBypass: true,
                     },
-                    "Default organization creation failed"
+                    "auth.organization.default_creation_failed"
                 );
             }
         }
 
         logger.info(
             {
-                module: "auth",
-                action: "create_user",
                 email: normalizedEmail,
                 emailVerificationBypass: true,
             },
-            "User created without email verification"
+            "auth.user.account.created_without_email_verification"
         );
 
         return {
@@ -203,12 +198,10 @@ export const registerService = async (body, avatarFile) => {
         } catch (err) {
             logger.error(
                 {
-                    module: "auth",
-                    action: "remove_old_avatar",
                     email: normalizedEmail,
                     error: err.message,
                 },
-                "Failed to remove old avatar from Cloudinary for existing pending user"
+                "auth.existing_pending_user.old_avatar_removal_failed"
             );
         }
 
@@ -235,14 +228,12 @@ export const registerService = async (body, avatarFile) => {
 
     logger.info(
         {
-            module: "auth",
-            action: existingPendingUser ? "pending_user_updated" : "pending_user_created",
             email: normalizedEmail,
             existingPendingUser: !!existingPendingUser,
         },
         existingPendingUser
-            ? "Existing pending user updated"
-            : "New pending user created"
+            ? "auth.existing_pending_user.updated"
+            : "auth.new_pending_user.created"
     );
 
     const verificationLink = `${env.CLIENT_URL}/verify/${rawToken}`;
@@ -258,20 +249,16 @@ export const registerService = async (body, avatarFile) => {
         );
         logger.info(
             {
-                module: "auth",
-                action: "verification_email_sent",
                 email: normalizedEmail,
             },
-            "Verification email sent"
+            "auth.verification_email.sent"
         );
     } else {
         logger.info(
             {
-                module: "auth",
-                action: "verification_email_skipped",
                 email: normalizedEmail,
             },
-            "Email service disabled. Verification email skipped"
+            "auth.email.service.disabled.verification_email_skipped"
         );
     }
 
@@ -310,12 +297,10 @@ export const verifyEmailService = async (token) => {
 
         logger.info(
             {
-                module: "auth",
-                action: "verification_token_expired",
                 email: pendingUser.email,
                 expiredAgo: timeInfo,
             },
-            "Verification token expired"
+            "auth.verification_token.expired"
         );
 
         throw new ApiError(
@@ -343,12 +328,10 @@ export const verifyEmailService = async (token) => {
 
     logger.info(
         {
-            module: "auth",
-            action: "email_verified",
             email: user.email,
             userId: user._id
         },
-        "Email verified"
+        "auth.email.verified"
     );
 
     const trimmed = user.name.trim();
@@ -370,25 +353,21 @@ export const verifyEmailService = async (token) => {
 
                 logger.info(
                     {
-                        module: "auth",
-                        action: "create_default_organization",
                         userId: user._id,
                         email: user.email,
                         orgId: org._id,
                     },
-                    "Default organization created"
+                    "auth.organization.default_created"
                 );
             }
         } catch (err) {
             logger.error(
                 {
-                    module: "auth",
-                    action: "create_default_organization",
                     userId: user._id,
                     email: user.email,
                     error: err.message,
                 },
-                "Default organization creation failed after email verification"
+                "auth.organization.default_creation_failed.after_email_verification"
             );
         }
     }
@@ -399,11 +378,10 @@ export const verifyEmailService = async (token) => {
         } else {
             logger.info(
                 {
-                    module: "email",
-                    action: "welcome_email_skipped",
+                    userId: user._id,
                     email: user.email,
                 },
-                "Email service is disabled. Skipping welcome email"
+                "auth.email.service.disabled.welcome_email_skipped"
             );
         }
     } catch (err) {
@@ -514,12 +492,11 @@ export const loginService = async (body) => {
 
     logger.info(
         {
-            module: "auth",
             email: user.email,
             device,
             ip,
         },
-        "User logged in successfully"
+        "auth.user.logged_in"
     );
 
     return {
@@ -566,11 +543,10 @@ export const logoutService = async (refreshToken, userId) => {
 
     logger.info(
         {
-            module: "auth",
             email: user.email,
             device: currentDevice,
         },
-        "User logged out successfully"
+        "auth.user.logged_out"
     );
 
     return {
@@ -616,11 +592,10 @@ export const refreshTokenService = async (refreshToken) => {
 
     logger.info(
         {
-            module: "auth",
             email: user.email,
             device: session.device,
         },
-        "Access token refreshed"
+        "auth.user.access_token.refreshed"
     );
 
     return {

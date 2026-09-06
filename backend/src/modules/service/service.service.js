@@ -23,7 +23,7 @@ import {
     serviceOnlineMeetingProviderValidator,
 } from "./service.validator.js";
 import { INTEGRATION_CONFIG } from "../../constants/onlineMeetingProviders.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -176,7 +176,14 @@ export const createServiceService = async (userId, orgId, payload) => {
         autoGenerateMeetingLink: mode === "ONLINE" ? (autoGenerateMeetingLink ?? true) : false,
     });
 
-    console.log(`Service created| Name: ${newService.name} (ID: ${newService._id}) | Slug: ${newService.slug}`);
+    logger.info(
+        {
+            serviceId: newService._id,
+            name: newService.name,
+            slug: newService.slug,
+        },
+        "service.created"
+    );
 
     return newService;
 };
@@ -383,11 +390,25 @@ export const updateServiceService = async (userId, serviceId, payload) => {
     try {
         await service.save();
     } catch (err) {
-        console.error("Error updating service:", err);
+        logger.error(
+            {
+                serviceId: service._id,
+                error: err.message,
+            },
+            "service.update_failed"
+        )
+
         throw new ApiError(500, "An error occurred while updating the service, please try again.");
     }
 
-    console.log(`Service updated | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            slug: service.slug,
+        },
+        "service.updated"
+    );
 
     return service;
 };
@@ -429,7 +450,14 @@ export const getServiceByIdService = async (userId, serviceId) => {
     service = service.toObject();// Convert to plain object to allow adding new properties
     service.publicUrl = `${env.CLIENT_URL}/book/${organization.slug}/${service.slug}`;
 
-    console.log(`Service fetched | Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug}`);
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            slug: service.slug,
+        },
+        "service.retrieved"
+    );
 
     return service
 };
@@ -472,7 +500,14 @@ export const deleteServiceService = async (userId, serviceId) => {
         throw new ApiError(500, "An error occurred while deleting the service, please try again.");
     }
 
-    console.log(`Service deleted| Name: ${service.name} (ID: ${service._id}) | Slug: ${service.slug})`);
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            slug: service.slug,
+        },
+        "service.deleted"
+    );
 
     return {
         success: true,
@@ -511,7 +546,14 @@ export const getOrganizationServicesService = async (userId, orgId) => {
 
     const services = await findServicesByOrganizationId(orgId);
 
-    console.log(`Services fetched for organization: ${organization.name} (ID: ${organization._id}) | Total Services: ${services.length}`);
+    logger.info(
+        {
+            organizationId: organization._id,
+            organizationName: organization.name,
+            totalServices: services.length,
+        },
+        "service.organization_services_fetched"
+    );
 
     return services;
 };
@@ -540,13 +582,6 @@ export const toggleServiceStatusService = async (userId, serviceId) => {
         throw new ApiError(404, "Organization not found");
     }
 
-
-    console.log("Permission Debug:", {
-        userId,
-        organizationId: organization._id,
-        owner: organization.owner,
-        members: organization.members
-    });
     if (
         userId.toString() !== organization.owner.toString() &&
         !organization.members.some(
@@ -599,11 +634,17 @@ export const toggleServiceStatusService = async (userId, serviceId) => {
     try {
         await service.save();
     } catch (err) {
-        console.error("Error toggling service status:", err);
         throw new ApiError(500, "An error occurred while toggling the service status. Please try again.");
     }
 
-    console.log(`Service status toggled | Name: ${service.name} (ID: ${service._id}) | New Status: ${service.isActive ? "Active" : "Inactive"}`);
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            isActive: service.isActive,
+        },
+        "service.status_toggled"
+    );
 
     return {
         success: true,
@@ -643,6 +684,15 @@ export const toggleAutoGenerateMeetingLinkService = async (userId, serviceId) =>
     } catch (err) {
         throw new ApiError(500, "An error occurred while toggling the auto-generate meeting link, please try again.");
     }
+
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            autoGenerateMeetingLink: service.autoGenerateMeetingLink,
+        },
+        "service.auto_generate_meeting_link_toggled"
+    );
 
     return {
         success: true,
@@ -693,7 +743,14 @@ export const syncServiceSlugService = async (userId, serviceId) => {
         throw new ApiError(500, "An error occurred while syncing the service slug, please try again.");
     }
 
-    console.log(`Service slug synced| Name: ${service.name} (ID: ${service._id}) | New Slug: ${service.slug}`);
+    logger.info(
+        {
+            serviceId: service._id,
+            name: service.name,
+            newSlug: service.slug,
+        },
+        "service.slug_synced"
+    );
 
     return {
         success: true,
@@ -744,7 +801,16 @@ export const getServiceBySlugService = async (orgSlug, serviceSlug) => {
             (service.mode === "OFFLINE" && !!service.address)
         );
 
-    console.log(`[Service: public api] Service fetched by slug | OrganizationId: ${organization._id} | ServiceId: ${service._id}) | Bookable: ${isBookable}`);
+    logger.info(
+        {
+            organizationId: organization._id,
+            organizationName: organization.name,
+            serviceId: service._id,
+            serviceName: service.name,
+            isBookable,
+        },
+        "service.retrieved_by_slug"
+    );
 
     return {
         organization: {

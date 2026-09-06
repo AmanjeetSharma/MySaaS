@@ -7,7 +7,7 @@ import { passwordValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getUserByEmail, getUserByHashedToken } from "../user.repository.js";
 import { generateToken } from "../../../utils/token.js";
 import env from "../../../config/env.config.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -23,7 +23,6 @@ export const changePasswordService = async (userId, currentSessionId,
         newPassword,
         confirmNewPassword
     }) => {
-    console.log(currentPassword, newPassword, confirmNewPassword)
 
     if (!currentPassword) {
         throw new ApiError(400, "Current password is required");
@@ -91,7 +90,14 @@ export const changePasswordService = async (userId, currentSessionId,
         throw new ApiError(500, "Error saving new password");
     }
 
-    console.log(`Password changed | Email: ${user.email} | Current Device: ${currentSession.device}`);
+    logger.info(
+        {
+            userId: user._id,
+            email: user.email,
+            currentDevice: currentSession.device
+        },
+        "user.password_changed"
+    );
 
     return {
         _id: user._id,
@@ -142,11 +148,24 @@ export const setupPasswordService = async (userId, { newPassword, confirmNewPass
     try {
         await user.save();
     } catch (err) {
-        console.error("Error setting up password:", err);
+        logger.error(
+            {
+                userId: user._id,
+                email: user.email,
+                err: err.message
+            },
+            "Error setting up password"
+        );
         throw new ApiError(500, "Error setting up password");
     }
 
-    console.log(`Password setup successful for email: ${user.email}`);
+    logger.info(
+        {
+            userId: user._id,
+            email: user.email
+        },
+        "user.password_setup"
+    );
 
     return {
         _id: user._id,
@@ -176,7 +195,14 @@ export const forgotPasswordService = async (email) => {
 
     if (!user) {
         await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
-        console.log(`User with email ${normalizedEmail} does not exist.`);
+
+        logger.info(
+            {
+                email: normalizedEmail,
+            },
+            "user.not_found"
+        );
+
         return null;
     }
 
@@ -192,7 +218,15 @@ export const forgotPasswordService = async (email) => {
     try {
         await user.save();
     } catch (err) {
-        console.error("Failed to save password reset token:", err);
+        logger.error(
+            {
+                userId: user._id,
+                email: user.email,
+                error: err.message,
+            },
+            "auth.password_reset_token.save_failed"
+        );
+
         throw new ApiError(500, "Error generating password reset token");
     }
 
@@ -209,8 +243,20 @@ export const forgotPasswordService = async (email) => {
         );
     }
 
-    console.log(`[sendEmail] for password reset: ${env.EMAIL_ENABLED ? 'Email sent' : 'Email sending disabled, skipping...'}`);
-    console.log(`Reset link for ${user.email}: ${resetLink}`); // link for testing (debug log)
+    logger.info(
+        {
+            emailEnabled: env.EMAIL_ENABLED,
+        },
+        "email.password_reset"
+    );
+
+    logger.debug(
+        {
+            email: user.email,
+            resetLink,
+        },
+        "auth.password_reset_link.generated"
+    );
 
     return null;
 };
@@ -272,7 +318,13 @@ export const resetPasswordService = async (rawToken, newPassword, confirmNewPass
         throw new ApiError(500, "Error resetting password");
     }
 
-    console.log(`Password reset successful for email: ${user.email}`);
+    logger.info(
+        {
+            userId: user._id,
+            email: user.email,
+        },
+        "user.password_reset"
+    );
 
     return {
         _id: user._id,

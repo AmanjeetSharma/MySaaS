@@ -33,10 +33,9 @@ export const generateAccessToken = (user, sessionId) => {
 
     logger.info(
         {
-            module: "auth",
             expiresIn: env.ACCESS_TOKEN_EXPIRY || "15m",
         },
-        "Access token generated"
+        "auth.access.token.generated"
     );
 
     return jwt.sign(
@@ -59,10 +58,9 @@ export const generateRefreshToken = (userId, sessionId) => {
 
     logger.info(
         {
-            module: "auth",
             expiresIn: env.REFRESH_TOKEN_EXPIRY || "7d",
         },
-        "Refresh token generated"
+        "auth.refresh.token.generated"
     );
 
     return jwt.sign(

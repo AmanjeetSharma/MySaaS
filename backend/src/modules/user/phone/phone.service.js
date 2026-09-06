@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { ApiError } from "../../../utils/ApiError.js";
 import { phoneNumberValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getUserByPhone } from "../user.repository.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -29,9 +29,6 @@ export const addPhoneService = async (userId, phone) => {
 
         throw new ApiError(429, `Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
     }
-
-
-
 
     const existingPhoneOwner = await getUserByPhone(userId, phone);
     if (existingPhoneOwner) {
@@ -60,7 +57,13 @@ export const addPhoneService = async (userId, phone) => {
         throw new ApiError(500, "Failed to save phone number. Please try again.");
     }
 
-    console.log(`OTP sent to ${phone}: ${otp}`);
+    logger.info(
+        {
+            phone,
+            otp,
+        },
+        "auth.otp.sent"
+    );
 
     return {
         pendingNumber: phone,
@@ -121,7 +124,13 @@ export const verifyPhoneOtpService = async (userId, otp) => {
         throw new ApiError(500, "Failed to verify phone number. Please try again");
     }
 
-    console.log(`Phone number verified for user ${user.email} | phone: ${user.phone.number}`);
+    logger.info(
+        {
+            userId: user._id,
+            phone: user.phone.number
+        },
+        "user.phone_verified"
+    );
 
     return {
         _id: user._id,
@@ -167,13 +176,16 @@ export const unlinkPhoneService = async (userId) => {
     try {
         await user.save();
     } catch (error) {
-        throw new ApiError(
-            500,
-            "Failed to remove phone number. Please try again."
-        );
+        throw new ApiError(500, "Failed to remove phone number. Please try again.");
     }
 
-    console.log(`Phone number removed/unlinked for user ${user.email} | phone: ${user.phone.number}`);
+    logger.info(
+        {
+            userId: user._id,
+            phone: user.phone.number
+        },
+        "user.phone_unlinked"
+    );
 
     return {
         removed: true,

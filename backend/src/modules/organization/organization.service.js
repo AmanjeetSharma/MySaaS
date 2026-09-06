@@ -10,10 +10,10 @@ import {
     setActiveOrganization,
     unsetActiveOrganizationForUsers,
     findOrganizationsByUserId,
-    countCustomersInOrganization,
 } from "./organization.repository.js";
 import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
+import logger from "#/config/logger.js";
 
 
 
@@ -55,7 +55,14 @@ export const createOrganizationService = async (userId, orgName) => {
 
         await session.commitTransaction();
 
-        console.log(`Organization ${org.name} (ID: ${org._id}) created by user ID: ${userId}`);
+        logger.info(
+            {
+                orgId: org._id,
+                orgName: org.name,
+                userId,
+            },
+            "organization.created"
+        );
 
         return {
             ...org.toObject(),
@@ -70,7 +77,15 @@ export const createOrganizationService = async (userId, orgName) => {
         if (err instanceof ApiError) {
             throw err;
         } else {
-            console.error("Error creating organization:", err);
+
+            logger.error(
+                {
+                    userId,
+                    error: err.message,
+                },
+                "organization.creation_failed"
+            );
+
             throw new ApiError(500, "An error occurred while creating the organization. Please try again.");
         }
     } finally {
@@ -94,7 +109,14 @@ export const getOrganizationsService = async (userId) => {
     const ownedOrganization = organizations.find(org => org.owner.toString() === userId.toString()) || null;
     const memberOrganizations = organizations.filter(org => org.owner.toString() !== userId.toString());
 
-    console.log(`User ID: ${userId} - Owned Organization: ${ownedOrganization ? ownedOrganization.name : "None"}, Member Organizations: ${memberOrganizations.length}`);
+    logger.info(
+        {
+            userId,
+            ownedOrganization: ownedOrganization?.name || null,
+            memberOrganizationCount: memberOrganizations.length,
+        },
+        "organization.list_retrieved"
+    );
 
     return {
         ownedOrganization: ownedOrganization || null,
@@ -130,7 +152,14 @@ export const getOrganizationService = async (orgId, userId) => {
 
     // const customerCount = await countCustomersInOrganization(orgId);
 
-    console.log(`User ID: ${userId} requested details for Organization: ${org.name}`);
+    logger.info(
+        {
+            userId,
+            orgId: org._id,
+            orgName: org.name,
+        },
+        "organization.details_retrieved"
+    );
 
     return {
         ...org.toObject(),
@@ -150,7 +179,6 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
     }
 
     const { orgName, description } = updateData;
-    console.log(updateData);
 
     const org = await findOrganizationById(orgId);
     if (!org) throw new ApiError(404, "Organization not found");
@@ -196,7 +224,14 @@ export const updateOrganizationService = async (orgId, updateData, userId) => {
         throw new ApiError(500, "Failed to update organization - please try again");
     }
 
-    console.log(`Organization ${org.name} (ID: ${org._id}) updated by user ID: ${userId}`);
+    logger.info(
+        {
+            userId,
+            orgId: org._id,
+            orgName: org.name,
+        },
+        "organization.updated"
+    );
 
     return org;
 };
@@ -230,7 +265,14 @@ export const deleteOrganizationService = async (userId, orgId) => {
 
         await session.commitTransaction();
 
-        console.log(`Organization ${org.name} (ID: ${org._id}) deleted by user ID: ${userId}`);
+        logger.info(
+            {
+                userId,
+                orgId: org._id,
+                orgName: org.name,
+            },
+            "organization.deleted"
+        );
 
         return {
             success: true,
@@ -242,7 +284,16 @@ export const deleteOrganizationService = async (userId, orgId) => {
         if (err instanceof ApiError) {
             throw err;
         } else {
-            console.error("Error deleting organization:", err);
+            logger.error(
+                {
+                    userId,
+                    orgId: org._id,
+                    orgName: org.name,
+                    error: err.message,
+                },
+                ""
+            );
+
             throw new ApiError(500, "An error occurred while deleting the organization. Please try again.");
         }
     } finally {
@@ -279,7 +330,14 @@ export const switchOrganizationService = async (userId, orgId) => {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
 
-    console.log(`User ${user.email} switched active organization to ${user.activeOrganization}`);
+    logger.info(
+        {
+            userId,
+            orgId: org._id,
+            orgName: org.name,
+        },
+        "organization.switched"
+    );
 
     return {
         success: true,
@@ -329,7 +387,15 @@ export const syncOrganizationSlugService = async (userId, orgId) => {
         throw new ApiError(500, "An error occurred while syncing the organization slug. Please try again.");
     }
 
-    console.log(`Organization ${org.name} (ID: ${org._id}) slug synchronized to ${org.slug} by user ID: ${userId}`);
+    logger.info(
+        {
+            userId,
+            orgId: org._id,
+            orgName: org.name,
+            slug: org.slug,
+        },
+        "organization.slug_synchronized"
+    );
 
     return {
         success: true,

@@ -18,7 +18,8 @@ import {
     convertToSmallestCurrencyUnit,
     generatePaymentReceipt,
 } from "./payment.helper.js";
-import env from "../../config/env.config.js";
+import env from "#/config/env.config.js";
+import logger from "#/config/logger.js";
 
 
 
@@ -78,7 +79,13 @@ export const createPaymentService = async (payload = {}) => {
         });
 
     } catch (error) {
-        console.error("[Payment] Failed to create Razorpay order:", error?.error?.description || error.message);
+        logger.error(
+            {
+                error: error?.error?.description || error.message,
+            },
+            "payment.razorpay_order_creation_failed"
+        );
+
         throw new ApiError(502, "Unable to initialize payment. Please try again.");
     }
 
@@ -96,14 +103,28 @@ export const createPaymentService = async (payload = {}) => {
         });
 
     } catch (error) {
-        console.error("[Payment] Failed to create payment record for booking ID:", booking._id, "-", error.message);
+        logger.error(
+            {
+                bookingId: booking._id,
+                error: error.message,
+            },
+            "payment.record_creation_failed"
+        );
+
         throw new ApiError(500, "Unable to initialize payment. Please try again.");
     }
 
     booking.payment = payment._id;
     await booking.save();
 
-    console.log(`[Payment] Payment session created for booking ID: ${booking._id}, payment ID: ${payment._id}, Razorpay order ID: ${razorpayOrder.id}`);
+    logger.info(
+        {
+            bookingId: booking._id,
+            paymentId: payment._id,
+            razorpayOrderId: razorpayOrder.id,
+        },
+        "payment.session_created"
+    );
 
     return {
         bookingId: booking._id,
@@ -135,7 +156,13 @@ const processSuccessfulPayment = async ({
     }
 
     if (payment.status === "SUCCESS") {
-        console.log(`[Payment] Payment already processed by Razorpay Webhook | booking ID: ${payment.booking} | payment ID: ${payment._id}`);
+        logger.info(
+            {
+                bookingId: payment.booking,
+                paymentId: payment._id,
+            },
+            "payment.already_processed_by_razorpay_webhook"
+        );
         return {
             paymentId: payment._id,
             bookingId: payment.booking,
@@ -162,7 +189,15 @@ const processSuccessfulPayment = async ({
         bookingId: payment.booking,
     });
 
-    console.log(`[Payment] Payment successful for booking ID: ${booking._id}, payment ID: ${updatedPayment._id}`);
+
+    logger.info(
+        {
+            bookingId: booking._id,
+            paymentId: updatedPayment._id,
+            razorpayPaymentId,
+        },
+        "payment.successfully_processed"
+    );
 
     return {
         paymentId: updatedPayment._id,
@@ -202,7 +237,13 @@ export const verifyPaymentService = async ({
         throw new ApiError(400, "Invalid payment signature.");
     }
 
-    console.log(`[Payment] Payment verified successfully. Order: ${razorpayOrderId}, Payment: ${razorpayPaymentId}`);
+    logger.info(
+        {
+            razorpayOrderId,
+            razorpayPaymentId,
+        },
+        "payment.verified_successfully"
+    );
 
     return processSuccessfulPayment({
         razorpayOrderId,
@@ -251,7 +292,14 @@ export const handleRazorpayWebhookService = async ({
 
     // Extracting event
     const event = webhookEvent?.event;
-    console.log("[Razorpay Webhook] Event:", event);
+
+    logger.info(
+        {
+            event,
+        },
+        "payment.razorpay_webhook_received"
+    );
+
     if (!event) {
         throw new ApiError(400, "Razorpay webhook event is missing.");
     }
@@ -264,7 +312,13 @@ export const handleRazorpayWebhookService = async ({
             throw new ApiError(400, "Razorpay payment details are missing from webhook.");
         }
 
-        console.log(`[Razorpay Webhook] Payment captured successfully. Order: ${paymentEntity.order_id}, Payment: ${paymentEntity.id}`);
+        logger.info(
+            {
+                razorpayOrderId: paymentEntity.order_id,
+                razorpayPaymentId: paymentEntity.id,
+            },
+            "payment.captured_by_razorpay_webhook"
+        );
 
         return await processSuccessfulPayment({
             razorpayOrderId: paymentEntity.order_id,
@@ -276,13 +330,15 @@ export const handleRazorpayWebhookService = async ({
 
         const paymentEntity = webhookEvent?.payload?.payment?.entity;
 
-        console.log(
-            `[Razorpay Webhook] Payment attempt failed.` +
-            ` Order: ${paymentEntity?.order_id || "unknown"}` +
-            ` Payment: ${paymentEntity?.id || "unknown"}`
+        logger.info(
+            {
+                razorpayOrderId: paymentEntity?.order_id || null,
+                razorpayPaymentId: paymentEntity?.id || null,
+                reason: paymentEntity?.error_reason || null,
+                description: paymentEntity?.error_description || null,
+            },
+            "payment.failure_verified_by_razorpay_webhook"
         );
-
-        console.log(`Reason: ${paymentEntity?.error_reason || "unknown"}` + ` Description: ${paymentEntity?.error_description || "No description provided."}`);
 
         return {
             event,
@@ -297,7 +353,12 @@ export const handleRazorpayWebhookService = async ({
         };
     }
 
-    console.log(`[Razorpay Webhook] Unhandled event type: ${event}. No action taken.`);
+    logger.info(
+        {
+            event,
+        },
+        "payment.unhandled_event.no_action_taken"
+    );
 
     return {
         event,
