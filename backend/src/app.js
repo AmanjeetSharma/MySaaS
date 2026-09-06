@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public/temp"));
 app.use(cookieParser());
 
-// Arcjet middleware for security
+// Arcjet middleware
 // app.use("/api/v1", arcjetMiddleware);
 
 // Global rate limiter middleware

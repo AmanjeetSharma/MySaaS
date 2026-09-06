@@ -4,7 +4,7 @@ const isProduction = env.NODE_ENV === "production";
 
 const arcjetConfig = {
     shield: {
-        mode: "DRY_RUN",
+        mode: isProduction ? "LIVE" : "DRY_RUN",
     },
 
     botDetection: {

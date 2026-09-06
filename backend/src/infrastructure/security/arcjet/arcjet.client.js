@@ -11,10 +11,10 @@ const arcjetClient = arcjet({
             mode: arcjetConfig.shield.mode,
         }),
 
-        // detectBot({
-        //     mode: arcjetConfig.botDetection.mode,
-        //     allow: arcjetConfig.botDetection.allow,
-        // }),
+        detectBot({
+            mode: arcjetConfig.botDetection.mode,
+            allow: arcjetConfig.botDetection.allow,
+        }),
     ],
 
     log: logger,

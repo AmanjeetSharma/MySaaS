@@ -30,7 +30,9 @@ const arcjetMiddleware = async (req, res, next) => {
                 path: req.originalUrl,
                 ip: req.ip,
                 conclusion: decision.conclusion,
-                rules: decision.reason,
+                reason: decision.reason,
+                results: decision.results,
+                suspiciousHeader: req.get("x-arcjet-suspicious"),
             },
             "Arcjet request evaluated"
         );
@@ -42,7 +44,8 @@ const arcjetMiddleware = async (req, res, next) => {
                     path: req.originalUrl,
                     ip: req.ip,
                     conclusion: decision.conclusion,
-                    rules: decision.reason,
+                    reason: decision.reason,
+                    results: decision.results,
                 },
                 "Arcjet request denied"
             );
