@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import env from "../config/env.config.js";
+import logger from "../config/logger.js";
 
 
 export const generateToken = () => {
@@ -29,7 +30,15 @@ export const generateSessionId = () => {
 
 
 export const generateAccessToken = (user, sessionId) => {
-    console.log("access token expires in:", env.ACCESS_TOKEN_EXPIRY || "15m");
+
+    logger.info(
+        {
+            module: "auth",
+            expiresIn: env.ACCESS_TOKEN_EXPIRY || "15m",
+        },
+        "Access token generated"
+    );
+
     return jwt.sign(
         {
             _id: user._id,
@@ -47,7 +56,15 @@ export const generateAccessToken = (user, sessionId) => {
 
 
 export const generateRefreshToken = (userId, sessionId) => {
-    console.log("refresh token expires in:", env.REFRESH_TOKEN_EXPIRY || "7d");
+
+    logger.info(
+        {
+            module: "auth",
+            expiresIn: env.REFRESH_TOKEN_EXPIRY || "7d",
+        },
+        "Refresh token generated"
+    );
+
     return jwt.sign(
         {
             id: userId,

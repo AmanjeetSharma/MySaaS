@@ -5,7 +5,7 @@ const isProduction = env.NODE_ENV === "production";
 
 const logger = pino({
 
-    level: env.LOG_LEVEL || (isProduction ? "info" : "debug"),
+    level: env.LOG_LEVEL,
 
     // base is a set of default properties that will be included in every log message.
     // base: {

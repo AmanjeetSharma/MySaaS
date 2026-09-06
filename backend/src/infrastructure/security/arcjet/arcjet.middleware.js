@@ -1,7 +1,26 @@
 import arcjetClient from "./arcjet.client.js";
 import logger from "#/config/logger.js";
+import securityPaths from "../config/securityPaths.config.js";
+
+const isExcludedPath = (req) => {
+    const path = req.originalUrl.split("?")[0];
+    return securityPaths.excludedFromGlobalProtection.includes(path);
+};
 
 const arcjetMiddleware = async (req, res, next) => {
+
+    if (isExcludedPath(req)) {
+        logger.info(
+            {
+                module: "arcjet",
+                path: req.originalUrl,
+                ip: req.ip,
+            },
+            "Excluded path - skipping Arcjet evaluation"
+        );
+        return next();
+    }
+
     try {
         const decision = await arcjetClient.protect(req);
 

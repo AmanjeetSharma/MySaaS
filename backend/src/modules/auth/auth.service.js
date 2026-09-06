@@ -24,7 +24,7 @@ import {
 } from "./auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import { recordLoginFailure } from "../../infrastructure/security/abuseProtection/login.abuseProtection.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -143,14 +143,42 @@ export const registerService = async (body, avatarFile) => {
                     user.activeOrganization = org._id;
                     await user.save();
 
-                    console.log(`Default organization created for user ${user.email} | Email Verification Bypass | orgId: ${org._id}`);
+                    logger.info(
+                        {
+                            module: "auth",
+                            action: "create_default_organization",
+                            userId: user._id,
+                            email: user.email,
+                            orgId: org._id,
+                            emailVerificationBypass: true,
+                        },
+                        "Default organization created for user"
+                    );
                 }
+
             } catch (err) {
-                console.error(`Default organization creation failed for user ${user.email} | Email Verification Bypass | error: ${err.message}`);
+                logger.error(
+                    {
+                        module: "auth",
+                        action: "default_organization_creation",
+                        email: user.email,
+                        error: err.message,
+                        emailVerificationBypass: true,
+                    },
+                    "Default organization creation failed"
+                );
             }
         }
 
-        console.log(`User created without email verification | email: ${normalizedEmail}`);
+        logger.info(
+            {
+                module: "auth",
+                action: "create_user",
+                email: normalizedEmail,
+                emailVerificationBypass: true,
+            },
+            "User created without email verification"
+        );
 
         return {
             name: userData.name,
@@ -173,7 +201,15 @@ export const registerService = async (body, avatarFile) => {
                 // console.log(`Removed old avatar from Cloudinary for existing pending user | email: ${normalizedEmail}`);
             }
         } catch (err) {
-            console.error(`Failed to remove old avatar from Cloudinary for existing pending user | email: ${normalizedEmail} | error: ${err.message}`);
+            logger.error(
+                {
+                    module: "auth",
+                    action: "remove_old_avatar",
+                    email: normalizedEmail,
+                    error: err.message,
+                },
+                "Failed to remove old avatar from Cloudinary for existing pending user"
+            );
         }
 
         existingPendingUser.avatar = userData.avatar;
@@ -197,7 +233,17 @@ export const registerService = async (body, avatarFile) => {
         });
     }
 
-    console.log(`${existingPendingUser ? "Existing" : "New"} pending user ${existingPendingUser ? "updated" : "created"} for ${normalizedEmail}`);
+    logger.info(
+        {
+            module: "auth",
+            action: existingPendingUser ? "pending_user_updated" : "pending_user_created",
+            email: normalizedEmail,
+            existingPendingUser: !!existingPendingUser,
+        },
+        existingPendingUser
+            ? "Existing pending user updated"
+            : "New pending user created"
+    );
 
     const verificationLink = `${env.CLIENT_URL}/verify/${rawToken}`;
 
@@ -210,9 +256,23 @@ export const registerService = async (body, avatarFile) => {
             emailHTML,
             true
         );
-        console.log(`Verification email sent to ${normalizedEmail}`);
+        logger.info(
+            {
+                module: "auth",
+                action: "verification_email_sent",
+                email: normalizedEmail,
+            },
+            "Verification email sent"
+        );
     } else {
-        console.log(`Email service disabled. Verification link: ${verificationLink}`);
+        logger.info(
+            {
+                module: "auth",
+                action: "verification_email_skipped",
+                email: normalizedEmail,
+            },
+            "Email service disabled. Verification email skipped"
+        );
     }
 
     return {
@@ -247,7 +307,16 @@ export const verifyEmailService = async (token) => {
 
     if (pendingUser.verificationTokenExpiry < Date.now()) {
         const timeInfo = getTimeDifference(pendingUser.verificationTokenExpiry);
-        console.log(`Token expired ${timeInfo} ago | Email: ${pendingUser.email}`);
+
+        logger.info(
+            {
+                module: "auth",
+                action: "verification_token_expired",
+                email: pendingUser.email,
+                expiredAgo: timeInfo,
+            },
+            "Verification token expired"
+        );
 
         throw new ApiError(
             400,
@@ -272,7 +341,15 @@ export const verifyEmailService = async (token) => {
 
     await deletePendingUser(pendingUser._id);
 
-    console.log(`Email verified | User: ${user.email} | ID: ${user._id}`);
+    logger.info(
+        {
+            module: "auth",
+            action: "email_verified",
+            email: user.email,
+            userId: user._id
+        },
+        "Email verified"
+    );
 
     const trimmed = user.name.trim();
     const orgName = trimmed[0].toUpperCase() + trimmed.slice(1) + "'s Workspace";
@@ -290,10 +367,29 @@ export const verifyEmailService = async (token) => {
             if (org) {
                 user.activeOrganization = org._id;
                 await user.save();
-                console.log(`Default organization created for user ${user.email} | orgId: ${org._id}`);
+
+                logger.info(
+                    {
+                        module: "auth",
+                        action: "create_default_organization",
+                        userId: user._id,
+                        email: user.email,
+                        orgId: org._id,
+                    },
+                    "Default organization created"
+                );
             }
         } catch (err) {
-            console.error(`Default organization creation failed for user ${user.email} after email verification | userId: ${user._id} | error: ${err.message}`);
+            logger.error(
+                {
+                    module: "auth",
+                    action: "create_default_organization",
+                    userId: user._id,
+                    email: user.email,
+                    error: err.message,
+                },
+                "Default organization creation failed after email verification"
+            );
         }
     }
 
@@ -301,7 +397,14 @@ export const verifyEmailService = async (token) => {
         if (env.EMAIL_ENABLED) {
             await sendEmail(user.email, "Welcome to MySaaS", welcomeEmailTemplate(user.name), true);
         } else {
-            console.log(`Email service is disabled. Skipping welcome email for ${user.email}`);
+            logger.info(
+                {
+                    module: "email",
+                    action: "welcome_email_skipped",
+                    email: user.email,
+                },
+                "Email service is disabled. Skipping welcome email"
+            );
         }
     } catch (err) {
         // ignore: already handled in sendEmail
@@ -404,13 +507,20 @@ export const loginService = async (body) => {
     try {
         await user.save();
     } catch (err) {
-        console.error(`[Login err log] Error saving user session for ${user.email} | Error: ${err.message}`);
         throw new ApiError(500, "An error occurred while logging in. Please try again.");
     }
 
     const accessToken = generateAccessToken(user, sessionId);
 
-    console.log(`User logged in | Email: ${user.email} | Device: ${device}`);
+    logger.info(
+        {
+            module: "auth",
+            email: user.email,
+            device,
+            ip,
+        },
+        "User logged in successfully"
+    );
 
     return {
         user: {
@@ -454,7 +564,14 @@ export const logoutService = async (refreshToken, userId) => {
 
     await user.save();
 
-    console.log(`User logged out | Email: ${user.email} | Device: ${currentDevice}`);
+    logger.info(
+        {
+            module: "auth",
+            email: user.email,
+            device: currentDevice,
+        },
+        "User logged out successfully"
+    );
 
     return {
         message: "Logged out successfully",
@@ -479,7 +596,6 @@ export const refreshTokenService = async (refreshToken) => {
 
     const user = await findUserById(decoded.id, "+sessions.refreshToken");
     if (!user) {
-        console.log(`Refresh token failed - user not found | userId: ${decoded.id}`);
         throw new ApiError(401, "User not found");
     }
 
@@ -498,7 +614,14 @@ export const refreshTokenService = async (refreshToken) => {
 
     const newAccessToken = generateAccessToken(user, decoded.sessionId);
 
-    console.log(`Access token refreshed | Email: ${user.email} | Device: ${session.device}`);
+    logger.info(
+        {
+            module: "auth",
+            email: user.email,
+            device: session.device,
+        },
+        "Access token refreshed"
+    );
 
     return {
         user: {

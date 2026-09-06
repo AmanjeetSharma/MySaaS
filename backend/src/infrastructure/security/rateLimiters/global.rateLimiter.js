@@ -3,7 +3,12 @@ import { RateLimiterRedis } from "rate-limiter-flexible";
 import redis from "../../redis/redis.client.js";
 import rateLimitConfig from "./config/rateLimit.config.js";
 import logger from "../../../config/logger.js";
+import securityPaths from "../config/securityPaths.config.js";
 
+const isExcludedPath = (req) => {
+    const path = req.originalUrl.split("?")[0];
+    return securityPaths.excludedFromGlobalProtection.includes(path);
+}
 
 const globalRateLimiter = new RateLimiterRedis({
     storeClient: redis,
@@ -16,6 +21,21 @@ const globalRateLimiter = new RateLimiterRedis({
 
 
 const globalRateLimiterMiddleware = async (req, res, next) => {
+
+    if (isExcludedPath(req)) {
+
+        logger.info(
+            {
+                module: "global-rate-limiter",
+                ip: req.ip,
+                path: req.originalUrl,
+            },
+            "Excluded path - skipping rate limit evaluation"
+        );
+
+        return next();
+    }
+
     const key = rateLimitConfig.global.key(req.ip);
 
     try {

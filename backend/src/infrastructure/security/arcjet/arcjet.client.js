@@ -1,5 +1,5 @@
 import arcjet, { shield, detectBot } from "@arcjet/node";
-import env from "../../../config/env.config.js";
+import env from "#/config/env.config.js";
 import arcjetConfig from "./config/arcjet.config.js";
 
 const arcjetClient = arcjet({

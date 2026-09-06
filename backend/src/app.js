@@ -6,6 +6,8 @@ import httpLogger from "./middlewares/httpLogger.middleware.js";
 import env from "./config/env.config.js";
 import securityHeaders from "./infrastructure/security/securityHeaders/securityHeaders.config.js";
 import globalRateLimiterMiddleware from "./infrastructure/security/rateLimiters/global.rateLimiter.js";
+import arcjetMiddleware from "./infrastructure/security/arcjet/arcjet.middleware.js";
+
 
 const app = express();
 
@@ -30,6 +32,9 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public/temp"));
 app.use(cookieParser());
+
+// Arcjet middleware for security
+app.use("/api/v1", arcjetMiddleware);
 
 // Global rate limiter middleware
 app.use("/api/v1", globalRateLimiterMiddleware);
