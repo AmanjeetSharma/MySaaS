@@ -552,7 +552,7 @@ export const getOrganizationServicesService = async (userId, orgId) => {
             organizationName: organization.name,
             totalServices: services.length,
         },
-        "service.organization_services_fetched"
+        "service.organization_services_retrieved"
     );
 
     return services;

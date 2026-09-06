@@ -115,7 +115,7 @@ export const getOrganizationsService = async (userId) => {
             ownedOrganization: ownedOrganization?.name || null,
             memberOrganizationCount: memberOrganizations.length,
         },
-        "organization.list_retrieved"
+        "organization.organizations_retrieved"
     );
 
     return {
