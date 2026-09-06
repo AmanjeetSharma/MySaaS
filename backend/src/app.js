@@ -34,7 +34,7 @@ app.use(express.static("public/temp"));
 app.use(cookieParser());
 
 // Arcjet middleware for security
-app.use("/api/v1", arcjetMiddleware);
+// app.use("/api/v1", arcjetMiddleware);
 
 // Global rate limiter middleware
 app.use("/api/v1", globalRateLimiterMiddleware);

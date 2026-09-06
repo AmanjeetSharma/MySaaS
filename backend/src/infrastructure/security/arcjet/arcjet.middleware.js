@@ -24,12 +24,13 @@ const arcjetMiddleware = async (req, res, next) => {
     try {
         const decision = await arcjetClient.protect(req);
 
-        logger.info(
+        logger.debug(
             {
                 module: "arcjet",
                 path: req.originalUrl,
                 ip: req.ip,
                 conclusion: decision.conclusion,
+                rules: decision.reason,
             },
             "Arcjet request evaluated"
         );
@@ -41,6 +42,7 @@ const arcjetMiddleware = async (req, res, next) => {
                     path: req.originalUrl,
                     ip: req.ip,
                     conclusion: decision.conclusion,
+                    rules: decision.reason,
                 },
                 "Arcjet request denied"
             );
