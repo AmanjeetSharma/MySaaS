@@ -7,7 +7,7 @@ const abuseProtectionConfig = {
 
             failureKey: (ip) => `abuse:auth:login:failures:ip:${ip}`,
             blockKey: (ip) => `abuse:auth:login:block:ip:${ip}`,
-            message: "Too many failed login attempts. Please try again later. ip blocked.",
+            message: "Too many failed login attempts. Please try again later. IP blocked temporarily.",
         },
 
         account: {

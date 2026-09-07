@@ -80,6 +80,10 @@ export const useAppBootstrap = () => {
                 setAppReady(true);
                 return;
             }
+            if (window.location.pathname.startsWith('/book/')) {
+                setAppReady(true);
+                return;
+            }
 
             setAppReady(false);
             useUserStore.setState({
