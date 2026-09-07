@@ -20,7 +20,7 @@ const env = {
     SMTP_PASS: process.env.SMTP_PASS,
 
     EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true',
-    ENABLE_JOBS: process.env.ENABLE_JOBS === 'true',
+    ENABLE_BACKGROUND_PROCESSING: process.env.ENABLE_BACKGROUND_PROCESSING === 'true',
 
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,

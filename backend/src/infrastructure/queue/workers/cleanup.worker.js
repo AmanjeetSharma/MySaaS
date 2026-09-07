@@ -5,53 +5,75 @@ import { processPendingUserCleanup } from "#/infrastructure/queue/processors/cle
 import { processExpiredBookingCleanup } from "#/infrastructure/queue/processors/cleanup/expiredBookingCleanup.processor.js";
 import logger from "#/config/logger.js";
 
-export const cleanupWorker = new Worker(QUEUE_NAMES.CLEANUP, async (job) => {
-    switch (job.name) {
-        case CLEANUP_JOB_NAMES.PENDING_USER_CLEANUP:
-            return await processPendingUserCleanup();
 
-        case CLEANUP_JOB_NAMES.EXPIRED_BOOKING_CLEANUP:
-            return await processExpiredBookingCleanup();
+let cleanupWorker = null;
 
-        default:
-            throw new Error(`Unknown cleanup job: ${job.name}`);
+
+export const startCleanupWorker = () => {
+    if (cleanupWorker) {
+        return;
     }
-},
 
-    {
-        connection: bullMQConnection,
+    cleanupWorker = new Worker(QUEUE_NAMES.CLEANUP, async (job) => {
+        switch (job.name) {
+
+            case CLEANUP_JOB_NAMES.PENDING_USER_CLEANUP:
+                return await processPendingUserCleanup();
+
+            case CLEANUP_JOB_NAMES.EXPIRED_BOOKING_CLEANUP:
+                return await processExpiredBookingCleanup();
+
+            default:
+                throw new Error(`Unknown cleanup job: ${job.name}`);
+        }
+    },
+
+        {
+            connection: bullMQConnection,
+        }
+    );
+
+
+    cleanupWorker.on("completed", (job) => {
+        logger.info(
+            {
+                jobId: job.id,
+                jobName: job.name,
+            },
+            "Cleanup job completed"
+        );
+    });
+
+
+    cleanupWorker.on("failed", (job, error) => {
+        logger.error(
+            {
+                jobId: job?.id,
+                jobName: job?.name,
+                err: error,
+            },
+            "Cleanup job failed"
+        );
+    });
+
+
+    cleanupWorker.on("error", (error) => {
+        logger.error(
+            {
+                err: error,
+            },
+            "Cleanup worker error"
+        );
+    });
+};
+
+
+export const stopCleanupWorker = async () => {
+    if (!cleanupWorker) {
+        return;
     }
-);
 
+    await cleanupWorker.close();
 
-cleanupWorker.on("completed", (job) => {
-    logger.info(
-        {
-            jobId: job.id,
-            jobName: job.name,
-        },
-        "cleanup.job.completed"
-    );
-});
-
-
-cleanupWorker.on("failed", (job, error) => {
-    logger.error(
-        {
-            jobId: job?.id,
-            jobName: job?.name,
-            err: error,
-        },
-        "cleanup.job.failed"
-    );
-});
-
-
-cleanupWorker.on("error", (error) => {
-    logger.error(
-        {
-            err: error,
-        },
-        "cleanup.worker.error"
-    );
-});
+    cleanupWorker = null;
+};

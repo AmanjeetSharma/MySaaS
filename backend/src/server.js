@@ -1,12 +1,13 @@
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import app from "./app.js";
-import chalk from "chalk";
 import launchPage from "./config/launchPage.js"
 import env from "./config/env.config.js";
 import logger from "./config/logger.js";
 import { connectRedis, setRedisShutdownHandler } from "./infrastructure/redis/redis.client.js";
 import { gracefulShutdown } from "./infrastructure/shutdown/gracefulShutdown.js";
+import { startQueues } from "#/infrastructure/queue/index.js";
+
 
 dotenv.config({
     path: "./.env"
@@ -33,18 +34,31 @@ const startServer = async () => {
 
         await connectRedis();
 
-        server = app.listen(env.PORT, () => {
-            if (env.NODE_ENV === "development") {
-                console.log(chalk.yellowBright(`Server is live!`));
-                console.log(chalk.magentaBright(`🌐 Server is running on:`));
-                console.log(chalk.cyanBright(`http://localhost:${env.PORT}`));
-                console.log(chalk.gray(`-----------------------------------------`));
-            } else {
-                console.log(chalk.greenBright(`Production Server is live!`));
-                console.log(chalk.cyanBright(`🌐 Port: ${env.PORT}`));
-                console.log(chalk.gray(`-----------------------------------------`));
-            }
+        if (env.ENABLE_BACKGROUND_PROCESSING) {
+            await startQueues();
+            logger.info("Background processing started");
+        } else {
+            logger.warn("Background processing is disabled");
+        }
+
+        server = await new Promise((resolve, reject) => {
+            const httpServer = app.listen(env.PORT, () => {
+                resolve(httpServer);
+            });
+
+            httpServer.on("error", reject);
         });
+
+        if (env.NODE_ENV === "development") {
+            logger.info(`Server is live!`);
+            logger.info(`Server is running on: http://localhost:${env.PORT}`);
+            logger.info(`-------------------------------------------`);
+        } else {
+            logger.info(`Server is live!`);
+            logger.info(`Server is running on port: ${env.PORT}`);
+            logger.info(`-------------------------------------------`);
+        }
+
     } catch (error) {
         logger.fatal(
             { err: error },

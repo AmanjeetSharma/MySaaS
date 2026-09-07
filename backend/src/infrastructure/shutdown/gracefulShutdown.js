@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import logger from "../../config/logger.js";
 import env from "../../config/env.config.js";
 import { disconnectRedis } from "../redis/redis.client.js";
+import { stopQueues } from "../queue/index.js";
 
 let isShuttingDown = false;
 
@@ -44,6 +45,9 @@ export const gracefulShutdown = (getServer) => {
             });
 
             logger.info("HTTP server closed");
+
+            await stopQueues();
+            logger.info("Background processing stopped");
 
             await disconnectRedis();
             logger.info("Redis connection closed");

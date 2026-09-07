@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import chalk from "chalk";
 import env from "./env.config.js";
 import dns from "dns";
 import logger from "./logger.js";
@@ -12,7 +11,7 @@ import logger from "./logger.js";
 const connectDB = async () => {
     try {
         const connection = await mongoose.connect(`${env.MONGO_URI}/${env.DB_NAME}`);
-        console.log(`${chalk.yellowBright("--> MongoDB Connected")} | HOST: ${chalk.gray(connection.connection.host)}`);
+        logger.info(`MongoDB Connected`);
     } catch (error) {
         logger.fatal(
             {

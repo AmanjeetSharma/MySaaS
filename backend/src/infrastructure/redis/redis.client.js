@@ -107,7 +107,7 @@ export const connectRedis = async () => {
 export const disconnectRedis = async () => {
     isRedisShuttingDown = true;
 
-    if(redisOutageTimer) {
+    if (redisOutageTimer) {
         clearTimeout(redisOutageTimer);
         redisOutageTimer = null;
     }
