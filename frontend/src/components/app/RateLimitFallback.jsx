@@ -127,7 +127,7 @@ export const RateLimitFallback = ({ rateLimit }) => {
                             </p>
 
                             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-neutral-400">
-                                <span>Time remaining:</span>
+                                <span>Retry After:</span>
                                 <div className="inline-flex items-center gap-1 font-mono font-bold text-neutral-200">
                                     <Clock className="size-3.5 text-neutral-400 stroke-2" />
                                     <span>{formatRemainingTime(remainingSeconds)}</span>
