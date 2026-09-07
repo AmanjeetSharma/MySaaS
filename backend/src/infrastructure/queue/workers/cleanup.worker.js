@@ -34,15 +34,15 @@ export const startCleanupWorker = () => {
     );
 
 
-    cleanupWorker.on("completed", (job) => {
-        logger.info(
-            {
-                jobId: job.id,
-                jobName: job.name,
-            },
-            "Cleanup job completed"
-        );
-    });
+    // cleanupWorker.on("completed", (job) => { //this can flood the logs, so uncomment if needed
+    //     logger.info(
+    //         {
+    //             jobId: job.id,
+    //             jobName: job.name,
+    //         },
+    //         "Cleanup job completed"
+    //     );
+    // });
 
 
     cleanupWorker.on("failed", (job, error) => {

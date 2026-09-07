@@ -229,7 +229,7 @@ export const createPendingBookingService = async (payload = {}) => {
         phone: payload.booker.phone?.trim() || null,
     };
 
-    const paymentExpiresAt = new Date(Date.now() + PAYMENT_HOLD_DURATION_MINUTES * 60 * 1000);//if env = 5 then paymentExpiresAt = current time + 5 minutes
+    const paymentExpiresAt = new Date(Date.now() + PAYMENT_HOLD_DURATION_MINUTES * 60 * 1000);
 
     const existingPendingBooking = await findActivePendingBooking({
         organizationId: organization._id,
