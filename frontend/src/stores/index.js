@@ -12,6 +12,7 @@ export { useActivityStore } from './activityStore';
 export { useGoogleStore } from './googleStore';
 export { useBookingStore } from './bookingStore';
 export { usePaymentStore } from './paymentStore';
+export { useNotificationStore } from './notificationStore';
 
 
 

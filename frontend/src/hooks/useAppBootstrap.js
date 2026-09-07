@@ -4,6 +4,7 @@ import { useAppStore } from '../stores/appStore';
 import { useAuthStore } from '../stores/authStore';
 import { useUserStore } from '../stores/userStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import { useSocket } from './useSocket';
 
 import { http } from '../api/httpClient';
 import {
@@ -70,6 +71,8 @@ export const useAppBootstrap = () => {
         (state) => state.isAuthenticated
     );
 
+    // Manage the WebSocket connection alongside the app bootstrap lifecycle.
+    useSocket();
     useEffect(() => {
         let isMounted = true;
 
