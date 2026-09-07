@@ -5,7 +5,6 @@ import chalk from "chalk";
 import launchPage from "./config/launchPage.js"
 import env from "./config/env.config.js";
 import logger from "./config/logger.js";
-import { startJobs } from "./jobs/index.js";
 import { connectRedis, setRedisShutdownHandler } from "./infrastructure/redis/redis.client.js";
 import { gracefulShutdown } from "./infrastructure/shutdown/gracefulShutdown.js";
 
@@ -45,13 +44,6 @@ const startServer = async () => {
                 console.log(chalk.cyanBright(`🌐 Port: ${env.PORT}`));
                 console.log(chalk.gray(`-----------------------------------------`));
             }
-
-            if (env.ENABLE_JOBS) {
-                startJobs(); // starting background jobs only after server goes live
-            } else {
-                console.log(chalk.yellowBright(`Background jobs are disabled.`));
-            }
-
         });
     } catch (error) {
         logger.fatal(

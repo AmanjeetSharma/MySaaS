@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import logger from "../../config/logger.js";
 import env from "../../config/env.config.js";
 import { disconnectRedis } from "../redis/redis.client.js";
-import { stopJobs } from "../../jobs/index.js";
 
 let isShuttingDown = false;
 
@@ -27,9 +26,6 @@ export const gracefulShutdown = (getServer) => {
         }, env.SERVER_SHUTDOWN_TIMEOUT_MS);
 
         try {
-            stopJobs();
-            logger.info("Background jobs stopped");
-
             const server = getServer();
 
             await new Promise((resolve, reject) => {
