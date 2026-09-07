@@ -32,6 +32,7 @@ const pendingUserSchema = new mongoose.Schema({
     { timestamps: true }
 );
 
+pendingUserSchema.index({ verificationTokenExpiry: 1 });
 
 export const PendingUser =
     mongoose.models.PendingUser || mongoose.model("PendingUser", pendingUserSchema);
