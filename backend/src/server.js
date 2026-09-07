@@ -7,7 +7,7 @@ import logger from "./config/logger.js";
 import { connectRedis, setRedisShutdownHandler } from "./infrastructure/redis/redis.client.js";
 import { gracefulShutdown } from "./infrastructure/shutdown/gracefulShutdown.js";
 import { startQueues } from "#/infrastructure/queue/index.js";
-
+import { initializeSocket } from "./infrastructure/websocket/socket.js";
 
 dotenv.config({
     path: "./.env"
@@ -43,6 +43,8 @@ const startServer = async () => {
 
         server = await new Promise((resolve, reject) => {
             const httpServer = app.listen(env.PORT, () => {
+                initializeSocket(httpServer);
+                
                 resolve(httpServer);
             });
 

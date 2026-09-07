@@ -8,11 +8,13 @@ import env from "../config/env.config.js";
 
 
 export const verifyToken = asyncHandler(async (req, res, next) => {
-    const token =
-        req.cookies?.accessToken ||
-        req.header("Authorization")?.replace("Bearer ", "");
+    const authHeader = req.header("Authorization");
+    const token = req.cookies?.accessToken ||
+        (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null);
 
-    if (!token) throw new ApiError(401, "No access token");
+    if (!token) {
+        throw new ApiError(401, "No access token");
+    }
 
     let decoded;
 
@@ -23,12 +25,14 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
     }
 
     const user = await User.findById(decoded._id).select("+sessions");
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
 
     if (user.accountStatus !== "active") {
         throw new ApiError(403, `Your account is ${user.accountStatus}. Please contact support for assistance.`);
     }
 
-    if (!user) throw new ApiError(404, "User not found");
 
     const session = user.sessions.find(
         s => s.sessionId === decoded.sessionId && s.isActive
