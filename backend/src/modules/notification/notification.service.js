@@ -1,4 +1,3 @@
-import { ApiError } from "../../utils/ApiError.js";
 import logger from "#/config/logger.js";
 import {
     encodeCursor,
@@ -13,6 +12,12 @@ import {
     findAllNotificationsCountRepository,
     findUnreadNotificationsCountRepository,
 } from "./notification.repository.js";
+import {
+    emitNotificationsRead,
+    emitNotificationsDeleted,
+    emitAllNotificationsRead,
+    emitAllNotificationsDeleted
+} from "../../infrastructure/websocket/emitters/notification.emitter.js";
 
 
 
@@ -115,6 +120,10 @@ export const markSelectedNotificationsAsReadService = async ({
         notificationIds,
     });
 
+    if (result.modifiedCount > 0) {
+        emitNotificationsRead(userId, notificationIds);
+    }
+
     logger.info(
         {
             userId,
@@ -138,6 +147,10 @@ export const markSelectedNotificationsAsReadService = async ({
 
 export const markAllNotificationsAsReadService = async ({ userId }) => {
     const result = await markAllNotificationsAsReadRepository(userId);
+
+    if (result.modifiedCount > 0) {
+        emitAllNotificationsRead(userId);
+    }
 
     logger.info(
         {
@@ -169,6 +182,10 @@ export const deleteSelectedNotificationsService = async ({
         notificationIds,
     });
 
+    if (result.deletedCount > 0) {
+        emitNotificationsDeleted(userId, notificationIds);
+    }
+
     logger.info(
         {
             userId,
@@ -194,6 +211,10 @@ export const deleteSelectedNotificationsService = async ({
 
 export const deleteAllNotificationsService = async ({ userId }) => {
     const result = await deleteAllNotificationsRepository(userId);
+
+    if (result.deletedCount > 0) {
+        emitAllNotificationsDeleted(userId);
+    }
 
     logger.info(
         {

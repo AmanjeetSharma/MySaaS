@@ -133,9 +133,6 @@ export const useNotificationStore = create((set, get) => ({
     },
 
     markAllRead: async () => {
-        const previousCounts = get().notificationCounts;
-        const previousUnreadCount = get().unreadCount;
-
         set((state) => ({
             notifications: state.notifications.map((notification) => ({
                 ...notification,
@@ -262,6 +259,12 @@ export const useNotificationStore = create((set, get) => ({
         }
     },
 
+
+
+
+
+    // Local state update methods for socket events
+
     receiveNotification: (notification) => {
         if (!notification) return;
 
@@ -287,6 +290,140 @@ export const useNotificationStore = create((set, get) => ({
             };
         });
     },
+
+
+    markSelectedReadLocal: (ids) => {
+        if (!ids?.length) return;
+
+        set((state) => {
+            const updatedIds = new Set(ids.map(String));
+            let newlyReadCount = 0;
+
+            const notifications = state.notifications.map((notification) => {
+                const id = notification._id?.toString();
+
+                if (updatedIds.has(id) && !notification.read) {
+                    newlyReadCount++;
+                }
+
+                return updatedIds.has(id)
+                    ? {
+                        ...notification,
+                        read: true,
+                        readAt: notification.readAt ?? new Date().toISOString(),
+                    }
+                    : notification;
+            });
+
+            const unread = Math.max(
+                state.notificationCounts.unread - newlyReadCount,
+                0
+            );
+
+            const notificationCounts = {
+                ...state.notificationCounts,
+                unread,
+                read: state.notificationCounts.read + newlyReadCount,
+            };
+
+            return {
+                notifications,
+                notificationCounts,
+                unreadCount: unread,
+            };
+        });
+    },
+
+    markAllReadLocal: () => {
+        set((state) => ({
+            notifications: state.notifications.map((notification) => ({
+                ...notification,
+                read: true,
+                readAt: notification.readAt ?? new Date().toISOString(),
+            })),
+
+            notificationCounts: {
+                ...state.notificationCounts,
+                unread: 0,
+                read: state.notificationCounts.all,
+            },
+
+            unreadCount: 0,
+        }));
+    },
+
+    deleteSelectedLocal: (ids) => {
+        if (!ids?.length) return;
+
+        const removedIds = new Set(ids.map(String));
+
+        set((state) => {
+            let removedUnreadCount = 0;
+            let removedTotalCount = 0;
+
+            const notifications = state.notifications.filter((notification) => {
+                const id = notification._id?.toString();
+
+                if (!removedIds.has(id)) {
+                    return true;
+                }
+
+                removedTotalCount++;
+
+                if (!notification.read) {
+                    removedUnreadCount++;
+                }
+
+                return false;
+            });
+
+            const notificationCounts = {
+                all: Math.max(
+                    state.notificationCounts.all - removedTotalCount,
+                    0
+                ),
+
+                unread: Math.max(
+                    state.notificationCounts.unread - removedUnreadCount,
+                    0
+                ),
+
+                read: Math.max(
+                    state.notificationCounts.read -
+                    (removedTotalCount - removedUnreadCount),
+                    0
+                ),
+            };
+
+            return {
+                notifications,
+                notificationCounts,
+                unreadCount: notificationCounts.unread,
+            };
+        });
+    },
+
+    deleteAllLocal: () => {
+        set({
+            notifications: [],
+            notificationCounts: {
+                all: 0,
+                unread: 0,
+                read: 0,
+            },
+            unreadCount: 0,
+            nextCursor: null,
+            hasMore: false,
+        });
+    },
+
+
+
+
+
+
+
+
 
     clearAll: () => {
         set({
