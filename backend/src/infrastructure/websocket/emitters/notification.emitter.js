@@ -1,7 +1,7 @@
 import { getIO } from "../socket.js";
 import { getUserRoom } from "../rooms/user.rooms.js";
 import { SOCKET_EVENTS } from "../events/socketEventNames.js";
-import { logger } from "../../../utils/logger.js";
+import logger from "#/config/logger.js";
 
 export const emitNotificationToUser = (userId, notification) => {
     const io = getIO();
