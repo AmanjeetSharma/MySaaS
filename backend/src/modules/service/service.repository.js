@@ -1,10 +1,9 @@
-import { User } from "../user/user.model.js";
 import { Organization } from "../organization/organization.model.js";
 import { Service } from "./service.model.js";
 import { Availability } from "../availability/availability.model.js";
 
 export const findIfSlugExists = async (orgId, slug) => {
-    return await Service.findOne({ organization: orgId, slug });
+    return Service.findOne({ organization: orgId, slug });
 }
 
 
@@ -13,7 +12,7 @@ export const findOrganizationById = async (orgId, selectedFields) => {
     if (selectedFields) {
         query = query.select(selectedFields);
     }
-    return await query;
+    return query;
 }
 
 
@@ -22,27 +21,27 @@ export const findServiceById = async (serviceId, selectedFields) => {
     if (selectedFields) {
         query = query.select(selectedFields);
     }
-    return await query;
+    return query;
 }
 
 
 export const createService = async (payload) => {
-    return await Service.create(payload);
+    return Service.create(payload);
 }
 
 
 export const deleteServiceById = async (serviceId) => {
-    return await Service.findByIdAndDelete(serviceId);
+    return Service.findByIdAndDelete(serviceId);
 }
 
 
 export const findServicesByOrganizationId = async (orgId) => {
-    return await Service.find({ organization: orgId });
+    return Service.find({ organization: orgId });
 }
 
 
 export const findOrganizationBySlug = async (slug) => {
-    return await Organization.findOne({ slug });
+    return Organization.findOne({ slug });
 }
 
 

@@ -1,6 +1,5 @@
 import { User } from "../user/user.model.js";
 import { Organization } from "../organization/organization.model.js";
-import { Customer } from "../customer/customer.model.js";
 import { Deal } from "../deal/deal.model.js";
 import { Activity } from "./activity.model.js";
 

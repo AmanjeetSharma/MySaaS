@@ -9,17 +9,17 @@ export function NotificationItem({
     onMarkRead,
 }) {
     const { _id, title, message, type, createdAt, read } = notification;
-    const { icon: EventIcon, label: defaultCategoryLabel } = getNotificationMeta(type);
+    const { icon: EventIcon } = getNotificationMeta(type);
 
-    const displayTitle = title || message;
-    const categoryLabel = type ? type.replace(/_/g, ' ') : defaultCategoryLabel;
+    const displayTitle = title || "Untitled Notification";
+    const displayMessage = message || "";
     const relativeTime = formatRelativeTime(createdAt);
 
     return (
         <div
             onClick={() => !read && onMarkRead?.(_id)}
             className={cn(
-                'group flex min-h-[66px] cursor-pointer items-center justify-between gap-3.5 px-4 py-3 transition-colors',
+                'group flex min-h-[66px] items-center justify-between gap-3.5 px-4 py-3 transition-colors',
                 read
                     ? 'bg-transparent text-muted-foreground hover:bg-hover/50'
                     : 'bg-surface-elevated/40 text-foreground hover:bg-hover/70',
@@ -36,11 +36,11 @@ export function NotificationItem({
                         checked={isSelected}
                         onCheckedChange={() => onToggleSelect(_id)}
                         aria-label={`Select ${displayTitle}`}
-                        className="h-4 w-4 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground hover:border-primary/70 transition-colors"
+                        className="h-4 w-4 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground hover:border-primary/70 transition-colors cursor-pointer"
                     />
                 </div>
 
-                {/* Event Icon with clear container border */}
+                {/* Event Icon */}
                 <div
                     className={cn(
                         'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors',
@@ -52,26 +52,29 @@ export function NotificationItem({
                     <EventIcon className="h-4 w-4" />
                 </div>
 
-                {/* Hierarchy */}
+                {/* Hierarchy: Title, Message, Timestamp */}
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <p
-                        className={cn(
-                            'truncate text-sm leading-snug',
-                            read ? 'font-normal text-muted-foreground' : 'font-medium text-foreground'
-                        )}
-                    >
-                        {displayTitle}
-                    </p>
-
-                    <div className="flex items-center gap-1.5 text-xs text-subtle-foreground">
-                        <span className="capitalize">{categoryLabel}</span>
+                    <div className="flex items-center justify-between gap-2">
+                        <p
+                            className={cn(
+                                'truncate text-sm leading-snug',
+                                read ? 'font-normal text-muted-foreground' : 'font-medium text-foreground'
+                            )}
+                        >
+                            {displayTitle}
+                        </p>
                         {relativeTime && (
-                            <>
-                                <span>·</span>
-                                <span className="tabular-nums">{relativeTime}</span>
-                            </>
+                            <span className="shrink-0 text-xs text-subtle-foreground tabular-nums">
+                                {relativeTime}
+                            </span>
                         )}
                     </div>
+
+                    {displayMessage && (
+                        <p className="truncate text-xs leading-snug text-subtle-foreground">
+                            {displayMessage}
+                        </p>
+                    )}
                 </div>
             </div>
 
