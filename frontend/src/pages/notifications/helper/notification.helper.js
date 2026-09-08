@@ -16,8 +16,8 @@ export const NOTIFICATION_TYPE_CONFIG = {
         label: 'Organization Switched',
         icon: Building2,
     },
-    booking: {
-        label: 'Booking',
+    booking_new: {
+        label: 'New Booking',
         icon: Calendar,
     },
     payment: {

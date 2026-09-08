@@ -32,3 +32,26 @@ export const createNotification = async ({
 
     return createdNotification;
 };
+
+
+export const getOrganizationNotificationRecipients = (organization) => {
+    if (!organization) {
+        return [];
+    }
+
+    const userIds = [
+        organization.owner,
+        ...(organization.members ?? []).map((member) => member.user),
+    ];
+
+    return [
+        ...new Map(
+            userIds
+                .filter(Boolean)
+                .map((userId) => [
+                    userId.toString(),
+                    userId,
+                ])
+        ).values(),
+    ];
+};

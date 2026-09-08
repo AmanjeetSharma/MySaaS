@@ -116,9 +116,8 @@ export const cancelBooking = async (bookingId, cancellationReason, cancelledBy) 
 
 
 export const findOrganizationById = async (orgId) => {
-    return Organization.findById(orgId).select("+integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
+    return Organization.findById(orgId).select("name owner members +integrations.google.refreshToken.encryptedData +integrations.google.refreshToken.iv +integrations.google.refreshToken.authTag");
 };
-
 
 
 export const updateBookingSchedule = async ({
