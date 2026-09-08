@@ -263,7 +263,7 @@ const PublicService = () => {
         <div className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased flex flex-col justify-between selection:bg-indigo-600 selection:text-white">
             <Header />
 
-            <main className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 w-full">
+            <main className="max-w-335 mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 w-full">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                     {/* LEFT COLUMN: Service Summary */}
                     <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
@@ -444,7 +444,7 @@ const PublicService = () => {
 /* --- Supplementary Layout Components --- */
 const Header = () => (
     <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-335 mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a
                 href="/"
                 className="flex items-center gap-2 group transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 rounded-lg p-1 -ml-1"

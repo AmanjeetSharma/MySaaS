@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
-import { Bell, BellRing, CheckCheck, Trash2, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Bell, BellRing, CheckCheck, Loader2, Trash2 } from 'lucide-react';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Empty,
     EmptyHeader,
@@ -13,19 +14,46 @@ import {
     EmptyDescription,
 } from '@/components/ui/empty';
 import { NotificationItem } from './components/NotificationItem';
-import { filterNotifications } from './helper/notification.helper';
+import { filterNotifications } from './helper/notification.helper.js';
+
+function NotificationSkeleton() {
+    return (
+        <div className="flex min-h-16.5 items-center gap-3.5 px-4 py-3">
+            <Skeleton className="h-4 w-4 shrink-0 rounded bg-border-subtle" />
+            <Skeleton className="h-8 w-8 shrink-0 rounded-lg bg-border-subtle" />
+            <div className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className="h-3.5 w-1/3 rounded bg-border-subtle" />
+                <Skeleton className="h-3 w-2/3 rounded bg-border-subtle" />
+            </div>
+        </div>
+    );
+}
 
 export default function Notifications() {
-    const notifications = useNotificationStore((state) => state.notifications) || [];
-    const unreadCount = useNotificationStore((state) => state.unreadCount) ?? 0;
-    const markAllRead = useNotificationStore((state) => state.markAllRead);
-    const markAsRead = useNotificationStore((state) => state.markAsRead);
-    const removeNotification = useNotificationStore((state) => state.removeNotification);
-    const clearAll = useNotificationStore((state) => state.clearAll);
+    const notifications = useNotificationStore((s) => s.notifications);
+    const unreadCount = useNotificationStore((s) => s.unreadCount);
+    const hasMore = useNotificationStore((s) => s.hasMore);
+    const isLoading = useNotificationStore((s) => s.isLoading);
+    const isUpdating = useNotificationStore((s) => s.isUpdating);
+
+    const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+    const markSelectedRead = useNotificationStore((s) => s.markSelectedRead);
+    const markAllRead = useNotificationStore((s) => s.markAllRead);
+    const deleteSelected = useNotificationStore((s) => s.deleteSelected);
+    const deleteAll = useNotificationStore((s) => s.deleteAll);
 
     const [activeTab, setActiveTab] = useState('all');
     const [selectedIds, setSelectedIds] = useState(new Set());
-    const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+
+    useEffect(() => {
+        fetchNotifications({ append: false });
+    }, [fetchNotifications]);
+
+    const handleLoadMore = useCallback(() => {
+        if (!isLoading && hasMore) {
+            fetchNotifications({ append: true });
+        }
+    }, [fetchNotifications, isLoading, hasMore]);
 
     const counts = useMemo(() => {
         let unread = 0;
@@ -42,14 +70,21 @@ export default function Notifications() {
         [notifications, activeTab]
     );
 
+    // Only unread notifications are eligible for checkbox selection
+    const selectableUnreadIds = useMemo(
+        () => currentList.filter((item) => !item.read).map((item) => item._id),
+        [currentList]
+    );
+
     const isAllSelected =
-        currentList.length > 0 && currentList.every((item) => selectedIds.has(item._id));
+        selectableUnreadIds.length > 0 &&
+        selectableUnreadIds.every((id) => selectedIds.has(id));
 
     const toggleSelectAll = () => {
         if (isAllSelected) {
             setSelectedIds(new Set());
         } else {
-            setSelectedIds(new Set(currentList.map((item) => item._id)));
+            setSelectedIds(new Set(selectableUnreadIds));
         }
     };
 
@@ -61,21 +96,21 @@ export default function Notifications() {
         });
     };
 
-    const handleBulkMarkRead = () => {
-        selectedIds.forEach((id) => markAsRead?.(id));
+    const handleBulkMarkRead = async () => {
+        if (selectedIds.size === 0) return;
+        const ids = Array.from(selectedIds);
         setSelectedIds(new Set());
+        await markSelectedRead(ids);
     };
 
-    const handleBulkDelete = () => {
-        selectedIds.forEach((id) => removeNotification(id));
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        const ids = Array.from(selectedIds);
         setSelectedIds(new Set());
+        await deleteSelected(ids);
     };
 
-    const handleConfirmClearAll = () => {
-        clearAll();
-        setSelectedIds(new Set());
-        setIsConfirmingClear(false);
-    };
+    const isInitialLoad = isLoading && notifications.length === 0;
 
     return (
         <div className="flex w-full flex-col gap-5 pb-8">
@@ -93,7 +128,7 @@ export default function Notifications() {
                             {unreadCount > 0 && (
                                 <Badge
                                     variant="secondary"
-                                    className="h-5 border-transparent bg-primary/20 px-1.5 text-[11px] font-medium text-primary hover:bg-primary/25"
+                                    className="h-5 border-transparent bg-primary/20 px-1.5 text-[11px] font-medium text-primary"
                                 >
                                     {unreadCount} new
                                 </Badge>
@@ -105,14 +140,16 @@ export default function Notifications() {
                     </div>
                 </div>
 
+                {/* Direct Global Actions */}
                 {notifications.length > 0 && (
                     <div className="flex items-center gap-2">
                         {unreadCount > 0 && (
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={markAllRead}
-                                className="h-8 gap-1.5 border-border bg-surface-elevated text-xs font-medium text-foreground hover:bg-hover hover:text-foreground"
+                                onClick={() => markAllRead()}
+                                disabled={isUpdating}
+                                className="h-8 gap-1.5 border-border bg-surface-elevated text-xs font-medium text-foreground hover:bg-hover hover:text-foreground cursor-pointer"
                             >
                                 <CheckCheck className="h-3.5 w-3.5 text-muted-foreground" />
                                 Mark all as read
@@ -121,8 +158,9 @@ export default function Notifications() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setIsConfirmingClear(true)}
-                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => deleteAll()}
+                            disabled={isUpdating}
+                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                         >
                             <Trash2 className="h-3.5 w-3.5" />
                             Clear all
@@ -131,43 +169,12 @@ export default function Notifications() {
                 )}
             </div>
 
-            {/* Safe Clear Confirmation */}
-            {isConfirmingClear && (
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-xs">
-                    <div className="flex flex-col">
-                        <span className="font-medium text-destructive">
-                            Clear all notifications?
-                        </span>
-                        <span className="text-muted-foreground">
-                            This will permanently remove all notifications from your list.
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={handleConfirmClearAll}
-                            className="h-7 px-2.5 text-xs"
-                        >
-                            Confirm
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setIsConfirmingClear(false)}
-                            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                            <X className="h-3.5 w-3.5" />
-                        </Button>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Panel Surface: Uses elevated surface, border-strong & subtle inner contrast */}
+            {/* Notification Surface Container */}
             <div className="overflow-hidden rounded-xl border border-border bg-surface-elevated shadow-lg shadow-black/40">
-                {/* Filter & Bulk Bar */}
+                {/* Filter & Toolbar Area */}
                 <div className="flex h-11 items-center justify-between border-b border-border bg-surface-sunken px-3">
-                    <div className="flex items-center gap-1">
+                    {/* Tabs */}
+                    <div className="flex items-center gap-1.5">
                         {[
                             { id: 'all', label: 'All', count: counts.all },
                             { id: 'unread', label: 'Unread', count: counts.unread },
@@ -181,19 +188,17 @@ export default function Notifications() {
                                         setActiveTab(tab.id);
                                         setSelectedIds(new Set());
                                     }}
-                                    className={`relative flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
-                                        isActive
-                                            ? 'bg-card text-foreground border border-border/80 shadow-xs'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
+                                    className={`relative flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all duration-150 ${isActive
+                                            ? 'border-primary/50 bg-card text-foreground shadow-xs'
+                                            : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
+                                        }`}
                                 >
                                     <span>{tab.label}</span>
                                     <span
-                                        className={`text-[11px] tabular-nums ${
-                                            isActive
-                                                ? 'text-primary font-semibold'
-                                                : 'text-muted-foreground/80'
-                                        }`}
+                                        className={`text-[11px] tabular-nums ${isActive
+                                                ? 'font-semibold text-primary'
+                                                : 'text-subtle-foreground'
+                                            }`}
                                     >
                                         ({tab.count})
                                     </span>
@@ -202,9 +207,10 @@ export default function Notifications() {
                         })}
                     </div>
 
-                    {/* Bulk Selection Bar */}
-                    {currentList.length > 0 && (
+                    {/* Conditional Selection Toolbar */}
+                    {selectableUnreadIds.length > 0 && (
                         <div className="flex items-center gap-3">
+                            {/* Appears when multiple checkboxes are selected */}
                             {selectedIds.size > 0 ? (
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-medium text-foreground">
@@ -215,17 +221,19 @@ export default function Notifications() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleBulkMarkRead}
+                                        disabled={isUpdating}
                                         className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                                     >
-                                        Mark read
+                                        Mark as read
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleBulkDelete}
+                                        disabled={isUpdating}
                                         className="h-6 px-2 text-xs text-destructive hover:bg-destructive/10"
                                     >
-                                        Delete
+                                        Delete marked
                                     </Button>
                                 </div>
                             ) : (
@@ -233,8 +241,8 @@ export default function Notifications() {
                                     <Checkbox
                                         checked={isAllSelected}
                                         onCheckedChange={toggleSelectAll}
-                                        aria-label="Select all"
-                                        className="h-4 w-4 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                                        aria-label="Select all unread notifications"
+                                        className="h-4 w-4 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary cursor-pointer"
                                     />
                                     <span>Select all</span>
                                 </label>
@@ -243,19 +251,49 @@ export default function Notifications() {
                     )}
                 </div>
 
-                {/* Rows */}
-                {currentList.length > 0 ? (
+                {/* Notifications Content */}
+                {isInitialLoad ? (
                     <div className="divide-y divide-border/60">
-                        {currentList.map((notification) => (
-                            <NotificationItem
-                                key={notification._id}
-                                notification={notification}
-                                isSelected={selectedIds.has(notification._id)}
-                                onToggleSelect={toggleSelectOne}
-                                onMarkRead={(id) => markAsRead?.(id)}
-                            />
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <NotificationSkeleton key={i} />
                         ))}
                     </div>
+                ) : currentList.length > 0 ? (
+                    <>
+                        <div className="divide-y divide-border/60">
+                            {currentList.map((notification) => (
+                                <NotificationItem
+                                    key={notification._id}
+                                    notification={notification}
+                                    isSelected={selectedIds.has(notification._id)}
+                                    onToggleSelect={toggleSelectOne}
+                                    onMarkRead={markSelectedRead}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Infinite Scroll / Pagination Load More */}
+                        {hasMore && (
+                            <div className="flex justify-center border-t border-border/40 py-3 bg-surface-sunken/40">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleLoadMore}
+                                    disabled={isLoading}
+                                    className="h-8 gap-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            Loading…
+                                        </>
+                                    ) : (
+                                        'Load more'
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <Empty className="py-12">
                         <EmptyHeader>
@@ -267,7 +305,9 @@ export default function Notifications() {
                             <EmptyTitle className="text-sm font-semibold text-foreground">
                                 {activeTab === 'unread'
                                     ? 'No unread notifications'
-                                    : 'No notifications found'}
+                                    : activeTab === 'read'
+                                        ? 'No read notifications'
+                                        : 'No notifications found'}
                             </EmptyTitle>
                             <EmptyDescription className="text-xs text-muted-foreground">
                                 {activeTab === 'unread'
