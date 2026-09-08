@@ -392,7 +392,7 @@ export const confirmBookingService = async ({
     emitNewBooking(organization._id, bookingPayload);
 
     const notificationRecipients = getOrganizationNotificationRecipients(organization);
-
+    console.log("Notification recipients:", notificationRecipients);
     await Promise.all(
         notificationRecipients.map(async (userId) => {
 

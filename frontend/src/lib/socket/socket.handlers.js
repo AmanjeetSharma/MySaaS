@@ -3,6 +3,7 @@ import { SOCKET_EVENTS } from "./socket.events";
 
 export const registerSocketHandlers = (socket) => {
     socket.on(SOCKET_EVENTS.NOTIFICATION_NEW, (notification) => {
+        console.log("Received new notification:", notification);
         useNotificationStore.getState().receiveNotification(notification);
     });
 

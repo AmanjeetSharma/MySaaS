@@ -6,6 +6,21 @@ export const emitNotificationToUser = (userId, notification) => {
     const io = getIO();
     const room = getUserRoom(userId);
 
+    const socketsInRoom = io.sockets.adapter.rooms.get(room);
+
+    logger.info(
+        {
+            userId,
+            room,
+            socketCount: socketsInRoom?.size ?? 0,
+            socketIds: socketsInRoom
+                ? [...socketsInRoom]
+                : [],
+            notificationId: notification._id,
+        },
+        "notification.realtime.emit"
+    );
+
     io.to(room).emit(SOCKET_EVENTS.NOTIFICATION_NEW, notification);
 };
 
