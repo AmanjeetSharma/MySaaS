@@ -21,8 +21,8 @@ import {
 
 
 
-const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 50;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 20;
 
 export const getNotificationsService = async ({
     userId,

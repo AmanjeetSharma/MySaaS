@@ -7,6 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     Empty,
     EmptyHeader,
     EmptyMedia,
@@ -44,6 +52,7 @@ export default function Notifications() {
 
     const [activeTab, setActiveTab] = useState('all');
     const [selectedIds, setSelectedIds] = useState(new Set());
+    const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
 
     useEffect(() => {
         fetchNotifications({ append: false });
@@ -110,6 +119,12 @@ export default function Notifications() {
         await deleteSelected(ids);
     };
 
+    const handleConfirmClearAll = async () => {
+        await deleteAll();
+        setIsClearAllModalOpen(false);
+        setSelectedIds(new Set());
+    };
+
     const isInitialLoad = isLoading && notifications.length === 0;
 
     return (
@@ -158,7 +173,7 @@ export default function Notifications() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteAll()}
+                            onClick={() => setIsClearAllModalOpen(true)}
                             disabled={isUpdating}
                             className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                         >
@@ -168,6 +183,40 @@ export default function Notifications() {
                     </div>
                 )}
             </div>
+
+            {/* Clear All Confirmation Modal */}
+            <Dialog open={isClearAllModalOpen} onOpenChange={setIsClearAllModalOpen}>
+                <DialogContent className="sm:max-w-[425px] border-border bg-surface-elevated">
+                    <DialogHeader>
+                        <DialogTitle className="text-foreground">Clear all notifications?</DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-xs">
+                            Notifications will no longer be available.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs cursor-pointer"
+                            onClick={() => setIsClearAllModalOpen(false)}
+                            disabled={isUpdating}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 text-xs cursor-pointer"
+                            onClick={handleConfirmClearAll}
+                            disabled={isUpdating}
+                        >
+                            {isUpdating ? 'Clearing...' : 'Yes, clear all'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Notification Surface Container */}
             <div className="overflow-hidden rounded-xl border border-border bg-surface-elevated shadow-lg shadow-black/40">
@@ -189,15 +238,15 @@ export default function Notifications() {
                                         setSelectedIds(new Set());
                                     }}
                                     className={`relative flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all duration-150 ${isActive
-                                            ? 'border-primary/50 bg-card text-foreground shadow-xs'
-                                            : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
+                                        ? 'border-primary/50 bg-card text-foreground shadow-xs'
+                                        : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
                                         }`}
                                 >
                                     <span>{tab.label}</span>
                                     <span
                                         className={`text-[11px] tabular-nums ${isActive
-                                                ? 'font-semibold text-primary'
-                                                : 'text-subtle-foreground'
+                                            ? 'font-semibold text-primary'
+                                            : 'text-subtle-foreground'
                                             }`}
                                     >
                                         ({tab.count})
@@ -210,7 +259,6 @@ export default function Notifications() {
                     {/* Conditional Selection Toolbar */}
                     {selectableUnreadIds.length > 0 && (
                         <div className="flex items-center gap-3">
-                            {/* Appears when multiple checkboxes are selected */}
                             {selectedIds.size > 0 ? (
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-medium text-foreground">
@@ -222,7 +270,7 @@ export default function Notifications() {
                                         size="sm"
                                         onClick={handleBulkMarkRead}
                                         disabled={isUpdating}
-                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                                     >
                                         Mark as read
                                     </Button>
@@ -231,7 +279,7 @@ export default function Notifications() {
                                         size="sm"
                                         onClick={handleBulkDelete}
                                         disabled={isUpdating}
-                                        className="h-6 px-2 text-xs text-destructive hover:bg-destructive/10"
+                                        className="h-6 px-2 text-xs text-destructive hover:bg-destructive/10 cursor-pointer"
                                     >
                                         Delete marked
                                     </Button>
@@ -280,7 +328,7 @@ export default function Notifications() {
                                     size="sm"
                                     onClick={handleLoadMore}
                                     disabled={isLoading}
-                                    className="h-8 gap-2 text-xs text-muted-foreground hover:text-foreground"
+                                    className="h-8 gap-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                                 >
                                     {isLoading ? (
                                         <>

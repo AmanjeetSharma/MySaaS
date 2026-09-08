@@ -13,7 +13,6 @@ export const buildNotification = ({
         title,
         message,
         data,
-        read: false,
     };
 };
 
