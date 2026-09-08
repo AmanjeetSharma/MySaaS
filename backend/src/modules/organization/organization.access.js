@@ -15,7 +15,7 @@ export const checkOrganizationAccess = async (userId, orgId) => {
         throw new ApiError(400, "Organization ID is required and must be a valid ObjectId");
     }
 
-    const organization = await findOrganizationById(orgId, "owner members");
+    const organization = await findOrganizationById(orgId, "name owner members");
     if (!organization) {
         throw new ApiError(404, "Organization not found");
     }

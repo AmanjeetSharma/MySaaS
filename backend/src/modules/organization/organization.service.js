@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
 import { organizationNameValidator } from "./organization.validator.js";
 import {
@@ -13,7 +14,9 @@ import {
 } from "./organization.repository.js";
 import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
+import { checkOrganizationAccess } from "./organization.access.js";
 import logger from "#/config/logger.js";
+import { emitNotificationToUser } from "#/infrastructure/websocket/emitters/notification.emitter.js";
 
 
 
@@ -311,11 +314,9 @@ export const deleteOrganizationService = async (userId, orgId) => {
 export const switchOrganizationService = async (userId, orgId) => {
     if (!orgId) { throw new ApiError(400, "Organization ID is required"); }
 
-    const org = await findOrganizationsByUserId(userId);
-    if (!org) {
-        throw new ApiError(403, "You do not have access to this organization");
-    }
+    const org = await checkOrganizationAccess(userId, orgId);
 
+    console.log("Switching to organization:", org);
     const user = await findUserById(userId);
 
     if (user.activeOrganization && user.activeOrganization.toString() === orgId.toString()) {
@@ -329,6 +330,18 @@ export const switchOrganizationService = async (userId, orgId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
+
+    emitNotificationToUser(userId, {
+        _id: crypto.randomUUID(),
+        type: "organization_switched",
+        title: "Organization switched",
+        message: `You switched to ${org.name}`,
+        data: {
+            organizationId: org._id,
+            organizationName: org.name,
+        },
+        read: false,
+    });
 
     logger.info(
         {

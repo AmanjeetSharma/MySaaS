@@ -1,6 +1,5 @@
 import { User } from "../user/user.model.js";
 import { Organization } from "./organization.model.js";
-import { Customer } from "../customer/customer.model.js";
 
 export const findUserById = async (userId, selectFields, session) => {
     let query = User.findById(userId);
@@ -10,21 +9,21 @@ export const findUserById = async (userId, selectFields, session) => {
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
 export const findExistingOrganization = async (userId) => {
-    return await Organization.findOne({ owner: userId });
+    return Organization.findOne({ owner: userId });
 };
 
 
 export const createOrganization = async (orgData, session = null) => {
     const org = new Organization(orgData);
     if (session) {
-        return await org.save({ session });
+        return org.save({ session });
     }
-    return await org.save();
+    return org.save();
 };
 
 
@@ -38,7 +37,7 @@ export const findOrganizationById = async (orgId, session, populateOptions = [])
             query = query.populate(option);
         });
     }
-    return await query;
+    return query;
 };
 
 
@@ -51,12 +50,12 @@ export const setActiveOrganization = async (userId, orgId, session = null) => {
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
 export const unsetActiveOrganizationForUsers = async (orgId, session) => {
-    const query = await User.updateMany(
+    const query = User.updateMany(
         { activeOrganization: orgId },
         { $set: { activeOrganization: null } },
         { session }
@@ -70,16 +69,18 @@ export const deleteOrganizationById = async (orgId, session) => {
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
 export const findOrganizationsByUserId = async (userId) => {
-    return await Organization.find({
+    return Organization.find({
         $or: [
             { owner: userId },
             { "members.user": userId }
         ]
-    }).select("-__v").sort({ createdAt: -1 });
+    })
+        .select("-__v")
+        .sort({ createdAt: -1 });
 };
 

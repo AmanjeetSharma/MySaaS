@@ -45,7 +45,11 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
     logger.info(
         {
             userId,
-            theme: settings.theme,
+            theme: {
+                name: settings.theme.name,
+                mode: settings.theme.mode,
+                tier: settings.theme.tier,
+            },
         },
         "user.theme_updated"
     );
