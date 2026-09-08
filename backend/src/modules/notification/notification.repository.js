@@ -40,8 +40,24 @@ export const findNotifications = async ({
             createdAt: -1,
             _id: -1,
         })
-        .limit(limit + 1);
+        .limit(limit + 1)
+        .lean();
 };
+
+
+export const findAllNotificationsCountRepository = async (userId) => {
+    return Notification.countDocuments({
+        user: userId,
+    });
+}
+
+
+export const findUnreadNotificationsCountRepository = async (userId) => {
+    return Notification.countDocuments({
+        user: userId,
+        read: false,
+    });
+}
 
 
 export const markNotificationsAsReadRepository = async ({

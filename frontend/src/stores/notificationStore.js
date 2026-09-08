@@ -4,70 +4,65 @@ import { http } from '../api/httpClient';
 import { toastIcon } from '../constants/toastIcon.constant';
 import { getErrorMessage } from '../utils/crmStore.utils';
 
-
-// Notification store — merges two sources of truth:
-
-// 1. REST API  — fetched on page load, cursor-paginated, persisted in DB.
-//    Routes (/notifications):
-//    GET /  → fetchNotifications({ append })
-
-// 2. WebSocket — `notification:new` events pushed in real time.
-//    Handler: receiveNotification(notification)
-
 export const useNotificationStore = create((set, get) => ({
-
     // State
     notifications: [],
+    notificationCounts: { all: 0, unread: 0, read: 0 },
     unreadCount: 0,
 
+    // Cursor pagination
     nextCursor: null,
     hasMore: true,
 
+    // Request state
     isLoading: false,
     isUpdating: false,
     error: null,
 
-    //Fetch paginated notifications from the API.
     fetchNotifications: async ({ append = false } = {}) => {
-        if (append && get().isLoading) return;
+        if (get().isLoading) return;
 
         set({ isLoading: true, error: null });
 
         try {
             const params = {};
-
             if (append && get().nextCursor) {
                 params.cursor = get().nextCursor;
             }
 
-            const response = await http.get("/notifications", { params });
-
+            const response = await http.get('/notifications', { params });
             const data = response.data?.data ?? {};
             const incoming = data.notifications ?? [];
 
             set((state) => {
-                const existingMap = new Map(
-                    state.notifications.map((notification) => [
-                        notification._id?.toString(),
-                        notification,
-                    ])
-                );
+                if (!append) {
+                    const notifications = [...incoming];
+                    const notificationCounts = data.counts ?? { all: 0, unread: 0, read: 0 };
 
-                for (const notification of incoming) {
-                    existingMap.set(
-                        notification._id?.toString(),
-                        notification
-                    );
+                    return {
+                        notifications,
+                        notificationCounts,
+                        unreadCount: notificationCounts.unread,
+                        nextCursor: data.nextCursor ?? null,
+                        hasMore: data.hasNextPage ?? false,
+                        isLoading: false,
+                        error: null,
+                    };
                 }
 
-                const merged = Array.from(existingMap.values()).sort(
-                    (a, b) =>
-                        new Date(b.createdAt) - new Date(a.createdAt)
+                const existingIds = new Set(
+                    state.notifications.map((n) => n._id?.toString())
                 );
+                const newNotifications = incoming.filter(
+                    (n) => !existingIds.has(n._id?.toString())
+                );
+                const notifications = [...state.notifications, ...newNotifications];
+                const notificationCounts = data.counts ?? state.notificationCounts;
 
                 return {
-                    notifications: merged,
-                    unreadCount: merged.filter((n) => !n.read).length,
+                    notifications,
+                    notificationCounts,
+                    unreadCount: notificationCounts.unread,
                     nextCursor: data.nextCursor ?? null,
                     hasMore: data.hasNextPage ?? false,
                     isLoading: false,
@@ -77,35 +72,46 @@ export const useNotificationStore = create((set, get) => ({
 
             return data;
         } catch (error) {
-            const errorMessage = getErrorMessage(
-                error,
-                "Failed to fetch notifications"
-            );
-
-            set({
-                isLoading: false,
-                error: errorMessage,
-            });
-
+            const errorMessage = getErrorMessage(error, 'Failed to fetch notifications');
+            set({ isLoading: false, error: errorMessage });
             throw error;
         }
     },
 
-
-    //Mark a specific set of notifications as read (optimistic + API).
     markSelectedRead: async (ids) => {
         if (!ids?.length) return;
 
-        // Optimistic update
+        const previousNotifications = get().notifications;
+        const previousCounts = get().notificationCounts;
+        const previousUnreadCount = get().unreadCount;
+
         set((state) => {
             const updatedIds = new Set(ids.map(String));
-            const notifications = state.notifications.map((n) =>
-                updatedIds.has(n._id?.toString()) ? { ...n, read: true } : n
-            );
-            return {
-                notifications,
-                unreadCount: notifications.filter((n) => !n.read).length,
+            let newlyReadCount = 0;
+
+            const notifications = state.notifications.map((notification) => {
+                const id = notification._id?.toString();
+                if (updatedIds.has(id) && !notification.read) {
+                    newlyReadCount++;
+                }
+
+                return updatedIds.has(id)
+                    ? {
+                        ...notification,
+                        read: true,
+                        readAt: notification.readAt ?? new Date().toISOString(),
+                    }
+                    : notification;
+            });
+
+            const unread = Math.max(state.notificationCounts.unread - newlyReadCount, 0);
+            const notificationCounts = {
+                ...state.notificationCounts,
+                unread,
+                read: Math.max(state.notificationCounts.read + newlyReadCount, 0),
             };
+
+            return { notifications, notificationCounts, unreadCount: unread };
         });
 
         try {
@@ -113,17 +119,11 @@ export const useNotificationStore = create((set, get) => ({
             await http.patch('/notifications/read-selected', { notificationIds: ids });
             set({ isUpdating: false });
         } catch (error) {
-            // Rollback optimistic update
-            set((state) => {
-                const revertedIds = new Set(ids.map(String));
-                const notifications = state.notifications.map((n) =>
-                    revertedIds.has(n._id?.toString()) ? { ...n, read: false } : n
-                );
-                return {
-                    notifications,
-                    unreadCount: notifications.filter((n) => !n.read).length,
-                    isUpdating: false,
-                };
+            set({
+                notifications: previousNotifications,
+                notificationCounts: previousCounts,
+                unreadCount: previousUnreadCount,
+                isUpdating: false,
             });
 
             const errorMessage = getErrorMessage(error, 'Failed to mark notifications as read');
@@ -132,12 +132,21 @@ export const useNotificationStore = create((set, get) => ({
         }
     },
 
-
-    //      Mark all notifications as read.
     markAllRead: async () => {
-        // Optimistic update
+        const previousCounts = get().notificationCounts;
+        const previousUnreadCount = get().unreadCount;
+
         set((state) => ({
-            notifications: state.notifications.map((n) => ({ ...n, read: true })),
+            notifications: state.notifications.map((notification) => ({
+                ...notification,
+                read: true,
+                readAt: notification.readAt ?? new Date().toISOString(),
+            })),
+            notificationCounts: {
+                ...state.notificationCounts,
+                unread: 0,
+                read: state.notificationCounts.all,
+            },
             unreadCount: 0,
         }));
 
@@ -146,33 +155,53 @@ export const useNotificationStore = create((set, get) => ({
             await http.patch('/notifications/read-all');
             set({ isUpdating: false });
         } catch (error) {
-            // Refetch to restore correct state
-            get().fetchNotifications();
-            set({ isUpdating: false });
+            try {
+                await get().fetchNotifications({ append: false });
+            } catch {
+                // Preserve original operation error
+            }
 
-            const errorMessage = getErrorMessage(error, 'Failed to mark all as read');
+            set({ isUpdating: false });
+            const errorMessage = getErrorMessage(error, 'Failed to mark all notifications as read');
             toast.error(errorMessage, { icon: toastIcon('error') });
             throw error;
         }
     },
 
-
-    //Delete a specific set of notifications (optimistic + API).
-
     deleteSelected: async (ids) => {
         if (!ids?.length) return;
 
         const removedIds = new Set(ids.map(String));
-        const snapshot = get().notifications;
+        const previousNotifications = get().notifications;
+        const previousCounts = get().notificationCounts;
+        const previousUnreadCount = get().unreadCount;
 
-        // Optimistic removal
         set((state) => {
-            const notifications = state.notifications.filter(
-                (n) => !removedIds.has(n._id?.toString())
-            );
+            let removedUnreadCount = 0;
+            let removedTotalCount = 0;
+
+            const notifications = state.notifications.filter((notification) => {
+                const id = notification._id?.toString();
+                if (!removedIds.has(id)) return true;
+
+                removedTotalCount++;
+                if (!notification.read) removedUnreadCount++;
+                return false;
+            });
+
+            const notificationCounts = {
+                all: Math.max(state.notificationCounts.all - removedTotalCount, 0),
+                unread: Math.max(state.notificationCounts.unread - removedUnreadCount, 0),
+                read: Math.max(
+                    state.notificationCounts.read - (removedTotalCount - removedUnreadCount),
+                    0
+                ),
+            };
+
             return {
                 notifications,
-                unreadCount: notifications.filter((n) => !n.read).length,
+                notificationCounts,
+                unreadCount: notificationCounts.unread,
             };
         });
 
@@ -183,10 +212,10 @@ export const useNotificationStore = create((set, get) => ({
             });
             set({ isUpdating: false });
         } catch (error) {
-            // Rollback
             set({
-                notifications: snapshot,
-                unreadCount: snapshot.filter((n) => !n.read).length,
+                notifications: previousNotifications,
+                notificationCounts: previousCounts,
+                unreadCount: previousUnreadCount,
                 isUpdating: false,
             });
 
@@ -196,26 +225,36 @@ export const useNotificationStore = create((set, get) => ({
         }
     },
 
-
-    // Delete all notifications.
-
     deleteAll: async () => {
-        const snapshot = get().notifications;
+        const previousNotifications = get().notifications;
+        const previousCounts = get().notificationCounts;
+        const previousUnreadCount = get().unreadCount;
 
-        // Optimistic clear
-        set({ notifications: [], unreadCount: 0 });
+        set({
+            notifications: [],
+            notificationCounts: { all: 0, unread: 0, read: 0 },
+            unreadCount: 0,
+            nextCursor: null,
+            hasMore: false,
+        });
 
         try {
             set({ isUpdating: true });
             await http.delete('/notifications/delete-all');
             set({ isUpdating: false, nextCursor: null, hasMore: false });
         } catch (error) {
-            // Rollback
             set({
-                notifications: snapshot,
-                unreadCount: snapshot.filter((n) => !n.read).length,
+                notifications: previousNotifications,
+                notificationCounts: previousCounts,
+                unreadCount: previousUnreadCount,
                 isUpdating: false,
             });
+
+            try {
+                await get().fetchNotifications({ append: false });
+            } catch {
+                // Preserve original operation error
+            }
 
             const errorMessage = getErrorMessage(error, 'Failed to clear notifications');
             toast.error(errorMessage, { icon: toastIcon('error') });
@@ -223,40 +262,36 @@ export const useNotificationStore = create((set, get) => ({
         }
     },
 
-
-
-    //Receive a real-time notification pushed via `notification:new`.
-    //Prepends to the list without hitting the API.
     receiveNotification: (notification) => {
+        if (!notification) return;
+
         set((state) => {
             const exists = state.notifications.some(
                 (n) => n._id?.toString() === notification._id?.toString()
             );
 
-            if (exists) {
-                return state;
-            }
+            if (exists) return state;
 
-            const notifications = [
-                notification,
-                ...state.notifications,
-            ];
+            const notifications = [notification, ...state.notifications];
+            const notificationCounts = {
+                ...state.notificationCounts,
+                all: state.notificationCounts.all + 1,
+                unread: state.notificationCounts.unread + (notification.read ? 0 : 1),
+                read: state.notificationCounts.read + (notification.read ? 1 : 0),
+            };
 
             return {
                 notifications,
-                unreadCount: notifications.filter((n) => !n.read).length,
+                notificationCounts,
+                unreadCount: notificationCounts.unread,
             };
         });
     },
 
-
-    //Clean up
-
-    // Reset the entire store (called on logout via useSocket).
-
     clearAll: () => {
         set({
             notifications: [],
+            notificationCounts: { all: 0, unread: 0, read: 0 },
             unreadCount: 0,
             nextCursor: null,
             hasMore: true,
@@ -266,5 +301,7 @@ export const useNotificationStore = create((set, get) => ({
         });
     },
 
-    clearError: () => set({ error: null }),
+    clearError: () => {
+        set({ error: null });
+    },
 }));

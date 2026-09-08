@@ -10,6 +10,8 @@ import {
     markAllNotificationsAsReadRepository,
     deleteSelectedNotificationsRepository,
     deleteAllNotificationsRepository,
+    findAllNotificationsCountRepository,
+    findUnreadNotificationsCountRepository,
 } from "./notification.repository.js";
 
 
@@ -38,11 +40,17 @@ export const getNotificationsService = async ({
         ? decodeCursor(cursor)
         : null;
 
-    const notifications = await findNotifications({
-        userId,
-        limit: parsedLimit + 1,
-        cursor: decodedCursor,
-    });
+    const [notifications, all, unread] = await Promise.all([
+        findNotifications({
+            userId,
+            limit: parsedLimit + 1,
+            cursor: decodedCursor,
+        }),
+
+        findAllNotificationsCountRepository(userId),
+
+        findUnreadNotificationsCountRepository(userId),
+    ])
 
     const hasNextPage = notifications.length > parsedLimit;
 
@@ -59,20 +67,33 @@ export const getNotificationsService = async ({
         })
         : null;
 
+    const read = all - unread;
+
     logger.info(
         {
             userId,
             limit: parsedLimit,
             cursor: decodedCursor,
             nextCursor,
+            counts: {
+                all,
+                unread,
+                read,
+            },
         },
-        "notification.all.retrieved",
+        'notification.all.retrieved'
     );
 
     return {
         notifications: results,
         nextCursor,
         hasNextPage,
+
+        counts: {
+            all,
+            unread,
+            read,
+        },
     };
 };
 

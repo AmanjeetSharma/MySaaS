@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { DesktopSidebar } from './DesktopSidebar';
-import { TopNavbar } from './TopNavbar';
+import { TopNavbar } from './topNavbar/TopNavbar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
