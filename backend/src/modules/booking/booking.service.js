@@ -19,6 +19,7 @@ import {
     findServiceForPublicBooking,
     findBookingById,
     findActivePendingBooking,
+    findUserById,
 } from "./booking.repository.js";
 import {
     validateObjectId,
@@ -53,7 +54,13 @@ import { checkOrganizationAccess } from "../organization/organization.access.js"
 import { PAYMENT_HOLD_DURATION_MINUTES, BOOKING_STATUSES } from "./booking.constants.js";
 import logger from "#/config/logger.js";
 
-import { emitNewBooking } from "#/infrastructure/websocket/emitters/booking.emitter.js";
+import {
+    emitNewBooking,
+    emitBookingUpdated,
+    emitBookingStatusChanged,
+    emitBookingRescheduled,
+    emitBookingCancelled,
+} from "#/infrastructure/websocket/emitters/booking.emitter.js";
 import {
     buildNotification,
     createNotification,
@@ -461,7 +468,7 @@ export const cancelBookingService = async ({
     validateObjectId(orgId, "Organization ID");
     validateObjectId(bookingId, "Booking ID");
 
-    await checkOrganizationAccess(userId, orgId);
+    const organizationAccess = await checkOrganizationAccess(userId, orgId);
 
     const booking = await findBookingByIdAndOrganization(bookingId, orgId);
 
@@ -506,6 +513,29 @@ export const cancelBookingService = async ({
     if (!cancelledBooking) {
         throw new ApiError(409, "Booking could not be cancelled.");
     }
+
+    const user = await findUserById(userId);
+
+    const bookingPayload = buildBookingRealtimePayload(cancelledBooking);
+    emitBookingCancelled(organizationAccess._id, bookingPayload);
+
+    const notificationRecipients = getOrganizationNotificationRecipients(organizationAccess);
+
+    await Promise.all(
+        notificationRecipients.map(async (userId) => {
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.BOOKING_CANCELLED,
+                title: "Booking Cancelled",
+                message: `${cancelledBooking.booker.name}'s booking has been cancelled by ${user.name} (${user.email}) - organization: ${organizationAccess.name}`,
+            });
+
+            await createNotification({
+                userId,
+                organizationId: organizationAccess._id,
+                notification
+            });
+        })
+    );
 
     logger.info(
         {
@@ -670,6 +700,29 @@ export const rescheduleBookingService = async ({
 
         await updatedBooking.save();
     }
+
+    const user = await findUserById(userId);
+
+    const bookingPayload = buildBookingRealtimePayload(updatedBooking);
+    emitBookingRescheduled(organization._id, bookingPayload);
+
+    const notificationRecipients = getOrganizationNotificationRecipients(organization);
+
+    await Promise.all(
+        notificationRecipients.map(async (userId) => {
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.BOOKING_RESCHEDULED,
+                title: "Booking Rescheduled",
+                message: `${updatedBooking.booker.name}'s booking has been rescheduled to ${updatedBooking.startTime} by ${user.name} (${user.email}) - organization: ${organization.name}`,
+            });
+
+            await createNotification({
+                userId,
+                organizationId: organization._id,
+                notification
+            });
+        })
+    );
 
     logger.info(
         {
@@ -1102,8 +1155,6 @@ export const getBookingByIdService = async ({
 
 
 
-
-
 export const updateBookingService = async ({
     userId,
     orgId,
@@ -1114,7 +1165,7 @@ export const updateBookingService = async ({
     validateObjectId(bookingId, "booking ID");
     validateObjectId(orgId, "organization ID");
 
-    await checkOrganizationAccess(userId, orgId);
+    const organization = await checkOrganizationAccess(userId, orgId);
 
     const updateData = validateBookingUpdate(payload);
 
@@ -1126,6 +1177,35 @@ export const updateBookingService = async ({
     if (!booking) {
         throw new ApiError(404, "Booking not found.");
     }
+
+    const user = await findUserById(userId);
+
+    const bookingPayload = buildBookingRealtimePayload(booking);
+    emitBookingUpdated(organization._id, bookingPayload);
+
+    const notificationRecipients = getOrganizationNotificationRecipients(organization);
+
+    await Promise.all(
+        notificationRecipients.map(async (userId) => {
+
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.BOOKING_UPDATED,
+                title: "Booking Updated",
+                message: `Booking for ${booking.booker.name} and time ${booking.startTime} has been updated by ${user.name} (${user.email}) - organization: ${organization.name}`,
+                data: {
+                    bookingId: booking._id,
+                    organizationId: booking.organization,
+                    serviceId: booking.service,
+                },
+            });
+
+            await createNotification({
+                userId,
+                organizationId: organization._id,
+                notification,
+            });
+        })
+    );
 
     logger.info(
         {
@@ -1153,11 +1233,11 @@ export const updateBookingStatusService = async ({
     bookingId,
     status,
 }) => {
-
+    console.log("updateBookingStatusService called with:", { userId, orgId, bookingId, status });
     validateObjectId(bookingId, "booking ID");
     validateObjectId(orgId, "organization ID");
 
-    await checkOrganizationAccess(userId, orgId);
+    const organization = await checkOrganizationAccess(userId, orgId);
 
     const booking = await findBookingByIdAndOrganization(bookingId, orgId);
     if (!booking) {
@@ -1180,6 +1260,36 @@ export const updateBookingStatusService = async ({
     if (!updatedBooking) {
         throw new ApiError(409, "Booking status could not be updated.");
     }
+
+    const user = await findUserById(userId);
+
+    const bookingPayload = buildBookingRealtimePayload(updatedBooking);
+    emitBookingStatusChanged(organization._id, bookingPayload);
+
+    const notificationRecipients = getOrganizationNotificationRecipients(organization);
+
+    await Promise.all(
+        notificationRecipients.map(async (userId) => {
+
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.BOOKING_STATUS_CHANGED,
+                title: "Booking Status Updated",
+                message: `${updatedBooking.booker.name}'s booking status has been changed to ${status} by ${user.name} (${user.email}) - organization: ${organization.name}`,
+                data: {
+                    bookingId: updatedBooking._id,
+                    organizationId: updatedBooking.organization,
+                    serviceId: updatedBooking.service,
+                    newStatus: status,
+                },
+            });
+
+            await createNotification({
+                userId,
+                organizationId: organization._id,
+                notification,
+            });
+        })
+    );
 
     logger.info(
         {

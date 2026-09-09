@@ -9,6 +9,7 @@ import {
     BellRing,
     CheckCheck,
     Loader2,
+    RotateCw,
     Trash2,
 } from 'lucide-react';
 import { List } from 'react-window';
@@ -19,6 +20,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
     Dialog,
     DialogContent,
@@ -112,6 +119,11 @@ export default function Notifications() {
         }
     }, [fetchNotifications, isLoading, hasMore]);
 
+    const handleRefresh = useCallback(() => {
+        if (isLoading) return;
+        fetchNotifications({ append: false });
+    }, [fetchNotifications, isLoading]);
+
     const counts = useMemo(() => ({
         all: notificationCounts?.all ?? 0,
         unread: notificationCounts?.unread ?? 0,
@@ -187,306 +199,326 @@ export default function Notifications() {
     const isInitialLoad = isLoading && notifications.length === 0;
 
     return (
-        <div className="flex w-full flex-col gap-4 pb-8">
-            {/* Header */}
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
-                        <BellRing className="h-4.5 w-4.5" />
-                    </div>
-
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-                                Notifications
-                            </h1>
-
-                            {counts.unread > 0 && (
-                                <Badge
-                                    variant="secondary"
-                                    className="h-5 border-transparent bg-primary/20 px-1.5 text-[11px] font-medium text-primary"
-                                >
-                                    {counts.unread} new
-                                </Badge>
-                            )}
+        <TooltipProvider delayDuration={0}>
+            <div className="flex w-full flex-col gap-4 pb-8">
+                {/* Header */}
+                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+                            <BellRing className="h-4.5 w-4.5" />
                         </div>
 
-                        <p className="text-xs text-muted-foreground">
-                            Stay up to date with activity across your workspace.
-                        </p>
-                    </div>
-                </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                                    Notifications
+                                </h1>
 
-                {/* Global actions */}
-                {counts.all > 0 && (
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                        {counts.unread > 0 && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => markAllRead()}
-                                disabled={isUpdating}
-                                className="h-7.5 gap-1.5 border-border bg-surface-elevated px-2.5 text-xs font-medium text-foreground hover:bg-hover hover:text-foreground cursor-pointer"
-                            >
-                                <CheckCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span>Mark all read</span>
-                            </Button>
-                        )}
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsClearAllModalOpen(true)}
-                            disabled={isUpdating}
-                            className="h-7.5 gap-1.5 px-2.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer"
-                        >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            <span>Clear all</span>
-                        </Button>
-                    </div>
-                )}
-            </div>
-
-            {/* Clear all dialog */}
-            <Dialog open={isClearAllModalOpen} onOpenChange={setIsClearAllModalOpen}>
-                <DialogContent className="sm:max-w-106.25 border-border bg-surface-elevated">
-                    <DialogHeader>
-                        <DialogTitle className="text-foreground">
-                            Clear all notifications?
-                        </DialogTitle>
-                        <DialogDescription className="text-muted-foreground text-xs">
-                            Notifications will no longer be available.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-xs cursor-pointer"
-                            onClick={() => setIsClearAllModalOpen(false)}
-                            disabled={isUpdating}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="h-8 text-xs cursor-pointer"
-                            onClick={handleConfirmClearAll}
-                            disabled={isUpdating}
-                        >
-                            {isUpdating ? 'Clearing...' : 'Yes, clear all'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete marked dialog */}
-            <Dialog open={isDeleteMarkedModalOpen} onOpenChange={setIsDeleteMarkedModalOpen}>
-                <DialogContent className="sm:max-w-106.25 border-border bg-surface-elevated">
-                    <DialogHeader>
-                        <DialogTitle className="text-foreground">
-                            Delete Marked?
-                        </DialogTitle>
-                        <DialogDescription className="text-muted-foreground text-xs">
-                            Selected notis will no logner will be available
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-xs cursor-pointer"
-                            onClick={() => setIsDeleteMarkedModalOpen(false)}
-                            disabled={isUpdating}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="h-8 text-xs cursor-pointer"
-                            onClick={handleConfirmDeleteMarked}
-                            disabled={isUpdating}
-                        >
-                            {isUpdating ? 'Deleting...' : 'Delete marked'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Notification container */}
-            <div className="overflow-hidden rounded-xl border border-border bg-surface-elevated shadow-lg shadow-black/40">
-                {/* Responsive Filter & Selection Header */}
-                <div className="border-b border-border bg-surface-sunken">
-                    <div className="flex flex-col gap-2 p-2 sm:h-11 sm:flex-row sm:items-center sm:justify-between sm:px-3 sm:py-0">
-                        {/* Tabs */}
-                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                            {[
-                                { id: 'all', label: 'All', count: counts.all },
-                                { id: 'unread', label: 'Unread', count: counts.unread },
-                                { id: 'read', label: 'Read', count: counts.read },
-                            ].map((tab) => {
-                                const isActive = activeTab === tab.id;
-
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => {
-                                            setActiveTab(tab.id);
-                                            setSelectedIds(new Set());
-                                        }}
-                                        className={`relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all duration-150 ${
-                                            isActive
-                                                ? 'border-primary/50 bg-card text-foreground shadow-xs'
-                                                : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
-                                        }`}
+                                {counts.unread > 0 && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="h-5 border-transparent bg-primary/20 px-1.5 text-[11px] font-medium text-primary"
                                     >
-                                        <span>{tab.label}</span>
-                                        <span
-                                            className={`text-[11px] tabular-nums ${
-                                                isActive
-                                                    ? 'font-semibold text-primary'
-                                                    : 'text-subtle-foreground'
-                                            }`}
-                                        >
-                                            ({tab.count})
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Selection & Batch Actions */}
-                        {selectableNotificationIds.length > 0 && (
-                            <div className="flex items-center justify-between gap-2.5 pt-1 sm:justify-end sm:pt-0">
-                                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none hover:text-foreground">
-                                    <Checkbox
-                                        checked={isAllSelected}
-                                        onCheckedChange={toggleSelectAll}
-                                        aria-label="Select all notifications"
-                                        className="h-3.5 w-3.5 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary cursor-pointer"
-                                    />
-                                    <span className="text-[11px] sm:text-xs">Select all</span>
-                                </label>
-
-                                {selectedIds.size > 0 && (
-                                    <div className="flex items-center gap-1.5">
-                                        <Separator orientation="vertical" className="h-3.5 bg-border" />
-                                        <span className="text-[11px] font-medium text-foreground sm:text-xs">
-                                            {selectedIds.size} selected
-                                        </span>
-
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={handleBulkMarkRead}
-                                            disabled={isUpdating}
-                                            className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground cursor-pointer sm:text-xs"
-                                        >
-                                            Mark read
-                                        </Button>
-
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setIsDeleteMarkedModalOpen(true)}
-                                            disabled={isUpdating}
-                                            className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10 cursor-pointer sm:text-xs"
-                                        >
-                                            Delete
-                                        </Button>
-                                    </div>
+                                        {counts.unread} new
+                                    </Badge>
                                 )}
                             </div>
-                        )}
-                    </div>
-                </div>
 
-                {/* Content */}
-                {isInitialLoad ? (
-                    <div className="divide-y divide-border/60">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <NotificationSkeleton key={i} />
-                        ))}
-                    </div>
-                ) : currentList.length > 0 ? (
-                    <>
-                        <div className="border-b border-border/40 bg-surface-elevated">
-                            <List
-                                style={{
-                                    height: notificationListHeight,
-                                    width: '100%',
-                                }}
-                                rowCount={currentList.length}
-                                rowHeight={NOTIFICATION_ROW_HEIGHT}
-                                overscanCount={4}
-                                rowKey={(index) => currentList[index]?._id ?? index}
-                                rowComponent={NotificationRow}
-                                rowProps={{
-                                    notifications: currentList,
-                                    selectedIds,
-                                    onToggleSelect: toggleSelectOne,
-                                    onMarkRead: markSelectedRead,
-                                }}
-                            />
+                            <p className="text-xs text-muted-foreground">
+                                Stay up to date with activity across your workspace.
+                            </p>
                         </div>
+                    </div>
 
-                        {hasMore && (
-                            <div className="flex justify-center border-t border-border/40 bg-surface-sunken/40 py-3">
+                    {/* Global actions */}
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRefresh}
+                                    disabled={isLoading || isUpdating}
+                                    aria-label="Refresh notifications"
+                                    className="h-7.5 w-7.5 border-border bg-surface-elevated p-0 text-muted-foreground hover:bg-hover hover:text-foreground cursor-pointer"
+                                >
+                                    <RotateCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="z-50 text-[11px]">
+                                Refresh notifications
+                            </TooltipContent>
+                        </Tooltip>
+
+                        {counts.all > 0 && (
+                            <>
+                                {counts.unread > 0 && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => markAllRead()}
+                                        disabled={isUpdating}
+                                        className="h-7.5 gap-1.5 border-border bg-surface-elevated px-2.5 text-xs font-medium text-foreground hover:bg-hover hover:text-foreground cursor-pointer"
+                                    >
+                                        <CheckCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                                        <span>Mark all read</span>
+                                    </Button>
+                                )}
+
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={handleLoadMore}
-                                    disabled={isLoading}
-                                    className="h-8 gap-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                                    onClick={() => setIsClearAllModalOpen(true)}
+                                    disabled={isUpdating}
+                                    className="h-7.5 gap-1.5 px-2.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                                 >
-                                    {isLoading ? (
-                                        <>
-                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            Loading…
-                                        </>
-                                    ) : (
-                                        'Load more'
-                                    )}
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <span>Clear all</span>
                                 </Button>
-                            </div>
+                            </>
                         )}
-                    </>
-                ) : (
-                    <Empty className="py-12">
-                        <EmptyHeader>
-                            <EmptyMedia>
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface-sunken text-muted-foreground">
-                                    <Bell className="h-5 w-5 opacity-60" />
+                    </div>
+                </div>
+
+                {/* Clear all dialog */}
+                <Dialog open={isClearAllModalOpen} onOpenChange={setIsClearAllModalOpen}>
+                    <DialogContent className="sm:max-w-106.25 border-border bg-surface-elevated">
+                        <DialogHeader>
+                            <DialogTitle className="text-foreground">
+                                Clear all notifications?
+                            </DialogTitle>
+                            <DialogDescription className="text-muted-foreground text-xs">
+                                Notifications will no longer be available.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs cursor-pointer"
+                                onClick={() => setIsClearAllModalOpen(false)}
+                                disabled={isUpdating}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="h-8 text-xs cursor-pointer"
+                                onClick={handleConfirmClearAll}
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? 'Clearing...' : 'Yes, clear all'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Delete marked dialog */}
+                <Dialog open={isDeleteMarkedModalOpen} onOpenChange={setIsDeleteMarkedModalOpen}>
+                    <DialogContent className="sm:max-w-106.25 border-border bg-surface-elevated">
+                        <DialogHeader>
+                            <DialogTitle className="text-foreground">
+                                Delete Marked?
+                            </DialogTitle>
+                            <DialogDescription className="text-muted-foreground text-xs">
+                                Selected notis will no logner will be available
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs cursor-pointer"
+                                onClick={() => setIsDeleteMarkedModalOpen(false)}
+                                disabled={isUpdating}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="h-8 text-xs cursor-pointer"
+                                onClick={handleConfirmDeleteMarked}
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? 'Deleting...' : 'Delete marked'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Notification container */}
+                <div className="overflow-hidden rounded-xl border border-border bg-surface-elevated shadow-lg shadow-black/40">
+                    {/* Responsive Filter & Selection Header */}
+                    <div className="border-b border-border bg-surface-sunken">
+                        <div className="flex flex-col gap-2 p-2 sm:h-11 sm:flex-row sm:items-center sm:justify-between sm:px-3 sm:py-0">
+                            {/* Tabs */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                                {[
+                                    { id: 'all', label: 'All', count: counts.all },
+                                    { id: 'unread', label: 'Unread', count: counts.unread },
+                                    { id: 'read', label: 'Read', count: counts.read },
+                                ].map((tab) => {
+                                    const isActive = activeTab === tab.id;
+
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => {
+                                                setActiveTab(tab.id);
+                                                setSelectedIds(new Set());
+                                            }}
+                                            className={`relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all duration-150 ${isActive
+                                                    ? 'border-primary/50 bg-card text-foreground shadow-xs'
+                                                    : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
+                                                }`}
+                                        >
+                                            <span>{tab.label}</span>
+                                            <span
+                                                className={`text-[11px] tabular-nums ${isActive
+                                                        ? 'font-semibold text-primary'
+                                                        : 'text-subtle-foreground'
+                                                    }`}
+                                            >
+                                                ({tab.count})
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Selection & Batch Actions */}
+                            {selectableNotificationIds.length > 0 && (
+                                <div className="flex items-center justify-between gap-2.5 pt-1 sm:justify-end sm:pt-0">
+                                    <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none hover:text-foreground">
+                                        <Checkbox
+                                            checked={isAllSelected}
+                                            onCheckedChange={toggleSelectAll}
+                                            aria-label="Select all notifications"
+                                            className="h-3.5 w-3.5 rounded border-border-strong bg-surface-sunken data-[state=checked]:border-primary data-[state=checked]:bg-primary cursor-pointer"
+                                        />
+                                        <span className="text-[11px] sm:text-xs">Select all</span>
+                                    </label>
+
+                                    {selectedIds.size > 0 && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Separator orientation="vertical" className="h-3.5 bg-border" />
+                                            <span className="text-[11px] font-medium text-foreground sm:text-xs">
+                                                {selectedIds.size} selected
+                                            </span>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleBulkMarkRead}
+                                                disabled={isUpdating}
+                                                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground cursor-pointer sm:text-xs"
+                                            >
+                                                Mark read
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setIsDeleteMarkedModalOpen(true)}
+                                                disabled={isUpdating}
+                                                className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10 cursor-pointer sm:text-xs"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
-                            </EmptyMedia>
+                            )}
+                        </div>
+                    </div>
 
-                            <EmptyTitle className="text-sm font-semibold text-foreground">
-                                {activeTab === 'unread'
-                                    ? 'No unread notifications'
-                                    : activeTab === 'read'
-                                    ? 'No read notifications'
-                                    : 'No notifications found'}
-                            </EmptyTitle>
+                    {/* Content */}
+                    {isInitialLoad ? (
+                        <div className="divide-y divide-border/60">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <NotificationSkeleton key={i} />
+                            ))}
+                        </div>
+                    ) : currentList.length > 0 ? (
+                        <>
+                            <div className="border-b border-border/40 bg-surface-elevated">
+                                <List
+                                    style={{
+                                        height: notificationListHeight,
+                                        width: '100%',
+                                    }}
+                                    rowCount={currentList.length}
+                                    rowHeight={NOTIFICATION_ROW_HEIGHT}
+                                    overscanCount={4}
+                                    rowKey={(index) => currentList[index]?._id ?? index}
+                                    rowComponent={NotificationRow}
+                                    rowProps={{
+                                        notifications: currentList,
+                                        selectedIds,
+                                        onToggleSelect: toggleSelectOne,
+                                        onMarkRead: markSelectedRead,
+                                    }}
+                                />
+                            </div>
 
-                            <EmptyDescription className="text-xs text-muted-foreground">
-                                {activeTab === 'unread'
-                                    ? "You're all caught up with your workspace activity."
-                                    : 'Notifications will appear here as activity occurs.'}
-                            </EmptyDescription>
-                        </EmptyHeader>
-                    </Empty>
-                )}
+                            {hasMore && (
+                                <div className="flex justify-center border-t border-border/40 bg-surface-sunken/40 py-3">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleLoadMore}
+                                        disabled={isLoading}
+                                        className="h-8 gap-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                Loading…
+                                            </>
+                                        ) : (
+                                            'Load more'
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <Empty className="py-12">
+                            <EmptyHeader>
+                                <EmptyMedia>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface-sunken text-muted-foreground">
+                                        <Bell className="h-5 w-5 opacity-60" />
+                                    </div>
+                                </EmptyMedia>
+
+                                <EmptyTitle className="text-sm font-semibold text-foreground">
+                                    {activeTab === 'unread'
+                                        ? 'No unread notifications'
+                                        : activeTab === 'read'
+                                            ? 'No read notifications'
+                                            : 'No notifications found'}
+                                </EmptyTitle>
+
+                                <EmptyDescription className="text-xs text-muted-foreground">
+                                    {activeTab === 'unread'
+                                        ? "You're all caught up with your workspace activity."
+                                        : 'Notifications will appear here as activity occurs.'}
+                                </EmptyDescription>
+                            </EmptyHeader>
+                        </Empty>
+                    )}
+                </div>
             </div>
-        </div>
+        </TooltipProvider>
     );
 }

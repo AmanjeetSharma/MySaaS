@@ -3,6 +3,7 @@ import { Organization } from "../organization/organization.model.js";
 import { Service } from "../service/service.model.js";
 import { Availability } from "../availability/availability.model.js";
 import { Payment } from "../payment/payment.model.js";
+import { User } from "../user/user.model.js";
 
 export const findOrganizationBySlug = async (slug) => {
     return Organization.findOne({ slug })
@@ -312,4 +313,9 @@ export const expirePendingBookings = async () => {
         bookingModifiedCount,
         paymentModifiedCount,
     };
+};
+
+
+export const findUserById = async (userId) => {
+    return User.findById(userId).select("name email");
 };

@@ -6,4 +6,8 @@ export const SOCKET_EVENTS = {
     NOTIFICATIONS_DELETED_ALL: "notifications:deleted-all",
 
     BOOKING_NEW: "booking:new",
+    BOOKING_UPDATED: "booking:updated",
+    BOOKING_STATUS_CHANGED: "booking:status-changed",
+    BOOKING_RESCHEDULED: "booking:rescheduled",
+    BOOKING_CANCELLED: "booking:cancelled",
 };
