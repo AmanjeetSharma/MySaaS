@@ -1,4 +1,5 @@
 import { Payment } from "./payment.model.js";
+import { Organization } from "../organization/organization.model.js";
 
 export const createPayment = async (paymentData) => {
     return Payment.create(paymentData);
@@ -41,3 +42,8 @@ export const markPaymentAsSuccess = async ({
         }
     );
 };
+
+
+export const findOrganizationById = async (orgId) => {
+    return Organization.findById(orgId).select(" owner members");
+}

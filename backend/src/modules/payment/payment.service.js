@@ -13,6 +13,7 @@ import {
     findPaymentByRazorpayOrderId,
     markPaymentAsSuccess,
     findPaymentByBookingId,
+    findOrganizationById,
 } from "./payment.repository.js";
 import {
     convertToSmallestCurrencyUnit,
@@ -21,6 +22,14 @@ import {
 import env from "#/config/env.config.js";
 import logger from "#/config/logger.js";
 
+import { emitNewBooking } from "#/infrastructure/websocket/emitters/booking.emitter.js";
+import {
+    buildNotification,
+    createNotification,
+    getOrganizationNotificationRecipients,
+} from "../notification/notification.utils.js";
+import { NOTIFICATION_TYPES } from "../notification/notification.constants.js";
+import { buildBookingRealtimePayload } from "../booking/booking.utils.js";
 
 
 
@@ -184,10 +193,38 @@ const processSuccessfulPayment = async ({
         throw new ApiError(409, "Payment could not be completed.");
     }
 
+    const organization = await findOrganizationById(payment.organization);
 
     const booking = await confirmBookingService({
         bookingId: payment.booking,
     });
+
+    const bookingPayload = buildBookingRealtimePayload(booking);
+    emitNewBooking(organization._id, bookingPayload);
+
+    const notificationRecipients = getOrganizationNotificationRecipients(organization);
+
+    await Promise.all(
+        notificationRecipients.map(async (userId) => {
+
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.BOOKING_NEW,
+                title: "New Booking Arrived!",
+                message: `${booking.booker.name} booked ${booking.serviceSnapshot.name} | organization: ${organization.name}`,
+                data: {
+                    bookingId: booking._id,
+                    organizationId: booking.organization,
+                    serviceId: booking.service,
+                },
+            });
+
+            await createNotification({
+                userId,
+                organizationId: booking.organization,
+                notification,
+            });
+        })
+    );
 
 
     logger.info(

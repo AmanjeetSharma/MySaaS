@@ -1,26 +1,11 @@
 import { getIO } from "../socket.js";
 import { getUserRoom } from "../rooms/user.rooms.js";
 import { SOCKET_EVENTS } from "../events/socketEventNames.js";
-import logger from "#/config/logger.js";
 
 export const emitNotificationToUser = (userId, notification) => {
     const io = getIO();
     const room = getUserRoom(userId);
 
-    const socketsInRoom = io.sockets.adapter.rooms.get(room);
-
-    logger.info(
-        {
-            userId,
-            room,
-            socketCount: socketsInRoom?.size ?? 0,
-            socketIds: socketsInRoom
-                ? [...socketsInRoom]
-                : [],
-            notificationId: notification._id,
-        },
-        "notification.realtime.emit"
-    );
 
     io.to(room).emit(SOCKET_EVENTS.NOTIFICATION_NEW, notification);
 };

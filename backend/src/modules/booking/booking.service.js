@@ -53,14 +53,6 @@ import { checkOrganizationAccess } from "../organization/organization.access.js"
 import { PAYMENT_HOLD_DURATION_MINUTES, BOOKING_STATUSES } from "./booking.constants.js";
 import logger from "#/config/logger.js";
 
-import { emitNewBooking } from "#/infrastructure/websocket/emitters/booking.emitter.js";
-import {
-    buildNotification,
-    createNotification,
-    getOrganizationNotificationRecipients,
-} from "../notification/notification.utils.js";
-import { NOTIFICATION_TYPES } from "../notification/notification.constants.js";
-import { buildBookingRealtimePayload } from "../booking/booking.utils.js";
 
 
 
@@ -387,33 +379,6 @@ export const confirmBookingService = async ({
     if (!confirmedBooking) {
         throw new ApiError(409, "Booking could not be confirmed. Your money will be refunded within 1 hour, if the payment was already processed.");
     }
-
-    const bookingPayload = buildBookingRealtimePayload(confirmedBooking);
-    emitNewBooking(organization._id, bookingPayload);
-
-    const notificationRecipients = getOrganizationNotificationRecipients(organization);
-    console.log("Notification recipients:", notificationRecipients);
-    await Promise.all(
-        notificationRecipients.map(async (userId) => {
-
-            const notification = buildNotification({
-                type: NOTIFICATION_TYPES.BOOKING_NEW,
-                title: "New Booking Arrived!",
-                message: `${confirmedBooking.booker.name} booked ${confirmedBooking.serviceSnapshot.name} | organization: ${organization.name}`,
-                data: {
-                    bookingId: confirmedBooking._id,
-                    organizationId: confirmedBooking.organization,
-                    serviceId: confirmedBooking.service,
-                },
-            });
-
-            await createNotification({
-                userId,
-                organizationId: confirmedBooking.organization,
-                notification,
-            });
-        })
-    );
 
     logger.info(
         {
