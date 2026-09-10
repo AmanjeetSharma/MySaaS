@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import bcrypt from "bcryptjs";
 import env from "../../../config/env.config.js";
 import { generateToken } from "../../../utils/token.js";
 import { ApiError } from "../../../utils/ApiError.js";
@@ -20,14 +19,16 @@ import {
     addNewMemberToOrganization,
     findInvitationsByOrg
 } from "./member.repository.js";
+import { checkOrganizationAccess } from "../organization.access.js";
+import { formatOrganizationMembers } from "./member.helper.js";
+import logger from "#/config/logger.js";
 
 
 
 
 
 
-
-export const getMembersService = async (userId, orgId) => {
+export const getMembersService = async ({ userId, orgId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -37,30 +38,19 @@ export const getMembersService = async (userId, orgId) => {
     ]);
     if (!org) throw new ApiError(404, "Organization not found");
 
-    const isMember =
-        org.owner._id.toString() === userId.toString() ||
-        org.members.some(member => member.user._id.toString() === userId.toString());
+    checkOrganizationAccess(userId, orgId);
 
-    if (!isMember) throw new ApiError(403, "Access denied");
+    const members = formatOrganizationMembers(org);
 
-    const members = [
+    logger.info(
         {
-            id: org.owner._id,
-            name: org.owner.name,
-            email: org.owner.email,
-            role: "owner",
-            joinedAt: org.createdAt
+            userId: userId,
+            organizationId: org._id,
+            organization: org.name,
+            memberCount: members.length
         },
-        ...org.members.map(m => ({
-            id: m.user._id,
-            name: m.user.name,
-            email: m.user.email,
-            role: m.role,
-            joinedAt: m.joinedAt
-        }))
-    ];
-
-    console.log(`Members fetched for organization ${org.name} | Total members: ${members.length}`);
+        "member.list.retrieved"
+    )
 
     return {
         members,
@@ -85,7 +75,9 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
     const cleanedEmail = email.trim().toLowerCase();
 
-    if (!emailValidator(cleanedEmail)) throw new ApiError(400, "Please provide a valid email address");
+    if (!emailValidator(cleanedEmail)) {
+        throw new ApiError(400, "Please provide a valid email address");
+    }
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -95,6 +87,8 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
         if (!org) {
             throw new ApiError(404, "Organization not found");
         }
+
+        checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() !== userId.toString()) {
             throw new ApiError(403, "You are not authorized to invite members.");
@@ -136,13 +130,41 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
         if (env.EMAIL_ENABLED) {
             await sendEmail(cleanedEmail, "Invitation to Join Organization", emailContent, true);
-            console.log(`Invite email sent to ${cleanedEmail} | InvitationLink: ${acceptUrl}`);
+
+            logger.info(
+                {
+                    userId: userId,
+                    organizationId: org._id,
+                    organization: org.name,
+                    invitedEmail: cleanedEmail,
+                    invitationId: invitation._id
+                },
+                "member.invitation.sent"
+            );
         } else {
-            console.log(`Email service is disabled. Skipping invitation email for ${cleanedEmail}`);
+            logger.warn(
+                {
+                    userId: userId,
+                    organizationId: org._id,
+                    organization: org.name,
+                    invitedEmail: cleanedEmail,
+                    invitationId: invitation._id
+                },
+                "member.invitation.email_disabled"
+            );
         }
 
-        console.log(`Invitation token for ${cleanedEmail}: ${rawToken} | Expires at: ${expiresAt.toLocaleString()}`);// development log
-        console.log(`Member invited: ${cleanedEmail} to organization ${org.name} by ${inviterName} | Invitation ID: ${invitation._id}`);
+        logger.info(
+            {
+                email: cleanedEmail,
+                organizationId: org._id,
+                organizationName: org.name,
+                invitationId: invitation._id,
+                expiresAt,
+                rawToken: env.NODE_ENV === "development" ? rawToken : undefined,
+            },
+            "member.invitation.sent"
+        );
 
         return {
             email: cleanedEmail,
@@ -158,7 +180,17 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
         if (error instanceof ApiError) {
             throw error;
         } else {
-            console.error("Error inviting member:", error);
+            logger(
+                {
+                    userId: userId,
+                    organizationId: org?._id,
+                    organization: org?.name,
+                    invitedEmail: email,
+                    error
+                },
+                "member.invitation.error"
+            );
+
             throw new ApiError(500, "An error occurred while inviting the member. Please try again.");
         }
     } finally {
@@ -222,7 +254,8 @@ export const acceptInvitationService = async (userId, token) => {
                 invitedBy: invitation.invitedBy,
                 joinedAt: new Date()
             };
-            const newMember = await addNewMemberToOrganization(org._id, newMemberPayload, session);
+
+            await addNewMemberToOrganization(org._id, newMemberPayload, session);
         }
 
         invitation.status = "accepted";
@@ -232,7 +265,15 @@ export const acceptInvitationService = async (userId, token) => {
 
         await session.commitTransaction();
 
-        console.log(`Invitation accepted by ${user.email} for organization ${org.name} | Invitation ID: ${invitation._id}`);
+        logger(
+            {
+                userId: userId,
+                organizationId: org._id,
+                organization: org.name,
+                invitationId: invitation._id
+            },
+            "member.invitation.accepted"
+        );
 
         return {
             organization: org.name,
@@ -246,7 +287,17 @@ export const acceptInvitationService = async (userId, token) => {
         if (error instanceof ApiError) {
             throw error;
         } else {
-            console.error("Error accepting invitation:", error);
+            logger(
+                {
+                    userId: userId,
+                    organizationId: org?._id,
+                    organization: org?.name,
+                    invitationId: invitation?._id,
+                    error
+                },
+                "member.invitation.accept.error"
+            );
+
             throw new ApiError(500, "An error occurred while accepting the invitation. Please try again.");
         }
     } finally {
@@ -262,21 +313,32 @@ export const acceptInvitationService = async (userId, token) => {
 
 
 
-export const getPendingInvitationsService = async (userId, orgId) => {
+export const getPendingInvitationsService = async ({ userId, orgId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
     const org = await findOrganizationById(orgId, null);
     if (!org) throw new ApiError(404, "Organization not found");
 
+    checkOrganizationAccess(userId, orgId);
+
     if (org.owner.toString() !== userId.toString()) {
         throw new ApiError(403, "You are not authorized to view invitations.");
     }
 
-    const invitations = await findInvitationsByOrg(orgId, "email role status expiresAt createdAt invitedBy", [
+    const invitations = await findInvitationsByOrg(orgId, "email role invitedBy status expiresAt createdAt", [
         { path: "invitedBy", select: "name email" }
     ]);
-    console.log(`Pending invitations fetched for organization ${org.name} | Total pending invitations: ${invitations.length}`);
+
+    logger.info(
+        {
+            userId: userId,
+            organizationId: org._id,
+            organization: org.name,
+            invitationCount: invitations.length
+        },
+        "invitation.list.retrieved"
+    );
 
     return invitations.map(invite => ({
         id: invite._id,
@@ -297,10 +359,10 @@ export const getPendingInvitationsService = async (userId, orgId) => {
 
 
 
-export const removeMemberService = async (userId, orgId, memberId) => {
+export const removeMemberService = async ({ userId, orgId, memberId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
-    if (!memberId) throw new ApiError(400, "Member ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!memberId) throw new ApiError(400, "Member ID is required");
     if (!mongoose.Types.ObjectId.isValid(memberId)) throw new ApiError(400, "Invalid member ID");
 
     const session = await mongoose.startSession();
@@ -312,12 +374,14 @@ export const removeMemberService = async (userId, orgId, memberId) => {
             throw new ApiError(404, "Organization not found");
         }
 
+        checkOrganizationAccess(userId, orgId);
+
         if (org.owner.toString() !== userId.toString()) {
             throw new ApiError(403, "You are not authorized to remove members.");
         }
 
         if (org.owner.toString() === memberId.toString()) {
-            throw new ApiError(400, "Organization owner cannot be removed");
+            throw new ApiError(400, "You cannot remove yourself as the owner of the organization. Delete the organization instead.");
         }
 
         const memberExists = org.members.some(m => m.user.toString() === memberId.toString());
@@ -333,13 +397,32 @@ export const removeMemberService = async (userId, orgId, memberId) => {
 
         await session.commitTransaction();
 
-        console.log(`Member with ID ${memberId} removed from organization ${org.name} by user ${userId}`);
+        logger.info(
+            {
+                userId: userId,
+                organizationId: org._id,
+                organization: org.name,
+                removedMemberId: memberId
+            },
+            "member.removed"
+        );
+
     } catch (error) {
         await session.abortTransaction();
         if (error instanceof ApiError) {
             throw error;
         } else {
-            console.error("Error removing member:", error);
+            logger.error(
+                {
+                    userId: userId,
+                    organizationId: org._id,
+                    organization: org.name,
+                    removedMemberId: memberId,
+                    error
+                },
+                "member.remove.error"
+            );
+
             throw new ApiError(500, "An error occurred while removing the member. Please try again.");
         }
     } finally {
@@ -354,7 +437,7 @@ export const removeMemberService = async (userId, orgId, memberId) => {
 
 
 
-export const leaveOrganizationService = async (userId, orgId) => {
+export const leaveOrganizationService = async ({ userId, orgId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -366,6 +449,8 @@ export const leaveOrganizationService = async (userId, orgId) => {
         if (!org) {
             throw new ApiError(404, "Organization not found");
         }
+
+        checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() === userId.toString()) {
             throw new ApiError(400, "Owner cannot leave organization. Delete it instead");
@@ -384,7 +469,14 @@ export const leaveOrganizationService = async (userId, orgId) => {
 
         await session.commitTransaction();
 
-        console.log(`User with ID ${userId} left organization ${org.name}`);
+        logger.info(
+            {
+                userId: userId,
+                organizationId: org._id,
+                organization: org.name
+            },
+            "member.left"
+        );
 
         return {
             success: true,
@@ -396,7 +488,16 @@ export const leaveOrganizationService = async (userId, orgId) => {
         if (error instanceof ApiError) {
             throw error;
         } else {
-            console.error("Error leaving organization:", error);
+            logger.error(
+                {
+                    userId: userId,
+                    organizationId: org._id,
+                    organization: org.name,
+                    error
+                },
+                "member.leave.error"
+            );
+
             throw new ApiError(500, "An error occurred while leaving the organization. Please try again.");
         }
     } finally {

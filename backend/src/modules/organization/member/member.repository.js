@@ -13,13 +13,13 @@ export const findInvitationByEmail = async (org, email, session) => {
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
 export const createInvitation = async (invitationPayload, session) => {
     let query = new Invitation(invitationPayload);
-    return await query.save({ session });
+    return query.save({ session });
 };
 
 
@@ -31,7 +31,7 @@ export const findUserByEmail = async (email, selectedFields, session) => {
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
@@ -43,7 +43,7 @@ export const findInvitationByToken = async (hashedToken, selectedFields, session
     if (session) {
         query = query.session(session);
     }
-    return await query;
+    return query;
 };
 
 
@@ -61,7 +61,7 @@ export const addNewMemberToOrganization = async (orgId, memberPayload, session) 
         query = query.session(session);
     }
 
-    return await query;
+    return query;
 };
 
 
@@ -69,7 +69,7 @@ export const findInvitationsByOrg = async (orgId, selectedFields, populate = [])
     let query = Invitation.find({
         organization: orgId,
         status: "pending",
-        expiresAt: { $gt: new Date() } // only non-expired ones
+        expiresAt: { $gt: new Date() }
     })
     if (selectedFields) {
         query = query.select(selectedFields);
@@ -79,5 +79,5 @@ export const findInvitationsByOrg = async (orgId, selectedFields, populate = [])
             query = query.populate(option);
         });
     }
-    return await query;
+    return query;
 };

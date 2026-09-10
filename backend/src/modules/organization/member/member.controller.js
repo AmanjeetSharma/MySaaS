@@ -10,7 +10,13 @@ import {
 } from "./member.service.js";
 
 export const getMembersController = asyncHandler(async (req, res) => {
-    const data = await getMembersService(req.user._id, req.params.orgId);
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+
+    const data = await getMembersService({
+        userId,
+        orgId
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -22,7 +28,17 @@ export const getMembersController = asyncHandler(async (req, res) => {
 
 
 export const inviteMemberController = asyncHandler(async (req, res) => {
-    const data = await inviteMemberService(req.user._id, req.user.name, req.params.orgId, req.body.email);
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+    const email = req.body.email;
+    const inviterName = req.user.name;
+
+    const data = await inviteMemberService({
+        userId,
+        orgId,
+        email,
+        inviterName
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -34,7 +50,13 @@ export const inviteMemberController = asyncHandler(async (req, res) => {
 
 
 export const acceptInvitationController = asyncHandler(async (req, res) => {
-    const data = await acceptInvitationService(req.user._id, req.body.token);
+    const userId = req.user._id;
+    const token = req.body.token;
+
+    const data = await acceptInvitationService({
+        userId,
+        token
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -46,7 +68,13 @@ export const acceptInvitationController = asyncHandler(async (req, res) => {
 
 
 export const getPendingInvitationsController = asyncHandler(async (req, res) => {
-    const data = await getPendingInvitationsService(req.user._id, req.params.orgId);
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+
+    const data = await getPendingInvitationsService({
+        userId,
+        orgId
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -58,7 +86,15 @@ export const getPendingInvitationsController = asyncHandler(async (req, res) => 
 
 
 export const removeMemberController = asyncHandler(async (req, res) => {
-    const data = await removeMemberService(req.user._id, req.params.orgId, req.params.memberId);
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+    const memberId = req.params.memberId;
+
+    const data = await removeMemberService({
+        userId,
+        orgId,
+        memberId
+    });
 
     return res.status(200).json(
         new ApiResponse(
@@ -68,9 +104,14 @@ export const removeMemberController = asyncHandler(async (req, res) => {
         ));
 });
 
-
 export const leaveOrganizationController = asyncHandler(async (req, res) => {
-    const data = await leaveOrganizationService(req.user._id, req.params.orgId);
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+
+    const data = await leaveOrganizationService({
+        userId,
+        orgId
+    });
 
     return res.status(200).json(
         new ApiResponse(
