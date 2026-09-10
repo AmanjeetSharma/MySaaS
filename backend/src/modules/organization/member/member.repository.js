@@ -35,18 +35,6 @@ export const findUserByEmail = async (email, selectedFields, session) => {
 };
 
 
-export const findInvitationByToken = async (hashedToken, selectedFields, session) => {
-    let query = Invitation.findOne({ token: hashedToken, status: "pending" });
-    if (selectedFields) {
-        query = query.select(selectedFields);
-    }
-    if (session) {
-        query = query.session(session);
-    }
-    return query;
-};
-
-
 export const addNewMemberToOrganization = async (orgId, memberPayload, session) => {
     let query = Organization.updateOne(
         {
@@ -68,8 +56,6 @@ export const addNewMemberToOrganization = async (orgId, memberPayload, session) 
 export const findInvitationsByOrg = async (orgId, selectedFields, populate = []) => {
     let query = Invitation.find({
         organization: orgId,
-        status: "pending",
-        expiresAt: { $gt: new Date() }
     })
     if (selectedFields) {
         query = query.select(selectedFields);
@@ -79,5 +65,5 @@ export const findInvitationsByOrg = async (orgId, selectedFields, populate = [])
             query = query.populate(option);
         });
     }
-    return query;
+    return query.sort({ createdAt: -1 });
 };

@@ -28,13 +28,13 @@ const inviteSchema = new Schema({
         enum: ["pending", "accepted", "expired"],
         default: "pending"
     },
-    token: {
-        type: String,
-        select: false
-    },
     expiresAt: {
         type: Date,
         required: true
+    },
+    acceptedAt: {
+        type: Date,
+        default: null
     }
 }, { timestamps: true });
 

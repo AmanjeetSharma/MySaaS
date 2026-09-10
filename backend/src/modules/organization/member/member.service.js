@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import crypto from "crypto";
+import logger from "#/config/logger.js";
 import env from "../../../config/env.config.js";
-import { generateToken } from "../../../utils/token.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { emailValidator } from "../../../validations/auth.validators.js";
 import { sendEmail } from "../../../integrations/email.integration.js";
@@ -20,15 +19,28 @@ import {
     findInvitationsByOrg
 } from "./member.repository.js";
 import { checkOrganizationAccess } from "../organization.access.js";
-import { formatOrganizationMembers } from "./member.helper.js";
-import logger from "#/config/logger.js";
+import {
+    formatOrganizationMembers,
+    buildInvitationRealtimePayload,
+    buildMemberJoinedRealtimePayload,
+} from "./member.helper.js";
+import { emitMemberInvitation } from "#/infrastructure/websocket/emitters/member.emitter.js";
+import {
+    buildNotification,
+    createNotification,
+    getOrganizationNotificationRecipients,
+} from "../../notification/notification.utils.js";
+import { NOTIFICATION_TYPES } from "#/modules/notification/notification.constants.js";
 
 
 
 
 
+export const getMembersService = async ({
+    userId,
+    orgId
+}) => {
 
-export const getMembersService = async ({ userId, orgId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -66,7 +78,13 @@ export const getMembersService = async ({ userId, orgId }) => {
 
 
 
-export const inviteMemberService = async (userId, inviterName, orgId, email) => {
+export const inviteMemberService = async ({
+    userId,
+    inviterName,
+    orgId,
+    email
+}) => {
+
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!email) throw new ApiError(400, "Email is required");
     if (!inviterName) throw new ApiError(400, "Inviter name is required");
@@ -93,10 +111,10 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
             throw new ApiError(403, "You are not authorized to invite members.");
         }
 
-        const existingMember = await findUserByEmail(cleanedEmail, null, session);
-        if (existingMember) {
+        const existingUser = await findUserByEmail(cleanedEmail, null, session);
+        if (existingUser) {
             const alreadyAMember = org.members.some(
-                m => m.user.toString() === existingMember._id.toString()
+                m => m.user.toString() === existingUser._id.toString()
             );
             if (alreadyAMember) {
                 throw new ApiError(400, `User is already a member of ${org.name}`);
@@ -108,7 +126,6 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
             throw new ApiError(400, `An invitation has already been sent to ${cleanedEmail}`);
         }
 
-        const { rawToken, hashedToken } = generateToken();
         const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
 
         const invitationPayload = {
@@ -120,60 +137,101 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
             token: hashedToken,
             expiresAt: expiresAt
         };
+
         const invitation = await createInvitation(invitationPayload, session);
 
         await session.commitTransaction();
 
-        const acceptUrl = `${env.CLIENT_URL}/invitations/accept?token=${rawToken}`;
-        const emailContent = invitationEmailTemplate(inviterName, org.name, acceptUrl);
+        if (existingUser) {
+            const realtimePayload = buildInvitationRealtimePayload({
+                invitation,
+                organization: org,
+                invitedBy: {
+                    _id: userId,
+                    name: inviterName,
+                },
+            });
 
-        if (env.EMAIL_ENABLED) {
-            await sendEmail(cleanedEmail, "Invitation to Join Organization", emailContent, true);
+            const notification = buildNotification({
+                type: NOTIFICATION_TYPES.MEMBER_INVITATION,
+                title: "Organization Invitation",
+                message: `${inviterName} invited you to join ${org.name}`,
+                data: {
+                    invitationId: invitation._id,
+                    organizationId: org._id,
+                    organizationName: org.name,
+                    role: invitation.role,
+                },
+            });
+
+            await createNotification({
+                userId: existingUser._id,
+                organizationId: org._id,
+                notification,
+            });
+
+            emitMemberInvitation(existingUser._id, realtimePayload);
 
             logger.info(
                 {
                     organizationId: org._id,
                     organization: org.name,
+                    invitedUserId: existingUser._id,
                     invitedEmail: cleanedEmail,
-                    invitationId: invitation._id
+                    invitationId: invitation._id,
                 },
-                "member.invitation.sent"
+                "member.invitation.delivered_to_existing_user"
             );
+
         } else {
-            logger.warn(
-                {
-                    organizationId: org._id,
-                    organization: org.name,
-                    invitedEmail: cleanedEmail,
-                    invitationId: invitation._id
-                },
-                "member.invitation.email_disabled"
-            );
+            const emailContent = invitationEmailTemplate(inviterName, org.name);
+
+            if (env.EMAIL_ENABLED) {
+
+                await sendEmail(
+                    cleanedEmail,
+                    "Invitation to Join Organization",
+                    emailContent,
+                    true
+                );
+
+                logger.info(
+                    {
+                        organizationId: org._id,
+                        organization: org.name,
+                        invitedEmail: cleanedEmail,
+                        invitationId: invitation._id,
+                    },
+                    "member.invitation.email.sent"
+                );
+            } else {
+                logger.warn(
+                    {
+                        organizationId: org._id,
+                        organization: org.name,
+                        invitedEmail: cleanedEmail,
+                        invitationId: invitation._id,
+                    },
+                    "member.invitation.email_disabled"
+                );
+            }
         }
-
-        logger.info(
-            {
-                email: cleanedEmail,
-                organizationId: org._id,
-                organizationName: org.name,
-                invitationId: invitation._id,
-                expiresAt,
-                rawToken: env.NODE_ENV === "development" ? rawToken : undefined,
-            },
-            "member.invitation.sent"
-        );
-
         return {
             email: cleanedEmail,
             organization: org.name,
             invitedBy: userId,
             inviterName: inviterName,
             invitationId: invitation._id,
-            expiresAt: invitation.expiresAt
+            expiresAt: invitation.expiresAt,
+            invitationType: existingUser ? "Existing User" : "New User"
         };
 
     } catch (error) {
-        await session.abortTransaction();
+
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
         if (error instanceof ApiError) {
             throw error;
         } else {
@@ -201,28 +259,31 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
 
 
+export const acceptInvitationService = async ({
+    userId,
+    userName,
+    userEmail,
+    orgId,
+}) => {
 
-
-
-export const acceptInvitationService = async (userId, token) => {
-    if (!token) throw new ApiError(400, "Invitation token is missing");
-
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const invitation = await findInvitationByToken(hashedToken, "+token", session);
+        const invitation = await findInvitationByEmail(orgId, userEmail, session);
         if (!invitation) {
-            throw new ApiError(400, "Invalid or expired invitation token");
+            throw new ApiError(404, "This invitation does not exist or has already been accepted/expired.");
         }
 
-        if (invitation.expiresAt < new Date()) {
+        if (invitation.expiresAt <= new Date()) {
             invitation.status = "expired";
-            invitation.token = null;
+
             await invitation.save({ session });
-            throw new ApiError(400, "The invitation link has expired. Please contact the inviter to generate a new one.");
+
+            throw new ApiError(400, "This invitation has expired. Please ask the organization owner to send a new invitation.");
         }
 
         const org = await findOrganizationById(invitation.organization, session);
@@ -230,74 +291,116 @@ export const acceptInvitationService = async (userId, token) => {
             throw new ApiError(404, "Organization not found");
         }
 
-        const user = await findUserById(userId, null, session);
-        if (!user) {
-            throw new ApiError(404, "User not found");
-        }
-
-        if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
-            throw new ApiError(403, "This invitation was not sent to your email address");
-        }
-
         const alreadyAMember = org.members.some(
-            m => m.user.toString() === userId.toString()
+            (member) =>
+                member.user.toString() === userId.toString()
         );
 
-        if (!alreadyAMember) {
-            const newMemberPayload = {
-                user: userId,
-                role: invitation.role,
-                invitedBy: invitation.invitedBy,
-                joinedAt: new Date()
-            };
-
-            await addNewMemberToOrganization(org._id, newMemberPayload, session);
+        if (alreadyAMember) {
+            throw new ApiError(400, `You are already a member of ${org.name}`);
         }
 
+        const joinedAt = new Date();
+
+        const newMemberPayload = {
+            user: userId,
+            role: invitation.role,
+            invitedBy: invitation.invitedBy,
+            joinedAt,
+        };
+
+        await addNewMemberToOrganization(org._id, newMemberPayload, session);
+
         invitation.status = "accepted";
-        invitation.token = null;
+        invitation.acceptedAt = joinedAt;
 
         await invitation.save({ session });
 
         await session.commitTransaction();
 
-        logger(
+        const notificationRecipients = getOrganizationNotificationRecipients(org);
+
+        await Promise.all(
+            notificationRecipients.map(async (recipientId) => {
+
+                const notification = buildNotification({
+                    type: NOTIFICATION_TYPES.MEMBER_JOINED,
+                    title: "New Member Joined",
+                    message: `A new member ${userName} has joined ${org.name}`,
+                    data: {
+                        memberId: userId,
+                        organizationId: org._id,
+                        organizationName: org.name,
+                        role: invitation.role,
+                    },
+                });
+
+                await createNotification({
+                    userId: recipientId,
+                    organizationId: org._id,
+                    notification,
+                });
+            })
+        );
+
+        const memberPayload = buildMemberJoinedRealtimePayload({
+            user: {
+                _id: userId,
+                name: userName,
+                email: userEmail,
+            },
+            role: invitation.role,
+            joinedAt,
+        });
+
+        emitMemberJoined(org._id, memberPayload);
+
+        logger.info(
             {
-                userId: userId,
+                userId,
                 organizationId: org._id,
                 organization: org.name,
-                invitationId: invitation._id
+                invitationId: invitation._id,
+                role: invitation.role,
+                joinedAt,
             },
             "member.invitation.accepted"
         );
 
         return {
             organization: org.name,
-            user: user.name,
-            email: user.email,
-            role: invitation.role
+            user: userName,
+            email: userEmail,
+            role: invitation.role,
+            joinedAt,
         };
 
     } catch (error) {
-        await session.abortTransaction();
+
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
         if (error instanceof ApiError) {
             throw error;
-        } else {
-            logger(
-                {
-                    userId: userId,
-                    organizationId: org?._id,
-                    organization: org?.name,
-                    invitationId: invitation?._id,
-                    error
-                },
-                "member.invitation.accept.error"
-            );
-
-            throw new ApiError(500, "An error occurred while accepting the invitation. Please try again.");
         }
+
+        logger.error(
+            {
+                userId,
+                organizationId: orgId,
+                error,
+            },
+            "member.invitation.accept.error"
+        );
+
+        throw new ApiError(
+            500,
+            "An error occurred while accepting the invitation. Please try again."
+        );
+
     } finally {
-        session.endSession();
+        await session.endSession();
     }
 };
 
@@ -307,9 +410,11 @@ export const acceptInvitationService = async (userId, token) => {
 
 
 
+export const getPendingInvitationsService = async ({
+    userId,
+    orgId
+}) => {
 
-
-export const getPendingInvitationsService = async ({ userId, orgId }) => {
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
@@ -354,7 +459,12 @@ export const getPendingInvitationsService = async ({ userId, orgId }) => {
 
 
 
-export const removeMemberService = async ({ userId, orgId, memberId }) => {
+export const removeMemberService = async ({
+    userId,
+    orgId,
+    memberId
+}) => {
+
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
     if (!memberId) throw new ApiError(400, "Member ID is required");
@@ -430,7 +540,11 @@ export const removeMemberService = async ({ userId, orgId, memberId }) => {
 
 
 
-export const leaveOrganizationService = async ({ userId, orgId }) => {
+export const leaveOrganizationService = async ({
+    userId,
+    orgId
+}) => {
+
     if (!orgId) throw new ApiError(400, "Organization ID is required");
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 

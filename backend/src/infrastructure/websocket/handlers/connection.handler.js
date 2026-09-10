@@ -11,7 +11,7 @@ export const handleConnection = (socket) => {
             userId: socket.user._id,
             room: userRoom,
         },
-        "Websocket connection established"
+        "Websocket.connection.established"
     );
 
     registerSocketEvents(socket);
@@ -23,7 +23,7 @@ export const handleConnection = (socket) => {
                 userId: socket.user._id,
                 reason,
             },
-            "Websocket connection closed"
+            "Websocket.connection.disconnected"
         );
     });
 };

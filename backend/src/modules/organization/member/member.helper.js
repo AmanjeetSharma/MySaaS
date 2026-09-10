@@ -16,3 +16,39 @@ export const formatOrganizationMembers = (org) => {
         }))
     ];
 };
+
+
+export const buildInvitationRealtimePayload = ({
+    invitation,
+    organization,
+    invitedBy,
+}) => {
+    return {
+        invitationId: invitation._id,
+        organization: {
+            id: organization._id,
+            name: organization.name,
+        },
+        role: invitation.role,
+        invitedBy: {
+            id: invitedBy._id,
+            name: invitedBy.name,
+        },
+        expiresAt: invitation.expiresAt,
+    };
+};
+
+
+export const buildMemberJoinedRealtimePayload = ({
+    user,
+    role,
+    joinedAt,
+}) => {
+    return {
+        memberId: user._id,
+        name: user.name,
+        email: user.email,
+        role,
+        joinedAt,
+    };
+};

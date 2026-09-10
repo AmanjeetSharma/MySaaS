@@ -9,6 +9,7 @@ import {
     leaveOrganizationService
 } from "./member.service.js";
 
+
 export const getMembersController = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const orgId = req.params.orgId;
@@ -50,12 +51,19 @@ export const inviteMemberController = asyncHandler(async (req, res) => {
 
 
 export const acceptInvitationController = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    const token = req.body.token;
+    const {
+        _id: userId,
+        name: userName,
+        email: userEmail
+    } = req.user;
+
+    const orgId = req.body.orgId;
 
     const data = await acceptInvitationService({
         userId,
-        token
+        userName,
+        userEmail,
+        orgId
     });
 
     return res.status(200).json(
