@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../modules/user/user.model.js";
 import env from "../config/env.config.js";
-
+import { setUserId } from "../config/requestContext.js";
 
 
 
@@ -49,6 +49,8 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
         avatar: user.avatar,
         sessionId: decoded.sessionId
     };
+
+    setUserId(user._id.toString());
 
     next();
 });

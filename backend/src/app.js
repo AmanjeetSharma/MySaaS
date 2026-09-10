@@ -7,6 +7,8 @@ import env from "./config/env.config.js";
 import securityHeaders from "./infrastructure/security/securityHeaders/securityHeaders.config.js";
 import globalRateLimiterMiddleware from "./infrastructure/security/rateLimiters/global.rateLimiter.js";
 // import arcjetMiddleware from "./infrastructure/security/arcjet/arcjet.middleware.js";
+import requestContextMiddleware from "./middlewares/requestContext.middleware.js";
+
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.use(securityHeaders);
 if (env.NODE_ENV === "production") {
     app.use(httpLogger);
 }
+
+app.use(requestContextMiddleware);
 
 app.use(cors({
     origin: env.CORS_ORIGIN,

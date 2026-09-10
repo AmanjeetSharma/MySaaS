@@ -44,7 +44,6 @@ export const getMembersService = async ({ userId, orgId }) => {
 
     logger.info(
         {
-            userId: userId,
             organizationId: org._id,
             organization: org.name,
             memberCount: members.length
@@ -133,7 +132,6 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
 
             logger.info(
                 {
-                    userId: userId,
                     organizationId: org._id,
                     organization: org.name,
                     invitedEmail: cleanedEmail,
@@ -144,7 +142,6 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
         } else {
             logger.warn(
                 {
-                    userId: userId,
                     organizationId: org._id,
                     organization: org.name,
                     invitedEmail: cleanedEmail,
@@ -182,7 +179,6 @@ export const inviteMemberService = async (userId, inviterName, orgId, email) => 
         } else {
             logger(
                 {
-                    userId: userId,
                     organizationId: org?._id,
                     organization: org?.name,
                     invitedEmail: email,
@@ -332,10 +328,9 @@ export const getPendingInvitationsService = async ({ userId, orgId }) => {
 
     logger.info(
         {
-            userId: userId,
             organizationId: org._id,
             organization: org.name,
-            invitationCount: invitations.length
+            invitationCount: invitations.length,
         },
         "invitation.list.retrieved"
     );
@@ -399,7 +394,6 @@ export const removeMemberService = async ({ userId, orgId, memberId }) => {
 
         logger.info(
             {
-                userId: userId,
                 organizationId: org._id,
                 organization: org.name,
                 removedMemberId: memberId
@@ -414,7 +408,6 @@ export const removeMemberService = async ({ userId, orgId, memberId }) => {
         } else {
             logger.error(
                 {
-                    userId: userId,
                     organizationId: org._id,
                     organization: org.name,
                     removedMemberId: memberId,
@@ -471,7 +464,6 @@ export const leaveOrganizationService = async ({ userId, orgId }) => {
 
         logger.info(
             {
-                userId: userId,
                 organizationId: org._id,
                 organization: org.name
             },
@@ -490,7 +482,6 @@ export const leaveOrganizationService = async ({ userId, orgId }) => {
         } else {
             logger.error(
                 {
-                    userId: userId,
                     organizationId: org._id,
                     organization: org.name,
                     error

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import pinoHttp from "pino-http";
 import logger from "../config/logger.js";
 import env from "../config/env.config.js";
@@ -7,6 +8,8 @@ const isProduction = env.NODE_ENV === "production";
 const httpLogger = pinoHttp({
     logger,
 
+    genReqId: () => crypto.randomUUID(),
+
     customProps: () => ({
         type: "http"
     }),
@@ -14,7 +17,6 @@ const httpLogger = pinoHttp({
     serializers: {
         req(req) {
             const request = {
-                id: req.id,
                 method: req.method,
                 url: req.url,
 

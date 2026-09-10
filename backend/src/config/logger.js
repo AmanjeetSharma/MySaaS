@@ -1,5 +1,6 @@
 import pino from "pino";
 import env from "./env.config.js";
+import { getRequestContext } from "./requestContext.js";
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -12,6 +13,19 @@ const logger = pino({
     //     service: env.SERVICE_NAME || "mysaas-api",
     //     environment: env.NODE_ENV || "development"
     // },
+
+    mixin: () => {
+        const context = getRequestContext();
+
+        if (!context) {
+            return {};
+        }
+
+        return {
+            requestId: context.requestId,
+            userId: context.userId
+        };
+    },
 
     // human readable timestamps in ISO format
     timestamp: pino.stdTimeFunctions.isoTime,
