@@ -67,3 +67,26 @@ export const findInvitationsByOrg = async (orgId, selectedFields, populate = [])
     }
     return query.sort({ createdAt: -1 });
 };
+
+
+export const findInvitationsByEmailForUser = async (
+    email,
+    selectedFields,
+    populate = []
+) => {
+    let query = Invitation.find({
+        email: email.toLowerCase(),
+    });
+
+    if (selectedFields) {
+        query = query.select(selectedFields);
+    }
+
+    if (populate.length > 0) {
+        populate.forEach((option) => {
+            query = query.populate(option);
+        });
+    }
+
+    return query.sort({ createdAt: -1 });
+};

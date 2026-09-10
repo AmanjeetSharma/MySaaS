@@ -7,24 +7,31 @@ import { sendEmail } from "../../../integrations/email.integration.js";
 import { invitationEmailTemplate } from "../../../utils/email/invitationEmailTemplate.js";
 import {
     findOrganizationById,
-    findUserById,
     unsetActiveOrganizationForUsers,
 } from "../organization.repository.js";
 import {
     findInvitationByEmail,
     createInvitation,
     findUserByEmail,
-    findInvitationByToken,
     addNewMemberToOrganization,
-    findInvitationsByOrg
+    findInvitationsByOrg,
+    findInvitationsByEmailForUser,
 } from "./member.repository.js";
 import { checkOrganizationAccess } from "../organization.access.js";
 import {
     formatOrganizationMembers,
     buildInvitationRealtimePayload,
     buildMemberJoinedRealtimePayload,
+    buildMemberRemovedRealtimePayload,
+    buildMemberLeftRealtimePayload,
+    formatInvitations,
 } from "./member.helper.js";
-import { emitMemberInvitation } from "#/infrastructure/websocket/emitters/member.emitter.js";
+import {
+    emitMemberInvitation,
+    emitMemberJoined,
+    emitMemberRemovedToOrganization,
+    emitMemberLeft,
+} from "#/infrastructure/websocket/emitters/member.emitter.js";
 import {
     buildNotification,
     createNotification,
@@ -134,7 +141,6 @@ export const inviteMemberService = async ({
             role: "member",
             invitedBy: userId,
             status: "pending",
-            token: hashedToken,
             expiresAt: expiresAt
         };
 
@@ -251,6 +257,14 @@ export const inviteMemberService = async ({
         session.endSession();
     }
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -410,49 +424,6 @@ export const acceptInvitationService = async ({
 
 
 
-export const getPendingInvitationsService = async ({
-    userId,
-    orgId
-}) => {
-
-    if (!orgId) throw new ApiError(400, "Organization ID is required");
-    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
-
-    const org = await findOrganizationById(orgId, null);
-    if (!org) throw new ApiError(404, "Organization not found");
-
-    checkOrganizationAccess(userId, orgId);
-
-    if (org.owner.toString() !== userId.toString()) {
-        throw new ApiError(403, "You are not authorized to view invitations.");
-    }
-
-    const invitations = await findInvitationsByOrg(orgId, "email role invitedBy status expiresAt createdAt", [
-        { path: "invitedBy", select: "name email" }
-    ]);
-
-    logger.info(
-        {
-            organizationId: org._id,
-            organization: org.name,
-            invitationCount: invitations.length,
-        },
-        "invitation.list.retrieved"
-    );
-
-    return invitations.map(invite => ({
-        id: invite._id,
-        email: invite.email,
-        role: invite.role,
-        inviter: invite.invitedBy?.name || null,
-        inviterEmail: invite.invitedBy?.email || null,
-        status: invite.status,
-        expiresAt: invite.expiresAt,
-        invitedAt: invite.createdAt
-    }));
-};
-
-
 
 
 
@@ -474,7 +445,16 @@ export const removeMemberService = async ({
     session.startTransaction();
 
     try {
-        const org = await findOrganizationById(orgId, session);
+        const org = await findOrganizationById(
+            orgId,
+            session,
+            [
+                {
+                    path: "members.user",
+                    select: "name email",
+                },
+            ]
+        );
         if (!org) {
             throw new ApiError(404, "Organization not found");
         }
@@ -489,10 +469,17 @@ export const removeMemberService = async ({
             throw new ApiError(400, "You cannot remove yourself as the owner of the organization. Delete the organization instead.");
         }
 
-        const memberExists = org.members.some(m => m.user.toString() === memberId.toString());
-        if (!memberExists) {
+
+        const removedMember = org.members.find(m => m.user.toString() === memberId.toString());
+        if (!removedMember) {
             throw new ApiError(404, "This user is not a member of the organization");
         }
+
+        const notificationRecipients =
+            getOrganizationNotificationRecipients(org).filter(
+                recipientId =>
+                    recipientId.toString() !== memberId.toString()
+            );
 
         org.members = org.members.filter(m => m.user.toString() !== memberId.toString());
 
@@ -502,14 +489,68 @@ export const removeMemberService = async ({
 
         await session.commitTransaction();
 
+        await Promise.all(
+            notificationRecipients.map(async (recipientId) => {
+
+                const notification = buildNotification({
+                    type: NOTIFICATION_TYPES.MEMBER_REMOVED,
+                    title: "Member Removed",
+                    message: `${removedMember.user.name} has been removed from ${org.name}`,
+                    data: {
+                        memberId: removedMember.user._id,
+                        memberName: removedMember.user.name,
+                        organizationId: org._id,
+                        organizationName: org.name,
+                    },
+                });
+
+                await createNotification({
+                    userId: recipientId,
+                    organizationId: org._id,
+                    notification,
+                });
+            })
+        );
+
+        const removedMemberNotification = buildNotification({
+            type: NOTIFICATION_TYPES.MEMBER_REMOVED,
+            title: "Removed from Organization",
+            message: `You have been removed from ${org.name}`,
+            data: {
+                organizationId: org._id,
+                organizationName: org.name,
+            },
+        });
+
+        await createNotification({
+            userId: memberId,
+            organizationId: org._id,
+            notification: removedMemberNotification,
+        });
+
+        const memberPayload = buildMemberRemovedRealtimePayload({
+            user: removedMember.user,
+            organizationId: org._id,
+            organizationName: org.name,
+        });
+
+        emitMemberRemovedToOrganization(org._id, memberId, memberPayload);
+
         logger.info(
             {
                 organizationId: org._id,
                 organization: org.name,
-                removedMemberId: memberId
+                removedMemberId: memberId,
+                removedMemberName: removedMember.user.name,
             },
             "member.removed"
         );
+
+        return {
+            memberId,
+            memberName: removedMember.user.name,
+            organization: org.name,
+        };
 
     } catch (error) {
         await session.abortTransaction();
@@ -540,8 +581,13 @@ export const removeMemberService = async ({
 
 
 
+
+
+
 export const leaveOrganizationService = async ({
     userId,
+    userName,
+    userEmail,
     orgId
 }) => {
 
@@ -568,6 +614,8 @@ export const leaveOrganizationService = async ({
             throw new ApiError(404, `You are not a member of ${org.name}`);
         }
 
+        const notificationRecipients = getOrganizationNotificationRecipients(org);
+
         org.members = org.members.filter(m => m.user.toString() !== userId.toString());
 
         await org.save({ session });
@@ -576,17 +624,70 @@ export const leaveOrganizationService = async ({
 
         await session.commitTransaction();
 
+        await Promise.all(
+            notificationRecipients.map(async (recipientId) => {
+
+                const notification = buildNotification({
+                    type: NOTIFICATION_TYPES.MEMBER_LEFT,
+                    title: "Member Left",
+                    message: `${userName} has left ${org.name}`,
+                    data: {
+                        memberId: userId,
+                        memberName: userName,
+                        organizationId: org._id,
+                        organizationName: org.name,
+                    },
+                });
+
+                await createNotification({
+                    userId: recipientId,
+                    organizationId: org._id,
+                    notification,
+                });
+            })
+        );
+
+        const leavingMemberNotification = buildNotification({
+            type: NOTIFICATION_TYPES.MEMBER_LEFT,
+            title: "Left Organization",
+            message: `You have left ${org.name}`,
+            data: {
+                organizationId: org._id,
+                organizationName: org.name,
+            },
+        });
+
+        await createNotification({
+            userId,
+            organizationId: org._id,
+            notification: leavingMemberNotification,
+        });
+
+        const memberPayload = buildMemberLeftRealtimePayload({
+            user: {
+                _id: userId,
+                name: userName,
+                email: userEmail,
+            },
+            organizationId: org._id,
+            organizationName: org.name,
+        });
+
+        emitMemberLeft(org._id, userId, memberPayload);
+
         logger.info(
             {
                 organizationId: org._id,
-                organization: org.name
+                organization: org.name,
+                memberId: userId,
+                memberName: userName,
             },
             "member.left"
         );
 
         return {
             success: true,
-            message: "You have left the organization"
+            message: `You have left ${org.name} successfully`,
         };
 
     } catch (error) {
@@ -609,3 +710,115 @@ export const leaveOrganizationService = async ({
         session.endSession();
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const getInvitationsService = async ({
+    userId,
+    orgId
+}) => {
+
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+
+    const org = await findOrganizationById(orgId, null);
+    if (!org) throw new ApiError(404, "Organization not found");
+
+    checkOrganizationAccess(userId, orgId);
+
+    if (org.owner.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not authorized to view invitations.");
+    }
+
+    const invitations = await findInvitationsByOrg(
+        orgId,
+        "organization email role invitedBy status expiresAt createdAt acceptedAt",
+        [
+            {
+                path: "invitedBy",
+                select: "name email",
+            },
+            {
+                path: "organization",
+                select: "name",
+            },
+        ]
+    );
+
+    logger.info(
+        {
+            organizationId: org._id,
+            organization: org.name,
+            invitationCount: invitations.length,
+        },
+        "invitation.list.retrieved"
+    );
+
+    return invitations.map(invite => ({
+        id: invite._id,
+        email: invite.email,
+        role: invite.role,
+        inviter: invite.invitedBy?.name || null,
+        inviterEmail: invite.invitedBy?.email || null,
+        status: invite.status,
+        expiresAt: invite.expiresAt,
+        invitedAt: invite.createdAt
+    }));
+};
+
+
+
+
+
+
+
+
+
+
+
+
+export const getMyInvitationsService = async ({
+    userEmail,
+}) => {
+
+    if (!userEmail) {
+        throw new ApiError(400, "User email is required");
+    }
+
+    const invitations = await findInvitationsByEmailForUser(
+        userEmail,
+        "organization email role invitedBy status expiresAt createdAt acceptedAt",
+        [
+            {
+                path: "organization",
+                select: "name",
+            },
+            {
+                path: "invitedBy",
+                select: "name email",
+            },
+        ]
+    );
+
+    logger.info(
+        {
+            email: userEmail,
+            invitationCount: invitations.length,
+        },
+        "invitation.my_list.retrieved"
+    );
+
+    return formatInvitations(invitations);
+};
+

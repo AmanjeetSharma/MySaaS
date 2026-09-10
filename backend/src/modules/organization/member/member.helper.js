@@ -52,3 +52,56 @@ export const buildMemberJoinedRealtimePayload = ({
         joinedAt,
     };
 };
+
+
+export const buildMemberRemovedRealtimePayload = ({
+    user,
+    organizationId,
+    organizationName,
+}) => {
+    return {
+        memberId: user._id,
+        name: user.name,
+        email: user.email,
+        organizationId,
+        organizationName,
+    };
+};
+
+
+export const buildMemberLeftRealtimePayload = ({
+    user,
+    organizationId,
+    organizationName,
+}) => {
+    return {
+        memberId: user._id,
+        name: user.name,
+        email: user.email,
+        organizationId,
+        organizationName,
+    };
+};
+
+
+export const formatInvitation = (invite) => ({
+    id: invite._id,
+    organization: invite.organization
+        ? {
+            id: invite.organization._id,
+            name: invite.organization.name,
+        }
+        : null,
+    email: invite.email,
+    role: invite.role,
+    inviter: invite.invitedBy?.name || null,
+    inviterEmail: invite.invitedBy?.email || null,
+    status: invite.status,
+    expiresAt: invite.expiresAt,
+    invitedAt: invite.createdAt,
+    acceptedAt: invite.acceptedAt || null,
+});
+
+export const formatInvitations = (invitations) => {
+    return invitations.map(formatInvitation);
+};

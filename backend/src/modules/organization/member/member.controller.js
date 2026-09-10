@@ -4,9 +4,10 @@ import {
     getMembersService,
     inviteMemberService,
     acceptInvitationService,
-    getPendingInvitationsService,
+    getInvitationsService,
     removeMemberService,
-    leaveOrganizationService
+    leaveOrganizationService,
+    getMyInvitationsService,
 } from "./member.service.js";
 
 
@@ -75,24 +76,6 @@ export const acceptInvitationController = asyncHandler(async (req, res) => {
 });
 
 
-export const getPendingInvitationsController = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    const orgId = req.params.orgId;
-
-    const data = await getPendingInvitationsService({
-        userId,
-        orgId
-    });
-
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            data,
-            "Pending invitations retrieved successfully"
-        ));
-});
-
-
 export const removeMemberController = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const orgId = req.params.orgId;
@@ -113,11 +96,17 @@ export const removeMemberController = asyncHandler(async (req, res) => {
 });
 
 export const leaveOrganizationController = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
+    const {
+        _id: userId,
+        name: userName,
+        email: userEmail
+    } = req.user;
     const orgId = req.params.orgId;
 
     const data = await leaveOrganizationService({
         userId,
+        userName,
+        userEmail,
         orgId
     });
 
@@ -126,5 +115,40 @@ export const leaveOrganizationController = asyncHandler(async (req, res) => {
             200,
             data,
             "User left the organization successfully"
+        ));
+});
+
+
+
+export const getInvitationsController = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+
+    const data = await getInvitationsService({
+        userId,
+        orgId
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Organization invitations retrieved successfully"
+        ));
+});
+
+
+export const getMyInvitationsController = asyncHandler(async (req, res) => {
+    const email = req.user.email;
+
+    const data = await getMyInvitationsService({
+        userEmail: email
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "User's invitations retrieved successfully"
         ));
 });

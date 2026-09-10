@@ -17,3 +17,26 @@ export const emitMemberJoined = (organizationId, member) => {
 
     io.to(room).emit(SOCKET_EVENTS.MEMBER_JOINED, member);
 };
+
+
+export const emitMemberRemovedToOrganization = (organizationId, removedUserId, member) => {
+    const io = getIO();
+    const room = getOrganizationRoom(organizationId);
+
+    io.to(room)
+        .except(getUserRoom(removedUserId)) // not sending to the removed member
+        .emit(
+            SOCKET_EVENTS.MEMBER_REMOVED,
+            member
+        );
+};
+
+
+export const emitMemberLeft = (organizationId, leavingUserId, member) => {
+    const io = getIO();
+    const room = getOrganizationRoom(organizationId);
+
+    io.to(room)
+        .except(getUserRoom(leavingUserId)) // not sending to the leaving member
+        .emit(SOCKET_EVENTS.MEMBER_LEFT, member);
+}

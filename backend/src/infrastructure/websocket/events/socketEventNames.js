@@ -16,4 +16,6 @@ export const SOCKET_EVENTS = {
     //MEMBER EVENTS
     MEMBER_INVITATION_RECEIVED: "member:invitation-received",
     MEMBER_JOINED: "member:joined",
+    MEMBER_REMOVED: "member:removed",
+    MEMBER_LEFT: "member:left",
 };
