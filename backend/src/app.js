@@ -15,9 +15,7 @@ const app = express();
 app.set("trust proxy", 3);
 app.use(securityHeaders);
 
-if (env.NODE_ENV === "production") {
-    app.use(httpLogger);
-}
+app.use(httpLogger);
 
 app.use(requestContextMiddleware);
 

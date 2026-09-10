@@ -14,6 +14,10 @@ const httpLogger = pinoHttp({
         type: "http"
     }),
 
+    autoLogging: {
+        ignore: () => !isProduction
+    },
+
     serializers: {
         req(req) {
             const request = {
