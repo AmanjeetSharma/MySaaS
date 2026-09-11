@@ -58,7 +58,7 @@ export const getMembersService = async ({
     ]);
     if (!org) throw new ApiError(404, "Organization not found");
 
-    checkOrganizationAccess(userId, orgId);
+    await checkOrganizationAccess(userId, orgId);
 
     const members = formatOrganizationMembers(org);
 
@@ -113,7 +113,7 @@ export const inviteMemberService = async ({
             throw new ApiError(404, "Organization not found");
         }
 
-        checkOrganizationAccess(userId, orgId);
+        await checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() !== userId.toString()) {
             throw new ApiError(403, "You are not authorized to invite members for this organization.");
@@ -475,7 +475,7 @@ export const removeMemberService = async ({
             throw new ApiError(404, "Organization not found");
         }
 
-        checkOrganizationAccess(userId, orgId);
+        await checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() !== userId.toString()) {
             throw new ApiError(403, "You are not authorized to remove members.");
@@ -622,7 +622,7 @@ export const leaveOrganizationService = async ({
             throw new ApiError(404, "Organization not found");
         }
 
-        checkOrganizationAccess(userId, orgId);
+        await checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() === userId.toString()) {
             throw new ApiError(400, "Owner cannot leave organization. Delete it instead");
@@ -754,7 +754,7 @@ export const getInvitationsService = async ({
     const org = await findOrganizationById(orgId, null);
     if (!org) throw new ApiError(404, "Organization not found");
 
-    checkOrganizationAccess(userId, orgId);
+    await checkOrganizationAccess(userId, orgId);
 
     if (org.owner.toString() !== userId.toString()) {
         throw new ApiError(403, "You are not authorized to view invitations.");
