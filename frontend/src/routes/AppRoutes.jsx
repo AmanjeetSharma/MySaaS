@@ -22,7 +22,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 // Organization imports
 import Organizations from '@/pages/organization/Organizations';
 import OrganizationDetails from '@/pages/organization/OrganizationDetails';
-import Members from '@/pages/organization/Members';
+import Members from '@/pages/organization/members/Members';
 
 // Service imports
 import Services from '@/pages/organization/services/allServices/Services';

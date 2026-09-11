@@ -247,7 +247,7 @@ export const forgotPasswordService = async (email) => {
         {
             emailEnabled: env.EMAIL_ENABLED,
         },
-        "email.password_reset"
+        "email.password_reset_link.sent"
     );
 
     logger.debug(

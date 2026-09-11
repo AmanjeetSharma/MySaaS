@@ -4,14 +4,16 @@ import { http } from "../api/httpClient";
 import { toastIcon } from "../constants/toastIcon.constant";
 import { getErrorMessage } from "../utils/crmStore.utils";
 
-
-const getEntityId = (entity) => (!entity ? null : typeof entity === "string" ? entity : entity._id || entity.id || null);
+const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === "string") return entity;
+    return entity._id || entity.id || entity.memberId || entity.invitationId || null;
+};
 
 const isSameId = (left, right) => {
     const leftId = getEntityId(left), rightId = getEntityId(right);
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
 };
-
 
 export const useMemberStore = create((set, get) => ({
     members: [],
@@ -83,16 +85,15 @@ export const useMemberStore = create((set, get) => ({
         }
     },
 
-    acceptInvitation: async (orgId) => {
-        if (!orgId) return;
+    acceptInvitation: async (invitationId) => {
+        if (!invitationId) return;
         set({ isUpdating: true, error: null });
         try {
-            const response = await http.post(`/members/${orgId}/invitations/accept`, { orgId });
+            const response = await http.post(`/members/invitations/${invitationId}/accept`);
             const data = response.data?.data;
-            // Update accepted invitation locally
             set((state) => ({
                 myInvitations: state.myInvitations.map((inv) =>
-                    isSameId(inv.organization, orgId)
+                    isSameId(inv, invitationId)
                         ? { ...inv, status: "accepted", acceptedAt: data?.joinedAt ?? new Date().toISOString() }
                         : inv
                 ),
@@ -127,13 +128,13 @@ export const useMemberStore = create((set, get) => ({
         }
     },
 
-    leaveOrganization: async (orgId) => {
-        if (!orgId) return;
+    leaveOrganization: async (orgId, userId) => {
+        if (!orgId || !userId) return;
         set({ isUpdating: true, error: null });
         try {
             const response = await http.post(`/members/${orgId}/leave`);
             const data = response.data?.data;
-            get().removeMemberLocal(get().currentUserId);
+            get().removeMemberLocal(userId);
             set({ isUpdating: false, error: null });
             toast.success("You left the organization successfully", { icon: toastIcon("success") });
             return data;
@@ -153,7 +154,9 @@ export const useMemberStore = create((set, get) => ({
 
 
 
-    // Local state update methods for socket events
+
+
+    // Local state management methods for real-time updates without refetching from the server
 
     receiveInvitationLocal: (invitation) => {
         if (!invitation) return;
@@ -166,7 +169,7 @@ export const useMemberStore = create((set, get) => ({
     addMemberLocal: (member) => {
         if (!member) return;
         set((state) => {
-            if (state.members.some((m) => isSameId(m, member.memberId))) return state;
+            if (state.members.some((m) => isSameId(m, member))) return state;
             return { members: [...state.members, member], memberCount: state.memberCount + 1 };
         });
     },
@@ -192,6 +195,7 @@ export const useMemberStore = create((set, get) => ({
             organizationInvitations: state.organizationInvitations.map(patch),
         }));
     },
+
 
 
 

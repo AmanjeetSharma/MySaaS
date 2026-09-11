@@ -125,7 +125,7 @@ export const inviteMemberService = async ({
                 m => m.user.toString() === existingUser._id.toString()
             );
             if (alreadyAMember) {
-                throw new ApiError(400, `User is already a member of ${org.name}`);
+                throw new ApiError(400, `User is already a member of this organization`);
             }
         }
 
