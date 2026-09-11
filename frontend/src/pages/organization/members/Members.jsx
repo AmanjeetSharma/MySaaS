@@ -12,19 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Users, Mail, Inbox, Loader2 } from "lucide-react";
+import { UserPlus, Users, Mail, Inbox, Loader2, Building2 } from "lucide-react";
 
 export default function Members() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
 
-  const { userProfile } = useUserStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { userProfile, getUserProfile } = useUserStore();
+  const { currentOrganization, getOrganizations, isLoading: isOrgLoading } = useOrganizationStore();
   const {
     members,
     myInvitations,
     organizationInvitations,
-    isLoading,
+    isLoading: isMemberLoading,
     isUpdating,
     fetchMembers,
     fetchOrganizationInvitations,
@@ -35,28 +35,48 @@ export default function Members() {
     leaveOrganization,
   } = useMemberStore();
 
-  const orgId = getEntityId(currentOrganization);
+  const activeOrgId = getEntityId(userProfile?.activeOrganization);
+  const currentOrgId = getEntityId(currentOrganization);
   const currentUserId = getEntityId(userProfile);
-  const isOwner = useMemo(() => checkIsOwner(currentOrganization, userProfile), [currentOrganization, userProfile]);
+  const hasNoActiveOrganization = Boolean(userProfile) && !activeOrgId;
 
+  const isOwner = useMemo(
+    () => checkIsOwner(currentOrganization, userProfile),
+    [currentOrganization, userProfile]
+  );
+
+  // 1. Initial hydration: ensure userProfile and orgs are loaded with activeOrgId
   useEffect(() => {
-    if (orgId) {
-      fetchMembers(orgId);
-      if (isOwner) {
-        fetchOrganizationInvitations(orgId);
-      }
+    if (!userProfile) {
+      getUserProfile();
     }
     fetchMyInvitations();
-  }, [orgId, isOwner]);
+  }, []);
+
+  useEffect(() => {
+    if (userProfile && !currentOrganization) {
+      getOrganizations(activeOrgId);
+    }
+  }, [userProfile, activeOrgId]);
+
+  // 2. Fetch member & org-invitation data when currentOrganization resolves
+  useEffect(() => {
+    if (currentOrgId) {
+      fetchMembers(currentOrgId);
+      if (isOwner) {
+        fetchOrganizationInvitations(currentOrgId);
+      }
+    }
+  }, [currentOrgId, isOwner]);
 
   const handleSendInvite = async (e) => {
     e.preventDefault();
-    if (!inviteEmail || !orgId) return;
+    if (!inviteEmail || !currentOrgId) return;
     try {
-      await inviteMember(orgId, inviteEmail);
+      await inviteMember(currentOrgId, inviteEmail);
       setInviteEmail("");
       setIsInviteOpen(false);
-      fetchOrganizationInvitations(orgId);
+      fetchOrganizationInvitations(currentOrgId);
     } catch {
       // Handled via toast in store
     }
@@ -64,8 +84,47 @@ export default function Members() {
 
   const handleAcceptInvite = async (invitationId) => {
     await acceptInvitation(invitationId);
-    if (orgId) fetchMembers(orgId);
+    if (currentOrgId) fetchMembers(currentOrgId);
   };
+
+  // Loading state gate for store rehydration
+  if (isOrgLoading && !currentOrganization) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Empty state when user is not attached to any active organization
+  if (hasNoActiveOrganization && !currentOrganization) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl space-y-6">
+        <div className="flex flex-col items-center justify-center p-8 border rounded-lg bg-card text-center space-y-3">
+          <Building2 className="h-10 w-10 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">No Active Organization</h2>
+          <p className="text-sm text-muted-foreground max-w-md">
+            You are not currently in an active workspace. Check your received invitations below or create a new organization.
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Your Invitations</CardTitle>
+            <CardDescription>Invitations sent to your email to join workspaces.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InvitationsView
+              invitations={myInvitations}
+              isOrgLevel={false}
+              onAccept={handleAcceptInvite}
+              isUpdating={isUpdating}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-6xl">
@@ -91,7 +150,7 @@ export default function Members() {
                 <DialogHeader>
                   <DialogTitle>Invite New Member</DialogTitle>
                   <DialogDescription>
-                    Send an invitation link to an email address to join {currentOrganization?.name || "the organization"}.
+                    Send an invitation link to join {currentOrganization?.name || "the organization"}.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-2">
@@ -121,7 +180,7 @@ export default function Members() {
       </div>
 
       <Tabs defaultValue="members" className="w-full space-y-4">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+        <TabsList className={`grid w-full ${isOwner ? "grid-cols-3 max-w-[540px]" : "grid-cols-2 max-w-[360px]"}`}>
           <TabsTrigger value="members" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Members ({members.length})
@@ -138,17 +197,16 @@ export default function Members() {
           )}
         </TabsList>
 
-        {/* Tab 1: Organization Members */}
         <TabsContent value="members">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Team Members</CardTitle>
               <CardDescription>
-                Active users with access to {currentOrganization?.name || "this workspace"}.
+                Active users in {currentOrganization?.name || "this workspace"}.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {isMemberLoading ? (
                 <div className="flex h-32 items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
@@ -157,8 +215,8 @@ export default function Members() {
                   members={members}
                   isOwner={isOwner}
                   currentUserId={currentUserId}
-                  onRemoveMember={(id) => removeMember(orgId, id)}
-                  onLeaveOrg={() => leaveOrganization(orgId, currentUserId)}
+                  onRemoveMember={(id) => removeMember(currentOrgId, id)}
+                  onLeaveOrg={() => leaveOrganization(currentOrgId, currentUserId)}
                   isUpdating={isUpdating}
                 />
               )}
@@ -166,7 +224,6 @@ export default function Members() {
           </Card>
         </TabsContent>
 
-        {/* Tab 2: User's Received Invitations */}
         <TabsContent value="my-invitations">
           <Card>
             <CardHeader className="pb-3">
@@ -186,7 +243,6 @@ export default function Members() {
           </Card>
         </TabsContent>
 
-        {/* Tab 3: Organization Sent Invitations (Owners Only) */}
         {isOwner && (
           <TabsContent value="org-invitations">
             <Card>

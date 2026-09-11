@@ -378,15 +378,15 @@ export default function Notifications() {
                                                 setSelectedIds(new Set());
                                             }}
                                             className={`relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all duration-150 ${isActive
-                                                    ? 'border-primary/50 bg-card text-foreground shadow-xs'
-                                                    : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
+                                                ? 'border-primary/50 bg-card text-foreground shadow-xs'
+                                                : 'border-border-subtle bg-surface-sunken/60 text-muted-foreground hover:border-border hover:bg-hover/60 hover:text-foreground'
                                                 }`}
                                         >
                                             <span>{tab.label}</span>
                                             <span
                                                 className={`text-[11px] tabular-nums ${isActive
-                                                        ? 'font-semibold text-primary'
-                                                        : 'text-subtle-foreground'
+                                                    ? 'font-semibold text-primary'
+                                                    : 'text-subtle-foreground'
                                                     }`}
                                             >
                                                 ({tab.count})
@@ -433,7 +433,7 @@ export default function Notifications() {
                                                 disabled={isUpdating}
                                                 className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10 cursor-pointer sm:text-xs"
                                             >
-                                                Delete
+                                                Delete marked
                                             </Button>
                                         </div>
                                     )}
