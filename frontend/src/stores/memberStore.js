@@ -1,158 +1,214 @@
-import { create } from 'zustand';
-import { http } from '../api/httpClient';
+import { create } from "zustand";
+import { toast } from "sonner";
+import { http } from "../api/httpClient";
+import { toastIcon } from "../constants/toastIcon.constant";
+import { getErrorMessage } from "../utils/crmStore.utils";
+
+
+const getEntityId = (entity) => (!entity ? null : typeof entity === "string" ? entity : entity._id || entity.id || null);
+
+const isSameId = (left, right) => {
+    const leftId = getEntityId(left), rightId = getEntityId(right);
+    return !!leftId && !!rightId && leftId.toString() === rightId.toString();
+};
+
 
 export const useMemberStore = create((set, get) => ({
-    // State
     members: [],
-    pendingInvitations: [],
+    memberCount: 0,
+    myInvitations: [],
+    organizationInvitations: [],
     isLoading: false,
-    error: null,
     isUpdating: false,
+    error: null,
 
-    // Member Actions
-    getMembers: async (orgId) => {
+    fetchMembers: async (orgId) => {
+        if (!orgId) return;
         set({ isLoading: true, error: null });
         try {
-            const response = await http.get(`/organizations/${orgId}/members`);
-            const { data } = response.data;
-
-            set({
-                members: data.members || [],
-                isLoading: false,
-                error: null
-            });
-
+            const response = await http.get(`/members/${orgId}`);
+            const data = response.data?.data ?? {};
+            set({ members: data.members ?? [], memberCount: data.memberCount ?? 0, isLoading: false, error: null });
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch members';
+            const errorMessage = getErrorMessage(error, "Failed to fetch organization members");
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    fetchMyInvitations: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await http.get("/members/invitations");
+            const data = response.data?.data ?? [];
+            set({ myInvitations: data, isLoading: false, error: null });
+            return data;
+        } catch (error) {
+            const errorMessage = getErrorMessage(error, "Failed to fetch your invitations");
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    fetchOrganizationInvitations: async (orgId) => {
+        if (!orgId) return;
+        set({ isLoading: true, error: null });
+        try {
+            const response = await http.get(`/members/${orgId}/invitations`);
+            const data = response.data?.data ?? [];
+            set({ organizationInvitations: data, isLoading: false, error: null });
+            return data;
+        } catch (error) {
+            const errorMessage = getErrorMessage(error, "Failed to fetch organization invitations");
             set({ isLoading: false, error: errorMessage });
             throw error;
         }
     },
 
     inviteMember: async (orgId, email) => {
+        if (!orgId || !email) return;
         set({ isUpdating: true, error: null });
         try {
-            const response = await http.post(`/organizations/${orgId}/invite`, { email });
-            const { data } = response.data;
-
-            // Add invitation to pending list if it exists
-            const newInvitation = {
-                id: data.invitationId,
-                email: data.email,
-                role: 'member',
-                inviter: data.inviterName,
-                status: 'pending',
-                expiresAt: data.expiresAt,
-                invitedAt: new Date().toISOString()
-            };
-
-            set({
-                pendingInvitations: [newInvitation, ...get().pendingInvitations],
-                isUpdating: false,
-                error: null
-            });
-
+            const response = await http.post(`/members/${orgId}/invite`, { email });
+            const data = response.data?.data;
+            set({ isUpdating: false, error: null });
+            toast.success("Invitation sent successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to send invitation';
+            const errorMessage = getErrorMessage(error, "Failed to send invitation");
             set({ isUpdating: false, error: errorMessage });
+            toast.error(errorMessage, { icon: toastIcon("error") });
             throw error;
         }
     },
 
-    acceptInvitation: async (token) => {
+    acceptInvitation: async (orgId) => {
+        if (!orgId) return;
         set({ isUpdating: true, error: null });
         try {
-            const response = await http.post(`/organizations/invitations/accept`, { token });
-            const { data } = response.data;
-
-            set({
+            const response = await http.post(`/members/${orgId}/invitations/accept`, { orgId });
+            const data = response.data?.data;
+            // Update accepted invitation locally
+            set((state) => ({
+                myInvitations: state.myInvitations.map((inv) =>
+                    isSameId(inv.organization, orgId)
+                        ? { ...inv, status: "accepted", acceptedAt: data?.joinedAt ?? new Date().toISOString() }
+                        : inv
+                ),
                 isUpdating: false,
-                error: null
-            });
-
+                error: null,
+            }));
+            toast.success("Invitation accepted successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to accept invitation';
+            const errorMessage = getErrorMessage(error, "Failed to accept invitation");
             set({ isUpdating: false, error: errorMessage });
-            throw error;
-        }
-    },
-
-    getPendingInvitations: async (orgId) => {
-        set({ isLoading: true, error: null });
-        try {
-            const response = await http.get(`/organizations/${orgId}/invitations`);
-            const { data } = response.data;
-
-            set({
-                pendingInvitations: data || [],
-                isLoading: false,
-                error: null
-            });
-
-            return data;
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch pending invitations';
-            set({ isLoading: false, error: errorMessage });
+            toast.error(errorMessage, { icon: toastIcon("error") });
             throw error;
         }
     },
 
     removeMember: async (orgId, memberId) => {
+        if (!orgId || !memberId) return;
         set({ isUpdating: true, error: null });
         try {
-            const response = await http.delete(`/organizations/${orgId}/members/${memberId}`);
-            const { data } = response.data;
-
-            // Remove member from list
-            set({
-                members: get().members.filter(member => member.id !== memberId),
-                isUpdating: false,
-                error: null
-            });
-
+            const response = await http.delete(`/members/${orgId}/${memberId}`);
+            const data = response.data?.data;
+            get().removeMemberLocal(memberId);
+            set({ isUpdating: false, error: null });
+            toast.success("Member removed successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to remove member';
+            const errorMessage = getErrorMessage(error, "Failed to remove member");
             set({ isUpdating: false, error: errorMessage });
+            toast.error(errorMessage, { icon: toastIcon("error") });
             throw error;
         }
     },
 
     leaveOrganization: async (orgId) => {
+        if (!orgId) return;
         set({ isUpdating: true, error: null });
         try {
-            const response = await http.post(`/organizations/${orgId}/leave`);
-            const { data } = response.data;
-
-            // Clear members and invitations for this organization
-            set({
-                members: [],
-                pendingInvitations: [],
-                isUpdating: false,
-                error: null
-            });
-
+            const response = await http.post(`/members/${orgId}/leave`);
+            const data = response.data?.data;
+            get().removeMemberLocal(get().currentUserId);
+            set({ isUpdating: false, error: null });
+            toast.success("You left the organization successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to leave organization';
+            const errorMessage = getErrorMessage(error, "Failed to leave organization");
             set({ isUpdating: false, error: errorMessage });
+            toast.error(errorMessage, { icon: toastIcon("error") });
             throw error;
         }
     },
 
-    // Helper Methods
-    clearMembers: () => set({ members: [], pendingInvitations: [] }),
+
+
+
+
+
+
+
+
+    // Local state update methods for socket events
+
+    receiveInvitationLocal: (invitation) => {
+        if (!invitation) return;
+        set((state) => {
+            if (state.myInvitations.some((inv) => isSameId(inv, invitation))) return state;
+            return { myInvitations: [invitation, ...state.myInvitations] };
+        });
+    },
+
+    addMemberLocal: (member) => {
+        if (!member) return;
+        set((state) => {
+            if (state.members.some((m) => isSameId(m, member.memberId))) return state;
+            return { members: [...state.members, member], memberCount: state.memberCount + 1 };
+        });
+    },
+
+    removeMemberLocal: (memberId) => {
+        if (!memberId) return;
+        set((state) => {
+            if (!state.members.some((m) => isSameId(m, memberId))) return state;
+            return {
+                members: state.members.filter((m) => !isSameId(m, memberId)),
+                memberCount: Math.max(state.memberCount - 1, 0),
+            };
+        });
+    },
+
+    memberLeftLocal: (memberId) => get().removeMemberLocal(memberId),
+
+    updateInvitationLocal: (invitationId, updates) => {
+        if (!invitationId) return;
+        const patch = (inv) => (isSameId(inv, invitationId) ? { ...inv, ...updates } : inv);
+        set((state) => ({
+            myInvitations: state.myInvitations.map(patch),
+            organizationInvitations: state.organizationInvitations.map(patch),
+        }));
+    },
+
+
+
+
+
+
 
     clearError: () => set({ error: null }),
 
-    resetMemberStore: () => set({
-        members: [],
-        pendingInvitations: [],
-        isLoading: false,
-        error: null,
-        isUpdating: false
-    }),
+    resetMemberStore: () =>
+        set({
+            members: [],
+            memberCount: 0,
+            myInvitations: [],
+            organizationInvitations: [],
+            isLoading: false,
+            isUpdating: false,
+            error: null,
+        }),
 }));

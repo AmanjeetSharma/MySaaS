@@ -10,4 +10,9 @@ export const SOCKET_EVENTS = {
     BOOKING_STATUS_CHANGED: "booking:status-changed",
     BOOKING_RESCHEDULED: "booking:rescheduled",
     BOOKING_CANCELLED: "booking:cancelled",
+
+    MEMBER_INVITATION_RECEIVED: "member:invitation-received",
+    MEMBER_JOINED: "member:joined",
+    MEMBER_REMOVED: "member:removed",
+    MEMBER_LEFT: "member:left",
 };

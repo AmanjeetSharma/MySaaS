@@ -3,6 +3,16 @@ import { Organization } from "../organization.model.js";
 import { Invitation } from "./invitation.model.js";
 
 
+
+export const findInvitationById = async (invitationId, session) => {
+    let query = Invitation.findById(invitationId);
+    if (session) {
+        query = query.session(session);
+    }
+    return query;
+};
+
+
 export const findInvitationByEmail = async (org, email, session) => {
     let query = Invitation.findOne({
         organization: org._id,

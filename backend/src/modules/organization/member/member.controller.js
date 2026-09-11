@@ -58,13 +58,13 @@ export const acceptInvitationController = asyncHandler(async (req, res) => {
         email: userEmail
     } = req.user;
 
-    const orgId = req.body.orgId;
+    const invitationId = req.params.invitationId;
 
     const data = await acceptInvitationService({
         userId,
         userName,
         userEmail,
-        orgId
+        invitationId
     });
 
     return res.status(200).json(

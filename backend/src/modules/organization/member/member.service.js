@@ -11,6 +11,7 @@ import {
 } from "../organization.repository.js";
 import {
     findInvitationByEmail,
+    findInvitationById,
     createInvitation,
     findUserByEmail,
     addNewMemberToOrganization,
@@ -115,7 +116,7 @@ export const inviteMemberService = async ({
         checkOrganizationAccess(userId, orgId);
 
         if (org.owner.toString() !== userId.toString()) {
-            throw new ApiError(403, "You are not authorized to invite members.");
+            throw new ApiError(403, "You are not authorized to invite members for this organization.");
         }
 
         const existingUser = await findUserByEmail(cleanedEmail, null, session);
@@ -186,7 +187,7 @@ export const inviteMemberService = async ({
                     invitedEmail: cleanedEmail,
                     invitationId: invitation._id,
                 },
-                "member.invitation.delivered_to_existing_user"
+                "member.invitation.sent_to_existing_user"
             );
 
         } else {
@@ -221,6 +222,17 @@ export const inviteMemberService = async ({
                     "member.invitation.email_disabled"
                 );
             }
+
+            logger.info(
+                {
+                    organizationId: org._id,
+                    organization: org.name,
+                    invitedEmail: cleanedEmail,
+                    invitationId: invitation._id,
+                },
+                "member.invitation.sent_to_new_user"
+            );
+
         }
         return {
             email: cleanedEmail,
@@ -277,19 +289,27 @@ export const acceptInvitationService = async ({
     userId,
     userName,
     userEmail,
-    orgId,
+    invitationId
 }) => {
 
-    if (!orgId) throw new ApiError(400, "Organization ID is required");
-    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!invitationId) throw new ApiError(400, "Invitation ID is required");
+    if (!mongoose.Types.ObjectId.isValid(invitationId)) throw new ApiError(400, "Invalid invitation ID");
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const invitation = await findInvitationByEmail(orgId, userEmail, session);
+        const invitation = await findInvitationById(invitationId, session);
         if (!invitation) {
-            throw new ApiError(404, "This invitation does not exist or has already been accepted/expired.");
+            throw new ApiError(404, "This invitation does not exist");
+        }
+
+        if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
+            throw new ApiError(403, "You are not authorized to accept this invitation.");
+        }
+
+        if (invitation.status !== "pending") {
+            throw new ApiError(400, "This invitation is no longer pending.");
         }
 
         if (invitation.expiresAt <= new Date()) {
@@ -400,11 +420,7 @@ export const acceptInvitationService = async ({
         }
 
         logger.error(
-            {
-                userId,
-                organizationId: orgId,
-                error,
-            },
+            { error },
             "member.invitation.accept.error"
         );
 
@@ -470,7 +486,7 @@ export const removeMemberService = async ({
         }
 
 
-        const removedMember = org.members.find(m => m.user.toString() === memberId.toString());
+        const removedMember = org.members.find(m => m.user._id.toString() === memberId.toString());
         if (!removedMember) {
             throw new ApiError(404, "This user is not a member of the organization");
         }
@@ -481,7 +497,10 @@ export const removeMemberService = async ({
                     recipientId.toString() !== memberId.toString()
             );
 
-        org.members = org.members.filter(m => m.user.toString() !== memberId.toString());
+        org.members = org.members.filter(
+            (member) =>
+                member.user._id.toString() !== memberId.toString()
+        );
 
         await org.save({ session });
 

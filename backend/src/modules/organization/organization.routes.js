@@ -9,18 +9,8 @@ import {
     switchOrganizationController,
     syncOrganizationSlugController
 } from "./organization.controller.js";
-import {
-    getMembersController,
-    inviteMemberController,
-    acceptInvitationController,
-    getInvitationsController,
-    removeMemberController,
-    leaveOrganizationController,
-    getMyInvitationsController,
-} from "./member/member.controller.js";
 
 const router = express.Router();
-
 
 // organization routes
 
@@ -31,18 +21,6 @@ router.patch("/:orgId", verifyToken, updateOrganizationController);
 router.delete("/:orgId", verifyToken, deleteOrganizationController);
 router.post("/:orgId/switch", verifyToken, switchOrganizationController);
 router.post("/:orgId/sync-slug", verifyToken, syncOrganizationSlugController);
-
-
-// member routes
-
-router.get("/:orgId/members", verifyToken, getMembersController);
-router.post("/:orgId/invite", verifyToken, inviteMemberController);
-router.post("/:orgId/invitations/accept", verifyToken, acceptInvitationController);
-router.get("/invitations", verifyToken, getMyInvitationsController);
-router.get("/:orgId/invitations", verifyToken, getInvitationsController);
-router.delete("/:orgId/members/:memberId", verifyToken, removeMemberController);
-router.post("/:orgId/leave", verifyToken, leaveOrganizationController);
-
 
 
 export default router;
