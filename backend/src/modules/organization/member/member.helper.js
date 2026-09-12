@@ -121,6 +121,7 @@ export const formatInvitation = (invite) => ({
     invitedAt: invite.createdAt,
     acceptedAt: invite.acceptedAt || null,
     declinedAt: invite.declinedAt || null,
+    revokedAt: invite.revokedAt || null,
 });
 
 export const formatInvitations = (invitations) => {

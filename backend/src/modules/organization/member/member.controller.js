@@ -10,6 +10,7 @@ import {
     getMyInvitationsService,
     declineInvitationService,
     getMemberInfoService,
+    revokeInvitationService,
 } from "./member.service.js";
 
 
@@ -69,6 +70,26 @@ export const inviteMemberController = asyncHandler(async (req, res) => {
             200,
             data,
             "Invitation sent successfully"
+        ));
+});
+
+
+export const revokeInvitationController = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+    const invitationId = req.params.invitationId;
+
+    const data = await revokeInvitationService({
+        userId,
+        orgId,
+        invitationId
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Invitation revoked successfully"
         ));
 });
 

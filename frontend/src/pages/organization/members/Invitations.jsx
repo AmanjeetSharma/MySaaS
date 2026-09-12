@@ -104,7 +104,6 @@ export default function OrganizationInvitations() {
         return checkIsOwner(currentOrganization, userProfile);
     }, [currentOrganization, userProfile]);
 
-    // Avatar stack metrics
     const desktopVisibleMembers = useMemo(() => members.slice(0, 4), [members]);
     const desktopOverflowCount = members.length > 4 ? members.length - 3 : 0;
 
@@ -137,16 +136,15 @@ export default function OrganizationInvitations() {
         }
     };
 
+    // Passed orgId and invitationId to match useMemberStore signature: revokeInvitation(orgId, invitationId)
     const handleRevoke = async (invitationId) => {
-        if (revokeInvitation) {
-            await revokeInvitation(invitationId);
-            if (targetOrgId) fetchOrganizationInvitations(targetOrgId);
+        if (revokeInvitation && targetOrgId) {
+            await revokeInvitation(targetOrgId, invitationId);
         }
     };
 
     const showLoadingRows = isInvitationsLoading || isRefreshing;
 
-    // Full-page synchronization loader
     if ((isOrgLoading || isUserLoading) && !currentOrganization) {
         return (
             <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -159,7 +157,7 @@ export default function OrganizationInvitations() {
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 transition-all duration-300">
+            <div className="w-full max-w-350 mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 transition-all duration-300">
                 {/* Back to -1 link */}
                 <div>
                     <Button
@@ -215,7 +213,7 @@ export default function OrganizationInvitations() {
                                     <button
                                         type="button"
                                         onClick={() => navigate(`/organizations/${targetOrgId}/members`)}
-                                        className="group w-full sm:w-auto h-10 flex items-center justify-center gap-2 bg-card/80 hover:bg-accent/40 active:scale-[0.98] px-3 sm:px-3.5 rounded-xl sm:rounded-full border border-border/80 shadow-xs hover:shadow-sm hover:border-border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="group w-full sm:w-auto h-10 flex items-center justify-center gap-2 bg-card/80 hover:bg-accent/40 active:scale-[0.98] px-3 sm:px-3.5 rounded-xl border border-border/80 shadow-xs hover:shadow-sm hover:border-border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     >
                                         <div className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-foreground/90 shrink-0">
                                             <Users className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -291,12 +289,12 @@ export default function OrganizationInvitations() {
                         ) : (
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 bg-muted/20 px-3 sm:px-3.5 rounded-xl sm:rounded-full border border-dashed border-border/60 opacity-60 backdrop-blur-xs cursor-not-allowed select-none">
+                                    <div className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 bg-muted/20 px-3 sm:px-3.5 rounded-xl border border-dashed border-border/60 opacity-60 backdrop-blur-xs cursor-not-allowed select-none">
                                         <Users className="h-3.5 w-3.5 text-muted-foreground" />
                                         <span className="text-xs font-medium text-muted-foreground">Members</span>
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs max-w-[200px] text-center">
+                                <TooltipContent side="bottom" className="text-xs max-w-50 text-center">
                                     No active organization selected
                                 </TooltipContent>
                             </Tooltip>
@@ -308,13 +306,13 @@ export default function OrganizationInvitations() {
                                 <DialogTrigger asChild>
                                     <Button
                                         size="sm"
-                                        className="w-full sm:w-auto h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl sm:rounded-full shadow-xs active:scale-[0.98] transition-all duration-200"
+                                        className="w-full sm:w-auto h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200"
                                     >
                                         <UserPlus className="h-3.5 w-3.5 shrink-0" />
                                         <span>Invite Member</span>
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-md">
+                                <DialogContent className="sm:max-w-md rounded-2xl [&>button]:cursor-pointer">
                                     <form onSubmit={handleSendInvite}>
                                         <DialogHeader>
                                             <DialogTitle>Invite Teammate</DialogTitle>
@@ -333,6 +331,7 @@ export default function OrganizationInvitations() {
                                                 onChange={(e) => setInviteEmail(e.target.value)}
                                                 required
                                                 autoFocus
+                                                className="rounded-xl"
                                             />
                                         </div>
                                         <DialogFooter className="gap-2 sm:gap-0">
@@ -340,12 +339,14 @@ export default function OrganizationInvitations() {
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => setIsInviteOpen(false)}
+                                                className="rounded-xl cursor-pointer"
                                             >
                                                 Cancel
                                             </Button>
                                             <Button
                                                 type="submit"
                                                 disabled={isUpdating || !inviteEmail}
+                                                className="rounded-xl cursor-pointer"
                                             >
                                                 {isUpdating && (
                                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -359,12 +360,12 @@ export default function OrganizationInvitations() {
                         ) : (
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="w-full sm:w-auto h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 rounded-xl sm:rounded-full bg-muted/20 border border-dashed border-border/60 opacity-60 backdrop-blur-xs cursor-not-allowed select-none text-muted-foreground">
+                                    <div className="w-full sm:w-auto h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 rounded-xl bg-muted/20 border border-dashed border-border/60 opacity-60 backdrop-blur-xs cursor-not-allowed select-none text-muted-foreground">
                                         <UserPlus className="h-3.5 w-3.5 shrink-0" />
                                         <span>Invite Member</span>
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs max-w-[220px] text-center">
+                                <TooltipContent side="bottom" className="text-xs max-w-55 text-center">
                                     Only organization owners can invite new members
                                 </TooltipContent>
                             </Tooltip>

@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { getEntityId, formatExpiryDetails, formatDateTime } from "../helpers/member.helper.js";
 import {
     X,
@@ -10,6 +18,8 @@ import {
     CheckCircle2,
     XCircle,
     AlertCircle,
+    AlertTriangle,
+    Ban,
     User,
     Shield,
     Mail,
@@ -49,6 +59,18 @@ const StatusBadge = ({ status, size = "default" }) => {
         );
     }
 
+    if (status === "revoked") {
+        return (
+            <Badge
+                variant="outline"
+                className={`bg-muted/80 text-muted-foreground border-border font-medium capitalize inline-flex items-center gap-1.5 ${badgeClasses}`}
+            >
+                <Ban className={iconSize} />
+                Revoked
+            </Badge>
+        );
+    }
+
     if (status === "pending") {
         return (
             <Badge
@@ -81,91 +103,147 @@ export const OrganizationInvitationsCard = ({
     isUpdating,
     isOwner,
 }) => {
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
     const invId = getEntityId(invitation);
     const isPending = invitation.status === "pending";
     const isAccepted = invitation.status === "accepted";
     const isDeclined = invitation.status === "declined";
+    const isRevoked = invitation.status === "revoked";
     const expiry = formatExpiryDetails(invitation.expiresAt);
 
+    const handleConfirmRevoke = async () => {
+        if (onRevoke) {
+            await onRevoke(invId);
+            setIsConfirmOpen(false);
+        }
+    };
+
     return (
-        <div className="p-4 space-y-3 bg-card">
-            {/* Top: Icon + Candidate Email + Role + Status Badge */}
-            <div className="flex items-start justify-between gap-2.5">
-                <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-9 w-9 rounded-lg border border-border/70 bg-muted/50 flex items-center justify-center shrink-0">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
+        <>
+            <div className="p-4 space-y-3 bg-card">
+                {/* Top: Icon + Candidate Email + Role + Status Badge */}
+                <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-9 w-9 rounded-lg border border-border/70 bg-muted/50 flex items-center justify-center shrink-0">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="font-semibold text-sm text-foreground truncate">
+                                {invitation.email}
+                            </h4>
+                            <span className="text-[11px] text-muted-foreground capitalize flex items-center gap-1 mt-0.5">
+                                <Shield className="h-3 w-3 text-muted-foreground/70" />
+                                Role: <span className="font-medium text-foreground/80">{invitation.role}</span>
+                            </span>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <h4 className="font-semibold text-sm text-foreground truncate">
-                            {invitation.email}
-                        </h4>
-                        <span className="text-[11px] text-muted-foreground capitalize flex items-center gap-1 mt-0.5">
-                            <Shield className="h-3 w-3 text-muted-foreground/70" />
-                            Role: <span className="font-medium text-foreground/80">{invitation.role}</span>
-                        </span>
+
+                    <div className="shrink-0">
+                        <StatusBadge status={invitation.status} size="small" />
                     </div>
                 </div>
 
-                <div className="shrink-0">
-                    <StatusBadge status={invitation.status} size="small" />
-                </div>
-            </div>
+                {/* Middle Context Bar */}
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground bg-muted/30 px-2.5 py-2 rounded-md border border-border/40">
+                    <div className="flex items-center gap-1.5 truncate max-w-[48%]">
+                        <User className="h-3 w-3 shrink-0 text-muted-foreground/70" />
+                        <span className="truncate">By: {invitation.inviter || invitation.inviterEmail}</span>
+                    </div>
 
-            {/* Middle Context Bar */}
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground bg-muted/30 px-2.5 py-2 rounded-md border border-border/40">
-                <div className="flex items-center gap-1.5 truncate max-w-[48%]">
-                    <User className="h-3 w-3 shrink-0 text-muted-foreground/70" />
-                    <span className="truncate">By: {invitation.inviter || invitation.inviterEmail}</span>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0 font-medium">
-                    <Clock className="h-3 w-3 text-muted-foreground/70" />
-                    {isAccepted ? (
-                        <span className="text-foreground/80">
-                            Joined {formatDateTime(invitation.acceptedAt || invitation.invitedAt)}
-                        </span>
-                    ) : isDeclined ? (
-                        <span className="text-rose-600 dark:text-rose-400">
-                            Declined {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
-                        </span>
-                    ) : isPending ? (
-                        <span className="text-foreground/80 flex items-center gap-1">
-                            <span>Expires:</span>
-                            <span>{expiry.formatted}</span>
-                            {expiry.relative && (
-                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
-                                    ({expiry.relative})
-                                </span>
-                            )}
-                        </span>
-                    ) : (
-                        <span className="text-destructive">
-                            Expired on {expiry.formatted}
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* Revoke Option for Owners */}
-            {isPending && isOwner && (
-                <div className="pt-1">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isUpdating}
-                        onClick={() => onRevoke && onRevoke(invId)}
-                        className="w-full h-8 text-xs font-medium cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
-                    >
-                        {isUpdating ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    <div className="flex items-center gap-1 shrink-0 font-medium">
+                        <Clock className="h-3 w-3 text-muted-foreground/70" />
+                        {isAccepted ? (
+                            <span className="text-foreground/80">
+                                Joined {formatDateTime(invitation.acceptedAt || invitation.invitedAt)}
+                            </span>
+                        ) : isDeclined ? (
+                            <span className="text-rose-600 dark:text-rose-400">
+                                Declined {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
+                            </span>
+                        ) : isRevoked ? (
+                            <span className="text-muted-foreground">
+                                Revoked {formatDateTime(invitation.revokedAt || invitation.updatedAt)}
+                            </span>
+                        ) : isPending ? (
+                            <span className="text-foreground/80 flex items-center gap-1">
+                                <span>Expires:</span>
+                                <span>{expiry.formatted}</span>
+                                {expiry.relative && (
+                                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                                        ({expiry.relative})
+                                    </span>
+                                )}
+                            </span>
                         ) : (
-                            <X className="h-3.5 w-3.5 mr-1.5" />
+                            <span className="text-destructive">
+                                Expired on {expiry.formatted}
+                            </span>
                         )}
-                        Revoke Invitation
-                    </Button>
+                    </div>
                 </div>
-            )}
-        </div>
+
+                {/* Revoke Option for Owners */}
+                {isPending && isOwner && (
+                    <div className="pt-1">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isUpdating}
+                            onClick={() => setIsConfirmOpen(true)}
+                            className="w-full h-8 text-xs font-medium cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 rounded-lg"
+                        >
+                            <X className="h-3.5 w-3.5 mr-1.5" />
+                            Revoke Invitation
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {/* Revoke Confirmation Dialog */}
+            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogContent
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-[calc(100vw-2.5rem)] max-w-[340px] sm:max-w-[380px] rounded-2xl p-4 sm:p-5 gap-4 shadow-xl border border-border/80 bg-card/95 backdrop-blur-xl [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:opacity-70 hover:[&>button]:opacity-100"
+                >
+                    <DialogHeader className="space-y-2 text-left">
+                        <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+                            <AlertTriangle className="h-4 w-4" />
+                        </div>
+                        <DialogTitle className="text-sm sm:text-base font-semibold text-foreground tracking-tight">
+                            Revoke Invitation
+                        </DialogTitle>
+                        <DialogDescription className="text-[11px] sm:text-xs text-muted-foreground leading-normal">
+                            Are you sure you want to revoke the invitation sent to <span className="font-semibold text-foreground">{invitation.email}</span>? The link will immediately expire.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className="gap-2 pt-1 flex-row justify-end">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isUpdating}
+                            onClick={() => setIsConfirmOpen(false)}
+                            className="h-8 rounded-lg text-xs font-medium cursor-pointer flex-1 sm:flex-none border-border/80"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            disabled={isUpdating}
+                            onClick={handleConfirmRevoke}
+                            className="h-8 rounded-lg text-xs font-medium shadow-xs cursor-pointer flex-1 sm:flex-none"
+                        >
+                            {isUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+                            Revoke
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 
@@ -178,117 +256,178 @@ export const OrganizationInvitationsRow = ({
     isUpdating,
     isOwner,
 }) => {
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
     const invId = getEntityId(invitation);
     const isPending = invitation.status === "pending";
     const isAccepted = invitation.status === "accepted";
     const isDeclined = invitation.status === "declined";
+    const isRevoked = invitation.status === "revoked";
     const expiry = formatExpiryDetails(invitation.expiresAt);
 
+    const handleConfirmRevoke = async () => {
+        if (onRevoke) {
+            await onRevoke(invId);
+            setIsConfirmOpen(false);
+        }
+    };
+
     return (
-        <TableRow className="hover:bg-muted/40 transition-colors border-b">
-            {/* 1. Recipient & Role */}
-            <TableCell className="py-4 pl-6 align-middle">
-                <div className="flex items-center gap-3.5">
-                    <div className="h-9 w-9 rounded-lg border border-border/70 bg-muted/50 flex items-center justify-center shrink-0">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
+        <>
+            <TableRow className="hover:bg-muted/40 transition-colors border-b">
+                {/* 1. Recipient & Role */}
+                <TableCell className="py-4 pl-6 align-middle">
+                    <div className="flex items-center gap-3.5">
+                        <div className="h-9 w-9 rounded-lg border border-border/70 bg-muted/50 flex items-center justify-center shrink-0">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="font-semibold text-sm text-foreground truncate block leading-none">
+                                {invitation.email}
+                            </span>
+                            <span className="text-xs text-muted-foreground capitalize mt-1.5 inline-block">
+                                Role: <span className="font-medium text-foreground/80">{invitation.role}</span>
+                            </span>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <span className="font-semibold text-sm text-foreground truncate block leading-none">
-                            {invitation.email}
-                        </span>
-                        <span className="text-xs text-muted-foreground capitalize mt-1.5 inline-block">
-                            Role: <span className="font-medium text-foreground/80">{invitation.role}</span>
-                        </span>
-                    </div>
-                </div>
-            </TableCell>
+                </TableCell>
 
-            {/* 2. Sender / Inviter */}
-            <TableCell className="py-4 align-middle">
-                <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-foreground truncate">
-                        {invitation.inviter || "Workspace Admin"}
-                    </span>
-                    <span className="text-xs text-muted-foreground truncate mt-0.5">
-                        {invitation.inviterEmail || "—"}
-                    </span>
-                </div>
-            </TableCell>
-
-            {/* 3. Status Badge */}
-            <TableCell className="py-4 text-center align-middle">
-                <StatusBadge status={invitation.status} />
-            </TableCell>
-
-            {/* 4. Expiration / Relative Time */}
-            <TableCell className="py-4 hidden md:table-cell align-middle">
-                {isAccepted ? (
-                    <span className="text-xs text-muted-foreground">Joined Workspace</span>
-                ) : isDeclined ? (
-                    <span className="text-xs text-muted-foreground">Candidate Declined</span>
-                ) : isPending ? (
+                {/* 2. Sender / Inviter */}
+                <TableCell className="py-4 align-middle">
                     <div className="flex flex-col">
-                        <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                            <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                            {expiry.formatted}
+                        <span className="text-xs font-semibold text-foreground truncate">
+                            {invitation.inviter || "Workspace Admin"}
                         </span>
-                        <span
-                            className={`text-[11px] mt-0.5 font-medium ${expiry.isExpired ? "text-destructive" : "text-amber-600 dark:text-amber-400"
-                                }`}
-                        >
-                            {expiry.relative}
+                        <span className="text-xs text-muted-foreground truncate mt-0.5">
+                            {invitation.inviterEmail || "—"}
                         </span>
                     </div>
-                ) : (
-                    <span className="text-xs text-destructive flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        Expired ({expiry.formatted})
-                    </span>
-                )}
-            </TableCell>
+                </TableCell>
 
-            {/* 5. Actions / Completed Timestamp */}
-            <TableCell className="py-4 pr-6 text-right align-middle">
-                {isPending && isOwner ? (
-                    <div className="flex items-center justify-end">
+                {/* 3. Status Badge */}
+                <TableCell className="py-4 text-center align-middle">
+                    <StatusBadge status={invitation.status} />
+                </TableCell>
+
+                {/* 4. Expiration / Relative Time */}
+                <TableCell className="py-4 hidden md:table-cell align-middle">
+                    {isAccepted ? (
+                        <span className="text-xs text-muted-foreground">Joined Workspace</span>
+                    ) : isDeclined ? (
+                        <span className="text-xs text-muted-foreground">Candidate Declined</span>
+                    ) : isRevoked ? (
+                        <span className="text-xs text-muted-foreground">Invitation Revoked</span>
+                    ) : isPending ? (
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                                <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                                {expiry.formatted}
+                            </span>
+                            <span
+                                className={`text-[11px] mt-0.5 font-medium ${expiry.isExpired ? "text-destructive" : "text-amber-600 dark:text-amber-400"
+                                    }`}
+                            >
+                                {expiry.relative}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-xs text-destructive flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            Expired ({expiry.formatted})
+                        </span>
+                    )}
+                </TableCell>
+
+                {/* 5. Actions / Completed Timestamp */}
+                <TableCell className="py-4 pr-6 text-right align-middle">
+                    {isPending && isOwner ? (
+                        <div className="flex items-center justify-end">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={isUpdating}
+                                onClick={() => setIsConfirmOpen(true)}
+                                className="h-8 px-3 text-xs font-medium cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 rounded-lg"
+                            >
+                                <X className="h-3.5 w-3.5 mr-1.5" />
+                                Revoke
+                            </Button>
+                        </div>
+                    ) : isAccepted ? (
+                        <div className="flex flex-col items-end">
+                            <span className="text-xs text-muted-foreground font-medium">Joined At</span>
+                            <span className="text-xs font-medium text-foreground/80 mt-0.5">
+                                {invitation.acceptedAt ? formatDateTime(invitation.acceptedAt) : formatDateTime(invitation.invitedAt)}
+                            </span>
+                        </div>
+                    ) : isDeclined ? (
+                        <div className="flex flex-col items-end">
+                            <span className="text-xs text-rose-500 font-medium">Declined At</span>
+                            <span className="text-xs font-medium text-foreground/80 mt-0.5">
+                                {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
+                            </span>
+                        </div>
+                    ) : isRevoked ? (
+                        <div className="flex flex-col items-end">
+                            <span className="text-xs text-muted-foreground font-medium">Revoked At</span>
+                            <span className="text-xs font-medium text-foreground/80 mt-0.5">
+                                {formatDateTime(invitation.revokedAt || invitation.updatedAt)}
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-end">
+                            <span className="text-xs text-muted-foreground font-medium">Expired</span>
+                            <span className="text-xs text-muted-foreground/70 mt-0.5">
+                                {expiry.formatted}
+                            </span>
+                        </div>
+                    )}
+                </TableCell>
+            </TableRow>
+
+            {/* Desktop Confirmation Dialog */}
+            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogContent
+                    onClick={(e) => e.stopPropagation()}
+                    className="sm:max-w-[400px] rounded-2xl p-6 gap-4 border border-border/80 bg-card/95 backdrop-blur-xl [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:opacity-70 hover:[&>button]:opacity-100"
+                >
+                    <DialogHeader className="space-y-2.5 text-left">
+                        <div className="h-9 w-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+                            <AlertTriangle className="h-4.5 w-4.5" />
+                        </div>
+                        <DialogTitle className="text-base font-semibold text-foreground tracking-tight">
+                            Revoke Invitation
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                            Are you sure you want to revoke the invitation sent to <span className="font-semibold text-foreground">{invitation.email}</span>? The link will immediately expire.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className="gap-2 pt-2 flex-row justify-end">
                         <Button
+                            type="button"
                             variant="outline"
                             size="sm"
                             disabled={isUpdating}
-                            onClick={() => onRevoke && onRevoke(invId)}
-                            className="h-8 px-3 text-xs font-medium cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 rounded-lg"
+                            onClick={() => setIsConfirmOpen(false)}
+                            className="rounded-xl text-xs cursor-pointer border-border/80"
                         >
-                            {isUpdating ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                            ) : (
-                                <X className="h-3.5 w-3.5 mr-1.5" />
-                            )}
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            disabled={isUpdating}
+                            onClick={handleConfirmRevoke}
+                            className="rounded-xl text-xs font-medium shadow-xs cursor-pointer"
+                        >
+                            {isUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
                             Revoke
                         </Button>
-                    </div>
-                ) : isAccepted ? (
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs text-muted-foreground font-medium">Joined At</span>
-                        <span className="text-xs font-medium text-foreground/80 mt-0.5">
-                            {invitation.acceptedAt ? formatDateTime(invitation.acceptedAt) : formatDateTime(invitation.invitedAt)}
-                        </span>
-                    </div>
-                ) : isDeclined ? (
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs text-rose-500 font-medium">Declined At</span>
-                        <span className="text-xs font-medium text-foreground/80 mt-0.5">
-                            {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
-                        </span>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs text-muted-foreground font-medium">Expired</span>
-                        <span className="text-xs text-muted-foreground/70 mt-0.5">
-                            {expiry.formatted}
-                        </span>
-                    </div>
-                )}
-            </TableCell>
-        </TableRow>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };

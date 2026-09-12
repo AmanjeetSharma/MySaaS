@@ -355,6 +355,127 @@ export const inviteMemberService = async ({
 
 
 
+export const revokeInvitationService = async ({
+    userId,
+    orgId,
+    invitationId
+}) => {
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+    if (!invitationId) throw new ApiError(400, "Invitation ID is required");
+    if (!mongoose.Types.ObjectId.isValid(invitationId)) throw new ApiError(400, "Invalid invitation ID");
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const org = await findOrganizationById(orgId, session);
+        if (!org) {
+            throw new ApiError(404, "Organization not found");
+        }
+
+        await checkOrganizationAccess(userId, orgId);
+
+        if (org.owner.toString() !== userId.toString()) {
+            throw new ApiError(403, "You are not authorized to revoke invitations for this organization.");
+        }
+
+        const invitation = await findInvitationById(invitationId, session);
+        if (!invitation) {
+            throw new ApiError(404, "This invitation does not exist");
+        }
+
+        if (invitation.organization.toString() !== orgId.toString()) {
+            throw new ApiError(403, "This invitation does not belong to this organization.");
+        }
+
+        if (invitation.status === "accepted") {
+            throw new ApiError(400, "This invitation has already been accepted. You can remove the member from the organization instead.");
+        }
+
+        if (invitation.status === "declined") {
+            throw new ApiError(400, "This invitation has already been declined already by the invited user.");
+        }
+
+        if (invitation.status === "revoked") {
+            throw new ApiError(400, "This invitation has already been revoked.");
+        }
+
+        if (invitation.status === "expired" || invitation.expiresAt <= new Date()) {
+            if (invitation.status !== "expired") {
+
+                invitation.status = "expired";
+
+                await invitation.save({ session });
+            }
+
+            throw new ApiError(400, "This invitation has expired and cannot be revoked.");
+        }
+
+        if (invitation.status !== "pending") {
+            throw new ApiError(400, "This invitation cannot be revoked.");
+        }
+
+        const revokedAt = new Date();
+
+        invitation.status = "revoked";
+        invitation.revokedAt = revokedAt;
+
+        await invitation.save({ session });
+
+        await session.commitTransaction();
+
+        logger.info(
+            {
+                userId,
+                organizationId: org._id,
+                organization: org.name,
+                invitationId: invitation._id,
+                invitedEmail: invitation.email,
+                revokedAt,
+            },
+            "member.invitation.revoked"
+        );
+
+        return {
+            invitationId: invitation._id,
+            organization: org.name,
+            email: invitation.email,
+            status: invitation.status,
+            revokedAt,
+        };
+
+    } catch (error) {
+
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
+        if (error instanceof ApiError) {
+            throw error;
+        }
+
+        logger.error(
+            {
+                userId,
+                organizationId: orgId,
+                invitationId,
+                error,
+            },
+            "member.invitation.revoke.error"
+        );
+
+        throw new ApiError(500, "An error occurred while revoking the invitation. Please try again.");
+
+    } finally {
+        await session.endSession();
+    }
+};
+
+
+
+
+
 
 
 
@@ -382,6 +503,10 @@ export const acceptInvitationService = async ({
 
         if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
             throw new ApiError(403, "You are not authorized to accept this invitation.");
+        }
+
+        if (invitation.status === "revoked") {
+            throw new ApiError(400, "This invitation has been revoked by the organization owner.");
         }
 
         if (invitation.status !== "pending") {
@@ -543,6 +668,10 @@ export const declineInvitationService = async ({
 
         if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
             throw new ApiError(403, "You are not authorized to decline this invitation.");
+        }
+
+        if(invitation.status === "revoked") {
+            throw new ApiError(400, "This invitation has been revoked by the organization owner.");
         }
 
         if (invitation.status !== "pending") {
@@ -987,7 +1116,7 @@ export const getInvitationsService = async ({
 
     const invitations = await findInvitationsByOrg(
         orgId,
-        "organization email role invitedBy status expiresAt createdAt acceptedAt",
+        "organization email role invitedBy status expiresAt createdAt acceptedAt declinedAt revokedAt",
         [
             {
                 path: "invitedBy",
@@ -1017,6 +1146,9 @@ export const getInvitationsService = async ({
         inviterEmail: invite.invitedBy?.email || null,
         status: invite.status,
         expiresAt: invite.expiresAt,
+        acceptedAt: invite.acceptedAt,
+        declinedAt: invite.declinedAt,
+        revokedAt: invite.revokedAt,
         invitedAt: invite.createdAt
     }));
 };
@@ -1042,7 +1174,7 @@ export const getMyInvitationsService = async ({
 
     const invitations = await findInvitationsByEmailForUser(
         userEmail,
-        "organization email role invitedBy status expiresAt createdAt acceptedAt declinedAt",
+        "organization email role invitedBy status expiresAt createdAt acceptedAt declinedAt revokedAt",
         [
             {
                 path: "organization",

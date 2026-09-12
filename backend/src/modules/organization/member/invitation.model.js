@@ -25,7 +25,7 @@ const inviteSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "accepted", "declined", "expired"],
+        enum: ["pending", "accepted", "declined", "revoked", "expired"],
         default: "pending"
     },
     expiresAt: {
@@ -39,7 +39,11 @@ const inviteSchema = new Schema({
     declinedAt: {
         type: Date,
         default: null
-    }
+    },
+    revokedAt: {
+        type: Date,
+        default: null
+    },
 }, { timestamps: true });
 
 

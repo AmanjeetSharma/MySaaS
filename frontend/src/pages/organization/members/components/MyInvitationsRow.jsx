@@ -12,6 +12,7 @@ import {
     CheckCircle2,
     XCircle,
     AlertCircle,
+    Ban,
     Mail,
     Shield,
 } from "lucide-react";
@@ -46,6 +47,18 @@ const StatusBadge = ({ status, size = "default" }) => {
             >
                 <XCircle className={iconSize} />
                 Declined
+            </Badge>
+        );
+    }
+
+    if (status === "revoked") {
+        return (
+            <Badge
+                variant="outline"
+                className={`bg-muted/80 text-muted-foreground border-border font-medium capitalize inline-flex items-center gap-1.5 ${badgeClasses}`}
+            >
+                <Ban className={iconSize} />
+                Revoked
             </Badge>
         );
     }
@@ -87,6 +100,7 @@ export const MyInvitationsCard = ({
     const isPending = invitation.status === "pending";
     const isAccepted = invitation.status === "accepted";
     const isDeclined = invitation.status === "declined";
+    const isRevoked = invitation.status === "revoked";
     const orgName = invitation.organization?.name || "Workspace";
     const expiry = formatExpiryDetails(invitation.expiresAt);
 
@@ -131,6 +145,10 @@ export const MyInvitationsCard = ({
                     ) : isDeclined ? (
                         <span className="text-rose-600 dark:text-rose-400">
                             Declined at: {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
+                        </span>
+                    ) : isRevoked ? (
+                        <span className="text-muted-foreground">
+                            Revoked at: {formatDateTime(invitation.revokedAt || invitation.updatedAt)}
                         </span>
                     ) : isPending ? (
                         <span className="text-foreground/80 flex items-center gap-1">
@@ -195,6 +213,7 @@ export const MyInvitationsRow = ({
     const isPending = invitation.status === "pending";
     const isAccepted = invitation.status === "accepted";
     const isDeclined = invitation.status === "declined";
+    const isRevoked = invitation.status === "revoked";
     const orgName = invitation.organization?.name || "Workspace";
     const expiry = formatExpiryDetails(invitation.expiresAt);
 
@@ -240,6 +259,8 @@ export const MyInvitationsRow = ({
                     <span className="text-xs text-muted-foreground">Completed</span>
                 ) : isDeclined ? (
                     <span className="text-xs text-muted-foreground">Invitation Declined</span>
+                ) : isRevoked ? (
+                    <span className="text-xs text-muted-foreground">Invitation Revoked</span>
                 ) : isPending ? (
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
@@ -261,7 +282,6 @@ export const MyInvitationsRow = ({
                 )}
             </TableCell>
 
-            {/* 5. Actions / Completed Timestamp */}
             {/* 5. Actions / Completed Timestamp */}
             <TableCell className="py-4 pr-6 text-right align-middle">
                 {isPending ? (
@@ -302,6 +322,13 @@ export const MyInvitationsRow = ({
                         <span className="text-xs text-rose-500 font-medium">Declined At</span>
                         <span className="text-xs font-medium text-foreground/80 mt-0.5">
                             {formatDateTime(invitation.declinedAt || invitation.updatedAt)}
+                        </span>
+                    </div>
+                ) : isRevoked ? (
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs text-muted-foreground font-medium">Revoked At</span>
+                        <span className="text-xs font-medium text-foreground/80 mt-0.5">
+                            {formatDateTime(invitation.revokedAt || invitation.updatedAt)}
                         </span>
                     </div>
                 ) : (

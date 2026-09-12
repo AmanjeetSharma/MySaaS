@@ -173,6 +173,35 @@ export const useMemberStore = create((set, get) => ({
         }
     },
 
+    revokeInvitation: async (orgId, invitationId) => {
+        if (!orgId || !invitationId) return;
+        set({ isUpdating: true, error: null });
+        try {
+            const response = await http.post(`/members/${orgId}/${invitationId}/revoke`);
+            const data = response.data?.data;
+            set((state) => ({
+                organizationInvitations: state.organizationInvitations.map((invitation) =>
+                    isSameId(invitation, invitationId)
+                        ? {
+                            ...invitation,
+                            status: "revoked",
+                            revokedAt: data?.revokedAt ?? new Date().toISOString(),
+                        }
+                        : invitation
+                ),
+                isUpdating: false,
+                error: null,
+            }));
+            toast.success("Invitation revoked successfully", { icon: toastIcon("success") });
+            return data;
+        } catch (error) {
+            const errorMessage = getErrorMessage(error, "Failed to revoke invitation");
+            set({ isUpdating: false, error: errorMessage });
+            toast.error(errorMessage, { icon: toastIcon("error") });
+            throw error;
+        }
+    },
+
     removeMember: async (orgId, memberId) => {
         if (!orgId || !memberId) return;
         set({ isUpdating: true, error: null });
