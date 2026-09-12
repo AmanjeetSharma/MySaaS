@@ -9,6 +9,7 @@ import {
     removeMemberController,
     leaveOrganizationController,
     getMyInvitationsController,
+    declineInvitationController,
 } from "./member.controller.js";
 
 const router = express.Router();
@@ -19,6 +20,8 @@ const router = express.Router();
 router.get("/invitations", verifyToken, getMyInvitationsController);
 
 router.post("/invitations/:invitationId/accept", verifyToken, acceptInvitationController);
+
+router.post("/invitations/:invitationId/decline", verifyToken, declineInvitationController);
 
 router.get("/:orgId", verifyToken, getMembersController);
 

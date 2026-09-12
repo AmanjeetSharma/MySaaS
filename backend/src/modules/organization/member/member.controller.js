@@ -8,6 +8,7 @@ import {
     removeMemberService,
     leaveOrganizationService,
     getMyInvitationsService,
+    declineInvitationService,
 } from "./member.service.js";
 
 
@@ -72,6 +73,31 @@ export const acceptInvitationController = asyncHandler(async (req, res) => {
             200,
             data,
             "Invitation accepted successfully"
+        ));
+});
+
+
+export const declineInvitationController = asyncHandler(async (req, res) => {
+    const {
+        _id: userId,
+        name: userName,
+        email: userEmail
+    } = req.user;
+
+    const invitationId = req.params.invitationId;
+
+    const data = await declineInvitationService({
+        userId,
+        userName,
+        userEmail,
+        invitationId
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Invitation declined successfully"
         ));
 });
 

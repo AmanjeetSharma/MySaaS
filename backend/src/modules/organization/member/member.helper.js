@@ -105,3 +105,23 @@ export const formatInvitation = (invite) => ({
 export const formatInvitations = (invitations) => {
     return invitations.map(formatInvitation);
 };
+
+
+export const buildInvitationDeclinedRealtimePayload = ({
+    invitationId,
+    organizationId,
+    organizationName,
+    user,
+}) => {
+    return {
+        invitationId,
+        organizationId,
+        organizationName,
+
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+        },
+    };
+};

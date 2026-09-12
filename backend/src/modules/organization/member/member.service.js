@@ -27,12 +27,14 @@ import {
     buildMemberRemovedRealtimePayload,
     buildMemberLeftRealtimePayload,
     formatInvitations,
+    buildInvitationDeclinedRealtimePayload,
 } from "./member.helper.js";
 import {
     emitMemberInvitation,
     emitMemberJoined,
     emitMemberRemovedToOrganization,
     emitMemberLeft,
+    emitMemberDeclinedInvitation,
 } from "#/infrastructure/websocket/emitters/member.emitter.js";
 import {
     buildNotification,
@@ -436,6 +438,149 @@ export const acceptInvitationService = async ({
 };
 
 
+
+
+
+
+
+
+
+
+
+
+export const declineInvitationService = async ({
+    userId,
+    userName,
+    userEmail,
+    invitationId,
+}) => {
+    if (!invitationId) throw new ApiError(400, "Invitation ID is required");
+    if (!mongoose.Types.ObjectId.isValid(invitationId)) throw new ApiError(400, "Invalid invitation ID");
+
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const invitation = await findInvitationById(invitationId, session);
+
+        if (!invitation) {
+            throw new ApiError(404, "This invitation does not exist");
+        }
+
+        if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
+            throw new ApiError(403, "You are not authorized to decline this invitation.");
+        }
+
+        if (invitation.status !== "pending") {
+            throw new ApiError(400, "This invitation is no longer pending.");
+        }
+
+        if (invitation.expiresAt <= new Date()) {
+            invitation.status = "expired";
+
+            await invitation.save({ session });
+
+            throw new ApiError(400, "This invitation has expired.");
+        }
+
+        const org = await findOrganizationById(invitation.organization, session);
+        if (!org) {
+            throw new ApiError(404, "Organization not found");
+        }
+
+        const declinedAt = new Date();
+
+        invitation.status = "declined";
+        invitation.declinedAt = declinedAt;
+
+        await invitation.save({ session });
+
+        await session.commitTransaction();
+
+        const notification = buildNotification({
+            type: NOTIFICATION_TYPES.MEMBER_INVITATION_DECLINED,
+            title: "Invitation Declined",
+            message: `${userName} (${userEmail}) declined your invitation to join ${org.name}.`,
+
+            data: {
+                invitationId: invitation._id,
+                organizationId: org._id,
+                organizationName: org.name,
+                userId,
+                userName,
+                userEmail,
+            },
+        });
+
+        await createNotification({
+            userId: org.owner,
+            organizationId: org._id,
+            notification,
+        });
+
+        const realtimePayload = buildInvitationDeclinedRealtimePayload({
+            invitationId: invitation._id,
+            organizationId: org._id,
+            organizationName: org.name,
+
+            user: {
+                _id: userId,
+                name: userName,
+                email: userEmail,
+            },
+        });
+
+        emitMemberDeclinedInvitation(
+            org.owner,
+            realtimePayload
+        );
+
+        logger.info(
+            {
+                userId,
+                userName,
+                userEmail,
+                organizationId: org._id,
+                organization: org.name,
+                ownerId: org.owner,
+                invitationId: invitation._id,
+                declinedAt,
+            },
+            "member.invitation.declined"
+        );
+
+        return {
+            invitationId: invitation._id,
+            organization: org.name,
+            declinedAt,
+        };
+
+    } catch (error) {
+
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
+        if (error instanceof ApiError) {
+            throw error;
+        }
+
+        logger.error(
+            {
+                userId,
+                invitationId,
+                error,
+            },
+            "member.invitation.decline.error"
+        );
+
+        throw new ApiError(500, "An error occurred while declining the invitation. Please try again.");
+
+    } finally {
+        await session.endSession();
+    }
+};
 
 
 

@@ -40,3 +40,13 @@ export const emitMemberLeft = (organizationId, leavingUserId, member) => {
         .except(getUserRoom(leavingUserId)) // not sending to the leaving member
         .emit(SOCKET_EVENTS.MEMBER_LEFT, member);
 }
+
+
+
+
+export const emitMemberDeclinedInvitation = (ownerUserId, invitation) => {
+    const io = getIO();
+    const room = getUserRoom(ownerUserId);
+
+    io.to(room).emit(SOCKET_EVENTS.MEMBER_INVITATION_DECLINED, invitation);
+}

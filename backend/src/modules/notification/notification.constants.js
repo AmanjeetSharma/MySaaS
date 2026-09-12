@@ -14,4 +14,5 @@ export const NOTIFICATION_TYPES = {
     MEMBER_JOINED: "member_joined",
     MEMBER_REMOVED: "member_removed",
     MEMBER_LEFT: "member_left",
+    MEMBER_INVITATION_DECLINED: "member_invitation_declined",
 };
