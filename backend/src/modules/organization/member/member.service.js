@@ -22,6 +22,7 @@ import {
 import { checkOrganizationAccess } from "../organization.access.js";
 import {
     formatOrganizationMembers,
+    formatMemberInfo,
     buildInvitationRealtimePayload,
     buildMemberJoinedRealtimePayload,
     buildMemberRemovedRealtimePayload,
@@ -56,8 +57,8 @@ export const getMembersService = async ({
     if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
 
     const org = await findOrganizationById(orgId, null, [
-        { path: "owner", select: "name email" },
-        { path: "members.user", select: "name email" }
+        { path: "owner", select: "name email avatar.url" },
+        { path: "members.user", select: "name email avatar.url" }
     ]);
     if (!org) throw new ApiError(404, "Organization not found");
 
@@ -81,6 +82,79 @@ export const getMembersService = async ({
 };
 
 
+
+
+
+
+
+
+
+
+export const getMemberInfoService = async ({
+    userId,
+    orgId,
+    memberId
+}) => {
+    if (!orgId) throw new ApiError(400, "Organization ID is required");
+    if (!mongoose.Types.ObjectId.isValid(orgId)) throw new ApiError(400, "Invalid organization ID");
+
+    if (!memberId) throw new ApiError(400, "Member ID is required");
+    if (!mongoose.Types.ObjectId.isValid(memberId)) throw new ApiError(400, "Invalid member ID");
+
+    const org = await findOrganizationById(orgId, null, [
+        { path: "owner", select: "name email avatar.url phone.number settings.timezone createdAt" },
+        { path: "members.user", select: "name email avatar.url phone.number settings.timezone createdAt" }
+    ]);
+    if (!org) throw new ApiError(404, "Organization not found");
+
+    await checkOrganizationAccess(userId, orgId);
+
+    // owner
+    if (org.owner.toString() === memberId.toString()) {
+        const memberInfo = formatMemberInfo({
+            user: org.owner,
+            role: "owner",
+            joinedAt: org.createdAt
+        });
+
+        logger.info(
+            {
+                organizationId: org._id,
+                memberId: org.owner._id,
+                memberName: org.owner.name
+            },
+            "member.info.retrieved"
+        );
+
+        return memberInfo;
+    }
+
+    // Regular member
+    const member = org.members.find(
+        member => member.user._id.toString() === memberId.toString()
+    );
+
+    if (!member) {
+        throw new ApiError(404, "This user is not a member of this organization");
+    }
+
+    const memberInfo = formatMemberInfo({
+        user: member.user,
+        role: member.role,
+        joinedAt: member.joinedAt
+    });
+
+    logger.info(
+        {
+            organizationId: org._id,
+            memberId: member.user._id,
+            memberName: member.user.name
+        },
+        "member.info.retrieved"
+    );
+
+    return memberInfo;
+};
 
 
 

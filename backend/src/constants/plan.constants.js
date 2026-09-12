@@ -33,7 +33,7 @@ export const PLAN_LIMITS = {
     //     name: "Elite",
 
     //     limits: {
-    //         maxMembers: 1000,//avoiding using Infinity for safety in calculations
+    //         maxMembers: 100,//avoiding using Infinity for safety in calculations
     //         maxCustomers: 100000,
     //         aiCredits: 1000,
     //     },

@@ -5,16 +5,35 @@ export const formatOrganizationMembers = (org) => {
             name: org.owner.name,
             email: org.owner.email,
             role: "owner",
-            joinedAt: org.createdAt
+            avatar: org.owner.avatar?.url || null,
         },
         ...org.members.map(member => ({
             id: member.user._id,
             name: member.user.name,
             email: member.user.email,
             role: member.role,
-            joinedAt: member.joinedAt
+            avatar: member.user.avatar?.url || null,
         }))
     ];
+};
+
+
+export const formatMemberInfo = ({
+    user,
+    role,
+    joinedAt
+}) => {
+    return {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar?.url || null,
+        timezone: user.settings?.timezone || null,
+        phone: user.phone?.number || null,
+        createdAt: user.createdAt,
+        role,
+        joinedAt
+    };
 };
 
 

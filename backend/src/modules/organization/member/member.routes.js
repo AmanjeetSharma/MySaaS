@@ -3,6 +3,7 @@ import { verifyToken } from "../../../middlewares/auth.middleware.js";
 
 import {
     getMembersController,
+    getMemberInfoController,
     inviteMemberController,
     acceptInvitationController,
     getInvitationsController,
@@ -23,16 +24,17 @@ router.post("/invitations/:invitationId/accept", verifyToken, acceptInvitationCo
 
 router.post("/invitations/:invitationId/decline", verifyToken, declineInvitationController);
 
-router.get("/:orgId", verifyToken, getMembersController);
+router.get("/:orgId/invitations", verifyToken, getInvitationsController);
 
 router.post("/:orgId/invite", verifyToken, inviteMemberController);
 
-router.get("/:orgId/invitations", verifyToken, getInvitationsController);
+router.post("/:orgId/leave", verifyToken, leaveOrganizationController);
 
 router.delete("/:orgId/:memberId", verifyToken, removeMemberController);
 
-router.post("/:orgId/leave", verifyToken, leaveOrganizationController);
+router.get("/:orgId/:memberId", verifyToken, getMemberInfoController);
 
+router.get("/:orgId", verifyToken, getMembersController);
 
 
 export default router;

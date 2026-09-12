@@ -9,6 +9,7 @@ import {
     leaveOrganizationService,
     getMyInvitationsService,
     declineInvitationService,
+    getMemberInfoService,
 } from "./member.service.js";
 
 
@@ -26,6 +27,26 @@ export const getMembersController = asyncHandler(async (req, res) => {
             200,
             data,
             "Organization members retrieved successfully"
+        ));
+});
+
+
+export const getMemberInfoController = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const orgId = req.params.orgId;
+    const memberId = req.params.memberId;
+
+    const data = await getMemberInfoService({
+        userId,
+        orgId,
+        memberId
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            data,
+            "Member information retrieved successfully"
         ));
 });
 
