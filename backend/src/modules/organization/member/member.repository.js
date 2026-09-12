@@ -45,6 +45,18 @@ export const findUserByEmail = async (email, selectedFields, session) => {
 };
 
 
+export const finduserById = async (userId, selectedFields, session) => {
+    let query = User.findById(userId);
+    if (selectedFields) {
+        query = query.select(selectedFields);
+    }
+    if (session) {
+        query = query.session(session);
+    }
+    return query;
+};
+
+
 export const addNewMemberToOrganization = async (orgId, memberPayload, session) => {
     let query = Organization.updateOne(
         {
@@ -100,3 +112,15 @@ export const findInvitationsByEmailForUser = async (
 
     return query.sort({ createdAt: -1 });
 };
+
+
+export const unsetActiveOrgForUser = async (userId, session) => {
+    let query = User.updateOne(
+        { _id: userId },
+        { $unset: { activeOrganization: null } }
+    );
+    if (session) {
+        query = query.session(session);
+    }
+    return query;
+}

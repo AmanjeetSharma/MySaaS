@@ -7,7 +7,6 @@ import { sendEmail } from "../../../integrations/email.integration.js";
 import { invitationEmailTemplate } from "../../../utils/email/invitationEmailTemplate.js";
 import {
     findOrganizationById,
-    unsetActiveOrganizationForUsers,
 } from "../organization.repository.js";
 import {
     findInvitationByEmail,
@@ -17,6 +16,8 @@ import {
     addNewMemberToOrganization,
     findInvitationsByOrg,
     findInvitationsByEmailForUser,
+    unsetActiveOrgForUser,
+    finduserById,
 } from "./member.repository.js";
 import { checkOrganizationAccess } from "../organization.access.js";
 import {
@@ -504,7 +505,10 @@ export const removeMemberService = async ({
 
         await org.save({ session });
 
-        await unsetActiveOrganizationForUsers(orgId, session);
+        const activeOrgOfRemovedMember = await finduserById(memberId, "activeOrganization", session);
+        if (activeOrgOfRemovedMember?.activeOrganization?.toString() === orgId.toString()) {
+            await unsetActiveOrgForUser(memberId, session);
+        }
 
         await session.commitTransaction();
 
@@ -639,9 +643,12 @@ export const leaveOrganizationService = async ({
 
         await org.save({ session });
 
-        await unsetActiveOrganizationForUsers(orgId, session);
+        const usersActiveOrg = await finduserById(userId, "activeOrganization", session);
+        if (usersActiveOrg?.activeOrganization?.toString() === orgId.toString()) {
+            await unsetActiveOrgForUser(userId, session);
+        }
 
-        await session.commitTransaction();
+        session.commitTransaction();
 
         await Promise.all(
             notificationRecipients.map(async (recipientId) => {
