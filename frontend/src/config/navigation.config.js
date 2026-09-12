@@ -19,6 +19,7 @@ import {
     Handshake,
     CircleQuestionMark,
     Video,
+    MailOpen,
 } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
@@ -79,6 +80,12 @@ export const useNavigationConfig = () => {
                         icon: Users,
                         pattern: '/organizations/:orgId/members'
                     },
+                    {
+                        title: "My Invitations",
+                        href: "/my-invitations",
+                        icon: MailOpen,
+                        pattern: '/my-invitations'
+                    }
                 ]
             },
             {

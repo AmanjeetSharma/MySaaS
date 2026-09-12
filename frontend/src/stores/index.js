@@ -3,7 +3,6 @@ export { useUserStore } from './userStore';
 export { usePasswordStore } from './passwordStore';
 export { useSettingsStore } from './settingsStore';
 export { useOrganizationStore } from './organizationStore';
-export { useMemberStore } from './memberStore';
 export { useServiceStore } from './serviceStore';
 export { useAvailabilityStore } from './availabilityStore';
 export { useCustomerStore } from './customerStore';
@@ -13,6 +12,7 @@ export { useGoogleStore } from './googleStore';
 export { useBookingStore } from './bookingStore';
 export { usePaymentStore } from './paymentStore';
 export { useNotificationStore } from './notificationStore';
+export { useMemberStore } from './memberStore';
 
 
 

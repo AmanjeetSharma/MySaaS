@@ -23,6 +23,8 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 import Organizations from '@/pages/organization/Organizations';
 import OrganizationDetails from '@/pages/organization/OrganizationDetails';
 import Members from '@/pages/organization/members/Members';
+import Invitations from '@/pages/organization/members/Invitations';
+import MyInvitations from '@/pages/organization/members/MyInvitations';
 
 // Service imports
 import Services from '@/pages/organization/services/allServices/Services';
@@ -97,6 +99,8 @@ export const AppRoutes = () => {
                     <Route path="/organizations" element={<Organizations />} />
                     <Route path="/organizations/:orgId" element={<OrganizationDetails />} />
                     <Route path="/organizations/:orgId/members" element={<Members />} />
+                    <Route path="/organizations/:orgId/members/invitations" element={<Invitations />} />
+                    <Route path="/my-invitations" element={<MyInvitations />} />
 
                     {/* Service Routes */}
                     <Route path="/organizations/:orgId/services" element={<Services />} />
@@ -115,7 +119,7 @@ export const AppRoutes = () => {
                     {/* Bookings Route */}
                     <Route path="/bookings" element={<Bookings />} />
                     <Route path="/bookings/:bookingId" element={<BookingDetails />} />
-                    
+
                     {/* Integrations Routes */}
                     <Route path="/integrations/connect-google" element={<ConnectGoogle />} />
                     <Route path="/integrations/connect-whatsapp" element={<WhatsApp />} />

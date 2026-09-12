@@ -40,6 +40,10 @@ export const registerSocketHandlers = (socket) => {
         useMemberStore.getState().memberLeftLocal(memberId);
     });
 
+    socket.on(SOCKET_EVENTS.MEMBER_INVITATION_DECLINED, ({ invitationId }) => {
+        useMemberStore.getState().removeInvitationLocal(invitationId);
+    });
+
 };
 
 export const unregisterSocketHandlers = (socket) => {
@@ -54,4 +58,5 @@ export const unregisterSocketHandlers = (socket) => {
     socket.off(SOCKET_EVENTS.MEMBER_JOINED);
     socket.off(SOCKET_EVENTS.MEMBER_REMOVED);
     socket.off(SOCKET_EVENTS.MEMBER_LEFT);
+    socket.off(SOCKET_EVENTS.MEMBER_INVITATION_DECLINED);
 };

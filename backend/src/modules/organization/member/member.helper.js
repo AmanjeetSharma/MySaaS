@@ -113,12 +113,14 @@ export const formatInvitation = (invite) => ({
         : null,
     email: invite.email,
     role: invite.role,
+    inviterId: invite.invitedBy?._id || null,
     inviter: invite.invitedBy?.name || null,
     inviterEmail: invite.invitedBy?.email || null,
     status: invite.status,
     expiresAt: invite.expiresAt,
     invitedAt: invite.createdAt,
     acceptedAt: invite.acceptedAt || null,
+    declinedAt: invite.declinedAt || null,
 });
 
 export const formatInvitations = (invitations) => {

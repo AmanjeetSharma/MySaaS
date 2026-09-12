@@ -15,4 +15,5 @@ export const SOCKET_EVENTS = {
     MEMBER_JOINED: "member:joined",
     MEMBER_REMOVED: "member:removed",
     MEMBER_LEFT: "member:left",
+    MEMBER_INVITATION_DECLINED: "member:invitation-declined",
 };

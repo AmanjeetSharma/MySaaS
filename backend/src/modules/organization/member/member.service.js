@@ -110,7 +110,7 @@ export const getMemberInfoService = async ({
     await checkOrganizationAccess(userId, orgId);
 
     // owner
-    if (org.owner.toString() === memberId.toString()) {
+    if (org.owner._id.toString() === memberId.toString()) {
         const memberInfo = formatMemberInfo({
             user: org.owner,
             role: "owner",
@@ -128,10 +128,9 @@ export const getMemberInfoService = async ({
 
         return memberInfo;
     }
-
     // Regular member
     const member = org.members.find(
-        member => member.user._id.toString() === memberId.toString()
+        member => member.user._id.toString() === memberId.toString(),
     );
 
     if (!member) {
@@ -1043,7 +1042,7 @@ export const getMyInvitationsService = async ({
 
     const invitations = await findInvitationsByEmailForUser(
         userEmail,
-        "organization email role invitedBy status expiresAt createdAt acceptedAt",
+        "organization email role invitedBy status expiresAt createdAt acceptedAt declinedAt",
         [
             {
                 path: "organization",
@@ -1051,7 +1050,7 @@ export const getMyInvitationsService = async ({
             },
             {
                 path: "invitedBy",
-                select: "name email",
+                select: "_id name email",
             },
         ]
     );

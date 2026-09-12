@@ -1,42 +1,69 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMemberStore } from "@/stores/memberStore";
 import { useOrganizationStore } from "@/stores/organizationStore";
 import { useUserStore } from "@/stores/userStore";
 import { checkIsOwner, getEntityId } from "./helpers/member.helper.js";
-import { MemberTable } from "./components/MemberTable";
-import { InvitationsView } from "./components/InvitationsView";
+import { MemberCard } from "./components/MemberCard";
+import { MemberDetailsModal } from "./components/MemberDetailsModal";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Users, Mail, Inbox, Loader2, Building2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  UserPlus,
+  Mail,
+  Inbox,
+  Loader2,
+  Building2,
+  RotateCw,
+  Search,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
 
 export default function Members() {
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const { userProfile, getUserProfile } = useUserStore();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { userProfile, getUserProfile, isLoading: isUserLoading } = useUserStore();
   const { currentOrganization, getOrganizations, isLoading: isOrgLoading } = useOrganizationStore();
   const {
-    members,
-    myInvitations,
-    organizationInvitations,
-    isLoading: isMemberLoading,
+    members = [],
+    memberInfo,
+    isLoading: isMembersLoading,
     isUpdating,
     fetchMembers,
-    fetchOrganizationInvitations,
-    fetchMyInvitations,
+    fetchMemberInfo,
+    clearMemberInfo,
     inviteMember,
-    acceptInvitation,
     removeMember,
-    leaveOrganization,
   } = useMemberStore();
 
   const activeOrgId = getEntityId(userProfile?.activeOrganization);
-  const currentOrgId = getEntityId(currentOrganization);
+  const currentOrgId = getEntityId(currentOrganization) || activeOrgId;
   const currentUserId = getEntityId(userProfile);
   const hasNoActiveOrganization = Boolean(userProfile) && !activeOrgId;
 
@@ -45,29 +72,31 @@ export default function Members() {
     [currentOrganization, userProfile]
   );
 
-  // 1. Initial hydration: ensure userProfile and orgs are loaded with activeOrgId
   useEffect(() => {
-    if (!userProfile) {
-      getUserProfile();
-    }
-    fetchMyInvitations();
+    if (!userProfile) getUserProfile();
   }, []);
 
   useEffect(() => {
-    if (userProfile && !currentOrganization) {
+    if (userProfile && !currentOrganization && activeOrgId) {
       getOrganizations(activeOrgId);
     }
   }, [userProfile, activeOrgId]);
 
-  // 2. Fetch member & org-invitation data when currentOrganization resolves
   useEffect(() => {
     if (currentOrgId) {
       fetchMembers(currentOrgId);
-      if (isOwner) {
-        fetchOrganizationInvitations(currentOrgId);
-      }
     }
-  }, [currentOrgId, isOwner]);
+  }, [currentOrgId]);
+
+  const handleRefresh = async () => {
+    if (isRefreshing || !currentOrgId) return;
+    setIsRefreshing(true);
+    try {
+      await fetchMembers(currentOrgId);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleSendInvite = async (e) => {
     e.preventDefault();
@@ -76,193 +105,279 @@ export default function Members() {
       await inviteMember(currentOrgId, inviteEmail);
       setInviteEmail("");
       setIsInviteOpen(false);
-      fetchOrganizationInvitations(currentOrgId);
     } catch {
-      // Handled via toast in store
+      // Handled in store
     }
   };
 
-  const handleAcceptInvite = async (invitationId) => {
-    await acceptInvitation(invitationId);
-    if (currentOrgId) fetchMembers(currentOrgId);
+  const handleOpenDetails = async (memberId) => {
+    setIsDetailsOpen(true);
+    setIsDetailsLoading(true);
+    try {
+      await fetchMemberInfo(currentOrgId, memberId);
+    } finally {
+      setIsDetailsLoading(false);
+    }
   };
 
-  // Loading state gate for store rehydration
-  if (isOrgLoading && !currentOrganization) {
+  const handleCloseDetails = (open) => {
+    setIsDetailsOpen(open);
+    if (!open) clearMemberInfo();
+  };
+
+  const filteredMembers = useMemo(() => {
+    if (!searchQuery.trim()) return members;
+    const query = searchQuery.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.name?.toLowerCase().includes(query) ||
+        m.email?.toLowerCase().includes(query) ||
+        m.role?.toLowerCase().includes(query)
+    );
+  }, [members, searchQuery]);
+
+  const showLoadingCards = (isMembersLoading && members.length === 0) || isRefreshing;
+
+  if ((isOrgLoading || isUserLoading) && !currentOrganization) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <p className="text-sm font-semibold uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
+          Synchronizing Workspace...
+        </p>
       </div>
     );
   }
 
-  // Empty state when user is not attached to any active organization
   if (hasNoActiveOrganization && !currentOrganization) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl space-y-6">
-        <div className="flex flex-col items-center justify-center p-8 border rounded-lg bg-card text-center space-y-3">
-          <Building2 className="h-10 w-10 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">No Active Organization</h2>
-          <p className="text-sm text-muted-foreground max-w-md">
-            You are not currently in an active workspace. Check your received invitations below or create a new organization.
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col items-center justify-center min-h-[380px] border border-border/80 rounded-xl bg-card/60 text-center p-8 space-y-4">
+          <div className="p-3.5 bg-muted rounded-full">
+            <Building2 className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">No Active Organization</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-sm">
+            You must select or accept an invite to an active workspace to manage members.
           </p>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/my-invitations")}
+            className="rounded-xl cursor-pointer"
+          >
+            View My Invitations
+          </Button>
         </div>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Your Invitations</CardTitle>
-            <CardDescription>Invitations sent to your email to join workspaces.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <InvitationsView
-              invitations={myInvitations}
-              isOrgLevel={false}
-              onAccept={handleAcceptInvite}
-              isUpdating={isUpdating}
-            />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-6xl">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <TooltipProvider delayDuration={0}>
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 transition-all duration-300">
+        {/* Back Button */}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Members & Invitations</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage organization members, send invitations, and view requests.
-          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="text-muted-foreground hover:text-foreground -ml-2 h-8 gap-1.5 cursor-pointer text-xs sm:text-sm font-medium transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
         </div>
 
-        {/* Action Button: Invite (Owners only) */}
-        {isOwner && (
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-9">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite Member
+        {/* Header & Right-Aligned Tab Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-5">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                Members
+              </h1>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleRefresh}
+                    disabled={showLoadingCards || isUpdating}
+                    className="h-8 w-8 rounded-xl border border-border/80 bg-card/80 hover:bg-accent hover:border-border text-muted-foreground hover:text-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
+                  >
+                    <RotateCw
+                      className={`h-3.5 w-3.5 ${showLoadingCards ? "animate-spin text-primary" : ""
+                        }`}
+                    />
+                    <span className="sr-only">Refresh members</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs font-medium">
+                  Refresh members
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Manage team access and roles for {currentOrganization?.name || "this workspace"}.
+            </p>
+          </div>
+
+          <div className="w-full sm:w-auto grid grid-cols-2 gap-2 sm:gap-2.5 sm:flex sm:items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/my-invitations")}
+              className="h-10 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-xs"
+            >
+              <Inbox className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="truncate">My Invitations</span>
+            </Button>
+
+            {isOwner && currentOrgId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/organizations/${currentOrgId}/members/invitations`)}
+                className="h-10 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-xs"
+              >
+                <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">Organization Invites</span>
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <form onSubmit={handleSendInvite}>
-                <DialogHeader>
-                  <DialogTitle>Invite New Member</DialogTitle>
-                  <DialogDescription>
-                    Send an invitation link to join {currentOrganization?.name || "the organization"}.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-2">
-                  <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="teammate@company.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsInviteOpen(false)}>
-                    Cancel
+            )}
+
+            {isOwner && (
+              <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="col-span-2 sm:col-span-1 h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl shadow-xs active:scale-[0.98] transition-all"
+                  >
+                    <UserPlus className="h-3.5 w-3.5 shrink-0" />
+                    <span>Invite Member</span>
                   </Button>
-                  <Button type="submit" disabled={isUpdating || !inviteEmail}>
-                    {isUpdating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Send Invitation
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md rounded-2xl">
+                  <form onSubmit={handleSendInvite}>
+                    <DialogHeader>
+                      <DialogTitle>Invite Teammate</DialogTitle>
+                      <DialogDescription>
+                        Send an email invitation link to join{" "}
+                        {currentOrganization?.name || "this organization"}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-2">
+                      <Label htmlFor="invite-email">Email address</Label>
+                      <Input
+                        id="invite-email"
+                        type="email"
+                        placeholder="teammate@company.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        required
+                        autoFocus
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsInviteOpen(false)}
+                        className="rounded-xl cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isUpdating || !inviteEmail}
+                        className="rounded-xl cursor-pointer"
+                      >
+                        {isUpdating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Send Invitation
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </div>
 
-      <Tabs defaultValue="members" className="w-full space-y-4">
-        <TabsList className={`grid w-full ${isOwner ? "grid-cols-3 max-w-[540px]" : "grid-cols-2 max-w-[360px]"}`}>
-          <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Members ({members.length})
-          </TabsTrigger>
-          <TabsTrigger value="my-invitations" className="flex items-center gap-2">
-            <Inbox className="h-4 w-4" />
-            My Invites ({myInvitations.filter((i) => i.status === "pending").length})
-          </TabsTrigger>
-          {isOwner && (
-            <TabsTrigger value="org-invitations" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Sent Invites ({organizationInvitations.length})
-            </TabsTrigger>
-          )}
-        </TabsList>
+        {/* Stats + Search Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div className="p-4 rounded-xl border border-border/80 bg-card/60 shadow-xs flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-xs text-muted-foreground block truncate">Active Members</span>
+              <span className="text-lg font-bold text-foreground leading-tight">
+                {members.length}
+              </span>
+            </div>
+          </div>
 
-        <TabsContent value="members">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Team Members</CardTitle>
-              <CardDescription>
-                Active users in {currentOrganization?.name || "this workspace"}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isMemberLoading ? (
-                <div className="flex h-32 items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="md:col-span-2 relative flex items-center">
+            <Search className="absolute left-4 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Filter members by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-full min-h-[56px] pl-10.5 pr-4 rounded-xl border-border/80 bg-card/60 focus-visible:ring-1 text-xs"
+            />
+          </div>
+        </div>
+
+        {/* Grid of Members (2 per row on mobile, 3 on desktop) */}
+        {showLoadingCards ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="p-3.5 sm:p-5 rounded-xl border border-border/70 bg-card/40 flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3.5 animate-pulse"
+              >
+                <Skeleton className="h-12 w-12 rounded-full shrink-0" />
+                <div className="space-y-1.5 w-full flex flex-col items-center sm:items-start">
+                  <Skeleton className="h-3.5 w-20 sm:w-28" />
+                  <Skeleton className="h-2.5 w-24 sm:w-40" />
                 </div>
-              ) : (
-                <MemberTable
-                  members={members}
-                  isOwner={isOwner}
-                  currentUserId={currentUserId}
-                  onRemoveMember={(id) => removeMember(currentOrgId, id)}
-                  onLeaveOrg={() => leaveOrganization(currentOrgId, currentUserId)}
-                  isUpdating={isUpdating}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="my-invitations">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Your Invitations</CardTitle>
-              <CardDescription>
-                Invitations sent to your email to join other teams or workspaces.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <InvitationsView
-                invitations={myInvitations}
-                isOrgLevel={false}
-                onAccept={handleAcceptInvite}
+              </div>
+            ))}
+          </div>
+        ) : filteredMembers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border/80 rounded-xl bg-card/40 text-center space-y-2">
+            <div className="p-3 bg-muted rounded-full">
+              <Users className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">No members found</p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              {searchQuery
+                ? "No team members matched your search query."
+                : "No members found in this workspace."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+            {filteredMembers.map((member) => (
+              <MemberCard
+                key={getEntityId(member)}
+                member={member}
+                isOwner={isOwner}
+                currentUserId={currentUserId}
+                onViewDetails={handleOpenDetails}
+                onRemoveMember={(id) => removeMember(currentOrgId, id)}
                 isUpdating={isUpdating}
               />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {isOwner && (
-          <TabsContent value="org-invitations">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Sent Invitations</CardTitle>
-                <CardDescription>
-                  Pending and historical invitations dispatched for this organization.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <InvitationsView
-                  invitations={organizationInvitations}
-                  isOrgLevel={true}
-                  isUpdating={isUpdating}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            ))}
+          </div>
         )}
-      </Tabs>
-    </div>
+
+        {/* Discord-Style Member Details Modal */}
+        <MemberDetailsModal
+          isOpen={isDetailsOpen}
+          onOpenChange={handleCloseDetails}
+          memberInfo={memberInfo}
+          isLoading={isDetailsLoading}
+        />
+      </div>
+    </TooltipProvider>
   );
 }

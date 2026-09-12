@@ -34,8 +34,8 @@ export const themeProfiles = {
                 "--muted": "#f4f4f5",
                 "--muted-foreground": "#71717a",
 
-                "--accent": "#ffffff",
-                "--accent-foreground": "#000000",
+                "--accent": "#f0f0f1",
+                "--accent-foreground": "#18181b",
 
                 "--destructive": "#dc2626",
                 "--success": "#16a34a",
@@ -69,7 +69,7 @@ export const themeProfiles = {
                 "--sidebar-primary": "#18181b",
                 "--sidebar-primary-foreground": "#ffffff",
 
-                "--sidebar-accent": "#ffffff",
+                "--sidebar-accent": "#f4f4f5",
                 "--sidebar-accent-foreground": "#18181b",
 
                 "--sidebar-border": "#e1e1e3",
@@ -104,8 +104,8 @@ export const themeProfiles = {
                 "--muted": "#151516",
                 "--muted-foreground": "#a1a1a6",
 
-                "--accent": "#ffffff",
-                "--accent-foreground": "#000000",
+                "--accent": "#1f1f22",
+                "--accent-foreground": "#ffffff",
 
                 "--destructive": "#ef4444",
                 "--success": "#22c55e",
@@ -115,7 +115,7 @@ export const themeProfiles = {
                 "--border": "#1b1b1d",
                 "--border-strong": "#2d2d30",
 
-                "--input": "#131314",
+                "--input": "#1b1b1d",
                 "--ring": "#ffffff",
 
                 "--subtle-foreground": "#d4d4d8",
