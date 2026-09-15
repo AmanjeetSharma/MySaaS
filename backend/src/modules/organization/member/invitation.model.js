@@ -46,6 +46,20 @@ const inviteSchema = new Schema({
     },
 }, { timestamps: true });
 
+// Organization's invitations
+inviteSchema.index({
+    organization: 1,
+    createdAt: -1,
+    _id: -1
+});
+
+
+// User's invitations
+inviteSchema.index({
+    email: 1,
+    createdAt: -1,
+    _id: -1
+});
 
 export const Invitation =
     mongoose.models.Invitation ||

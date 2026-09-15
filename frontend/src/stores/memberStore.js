@@ -24,12 +24,42 @@ const isSameId = (left, right) => {
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
 };
 
+const INITIAL_PAGINATION_STATE = {
+    invitations: [],
+    nextCursor: null,
+    hasNextPage: false,
+};
+
+// Helper to update invitation items inside array or paginated object envelope
+const updateInvitationInState = (target, invitationId, patchFn) => {
+    if (Array.isArray(target)) {
+        return target.map((inv) => (isSameId(inv, invitationId) ? patchFn(inv) : inv));
+    }
+    return {
+        ...target,
+        invitations: (target?.invitations || []).map((inv) =>
+            isSameId(inv, invitationId) ? patchFn(inv) : inv
+        ),
+    };
+};
+
+// Helper to filter out invitations inside array or paginated object envelope
+const filterInvitationInState = (target, invitationId) => {
+    if (Array.isArray(target)) {
+        return target.filter((inv) => !isSameId(inv, invitationId));
+    }
+    return {
+        ...target,
+        invitations: (target?.invitations || []).filter((inv) => !isSameId(inv, invitationId)),
+    };
+};
+
 export const useMemberStore = create((set, get) => ({
     members: [],
     memberCount: 0,
     memberInfo: null,
-    myInvitations: [],
-    organizationInvitations: [],
+    myInvitations: { ...INITIAL_PAGINATION_STATE },
+    organizationInvitations: { ...INITIAL_PAGINATION_STATE },
     isLoading: false,
     isUpdating: false,
     error: null,
@@ -69,31 +99,95 @@ export const useMemberStore = create((set, get) => ({
         }
     },
 
-    fetchMyInvitations: async () => {
-        set({ isLoading: true, error: null });
+    fetchMyInvitations: async ({ cursor = null, limit = 10, append = false } = {}) => {
+        set({ isLoading: !append, isUpdating: append, error: null });
         try {
-            const response = await http.get("/members/invitations");
-            const data = response.data?.data ?? [];
-            set({ myInvitations: data, isLoading: false, error: null });
+            const response = await http.get("/members/invitations", {
+                params: {
+                    ...(cursor ? { cursor } : {}),
+                    ...(limit ? { limit } : {}),
+                },
+            });
+
+            const data = response.data?.data ?? {};
+            const newInvitations = data.invitations ?? (Array.isArray(data) ? data : []);
+            const nextCursor = data.nextCursor ?? null;
+            const hasNextPage = Boolean(data.hasNextPage);
+
+            set((state) => {
+                const existingList = state.myInvitations?.invitations || [];
+                const mergedInvitations = append
+                    ? [
+                          ...existingList,
+                          ...newInvitations.filter(
+                              (newItem) => !existingList.some((old) => isSameId(old, newItem))
+                          ),
+                      ]
+                    : newInvitations;
+
+                return {
+                    myInvitations: {
+                        invitations: mergedInvitations,
+                        nextCursor,
+                        hasNextPage,
+                    },
+                    isLoading: false,
+                    isUpdating: false,
+                    error: null,
+                };
+            });
+
             return data;
         } catch (error) {
             const errorMessage = getErrorMessage(error, "Failed to fetch your invitations");
-            set({ isLoading: false, error: errorMessage });
+            set({ isLoading: false, isUpdating: false, error: errorMessage });
             throw error;
         }
     },
 
-    fetchOrganizationInvitations: async (orgId) => {
+    fetchOrganizationInvitations: async (orgId, { cursor = null, limit = 10, append = false } = {}) => {
         if (!orgId) return;
-        set({ isLoading: true, error: null });
+        set({ isLoading: !append, isUpdating: append, error: null });
         try {
-            const response = await http.get(`/members/${orgId}/invitations`);
-            const data = response.data?.data ?? [];
-            set({ organizationInvitations: data, isLoading: false, error: null });
+            const response = await http.get(`/members/${orgId}/invitations`, {
+                params: {
+                    ...(cursor ? { cursor } : {}),
+                    ...(limit ? { limit } : {}),
+                },
+            });
+
+            const data = response.data?.data ?? {};
+            const newInvitations = data.invitations ?? (Array.isArray(data) ? data : []);
+            const nextCursor = data.nextCursor ?? null;
+            const hasNextPage = Boolean(data.hasNextPage);
+
+            set((state) => {
+                const existingList = state.organizationInvitations?.invitations || [];
+                const mergedInvitations = append
+                    ? [
+                          ...existingList,
+                          ...newInvitations.filter(
+                              (newItem) => !existingList.some((old) => isSameId(old, newItem))
+                          ),
+                      ]
+                    : newInvitations;
+
+                return {
+                    organizationInvitations: {
+                        invitations: mergedInvitations,
+                        nextCursor,
+                        hasNextPage,
+                    },
+                    isLoading: false,
+                    isUpdating: false,
+                    error: null,
+                };
+            });
+
             return data;
         } catch (error) {
             const errorMessage = getErrorMessage(error, "Failed to fetch organization invitations");
-            set({ isLoading: false, error: errorMessage });
+            set({ isLoading: false, isUpdating: false, error: errorMessage });
             throw error;
         }
     },
@@ -121,19 +215,17 @@ export const useMemberStore = create((set, get) => ({
         try {
             const response = await http.post(`/members/invitations/${invitationId}/accept`);
             const data = response.data?.data;
+
             set((state) => ({
-                myInvitations: state.myInvitations.map((invitation) =>
-                    isSameId(invitation, invitationId)
-                        ? {
-                            ...invitation,
-                            status: "accepted",
-                            acceptedAt: data?.joinedAt ?? new Date().toISOString(),
-                        }
-                        : invitation
-                ),
+                myInvitations: updateInvitationInState(state.myInvitations, invitationId, (invitation) => ({
+                    ...invitation,
+                    status: "accepted",
+                    acceptedAt: data?.joinedAt ?? new Date().toISOString(),
+                })),
                 isUpdating: false,
                 error: null,
             }));
+
             toast.success("Invitation accepted successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
@@ -150,19 +242,17 @@ export const useMemberStore = create((set, get) => ({
         try {
             const response = await http.post(`/members/invitations/${invitationId}/decline`);
             const data = response.data?.data;
+
             set((state) => ({
-                myInvitations: state.myInvitations.map((invitation) =>
-                    isSameId(invitation, invitationId)
-                        ? {
-                            ...invitation,
-                            status: "declined",
-                            declinedAt: data?.declinedAt ?? new Date().toISOString(),
-                        }
-                        : invitation
-                ),
+                myInvitations: updateInvitationInState(state.myInvitations, invitationId, (invitation) => ({
+                    ...invitation,
+                    status: "declined",
+                    declinedAt: data?.declinedAt ?? new Date().toISOString(),
+                })),
                 isUpdating: false,
                 error: null,
             }));
+
             toast.success("Invitation declined successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
@@ -179,19 +269,21 @@ export const useMemberStore = create((set, get) => ({
         try {
             const response = await http.post(`/members/${orgId}/${invitationId}/revoke`);
             const data = response.data?.data;
+
             set((state) => ({
-                organizationInvitations: state.organizationInvitations.map((invitation) =>
-                    isSameId(invitation, invitationId)
-                        ? {
-                            ...invitation,
-                            status: "revoked",
-                            revokedAt: data?.revokedAt ?? new Date().toISOString(),
-                        }
-                        : invitation
+                organizationInvitations: updateInvitationInState(
+                    state.organizationInvitations,
+                    invitationId,
+                    (invitation) => ({
+                        ...invitation,
+                        status: "revoked",
+                        revokedAt: data?.revokedAt ?? new Date().toISOString(),
+                    })
                 ),
                 isUpdating: false,
                 error: null,
             }));
+
             toast.success("Invitation revoked successfully", { icon: toastIcon("success") });
             return data;
         } catch (error) {
@@ -242,24 +334,29 @@ export const useMemberStore = create((set, get) => ({
     receiveInvitationLocal: (invitation) => {
         if (!invitation) return;
         set((state) => {
-            if (state.myInvitations.some((inv) => isSameId(inv, invitation))) return state;
-            return { myInvitations: [invitation, ...state.myInvitations] };
+            const currentList = state.myInvitations?.invitations || [];
+            if (currentList.some((inv) => isSameId(inv, invitation))) return state;
+            return {
+                myInvitations: {
+                    ...state.myInvitations,
+                    invitations: [invitation, ...currentList],
+                },
+            };
         });
     },
 
     addMemberLocal: (member) => {
         if (!member) return;
 
-        // Normalize backend socket payload vs API object structure
         const normalizedMember = member.user
             ? {
-                id: member.user._id || member.user.id,
-                name: member.user.name,
-                email: member.user.email,
-                avatar: member.user.avatar,
-                role: member.role,
-                joinedAt: member.joinedAt || new Date().toISOString(),
-            }
+                  id: member.user._id || member.user.id,
+                  name: member.user.name,
+                  email: member.user.email,
+                  avatar: member.user.avatar,
+                  role: member.role,
+                  joinedAt: member.joinedAt || new Date().toISOString(),
+              }
             : member;
 
         set((state) => {
@@ -291,21 +388,23 @@ export const useMemberStore = create((set, get) => ({
     removeInvitationLocal: (invitationId) => {
         if (!invitationId) return;
         set((state) => ({
-            myInvitations: state.myInvitations.filter((inv) => !isSameId(inv, invitationId)),
-            organizationInvitations: state.organizationInvitations.filter(
-                (inv) => !isSameId(inv, invitationId)
-            ),
+            myInvitations: filterInvitationInState(state.myInvitations, invitationId),
+            organizationInvitations: filterInvitationInState(state.organizationInvitations, invitationId),
         }));
     },
 
     updateInvitationLocal: (invitationId, updates) => {
         if (!invitationId) return;
-        const patch = (invitation) =>
-            isSameId(invitation, invitationId) ? { ...invitation, ...updates } : invitation;
-
         set((state) => ({
-            myInvitations: state.myInvitations.map(patch),
-            organizationInvitations: state.organizationInvitations.map(patch),
+            myInvitations: updateInvitationInState(state.myInvitations, invitationId, (inv) => ({
+                ...inv,
+                ...updates,
+            })),
+            organizationInvitations: updateInvitationInState(
+                state.organizationInvitations,
+                invitationId,
+                (inv) => ({ ...inv, ...updates })
+            ),
         }));
     },
 
@@ -318,8 +417,8 @@ export const useMemberStore = create((set, get) => ({
             members: [],
             memberCount: 0,
             memberInfo: null,
-            myInvitations: [],
-            organizationInvitations: [],
+            myInvitations: { ...INITIAL_PAGINATION_STATE },
+            organizationInvitations: { ...INITIAL_PAGINATION_STATE },
             isLoading: false,
             isUpdating: false,
             error: null,

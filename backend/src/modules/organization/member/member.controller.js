@@ -191,10 +191,14 @@ export const leaveOrganizationController = asyncHandler(async (req, res) => {
 export const getInvitationsController = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const orgId = req.params.orgId;
+    const cursor = req.query.cursor;
+    const limit = req.query.limit;
 
     const data = await getInvitationsService({
         userId,
-        orgId
+        orgId,
+        cursor,
+        limit
     });
 
     return res.status(200).json(
@@ -208,9 +212,13 @@ export const getInvitationsController = asyncHandler(async (req, res) => {
 
 export const getMyInvitationsController = asyncHandler(async (req, res) => {
     const email = req.user.email;
+    const cursor = req.query.cursor;
+    const limit = req.query.limit;
 
     const data = await getMyInvitationsService({
-        userEmail: email
+        userEmail: email,
+        cursor,
+        limit
     });
 
     return res.status(200).json(

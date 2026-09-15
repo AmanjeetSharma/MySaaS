@@ -75,7 +75,7 @@ export const addNewMemberToOrganization = async (orgId, memberPayload, session) 
 };
 
 
-export const findInvitationsByOrg = async (orgId, selectedFields, populate = []) => {
+export const findInvitationsByOrg = async (orgId, selectedFields, populate = [], { limit, cursor } = {}) => {
     let query = Invitation.find({
         organization: orgId,
     })
@@ -87,14 +87,27 @@ export const findInvitationsByOrg = async (orgId, selectedFields, populate = [])
             query = query.populate(option);
         });
     }
-    return query.sort({ createdAt: -1 });
+    if (cursor) {
+        query = query.where({
+            $or: [
+                { createdAt: { $lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, _id: { $lt: cursor._id } }
+            ]
+        });
+    }
+
+    if (limit) {
+        query = query.limit(limit);
+    }
+    return query.sort({ createdAt: -1, _id: -1 }).lean();
 };
 
 
 export const findInvitationsByEmailForUser = async (
     email,
     selectedFields,
-    populate = []
+    populate = [],
+    { limit, cursor } = {}
 ) => {
     let query = Invitation.find({
         email: email.toLowerCase(),
@@ -109,8 +122,19 @@ export const findInvitationsByEmailForUser = async (
             query = query.populate(option);
         });
     }
+    if (limit) {
+        query = query.limit(limit);
+    }
+    if (cursor) {
+        query = query.where({
+            $or: [
+                { createdAt: { $lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, _id: { $lt: cursor._id } }
+            ]
+        });
+    }
 
-    return query.sort({ createdAt: -1 });
+    return query.sort({ createdAt: -1, _id: -1 }).lean();
 };
 
 

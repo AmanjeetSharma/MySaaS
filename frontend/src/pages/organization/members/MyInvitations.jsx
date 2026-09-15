@@ -8,7 +8,8 @@ import {
     checkIsOwner,
     getInitials,
 } from "./helpers/member.helper.js";
-import { MyInvitationsRow, MyInvitationsCard } from "./components/MyInvitationsRow";
+import { MyInvitationsRow } from "./components/MyInvitationsRow";
+import { MyInvitationsCard } from "./components/MyInvitationsCard";
 
 import {
     Avatar,
@@ -38,12 +39,15 @@ import {
     Users,
     ArrowRight,
     RotateCw,
+    ChevronDown,
+    Loader2,
 } from "lucide-react";
 
 export default function MyInvitations() {
     const navigate = useNavigate();
 
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const { userProfile, getUserProfile, isLoading: isUserLoading } = useUserStore();
     const {
@@ -52,8 +56,8 @@ export default function MyInvitations() {
         isLoading: isOrgLoading,
     } = useOrganizationStore();
     const {
-        myInvitations,
-        members,
+        myInvitations: rawMyInvitations,
+        members = [],
         isLoading: isInvitationsLoading,
         isUpdating,
         fetchMyInvitations,
@@ -62,16 +66,27 @@ export default function MyInvitations() {
         declineInvitation,
     } = useMemberStore();
 
+    // Normalizes envelope { invitations: [...], nextCursor, hasNextPage } or direct array
+    const invitationsList = useMemo(() => {
+        if (Array.isArray(rawMyInvitations)) return rawMyInvitations;
+        if (Array.isArray(rawMyInvitations?.invitations)) return rawMyInvitations.invitations;
+        return [];
+    }, [rawMyInvitations]);
+
+    const nextCursor = rawMyInvitations?.nextCursor || null;
+    const hasNextPage = Boolean(rawMyInvitations?.hasNextPage);
+
     const activeOrgId = getEntityId(userProfile?.activeOrganization);
     const currentOrgId = getEntityId(currentOrganization) || activeOrgId;
 
     useEffect(() => {
         if (!userProfile) getUserProfile();
-        fetchMyInvitations();
+        // Initial 10 records fetch
+        fetchMyInvitations({ limit: 10 });
     }, []);
 
     useEffect(() => {
-        if (userProfile && !currentOrganization) {
+        if (userProfile && !currentOrganization && activeOrgId) {
             getOrganizations(activeOrgId);
         }
     }, [userProfile, activeOrgId]);
@@ -106,7 +121,7 @@ export default function MyInvitations() {
         setIsRefreshing(true);
         try {
             await Promise.all([
-                fetchMyInvitations(),
+                fetchMyInvitations({ limit: 10 }),
                 currentOrgId ? fetchMembers(currentOrgId) : Promise.resolve(),
             ]);
         } finally {
@@ -114,7 +129,17 @@ export default function MyInvitations() {
         }
     };
 
-    const showLoadingRows = isInvitationsLoading || isRefreshing;
+    const handleLoadMore = async () => {
+        if (!hasNextPage || !nextCursor || isLoadingMore) return;
+        setIsLoadingMore(true);
+        try {
+            await fetchMyInvitations({ cursor: nextCursor, limit: 10, append: true });
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
+    const showInitialLoading = isInvitationsLoading && invitationsList.length === 0;
 
     if ((isOrgLoading || isUserLoading) && !currentOrganization) {
         return (
@@ -134,8 +159,7 @@ export default function MyInvitations() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(-1)
-                        }
+                        onClick={() => navigate(-1)}
                         className="text-muted-foreground hover:text-foreground -ml-2 h-8 gap-1.5 cursor-pointer text-xs sm:text-sm font-medium transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />
@@ -156,12 +180,11 @@ export default function MyInvitations() {
                                         variant="outline"
                                         size="icon"
                                         onClick={handleRefresh}
-                                        disabled={showLoadingRows || isUpdating}
+                                        disabled={isRefreshing || isUpdating || isLoadingMore}
                                         className="h-8 w-8 rounded-full border border-border/80 bg-card/80 hover:bg-accent hover:border-border text-muted-foreground hover:text-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
                                     >
                                         <RotateCw
-                                            className={`h-3.5 w-3.5 ${showLoadingRows ? "animate-spin text-primary" : ""
-                                                }`}
+                                            className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`}
                                         />
                                         <span className="sr-only">Refresh invitations</span>
                                     </Button>
@@ -178,7 +201,7 @@ export default function MyInvitations() {
 
                     {/* Action Button Area */}
                     <div className="w-full sm:w-auto grid grid-cols-2 gap-2 sm:gap-3 sm:flex sm:items-center">
-                        {/* Members Stack Button */}
+                        {/* Members Stack */}
                         {currentOrgId && members.length > 0 ? (
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -200,7 +223,7 @@ export default function MyInvitations() {
 
                                                 return (
                                                     <div
-                                                        key={getEntityId(member)}
+                                                        key={member.id || getEntityId(member)}
                                                         className={`relative shrink-0 transition-transform duration-200 group-hover:scale-105 z-[${index + 1}]`}
                                                     >
                                                         <Avatar className="h-5 w-5 border border-background shadow-xs">
@@ -228,7 +251,7 @@ export default function MyInvitations() {
 
                                                 return (
                                                     <div
-                                                        key={getEntityId(member)}
+                                                        key={member.id || getEntityId(member)}
                                                         className={`relative shrink-0 z-[${index + 1}]`}
                                                     >
                                                         <Avatar className="h-6 w-6 border-2 border-background shadow-xs transition-transform duration-200 group-hover:scale-105">
@@ -249,11 +272,7 @@ export default function MyInvitations() {
                                         </div>
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent
-                                    side="left"
-                                    sideOffset={6}
-                                    className="text-xs font-medium flex items-center gap-1.5"
-                                >
+                                <TooltipContent side="left" sideOffset={6} className="text-xs font-medium flex items-center gap-1.5">
                                     <span>Go to</span>
                                     <ArrowRight className="h-3 w-3" />
                                 </TooltipContent>
@@ -305,8 +324,8 @@ export default function MyInvitations() {
                 <div className="rounded-xl border bg-card overflow-hidden shadow-xs w-full">
                     {/* Mobile Card View (< sm) */}
                     <div className="sm:hidden divide-y">
-                        {showLoadingRows ? (
-                            Array.from({ length: 3 }).map((_, index) => (
+                        {showInitialLoading ? (
+                            Array.from({ length: 4 }).map((_, index) => (
                                 <div key={index} className="p-4 space-y-3 bg-card animate-pulse">
                                     <div className="flex items-start justify-between gap-2.5">
                                         <div className="flex items-center gap-2.5 min-w-0">
@@ -321,7 +340,7 @@ export default function MyInvitations() {
                                     <Skeleton className="h-7 w-full rounded-md" />
                                 </div>
                             ))
-                        ) : myInvitations.length === 0 ? (
+                        ) : invitationsList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center p-8 space-y-2.5 text-center">
                                 <div className="p-3 bg-muted/70 rounded-full">
                                     <Inbox className="h-5 w-5 text-muted-foreground" />
@@ -332,9 +351,9 @@ export default function MyInvitations() {
                                 </p>
                             </div>
                         ) : (
-                            myInvitations.map((inv) => (
+                            invitationsList.map((inv) => (
                                 <MyInvitationsCard
-                                    key={getEntityId(inv)}
+                                    key={inv.id || getEntityId(inv)}
                                     invitation={inv}
                                     onAccept={handleAccept}
                                     onDecline={handleDecline}
@@ -374,7 +393,7 @@ export default function MyInvitations() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {showLoadingRows ? (
+                                {showInitialLoading ? (
                                     Array.from({ length: 5 }).map((_, index) => (
                                         <TableRow key={index} className="border-b">
                                             <TableCell className="py-4 pl-6">
@@ -411,7 +430,7 @@ export default function MyInvitations() {
                                             </TableCell>
                                         </TableRow>
                                     ))
-                                ) : myInvitations.length === 0 ? (
+                                ) : invitationsList.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="py-16 text-center">
                                             <div className="flex flex-col items-center justify-center space-y-2.5">
@@ -428,9 +447,9 @@ export default function MyInvitations() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    myInvitations.map((inv) => (
+                                    invitationsList.map((inv) => (
                                         <MyInvitationsRow
-                                            key={getEntityId(inv)}
+                                            key={inv.id || getEntityId(inv)}
                                             invitation={inv}
                                             onAccept={handleAccept}
                                             onDecline={handleDecline}
@@ -441,6 +460,31 @@ export default function MyInvitations() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination Load More Bar */}
+                    {hasNextPage && (
+                        <div className="p-3 bg-muted/15 border-t flex items-center justify-center">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={isLoadingMore}
+                                onClick={handleLoadMore}
+                                className="h-8 px-4 text-xs font-medium gap-1.5 cursor-pointer hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground"
+                            >
+                                {isLoadingMore ? (
+                                    <>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <span>Loading more...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Load More</span>
+                                        <ChevronDown className="h-3.5 w-3.5" />
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </TooltipProvider>

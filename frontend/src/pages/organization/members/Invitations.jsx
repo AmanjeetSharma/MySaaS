@@ -8,10 +8,8 @@ import {
     checkIsOwner,
     getInitials,
 } from "./helpers/member.helper.js";
-import {
-    OrganizationInvitationsRow,
-    OrganizationInvitationsCard,
-} from "./components/OrganizationInvitationsRow";
+import { OrganizationInvitationsRow } from "./components/OrganizationInvitationsRow";
+import { OrganizationInvitationsCard } from "./components/OrganizationInvitationsCard";
 
 import {
     Avatar,
@@ -53,13 +51,15 @@ import {
     RotateCw,
     UserPlus,
     Loader2,
+    ChevronDown,
 } from "lucide-react";
 
-export default function OrganizationInvitations() {
+const Invitations = () => {
     const navigate = useNavigate();
     const { orgId: routeOrgId } = useParams();
 
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
     const [isInviteOpen, setIsInviteOpen] = useState(false);
 
@@ -70,7 +70,7 @@ export default function OrganizationInvitations() {
         isLoading: isOrgLoading,
     } = useOrganizationStore();
     const {
-        organizationInvitations = [],
+        organizationInvitations: rawInvitations,
         members = [],
         isLoading: isInvitationsLoading,
         isUpdating,
@@ -79,6 +79,16 @@ export default function OrganizationInvitations() {
         inviteMember,
         revokeInvitation,
     } = useMemberStore();
+
+    // Normalizes envelope { invitations: [...], nextCursor, hasNextPage } or direct array fallback
+    const invitationsList = useMemo(() => {
+        if (Array.isArray(rawInvitations)) return rawInvitations;
+        if (Array.isArray(rawInvitations?.invitations)) return rawInvitations.invitations;
+        return [];
+    }, [rawInvitations]);
+
+    const nextCursor = rawInvitations?.nextCursor || null;
+    const hasNextPage = Boolean(rawInvitations?.hasNextPage);
 
     const activeOrgId = getEntityId(userProfile?.activeOrganization);
     const targetOrgId = routeOrgId || getEntityId(currentOrganization) || activeOrgId;
@@ -95,7 +105,8 @@ export default function OrganizationInvitations() {
 
     useEffect(() => {
         if (targetOrgId) {
-            fetchOrganizationInvitations(targetOrgId);
+            // First page fetch with limit of 10
+            fetchOrganizationInvitations(targetOrgId, { limit: 10 });
             fetchMembers(targetOrgId);
         }
     }, [targetOrgId]);
@@ -115,11 +126,22 @@ export default function OrganizationInvitations() {
         setIsRefreshing(true);
         try {
             await Promise.all([
-                fetchOrganizationInvitations(targetOrgId),
+                fetchOrganizationInvitations(targetOrgId, { limit: 10 }),
                 fetchMembers(targetOrgId),
             ]);
         } finally {
             setIsRefreshing(false);
+        }
+    };
+
+    const handleLoadMore = async () => {
+        if (!hasNextPage || !nextCursor || isLoadingMore || !targetOrgId) return;
+        setIsLoadingMore(true);
+        try {
+            // Pass cursor to store to append new records
+            await fetchOrganizationInvitations(targetOrgId, { cursor: nextCursor, limit: 10, append: true });
+        } finally {
+            setIsLoadingMore(false);
         }
     };
 
@@ -130,20 +152,20 @@ export default function OrganizationInvitations() {
             await inviteMember(targetOrgId, inviteEmail);
             setInviteEmail("");
             setIsInviteOpen(false);
-            fetchOrganizationInvitations(targetOrgId);
+            fetchOrganizationInvitations(targetOrgId, { limit: 10 });
         } catch {
-            // Handled via toast in store
+            // Handled via toast inside store
         }
     };
 
-    // Passed orgId and invitationId to match useMemberStore signature: revokeInvitation(orgId, invitationId)
     const handleRevoke = async (invitationId) => {
         if (revokeInvitation && targetOrgId) {
             await revokeInvitation(targetOrgId, invitationId);
         }
     };
 
-    const showLoadingRows = isInvitationsLoading || isRefreshing;
+    const showInitialLoading = isInvitationsLoading && invitationsList.length === 0;
+    const showRefreshingSpin = isRefreshing;
 
     if ((isOrgLoading || isUserLoading) && !currentOrganization) {
         return (
@@ -158,7 +180,7 @@ export default function OrganizationInvitations() {
     return (
         <TooltipProvider delayDuration={0}>
             <div className="w-full max-w-350 mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 transition-all duration-300">
-                {/* Back to -1 link */}
+                {/* Back navigation */}
                 <div>
                     <Button
                         variant="ghost"
@@ -184,12 +206,11 @@ export default function OrganizationInvitations() {
                                         variant="outline"
                                         size="icon"
                                         onClick={handleRefresh}
-                                        disabled={showLoadingRows || isUpdating}
+                                        disabled={showRefreshingSpin || isUpdating || isLoadingMore}
                                         className="h-8 w-8 rounded-full border border-border/80 bg-card/80 hover:bg-accent hover:border-border text-muted-foreground hover:text-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
                                     >
                                         <RotateCw
-                                            className={`h-3.5 w-3.5 ${showLoadingRows ? "animate-spin text-primary" : ""
-                                                }`}
+                                            className={`h-3.5 w-3.5 ${showRefreshingSpin ? "animate-spin text-primary" : ""}`}
                                         />
                                         <span className="sr-only">Refresh invitations</span>
                                     </Button>
@@ -204,9 +225,9 @@ export default function OrganizationInvitations() {
                         </p>
                     </div>
 
-                    {/* Action Button Area */}
+                    {/* Top Right Action Buttons */}
                     <div className="w-full sm:w-auto grid grid-cols-2 gap-2 sm:gap-3 sm:flex sm:items-center">
-                        {/* Members Stack Button */}
+                        {/* Members Stack */}
                         {targetOrgId && members.length > 0 ? (
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -220,12 +241,10 @@ export default function OrganizationInvitations() {
                                             <span>Members</span>
                                         </div>
 
-                                        {/* Mobile Stack */}
                                         <div className="flex sm:hidden items-center -space-x-2 group-hover:space-x-0.5 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] shrink-0">
                                             {mobileVisibleMembers.map((member, index) => {
                                                 const isThird = index === 2;
                                                 const hasOverlay = isThird && mobileOverflowCount > 0;
-
                                                 return (
                                                     <div
                                                         key={getEntityId(member)}
@@ -237,7 +256,6 @@ export default function OrganizationInvitations() {
                                                                 {getInitials(member.name)}
                                                             </AvatarFallback>
                                                         </Avatar>
-
                                                         {hasOverlay && (
                                                             <div className="absolute inset-0 rounded-full bg-foreground/90 text-background text-[8px] font-bold flex items-center justify-center shadow-xs pointer-events-none leading-none">
                                                                 +{mobileOverflowCount}
@@ -248,12 +266,10 @@ export default function OrganizationInvitations() {
                                             })}
                                         </div>
 
-                                        {/* Desktop Stack */}
                                         <div className="hidden sm:flex items-center -space-x-2.5 group-hover:space-x-1 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
                                             {desktopVisibleMembers.map((member, index) => {
                                                 const isFourth = index === 3;
                                                 const hasOverlay = isFourth && desktopOverflowCount > 0;
-
                                                 return (
                                                     <div
                                                         key={getEntityId(member)}
@@ -265,7 +281,6 @@ export default function OrganizationInvitations() {
                                                                 {getInitials(member.name)}
                                                             </AvatarFallback>
                                                         </Avatar>
-
                                                         {hasOverlay && (
                                                             <div className="absolute inset-0 rounded-full border border-background bg-foreground/90 text-background text-[9px] font-bold flex items-center justify-center shadow-xs pointer-events-none transition-transform duration-200 group-hover:scale-105">
                                                                 +{desktopOverflowCount}
@@ -277,11 +292,7 @@ export default function OrganizationInvitations() {
                                         </div>
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent
-                                    side="left"
-                                    sideOffset={6}
-                                    className="text-xs font-medium flex items-center gap-1.5"
-                                >
+                                <TooltipContent side="left" sideOffset={6} className="text-xs font-medium flex items-center gap-1.5">
                                     <span>Go to Members</span>
                                     <ArrowRight className="h-3 w-3" />
                                 </TooltipContent>
@@ -300,7 +311,7 @@ export default function OrganizationInvitations() {
                             </Tooltip>
                         )}
 
-                        {/* Interactive Invite Member Dialog Button */}
+                        {/* Invite Member Dialog Button */}
                         {isOwner ? (
                             <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                                 <DialogTrigger asChild>
@@ -348,9 +359,7 @@ export default function OrganizationInvitations() {
                                                 disabled={isUpdating || !inviteEmail}
                                                 className="rounded-xl cursor-pointer"
                                             >
-                                                {isUpdating && (
-                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                )}
+                                                {isUpdating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                                                 Send Invitation
                                             </Button>
                                         </DialogFooter>
@@ -377,8 +386,8 @@ export default function OrganizationInvitations() {
                 <div className="rounded-xl border bg-card overflow-hidden shadow-xs w-full">
                     {/* Mobile Card View (< sm) */}
                     <div className="sm:hidden divide-y">
-                        {showLoadingRows ? (
-                            Array.from({ length: 3 }).map((_, index) => (
+                        {showInitialLoading ? (
+                            Array.from({ length: 4 }).map((_, index) => (
                                 <div key={index} className="p-4 space-y-3 bg-card animate-pulse">
                                     <div className="flex items-start justify-between gap-2.5">
                                         <div className="flex items-center gap-2.5 min-w-0">
@@ -393,7 +402,7 @@ export default function OrganizationInvitations() {
                                     <Skeleton className="h-7 w-full rounded-md" />
                                 </div>
                             ))
-                        ) : organizationInvitations.length === 0 ? (
+                        ) : invitationsList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center p-8 space-y-2.5 text-center">
                                 <div className="p-3 bg-muted/70 rounded-full">
                                     <Inbox className="h-5 w-5 text-muted-foreground" />
@@ -404,9 +413,9 @@ export default function OrganizationInvitations() {
                                 </p>
                             </div>
                         ) : (
-                            organizationInvitations.map((inv) => (
+                            invitationsList.map((inv) => (
                                 <OrganizationInvitationsCard
-                                    key={getEntityId(inv)}
+                                    key={inv.id || getEntityId(inv)}
                                     invitation={inv}
                                     onRevoke={handleRevoke}
                                     isUpdating={isUpdating}
@@ -446,7 +455,7 @@ export default function OrganizationInvitations() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {showLoadingRows ? (
+                                {showInitialLoading ? (
                                     Array.from({ length: 5 }).map((_, index) => (
                                         <TableRow key={index} className="border-b">
                                             <TableCell className="py-4 pl-6">
@@ -482,7 +491,7 @@ export default function OrganizationInvitations() {
                                             </TableCell>
                                         </TableRow>
                                     ))
-                                ) : organizationInvitations.length === 0 ? (
+                                ) : invitationsList.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="py-16 text-center">
                                             <div className="flex flex-col items-center justify-center space-y-2.5">
@@ -499,9 +508,9 @@ export default function OrganizationInvitations() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    organizationInvitations.map((inv) => (
+                                    invitationsList.map((inv) => (
                                         <OrganizationInvitationsRow
-                                            key={getEntityId(inv)}
+                                            key={inv.id || getEntityId(inv)}
                                             invitation={inv}
                                             onRevoke={handleRevoke}
                                             isUpdating={isUpdating}
@@ -512,8 +521,35 @@ export default function OrganizationInvitations() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination Load More Bar */}
+                    {hasNextPage && (
+                        <div className="p-3 bg-muted/15 border-t flex items-center justify-center">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={isLoadingMore}
+                                onClick={handleLoadMore}
+                                className="h-8 px-4 text-xs font-medium gap-1.5 cursor-pointer hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground"
+                            >
+                                {isLoadingMore ? (
+                                    <>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <span>Loading more...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Load More</span>
+                                        <ChevronDown className="h-3.5 w-3.5" />
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </TooltipProvider>
     );
-}
+};
+
+export default Invitations;

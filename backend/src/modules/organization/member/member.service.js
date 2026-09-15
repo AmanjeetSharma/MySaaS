@@ -44,6 +44,7 @@ import {
 } from "../../notification/notification.utils.js";
 import { NOTIFICATION_TYPES } from "#/modules/notification/notification.constants.js";
 import { checkMemberLimit } from "../organization.helper.js";
+import { decodeCursor, encodeCursor } from "../../../utils/cursor.js";
 
 
 
@@ -1101,10 +1102,14 @@ export const leaveOrganizationService = async ({
 
 
 
+const DEFAULT_INVITATION_LIMIT = 10;
+const MAX_INVITATION_LIMIT = 20;
 
 export const getInvitationsService = async ({
     userId,
-    orgId
+    orgId,
+    cursor = null,
+    limit = DEFAULT_INVITATION_LIMIT
 }) => {
 
     if (!orgId) throw new ApiError(400, "Organization ID is required");
@@ -1119,6 +1124,19 @@ export const getInvitationsService = async ({
         throw new ApiError(403, "You are not authorized to view invitations.");
     }
 
+    const parsedLimit = Math.min(
+        Math.max(Number(limit) || DEFAULT_INVITATION_LIMIT, 1),
+        MAX_INVITATION_LIMIT
+    );
+
+    const decodedCursor = cursor
+        ? decodeCursor(cursor)
+        : null;
+
+    if (cursor && !decodedCursor) {
+        throw new ApiError(400, "Invalid cursor");
+    }
+
     const invitations = await findInvitationsByOrg(
         orgId,
         "organization email role invitedBy status expiresAt createdAt acceptedAt declinedAt revokedAt",
@@ -1131,31 +1149,57 @@ export const getInvitationsService = async ({
                 path: "organization",
                 select: "name",
             },
-        ]
+        ],
+        {
+            limit: parsedLimit + 1,
+            cursor: decodedCursor,
+        }
     );
+
+    const hasNextPage = invitations.length > parsedLimit;
+    const results = hasNextPage
+        ? invitations.slice(0, parsedLimit)
+        : invitations;
+
+    const lastInvitation = results[results.length - 1];
+
+    const nextCursor = hasNextPage && lastInvitation
+        ? encodeCursor({
+            createdAt: lastInvitation.createdAt,
+            _id: lastInvitation._id,
+        })
+        : null;
 
     logger.info(
         {
             organizationId: org._id,
             organization: org.name,
+            limit: parsedLimit,
+            cursor,
+            nextCursor,
             invitationCount: invitations.length,
+            hasNextPage,
         },
         "invitation.list.retrieved"
     );
 
-    return invitations.map(invite => ({
-        id: invite._id,
-        email: invite.email,
-        role: invite.role,
-        inviter: invite.invitedBy?.name || null,
-        inviterEmail: invite.invitedBy?.email || null,
-        status: invite.status,
-        expiresAt: invite.expiresAt,
-        acceptedAt: invite.acceptedAt,
-        declinedAt: invite.declinedAt,
-        revokedAt: invite.revokedAt,
-        invitedAt: invite.createdAt
-    }));
+    return {
+        invitations: invitations.map(invite => ({
+            id: invite._id,
+            email: invite.email,
+            role: invite.role,
+            inviter: invite.invitedBy?.name || null,
+            inviterEmail: invite.invitedBy?.email || null,
+            status: invite.status,
+            expiresAt: invite.expiresAt,
+            acceptedAt: invite.acceptedAt,
+            declinedAt: invite.declinedAt,
+            revokedAt: invite.revokedAt,
+            invitedAt: invite.createdAt
+        })),
+        nextCursor,
+        hasNextPage
+    }
 };
 
 
@@ -1167,14 +1211,30 @@ export const getInvitationsService = async ({
 
 
 
-
+const DEFAULT_MY_INVITATION_LIMIT = 10;
+const MAX_MY_INVITATION_LIMIT = 20;
 
 export const getMyInvitationsService = async ({
     userEmail,
+    cursor = null,
+    limit = DEFAULT_MY_INVITATION_LIMIT
 }) => {
 
     if (!userEmail) {
         throw new ApiError(400, "User email is required");
+    }
+
+    const parsedLimit = Math.min(
+        Math.max(Number(limit) || DEFAULT_MY_INVITATION_LIMIT, 1),
+        MAX_MY_INVITATION_LIMIT
+    );
+
+    const decodedCursor = cursor
+        ? decodeCursor(cursor)
+        : null;
+
+    if (cursor && !decodedCursor) {
+        throw new ApiError(400, "Invalid cursor");
     }
 
     const invitations = await findInvitationsByEmailForUser(
@@ -1189,17 +1249,43 @@ export const getMyInvitationsService = async ({
                 path: "invitedBy",
                 select: "_id name email",
             },
-        ]
+        ],
+        {
+            limit: parsedLimit + 1,
+            cursor: decodedCursor,
+        }
     );
+
+    const hasNextPage = invitations.length > parsedLimit;
+    const results = hasNextPage
+        ? invitations.slice(0, parsedLimit)
+        : invitations;
+
+    const lastInvitation = results.at(results.length - 1);
+
+    const nextCursor = hasNextPage && lastInvitation
+        ? encodeCursor({
+            createdAt: lastInvitation.createdAt,
+            _id: lastInvitation._id,
+        })
+        : null;
 
     logger.info(
         {
             email: userEmail,
+            limit: parsedLimit,
+            cursor,
+            nextCursor,
             invitationCount: invitations.length,
+            hasNextPage,
         },
         "invitation.my_list.retrieved"
     );
 
-    return formatInvitations(invitations);
+    return {
+        invitations: formatInvitations(invitations),
+        nextCursor,
+        hasNextPage
+    };
 };
 
