@@ -334,7 +334,7 @@ export default function OrganizationDetails() {
         );
     }
 
-    const memberCount = organization.members?.length || organization.usage?.memberCount || 0;
+    const memberCount = (organization.members?.length ?? organization.usage?.memberCount ?? 0) + 1;
     const maxMembers = organization.meta?.limits?.maxMembers || 0;
 
     const stats = [

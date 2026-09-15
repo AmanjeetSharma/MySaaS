@@ -43,6 +43,7 @@ import {
     getOrganizationNotificationRecipients,
 } from "../../notification/notification.utils.js";
 import { NOTIFICATION_TYPES } from "#/modules/notification/notification.constants.js";
+import { checkMemberLimit } from "../organization.helper.js";
 
 
 
@@ -194,6 +195,8 @@ export const inviteMemberService = async ({
         if (org.owner.toString() !== userId.toString()) {
             throw new ApiError(403, "You are not authorized to invite members for this organization.");
         }
+
+        checkMemberLimit(org);
 
         const existingUser = await findUserByEmail(cleanedEmail, null, session);
         if (existingUser) {
@@ -535,6 +538,8 @@ export const acceptInvitationService = async ({
             throw new ApiError(400, `You are already a member of ${org.name}`);
         }
 
+        checkMemberLimit(org);
+
         const joinedAt = new Date();
 
         const newMemberPayload = {
@@ -670,7 +675,7 @@ export const declineInvitationService = async ({
             throw new ApiError(403, "You are not authorized to decline this invitation.");
         }
 
-        if(invitation.status === "revoked") {
+        if (invitation.status === "revoked") {
             throw new ApiError(400, "This invitation has been revoked by the organization owner.");
         }
 
