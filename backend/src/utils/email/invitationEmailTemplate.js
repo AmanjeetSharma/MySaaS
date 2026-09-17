@@ -1,129 +1,109 @@
 import env from "#/config/env.config.js";
 
 const escapeHtml = (str) => {
-    if (!str) return '';
+    if (!str) return "";
     return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 };
 
 export const invitationEmailTemplate = (inviterName, organizationName) => {
+    const safeInviter = escapeHtml(inviterName) || "A teammate";
+    const safeOrg = escapeHtml(organizationName) || "their workspace";
     const signupUrl = `${env.CLIENT_URL}/signup`;
 
     return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Invitation to join ${escapeHtml(organizationName)}</title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f4f5f7;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                    color: #333333;
-                    line-height: 1.6;
-                }
-                .wrapper {
-                    width: 100%;
-                    background-color: #f4f5f7;
-                    padding: 40px 0;
-                }
-                .card {
-                    max-width: 520px;
-                    margin: 0 auto;
-                    background-color: #ffffff;
-                    border: 1px solid #e1e4e8;
-                    border-radius: 6px;
-                    padding: 40px;
-                    box-sizing: border-box;
-                }
-                .brand {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #111827;
-                    margin-bottom: 24px;
-                    letter-spacing: -0.5px;
-                }
-                .heading {
-                    font-size: 20px;
-                    font-weight: 600;
-                    color: #111827;
-                    margin: 0 0 16px 0;
-                }
-                .body-text {
-                    font-size: 15px;
-                    color: #4b5563;
-                    margin: 0 0 16px 0;
-                }
-                .button-container {
-                    margin: 28px 0;
-                }
-                .cta-button {
-                    display: inline-block;
-                    background-color: #1f2937;
-                    color: #ffffff !important;
-                    text-decoration: none;
-                    font-size: 14px;
-                    font-weight: 500;
-                    padding: 10px 22px;
-                    border-radius: 5px;
-                }
-                .alt-link {
-                    font-size: 13px;
-                    color: #6b7280;
-                    word-break: break-all;
-                    margin-top: 24px;
-                }
-                .alt-link a {
-                    color: #2563eb;
-                    text-decoration: none;
-                }
-                .footer {
-                    margin-top: 32px;
-                    padding-top: 20px;
-                    border-top: 1px solid #e5e7eb;
-                    font-size: 12px;
-                    color: #9ca3af;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="wrapper">
-                <div class="card">
-                    <div class="brand">miniCRM</div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invitation to join ${safeOrg}</title>
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    table { border-collapse: collapse !important; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F9FA; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8F9FA; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; background-color: #FFFFFF; border: 1px solid #DADCE0; border-radius: 8px; overflow: hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td align="left" style="padding: 28px 32px 20px 32px; border-bottom: 1px solid #F1F3F4;">
+              <span style="font-size: 20px; font-weight: 600; color: #202124; letter-spacing: -0.2px;">miniCRM</span>
+            </td>
+          </tr>
 
-                    <h1 class="heading">You've been invited to collaborate</h1>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #202124; line-height: 1.4;">
+                Join ${safeOrg}
+              </h1>
+              <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #3C4043;">
+                <strong>${safeInviter}</strong> has invited you to collaborate in the <strong>${safeOrg}</strong> workspace on miniCRM.
+              </p>
+              <p style="margin: 0 0 28px 0; font-size: 14px; line-height: 1.6; color: #3C4043;">
+                To get started, create your account using the email address this invitation was sent to.
+              </p>
 
-                    <p class="body-text">
-                        <strong>${escapeHtml(inviterName)}</strong> has invited you to join the 
-                        <strong>${escapeHtml(organizationName)}</strong> workspace on miniCRM.
+              <!-- Action Button -->
+              <table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                <tr>
+                  <td align="center" style="border-radius: 4px; background-color: #1A73E8;">
+                    <a href="${signupUrl}" target="_blank" style="display: inline-block; padding: 10px 24px; font-size: 14px; font-weight: 500; color: #FFFFFF; text-decoration: none; border-radius: 4px; border: 1px solid #1A73E8;">
+                      Create account &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback Direct URL -->
+              <p style="margin: 0 0 24px 0; font-size: 12px; line-height: 1.5; color: #70757A;">
+                If the button above does not work, copy and paste this link into your browser:<br />
+                <a href="${signupUrl}" style="color: #1A73E8; text-decoration: underline; word-break: break-all;">${signupUrl}</a>
+              </p>
+
+              <!-- Security Notice -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="border-top: 1px solid #F1F3F4; padding-top: 20px;">
+                    <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #70757A;">
+                      If you were not expecting this invitation, you can safely disregard this email.
                     </p>
+                  </td>
+                </tr>
+              </table>
 
-                    <p class="body-text">
-                        To get started, create your account using the email address this invitation was sent to.
-                    </p>
+            </td>
+          </tr>
+        </table>
 
-                    <div class="button-container">
-                        <a href="${signupUrl}" class="cta-button">Create Your Account</a>
-                    </div>
+        <!-- Footer -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin-top: 16px;">
+          <tr>
+            <td align="center" style="padding: 0 16px; font-size: 12px; line-height: 1.5; color: #70757A;">
+              <p style="margin: 0;">
+                &copy; 2026 miniCRM Inc. Automated message, please do not reply directly.
+              </p>
+            </td>
+          </tr>
+        </table>
 
-                    <div class="alt-link">
-                        Button not working? Navigate directly to:<br>
-                        <a href="${signupUrl}">${signupUrl}</a>
-                    </div>
-
-                    <div class="footer">
-                        If you were not expecting this invitation, you can safely disregard this email.
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
 };

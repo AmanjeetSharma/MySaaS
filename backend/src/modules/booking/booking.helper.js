@@ -325,26 +325,25 @@ export const sendBookingEmails = async ({
     }
 
 
-    // Owner email is disabled and will be implemented using bullmq
 
-    // const ownerEmail = organization.owner?.email;
+    const ownerEmail = organization.owner?.email;
 
-    // const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
-    //     ...templateData,
+    const ownerEmailHTML = ownerEmail ? bookingConfirmationOwnerEmailTemplate({
+        ...templateData,
 
-    //     ownerName: organization.owner?.name,
-    //     bookerName: booking.booker.name,
-    //     bookerEmail: booking.booker.email,
-    //     bookerPhone: booking.booker.phone,
-    // }) : null;
+        ownerName: organization.owner?.name,
+        bookerName: booking.booker.name,
+        bookerEmail: booking.booker.email,
+        bookerPhone: booking.booker.phone,
+    }) : null;
 
-    // try {
-    //     if (ownerEmail && ownerEmailHTML) {
-    //         await sendEmail(ownerEmail, "New booking received - MySaaS", ownerEmailHTML, true);
-    //     }
-    // } catch (error) {
-    //     console.error(`[Booking Email] Failed to send notification email to ${ownerEmail}:`, error.message);
-    // }
+    try {
+        if (ownerEmail && ownerEmailHTML) {
+            await sendEmail(ownerEmail, "New booking received - MySaaS", ownerEmailHTML, true);
+        }
+    } catch (error) {
+        console.error(`[Booking Email] Failed to send notification email to ${ownerEmail}:`, error.message);
+    }
 };
 
 

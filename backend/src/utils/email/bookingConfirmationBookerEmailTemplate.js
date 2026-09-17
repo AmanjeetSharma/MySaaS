@@ -1,5 +1,3 @@
-// bookingConfirmationBookerEmailTemplate.js
-
 export const bookingConfirmationBookerEmailTemplate = ({
     bookerName,
     organizationName,
@@ -11,324 +9,156 @@ export const bookingConfirmationBookerEmailTemplate = ({
     meetingLink,
     manageBookingUrl,
 }) => {
-    const locationContent =
-        mode === "OFFLINE" && address
+    const recipientName = bookerName || "there";
+    const formattedAddress = address
+        ? [address.street, address.city, address.state, address.country, address.zipCode]
+            .filter(Boolean)
+            .join(", ")
+        : "";
+
+    const locationRow =
+        mode === "OFFLINE" && formattedAddress
             ? `
-                <div class="detail-row">
-                    <div class="detail-label">Location</div>
-                    <div class="detail-value">
-                        ${address.street ? `${address.street}, ` : ""}
-                        ${address.city ? `${address.city}, ` : ""}
-                        ${address.state ? `${address.state}, ` : ""}
-                        ${address.country ? address.country : ""}
-                        ${address.zipCode ? ` - ${address.zipCode}` : ""}
-                    </div>
-                </div>
-            `
+        <tr>
+          <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #6B7280; font-weight: 500;">Location</td>
+          <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #1F2937; text-align: right; font-weight: 500;">${formattedAddress}</td>
+        </tr>
+      `
             : "";
 
-    const meetingContent =
-        meetingLink
-            ? `
-                <div class="button-container">
-                    <a href="${meetingLink}" class="primary-button">
-                        Join Google Meet
-                    </a>
-                </div>
+    const meetingAction = meetingLink
+        ? `
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 12px;">
+        <tr>
+          <td align="center" style="border-radius: 6px; background-color: #4F46E5;">
+            <a href="${meetingLink}" target="_blank" style="display: block; padding: 11px 24px; font-size: 14px; font-weight: 600; color: #FFFFFF; text-decoration: none; border-radius: 6px; border: 1px solid #4F46E5; text-align: center;">
+              Join Video Meeting &rarr;
+            </a>
+          </td>
+        </tr>
+      </table>
+    `
+        : "";
 
-                <div class="alt-link">
-                    Or copy and paste this link into your browser:<br>
-                    <a href="${meetingLink}">${meetingLink}</a>
-                </div>
-            `
-            : "";
+    const manageAction = manageBookingUrl
+        ? `
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
+        <tr>
+          <td align="center" style="border-radius: 6px; background-color: #FFFFFF;">
+            <a href="${manageBookingUrl}" target="_blank" style="display: block; padding: 10px 24px; font-size: 13px; font-weight: 600; color: #4F46E5; text-decoration: none; border-radius: 6px; border: 1px solid #C7D2FE; text-align: center;">
+              Manage Booking
+            </a>
+          </td>
+        </tr>
+      </table>
+    `
+        : "";
 
     return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Booking Confirmed - MySaaS</title>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Confirmed</title>
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    table { border-collapse: collapse !important; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F9FAFB; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Container Card -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+          
+          <!-- Indigo Brand Accent Top Bar -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%); line-height: 4px; font-size: 4px;">&nbsp;</td>
+          </tr>
 
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-                    background-color: #1a1a1a;
-                    line-height: 1.6;
-                }
+          <!-- Header -->
+          <tr>
+            <td align="left" style="padding: 24px 32px 18px 32px; border-bottom: 1px solid #F3F4F6;">
+              <span style="font-size: 18px; font-weight: 700; color: #4338CA; letter-spacing: -0.2px;">${organizationName || "MySaaS"}</span>
+            </td>
+          </tr>
 
-                .container {
-                    max-width: 560px;
-                    margin: 40px auto;
-                    padding: 20px;
-                }
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #111827; line-height: 1.3;">
+                Booking confirmed
+              </h1>
+              <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.5; color: #4B5563;">
+                Hi ${recipientName}, your appointment for <strong>${serviceName}</strong> has been scheduled.
+              </p>
 
-                .email-card {
-                    background-color: #2d2d2d;
-                    border-radius: 16px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    border: 1px solid #3d3d3d;
-                }
+              <!-- Booking Details Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F3FF; border: 1px solid #DDD6FE; border-radius: 6px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 6px 0; font-size: 13px; color: #6B7280; font-weight: 500;">Service</td>
+                        <td style="padding: 6px 0; font-size: 13px; color: #111827; text-align: right; font-weight: 600;">${serviceName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #6B7280; font-weight: 500;">Date & Time</td>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #4F46E5; text-align: right; font-weight: 600;">${date}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #6B7280; font-weight: 500;">Duration</td>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #1F2937; text-align: right; font-weight: 500;">${durationInMinutes} mins</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #6B7280; font-weight: 500;">Format</td>
+                        <td style="padding: 10px 0; border-top: 1px solid #EEF2F6; font-size: 13px; color: #1F2937; text-align: right; font-weight: 500;">${mode}</td>
+                      </tr>
+                      ${locationRow}
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-                .header {
-                    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-                    padding: 30px;
-                    text-align: center;
-                    border-bottom: 3px solid #39ff14;
-                }
+              <!-- Action Buttons -->
+              ${meetingAction}
+              ${manageAction}
 
-                .logo {
-                    font-size: 32px;
-                    font-weight: bold;
-                    color: #39ff14;
-                    margin-bottom: 5px;
-                }
+              <!-- Security / Safe Link Notice -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="border-top: 1px solid #F3F4F6; padding-top: 16px;">
+                    <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #6B7280;">
+                      Need to reschedule or make updates? Use the manage link above to make changes to your booking.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
-                .logo span {
-                    color: #ffffff;
-                    font-weight: normal;
-                }
+            </td>
+          </tr>
+        </table>
 
-                .tagline {
-                    color: #a0a0a0;
-                    font-size: 12px;
-                }
+        <!-- Outer Minimal Footer -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin-top: 16px;">
+          <tr>
+            <td align="center" style="padding: 0 16px; font-size: 12px; line-height: 1.5; color: #9CA3AF;">
+              <p style="margin: 0;">
+                &copy; 2026 ${organizationName || "MySaaS"}. Automated confirmation email.
+              </p>
+            </td>
+          </tr>
+        </table>
 
-                .content {
-                    padding: 30px;
-                }
-
-                .greeting {
-                    font-size: 22px;
-                    color: #ffffff;
-                    margin-bottom: 15px;
-                    font-weight: 600;
-                }
-
-                .greeting span {
-                    color: #39ff14;
-                }
-
-                .message {
-                    color: #b0b0b0;
-                    font-size: 15px;
-                    margin-bottom: 25px;
-                }
-
-                .booking-card {
-                    background-color: #1a1a1a;
-                    border: 1px solid #3d3d3d;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin: 25px 0;
-                }
-
-                .booking-title {
-                    color: #ffffff;
-                    font-size: 18px;
-                    font-weight: 600;
-                    margin-bottom: 15px;
-                }
-
-                .detail-row {
-                    margin: 12px 0;
-                }
-
-                .detail-label {
-                    color: #888888;
-                    font-size: 12px;
-                    text-transform: uppercase;
-                }
-
-                .detail-value {
-                    color: #ffffff;
-                    font-size: 15px;
-                    margin-top: 2px;
-                }
-
-                .button-container {
-                    text-align: center;
-                    margin: 25px 0;
-                }
-
-                .primary-button {
-                    display: inline-block;
-                    background: #39ff14;
-                    color: #000000 !important;
-                    text-decoration: none;
-                    padding: 12px 28px;
-                    border-radius: 8px;
-                    font-weight: 700;
-                    font-size: 15px;
-                }
-
-                .secondary-button {
-                    display: inline-block;
-                    background: #333333;
-                    color: #ffffff !important;
-                    text-decoration: none;
-                    padding: 12px 28px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 15px;
-                    border: 1px solid #444444;
-                }
-
-                .alt-link {
-                    text-align: center;
-                    margin: 15px 0;
-                    font-size: 12px;
-                    color: #888888;
-                }
-
-                .alt-link a {
-                    color: #39ff14;
-                    text-decoration: none;
-                    word-break: break-all;
-                }
-
-                .info-box {
-                    background-color: #1a1a1a;
-                    border-left: 4px solid #39ff14;
-                    padding: 12px 16px;
-                    margin: 20px 0;
-                    border-radius: 8px;
-                }
-
-                .info-text {
-                    color: #b0b0b0;
-                    font-size: 13px;
-                    margin: 0;
-                }
-
-                .info-text strong {
-                    color: #39ff14;
-                }
-
-                .footer {
-                    background-color: #1a1a1a;
-                    padding: 20px;
-                    text-align: center;
-                    border-top: 1px solid #3d3d3d;
-                }
-
-                .footer-text {
-                    color: #888888;
-                    font-size: 12px;
-                    margin: 5px 0;
-                }
-
-                @media only screen and (max-width: 480px) {
-                    .container {
-                        padding: 10px;
-                    }
-
-                    .content {
-                        padding: 20px;
-                    }
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class="container">
-                <div class="email-card">
-
-                    <div class="header">
-                        <div class="logo">
-                            My<span>SaaS</span>
-                        </div>
-
-                        <div class="tagline">
-                            Next-Generation CRM for Modern Businesses
-                        </div>
-                    </div>
-
-                    <div class="content">
-
-                        <div class="greeting">
-                            Hi <span>${bookerName}</span>! 🎉
-                        </div>
-
-                        <div class="message">
-                            Your booking with <strong style="color:#ffffff;">
-                                ${organizationName}
-                            </strong>
-                            has been confirmed successfully.
-                        </div>
-
-                        <div class="booking-card">
-
-                            <div class="booking-title">
-                                ${serviceName}
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Date & Time</div>
-                                <div class="detail-value">
-                                    ${date}
-                                </div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Duration</div>
-                                <div class="detail-value">
-                                    ${durationInMinutes} minutes
-                                </div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Type</div>
-                                <div class="detail-value">
-                                    ${mode}
-                                </div>
-                            </div>
-
-                            ${locationContent}
-
-                        </div>
-
-                        ${meetingContent}
-
-                        <div class="button-container">
-                            <a href="${manageBookingUrl}" class="secondary-button">
-                                Manage Booking
-                            </a>
-                        </div>
-
-                        <div class="alt-link">
-                            If the button doesn't work, copy and paste this link:<br>
-                            <a href="${manageBookingUrl}">
-                                ${manageBookingUrl}
-                            </a>
-                        </div>
-
-                        <div class="info-box">
-                            <p class="info-text">
-                                🔐 <strong>Keep this email safe.</strong>
-                                Your manage booking link gives access to your booking.
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <div class="footer">
-                        <p class="footer-text">
-                            © 2026 MySaaS. All rights reserved.
-                        </p>
-
-                        <p class="footer-text">
-                            This is an automated message. Please do not reply directly to this email.
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
 };

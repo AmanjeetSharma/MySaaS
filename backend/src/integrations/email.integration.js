@@ -25,16 +25,20 @@ export const sendEmail = async (
         const transporter = nodemailer.createTransport({
             host: env.SMTP_HOST,
             port: env.SMTP_PORT,
-            secure: env.SMTP_PORT == 465,
-            auth: {
-                user: env.SMTP_USER,
-                pass: env.SMTP_PASS,
-            },
+            secure: env.SMTP_PORT === 465,
+            ...(env.SMTP_USER && env.SMTP_PASS
+                ? {
+                    auth: {
+                        user: env.SMTP_USER,
+                        pass: env.SMTP_PASS,
+                    },
+                }
+                : {}),
         });
 
         // Mail options
         const mailOptions = {
-            from: `"MySaaS" <${env.SMTP_USER}>`,
+            from: env.SMTP_FROM,
             to,
             subject,
             ...(isHtml

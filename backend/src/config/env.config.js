@@ -15,9 +15,10 @@ const env = {
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
     SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_PORT: parseInt(process.env.SMTP_PORT),
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
+    SMTP_FROM: process.env.SMTP_FROM || `"MySaaS" <${process.env.SMTP_USER}>`,
 
     EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true',
     ENABLE_BACKGROUND_PROCESSING: process.env.ENABLE_BACKGROUND_PROCESSING === 'true',

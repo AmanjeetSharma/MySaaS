@@ -167,6 +167,33 @@ export const registerService = async (body, avatarFile) => {
             }
         }
 
+        if (env.EMAIL_ENABLED) {
+            const emailHTML = welcomeEmailTemplate(user.name);
+
+            await sendEmail(
+                user.email,
+                "Welcome to MySaaS!",
+                emailHTML,
+                true
+            );
+
+            logger.info(
+                {
+                    email: user.email,
+                    emailVerificationBypass: true,
+                },
+                "auth.welcome_email.sent"
+            );
+        } else {
+            logger.info(
+                {
+                    email: user.email,
+                    emailVerificationBypass: true,
+                },
+                "auth.email.service.disabled.welcome_email_skipped"
+            );
+        }
+
         logger.info(
             {
                 email: normalizedEmail,
@@ -176,10 +203,13 @@ export const registerService = async (body, avatarFile) => {
         );
 
         return {
-            name: userData.name,
-            email: userData.email,
-            organization: user.activeOrganization,
-            organizationName: orgName
+            data: {
+                name: userData.name,
+                email: userData.email,
+                organization: user.activeOrganization,
+                organizationName: orgName,
+            },
+            message: "Account created successfully! You can login now."
         };
     }
 
@@ -263,8 +293,11 @@ export const registerService = async (body, avatarFile) => {
     }
 
     return {
-        name: userData.name,
-        email: userData.email
+        data: {
+            name: userData.name,
+            email: userData.email,
+        },
+        message: `Verification email has been sent to ${userData.email}`
     };
 };
 

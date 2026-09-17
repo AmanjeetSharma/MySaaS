@@ -1,386 +1,95 @@
 import env from "../../config/env.config.js";
 
 export const welcomeEmailTemplate = (name) => {
+    const recipientName = name || "there";
+    const signinUrl = `${env.CLIENT_URL}/signin`;
+
     return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to MySaaS CRM</title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-                    background-color: #1a1a1a;
-                    line-height: 1.6;
-                }
-                
-                .container {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                
-                .email-wrapper {
-                    background-color: #2d2d2d;
-                    border-radius: 16px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    border: 1px solid #3d3d3d;
-                }
-                
-                .header {
-                    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-                    padding: 40px 30px;
-                    text-align: center;
-                    border-bottom: 3px solid #39ff14;
-                }
-                
-                .logo {
-                    font-size: 32px;
-                    font-weight: bold;
-                    color: #39ff14;
-                    margin-bottom: 10px;
-                    text-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
-                }
-                
-                .logo span {
-                    color: #ffffff;
-                    font-weight: normal;
-                }
-                
-                .tagline {
-                    color: #a0a0a0;
-                    font-size: 14px;
-                    margin-top: 8px;
-                }
-                
-                .content {
-                    padding: 40px 30px;
-                }
-                
-                .greeting {
-                    font-size: 24px;
-                    color: #ffffff;
-                    margin-bottom: 20px;
-                    font-weight: 600;
-                }
-                
-                .greeting span {
-                    color: #39ff14;
-                }
-                
-                .message {
-                    color: #b0b0b0;
-                    margin-bottom: 20px;
-                    font-size: 16px;
-                }
-                
-                .getting-started {
-                    background-color: #222222;
-                    padding: 20px;
-                    margin: 25px 0;
-                    border-radius: 12px;
-                    border-left: 3px solid #39ff14;
-                }
-                
-                .section-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #39ff14;
-                    margin-bottom: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                
-                .feature-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                    margin: 20px 0;
-                }
-                
-                .feature-card {
-                    background: #1a1a1a;
-                    padding: 15px;
-                    border-radius: 10px;
-                    border: 1px solid #3d3d3d;
-                    transition: transform 0.2s, border-color 0.2s;
-                }
-                
-                .feature-card:hover {
-                    border-color: #39ff14;
-                    transform: translateY(-2px);
-                }
-                
-                .feature-icon {
-                    font-size: 24px;
-                    margin-bottom: 8px;
-                }
-                
-                .feature-title {
-                    font-weight: 600;
-                    color: #39ff14;
-                    margin-bottom: 5px;
-                    font-size: 14px;
-                }
-                
-                .feature-desc {
-                    color: #888888;
-                    font-size: 12px;
-                }
-                
-                .button-container {
-                    text-align: center;
-                    margin: 35px 0;
-                }
-                
-                .action-button {
-                    display: inline-block;
-                    background: #39ff14;
-                    color: #000000 !important;
-                    text-decoration: none;
-                    padding: 14px 32px;
-                    border-radius: 8px;
-                    font-weight: 700;
-                    font-size: 16px;
-                    transition: all 0.2s;
-                    box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
-                    border: none;
-                }
-                
-                .action-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 0 25px rgba(57, 255, 20, 0.5);
-                    background: #2ee010;
-                }
-                
-                .tip-box {
-                    background-color: #1a1a1a;
-                    border-left: 4px solid #39ff14;
-                    padding: 15px 20px;
-                    margin: 25px 0;
-                    border-radius: 8px;
-                }
-                
-                .tip-text {
-                    color: #39ff14;
-                    font-size: 14px;
-                    margin: 0;
-                }
-                
-                .stats-box {
-                    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 25px 0;
-                    text-align: center;
-                    border: 1px solid #39ff14;
-                }
-                
-                .stats-number {
-                    font-size: 32px;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                    color: #39ff14;
-                }
-                
-                .stats-label {
-                    font-size: 12px;
-                    color: #a0a0a0;
-                }
-                
-                .stats-row {
-                    display: flex;
-                    justify-content: space-around;
-                    margin-top: 15px;
-                }
-                
-                .footer {
-                    background-color: #1a1a1a;
-                    padding: 25px 30px;
-                    text-align: center;
-                    border-top: 1px solid #3d3d3d;
-                }
-                
-                .footer-text {
-                    color: #888888;
-                    font-size: 12px;
-                    margin: 5px 0;
-                }
-                
-                .social-links {
-                    margin: 15px 0;
-                }
-                
-                .social-links a {
-                    color: #39ff14;
-                    text-decoration: none;
-                    margin: 0 10px;
-                    font-size: 12px;
-                }
-                
-                .social-links a:hover {
-                    text-decoration: underline;
-                }
-                
-                @media only screen and (max-width: 480px) {
-                    .content {
-                        padding: 30px 20px;
-                    }
-                    
-                    .header {
-                        padding: 30px 20px;
-                    }
-                    
-                    .feature-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    
-                    .action-button {
-                        padding: 12px 24px;
-                        font-size: 14px;
-                    }
-                    
-                    .stats-row {
-                        flex-direction: column;
-                        gap: 15px;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="email-wrapper">
-                    <div class="header">
-                        <div class="logo">
-                            My<span>SaaS</span>
-                        </div>
-                        <div class="tagline">
-                            Next-Generation CRM for Modern Businesses
-                        </div>
-                    </div>
-                    
-                    <div class="content">
-                        <div class="greeting">
-                            Welcome aboard, <span>${name || "Business Partner"}!</span> 🎉
-                        </div>;
-                        
-                        <div class="message">
-                            Thank you for choosing MySaaS CRM! We're excited to help you streamline your customer relationships and grow your business. 
-                            Your journey to better sales management and higher productivity starts now.
-                        </div>
-                        
-                        <div class="getting-started">
-                            <div class="section-title">
-                                🚀 Get Started in 3 Easy Steps
-                            </div>
-                            <div class="feature-grid">
-                                <div class="feature-card">
-                                    <div class="feature-icon">🏢</div>
-                                    <div class="feature-title">Set Up Your Workspace</div>
-                                    <div class="feature-desc">Customize your CRM dashboard and company settings</div>
-                                </div>
-                                <div class="feature-card">
-                                    <div class="feature-icon">👥</div>
-                                    <div class="feature-title">Import Contacts</div>
-                                    <div class="feature-desc">Add your customers, leads, and business partners</div>
-                                </div>
-                                <div class="feature-card">
-                                    <div class="feature-icon">📈</div>
-                                    <div class="feature-title">Create Sales Pipeline</div>
-                                    <div class="feature-desc">Set up deal stages and track opportunities</div>
-                                </div>
-                                <div class="feature-card">
-                                    <div class="feature-icon">📊</div>
-                                    <div class="feature-title">Track Analytics</div>
-                                    <div class="feature-desc">Monitor performance with real-time reports</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="button-container">
-                            <a href="${env.CLIENT_URL}/dashboard" class="action-button">
-                                Go to Your Dashboard →
-                            </a>
-                        </div>
-                        
-                        <div class="tip-box">
-                            <p class="tip-text">
-                                💡 <strong>Pro Tip:</strong> Complete your workspace setup within the next 24 hours to unlock 
-                                advanced features like email integration and automated follow-ups!
-                            </p>
-                        </div>
-                        
-                        <div class="message" style="font-size: 14px; margin-top: 20px;">
-                            <strong>Here's what you can do with MySaaS CRM:</strong>
-                        </div>
-                        
-                        <div style="margin: 15px 0;">
-                            <div style="margin-bottom: 12px; color: #b0b0b0;">
-                                ✅ <strong style="color: #39ff14;">Centralize Customer Data</strong> - All your contacts in one place
-                            </div>
-                            <div style="margin-bottom: 12px; color: #b0b0b0;">
-                                ✅ <strong style="color: #39ff14;">Track Deals & Opportunities</strong> - Never miss a sales opportunity
-                            </div>
-                            <div style="margin-bottom: 12px; color: #b0b0b0;">
-                                ✅ <strong style="color: #39ff14;">Schedule Tasks & Follow-ups</strong> - Stay on top of your activities
-                            </div>
-                            <div style="margin-bottom: 12px; color: #b0b0b0;">
-                                ✅ <strong style="color: #39ff14;">Generate Reports</strong> - Data-driven insights for better decisions
-                            </div>
-                            <div style="margin-bottom: 12px; color: #b0b0b0;">
-                                ✅ <strong style="color: #39ff14;">Collaborate with Team</strong> - Share leads and manage together
-                            </div>
-                        </div>
-                        
-                        <div class="stats-box">
-                            <div class="stats-row">
-                                <div>
-                                    <div class="stats-number">5000+</div>
-                                    <div class="stats-label">Businesses Using MySaaS</div>
-                                </div>
-                                <div>
-                                    <div class="stats-number">98%</div>
-                                    <div class="stats-label">Customer Satisfaction</div>
-                                </div>
-                                <div>
-                                    <div class="stats-number">3x</div>
-                                    <div class="stats-label">Faster Lead Response</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="message" style="font-size: 14px; background-color: #1a1a1a; padding: 12px; border-radius: 8px; margin-top: 20px; border: 1px solid #3d3d3d;">
-                            📞 <strong style="color: #39ff14;">Need Help?</strong> Our support team is here to assist you 24/7. 
-                            Contact us at <a href="mailto:support@mysaascrm.com" style="color: #39ff14;">support@mysaascrm.com</a>
-                        </div>
-                    </div>
-                    
-                    <div class="footer">
-                        <div class="social-links">
-                            <a href="#">About MySaaS</a> •
-                            <a href="#">Blog</a> •
-                            <a href="#">Documentation</a> •
-                            <a href="#">Privacy Policy</a> •
-                            <a href="#">Terms of Service</a> •
-                            <a href="#">Contact Support</a>
-                        </div>
-                        <p class="footer-text">
-                            © 2024 MySaaS CRM. All rights reserved.<br>
-                            Empowering businesses with intelligent CRM solutions
-                        </p>
-                        <p class="footer-text" style="font-size: 11px;">
-                            You're receiving this email because you registered with MySaaS CRM.<br>
-                            If you have any questions, feel free to reach out to our support team.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to MySaaS</title>
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    table { border-collapse: collapse !important; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F9FA; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8F9FA; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Container Card -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; background-color: #FFFFFF; border: 1px solid #DADCE0; border-radius: 8px; overflow: hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td align="left" style="padding: 28px 32px 20px 32px; border-bottom: 1px solid #F1F3F4;">
+              <span style="font-size: 20px; font-weight: 600; color: #202124; letter-spacing: -0.2px;">MySaaS</span>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #202124; line-height: 1.4;">
+                Welcome aboard, ${recipientName}!
+              </h1>
+              <p style="margin: 0 0 28px 0; font-size: 14px; line-height: 1.6; color: #3C4043;">
+                Thank you for joining MySaaS CRM. Your account is ready. Click below to access your dashboard and get started.
+              </p>
+
+              <!-- Direct Action Button -->
+              <table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                <tr>
+                  <td align="center" style="border-radius: 4px; background-color: #1A73E8;">
+                    <a href="${signinUrl}" target="_blank" style="display: inline-block; padding: 10px 24px; font-size: 14px; font-weight: 500; color: #FFFFFF; text-decoration: none; border-radius: 4px; border: 1px solid #1A73E8;">
+                      Continue to MySaaS &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback Direct URL -->
+              <p style="margin: 0 0 24px 0; font-size: 12px; line-height: 1.5; color: #70757A;">
+                If the button above does not work, copy and paste this link into your browser:<br />
+                <a href="${signinUrl}" style="color: #1A73E8; text-decoration: underline; word-break: break-all;">${signinUrl}</a>
+              </p>
+
+              <!-- Support Note -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="border-top: 1px solid #F1F3F4; padding-top: 20px;">
+                    <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #70757A;">
+                      Questions or feedback? Reach us at <a href="mailto:support@mysaascrm.com" style="color: #1A73E8; text-decoration: none;">support@mysaascrm.com</a>.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+
+        <!-- Simple Footer (No Policy Links) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin-top: 16px;">
+          <tr>
+            <td align="center" style="padding: 0 16px; font-size: 12px; line-height: 1.5; color: #70757A;">
+              <p style="margin: 0;">
+                &copy; 2026 MySaaS Inc. You are receiving this because an account was registered with your address.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
 };

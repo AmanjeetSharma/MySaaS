@@ -1,6 +1,5 @@
 name: mysaas
 
-
 services:
   redis:
     image: redis:7-alpine
@@ -18,6 +17,13 @@ services:
       - "8001:5540"
     depends_on:
       - redis
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mysaas-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
 volumes:
   mysaas-redis-data:

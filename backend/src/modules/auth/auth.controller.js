@@ -15,7 +15,7 @@ import {
 
 
 export const registerController = asyncHandler(async (req, res) => {
-    const data = await registerService(
+    const { data, message } = await registerService(
         req.body,
         req.file
     );
@@ -24,7 +24,7 @@ export const registerController = asyncHandler(async (req, res) => {
         new ApiResponse(
             201,
             data,
-            "Verification email sent"
+            message
         )
     );
 });
