@@ -90,18 +90,18 @@ const Home = () => {
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-1000">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-indigo-300 font-semibold">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/15 backdrop-blur-md text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-slate-200 font-semibold shadow-[0_0_15px_rgba(255,255,255,0.05)]">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/60 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </span>
-            Pre-Release Build(v0.1)
+            Pre-Release Build(v1.0.0)
           </div>
 
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[0.9]">
             The miniCRM for <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500">
+            <span className="text-transparent bg-clip-text bg-linear-to-b from-white via-white to-slate-500">
               effortless growth.
             </span>
           </h1>
