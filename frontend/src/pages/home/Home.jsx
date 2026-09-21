@@ -103,16 +103,24 @@ const Home = () => {
       lenisRef.current = lenis;
       lenis.on('scroll', ScrollTrigger.update);
       gsap.ticker.add((time) => lenis.raf(time * 1000));
-      gsap.ticker.lagSmoothing(0);
 
-      // Refresh ScrollTrigger to calculate accurate pin spacers and trigger start/end offsets
+      // Accurate ScrollTrigger refresh after initial render & layout settle
       requestAnimationFrame(() => {
         ScrollTrigger.refresh();
       });
+
+      const refreshTimer = setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
+
+      return () => {
+        clearTimeout(refreshTimer);
+        if (lenisRef.current) lenisRef.current.destroy();
+        ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      };
     }
 
     return () => {
-      if (lenisRef.current) lenisRef.current.destroy();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
@@ -276,19 +284,23 @@ const Home = () => {
       </main>
 
       {/* Minimal Footer */}
-      <footer className="w-full py-8 px-4 sm:px-6 md:px-12 border-t border-border bg-background/95 text-xs text-muted-foreground">
+      <footer className="w-full py-10 px-4 sm:px-6 md:px-12 border-t border-border bg-background/95 backdrop-blur-md relative z-20 text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full moon-dot text-primary" />
-            <span className="font-medium text-foreground">&copy; miniCRM 2026. All rights reserved.</span>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full moon-dot text-primary" />
+              <span className="font-semibold text-foreground tracking-tight">miniCRM</span>
+            </div>
+            <span className="hidden sm:inline text-border">•</span>
+            <span>&copy; {new Date().getFullYear()} miniCRM. All rights reserved.</span>
           </div>
-          <div className="flex items-center gap-5 text-xs">
+          <div className="flex items-center gap-5 text-xs text-muted-foreground">
             <button
               type="button"
               onClick={scrollToTop}
               className="hover:text-foreground transition-colors cursor-pointer"
             >
-              Back to top
+              Back to top ↑
             </button>
             <span className="text-border">•</span>
             <Link to="/signin" className="hover:text-foreground transition-colors">Sign In</Link>

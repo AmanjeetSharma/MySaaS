@@ -15,10 +15,14 @@
 /* 3D Card Elements with Natural Hover & Tilt */
 .card-3d-wrap {
   transform-style: preserve-3d;
+}
+
+/* Static cards hover only - exclude gsap-tilt elements */
+.card-3d-wrap:not(.gsap-tilt) {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
-.card-3d-wrap:hover {
+.card-3d-wrap:not(.gsap-tilt):hover {
   transform: translateY(-4px) rotateX(2deg) rotateY(-1.5deg);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px 0 rgba(255, 255, 255, 0.08);
 }

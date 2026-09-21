@@ -34,54 +34,41 @@ export const ScrollStoryShowcase = () => {
     const scrollTriggerRef = useRef(null);
     const [currentPill, setCurrentPill] = useState(0);
 
-    // 1. Interactive 3D Cursor Parallax (matching the "Unified Operating Engine" card)
+    // 1. Interactive 3D Cursor Parallax
     useEffect(() => {
         const card = cardTiltRef.current;
-        const container = pinContainerRef.current;
-        if (!card || !container) return;
+        if (!card) return;
 
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) return;
 
-        let isVisible = false;
-        let cachedRect = null;
         let rafId = null;
-        let mouseX = 0;
-        let mouseY = 0;
-
-        const updateRect = () => {
-            if (isVisible) {
-                cachedRect = card.getBoundingClientRect();
-            }
-        };
-
-        const onFrame = () => {
-            if (!cachedRect) updateRect();
-            if (cachedRect) {
-                const x = mouseX - cachedRect.left - cachedRect.width / 2;
-                const y = mouseY - cachedRect.top - cachedRect.height / 2;
-
-                gsap.to(card, {
-                    rotateY: x * 0.02,
-                    rotateX: -y * 0.02,
-                    ease: 'power2.out',
-                    duration: 0.5,
-                    overwrite: 'auto'
-                });
-            }
-            rafId = null;
-        };
 
         const handleMouseMove = (e) => {
-            if (!isVisible) return;
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            if (!rafId) {
-                rafId = requestAnimationFrame(onFrame);
-            }
+            const rect = card.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Strict clamp to max ±6 degrees so it NEVER flips or looks too up or down
+            const maxDeg = 6;
+            const rotY = Math.max(-maxDeg, Math.min(maxDeg, (x / (rect.width / 2)) * maxDeg));
+            const rotX = Math.max(-maxDeg, Math.min(maxDeg, -(y / (rect.height / 2)) * maxDeg));
+
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                gsap.to(card, {
+                    rotateY: rotY,
+                    rotateX: rotX,
+                    ease: 'power2.out',
+                    duration: 0.35,
+                    overwrite: 'auto'
+                });
+            });
         };
 
-        const handleMouseLeave = () => {
+        const handleReset = () => {
             if (rafId) {
                 cancelAnimationFrame(rafId);
                 rafId = null;
@@ -90,26 +77,14 @@ export const ScrollStoryShowcase = () => {
                 rotateY: 0,
                 rotateX: 0,
                 ease: 'power2.out',
-                duration: 0.7,
+                duration: 0.5,
                 overwrite: 'auto'
             });
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            const entry = entries[0];
-            isVisible = entry.isIntersecting;
-            if (isVisible) {
-                updateRect();
-            } else {
-                handleMouseLeave();
-            }
-        }, { threshold: 0.05 });
-
-        observer.observe(container);
-
-        window.addEventListener('mousemove', handleMouseMove, { passive: true });
-        window.addEventListener('resize', updateRect, { passive: true });
-        card.addEventListener('mouseleave', handleMouseLeave);
+        card.addEventListener('mousemove', handleMouseMove, { passive: true });
+        card.addEventListener('mouseleave', handleReset);
+        window.addEventListener('scroll', handleReset, { passive: true });
 
         // Ambient mobile float
         let floatTween = null;
@@ -125,11 +100,10 @@ export const ScrollStoryShowcase = () => {
         }
 
         return () => {
-            observer.disconnect();
             if (rafId) cancelAnimationFrame(rafId);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('resize', updateRect);
-            card.removeEventListener('mouseleave', handleMouseLeave);
+            card.removeEventListener('mousemove', handleMouseMove);
+            card.removeEventListener('mouseleave', handleReset);
+            window.removeEventListener('scroll', handleReset);
             if (floatTween) floatTween.kill();
         };
     }, []);
@@ -150,7 +124,6 @@ export const ScrollStoryShowcase = () => {
                     scrub: 0.5,
                     pin: true,
                     pinSpacing: true,
-                    anticipatePin: 1,
                     onUpdate: (self) => {
                         const p = self.progress;
                         if (p < 0.25) setCurrentPill(0);
@@ -346,7 +319,7 @@ export const ScrollStoryShowcase = () => {
                     {/* Outer Tilt Wrapper (tracks mouse cursor) */}
                     <div
                         ref={cardTiltRef}
-                        className="w-full max-w-[340px] xs:max-w-[400px] sm:max-w-[500px] lg:max-w-[580px] min-h-[440px] sm:min-h-[460px] relative preserve-3d card-3d-wrap"
+                        className="w-full max-w-[340px] xs:max-w-[400px] sm:max-w-[500px] lg:max-w-[580px] min-h-[440px] sm:min-h-[460px] relative preserve-3d card-3d-wrap gsap-tilt"
                     >
                         {/* Inner Flip Wrapper (rotates 180° upon phase 3 completion) */}
                         <div

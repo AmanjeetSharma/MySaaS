@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Clock, Users, Kanban, Video, CheckCircle2, BellRing, Building2, Mail, ArrowRight, Layers } from 'lucide-react';
+import { Clock, Users, Kanban, Video, CheckCircle2, BellRing, Building2, Mail } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
