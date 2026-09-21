@@ -1,0 +1,86 @@
+/* Home.css - 3D Interactive Card Stacking & Moonlit Precision Accents */
+
+/* 3D Perspective Context */
+.perspective-container {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+/* 3D Card Elements */
+.card-3d-wrap {
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.card-3d-wrap:hover {
+  transform: translateY(-4px) rotateX(2deg) rotateY(-1deg);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7), 0 0 24px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Interactive 3D Stacking Cards */
+.stack-card-layer {
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+  will-change: transform;
+}
+
+.stack-card-1 {
+  transform: translateZ(0px) scale(1);
+}
+
+.stack-card-2 {
+  transform: translateZ(-20px) translateY(8px) scale(0.98);
+}
+
+.stack-card-3 {
+  transform: translateZ(-40px) translateY(16px) scale(0.96);
+}
+
+.stack-card-4 {
+  transform: translateZ(-60px) translateY(24px) scale(0.94);
+}
+
+/* Moonlit Precision Lighting */
+.moon-glow-subtle {
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.06);
+}
+
+.moon-glow-focal {
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.12);
+}
+
+.moon-border {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.moon-border-active {
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
+}
+
+.moon-dot {
+  background-color: #f4f4f5;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
+}
+
+/* Timeline 3D connector lines */
+.timeline-3d-line {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 100%);
+}
+
+/* Responsive adjustment for 3D transforms */
+@media (max-width: 767px) {
+  .perspective-container {
+    perspective: none;
+  }
+  .card-3d-wrap:hover {
+    transform: none;
+  }
+  .stack-card-1,
+  .stack-card-2,
+  .stack-card-3,
+  .stack-card-4 {
+    transform: none !important;
+  }
+}

@@ -122,3 +122,14 @@ lib-cov/
 # Project specific
 # Ignore examples/demo folders if needed
 example/
+
+
+# AI coding agents / local agent config
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.impeccable/
+PRODUCT.md
+DESIGN.md

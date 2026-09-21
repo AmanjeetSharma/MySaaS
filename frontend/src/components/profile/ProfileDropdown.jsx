@@ -157,7 +157,7 @@ export function ProfileDropdown() {
         >
           <div className="flex items-center gap-3">
             <LogOut className="h-4 w-4" />
-            <span>Logout</span>
+            <span>Sign out</span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
