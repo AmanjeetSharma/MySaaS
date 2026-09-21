@@ -60,7 +60,7 @@ import ChangePassword from '@/pages/settings/account/ChangePassword';
 import SetPassword from '@/pages/settings/account/SetPassword';
 
 // Integrations imports
-import ConnectGoogle from '@/pages/organization/integrations/ConnectGoogle';
+import ConnectGoogle from '@/pages/organization/integrations/google/ConnectGoogle';
 import WhatsApp from '@/pages/organization/integrations/WhatsApp';
 import Zoom from '@/pages/organization/integrations/Zoom';
 import MicrosoftTeams from '@/pages/organization/integrations/MicrosoftTeams';

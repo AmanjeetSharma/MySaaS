@@ -19,6 +19,7 @@ import {
     disconnectGoogleIntegration,
     updateSelectedCalendar,
 } from "../google.repository.js";
+import logger from "#/config/logger.js"
 
 
 
@@ -49,6 +50,14 @@ export const connectGoogleService = async ({
         scope: GOOGLE_SCOPES,
         state,
     });
+
+    logger.info(
+        {
+            orgId,
+            authUrl
+        },
+        "integration.google.auth_url.generated"
+    )
 
     return {
         authUrl,
@@ -145,6 +154,18 @@ export const googleOAuthCallbackService = async ({
         throw new ApiError(500, "Failed to update Google integration.");
     }
 
+    logger.info(
+        {
+            orgId: payload.orgId,
+            email: googleUser.email,
+            googleAccountId: googleUser.id,
+            calendarId: primaryCalendar.id,
+            calendarName: primaryCalendar.summary,
+            calendarDescription: primaryCalendar.description ?? null,
+        },
+        "integration.google.connected"
+    );
+
     return {
         email: googleUser.email,
         connectedAt: organization.integrations.google.connectedAt,
@@ -224,6 +245,16 @@ export const updateSelectedCalendarService = async ({
         throw new ApiError(500, "Failed to update calendar.");
     }
 
+    logger.info(
+        {
+            orgId: orgId,
+            calendarId: selectedCalendar.id,
+            summary: selectedCalendar.summary,
+            description: selectedCalendar.description ?? null,
+        },
+        "integration.google.calendar.updated"
+    );
+
     return {
         calendarId: selectedCalendar.id,
         summary: selectedCalendar.summary,
@@ -258,6 +289,15 @@ export const getGoogleIntegrationStatusService = async ({
     }
 
     const googleIntegration = organization.integrations?.google;
+
+    logger.info(
+        {
+            orgId: orgId,
+            email: googleIntegration?.email ?? null,
+            calendarId: googleIntegration?.calendarId ?? null,
+        },
+        "integration.google.status"
+    );
 
     return {
         isConnected: googleIntegration?.isConnected ?? false,
@@ -323,6 +363,14 @@ export const listGoogleCalendarsService = async ({
 
             }));
 
+            logger.info(
+                {
+                    orgId: orgId,
+                    calendarCount: calendars.length,
+                },
+                "integration.google.retrieve.calendars.owner"
+            );
+
         return {
             calendars,
             role: "owner",
@@ -336,6 +384,16 @@ export const listGoogleCalendarsService = async ({
     if (!selectedCalendar || !["owner", "writer"].includes(selectedCalendar?.accessRole)) {
         throw new ApiError(404, "The selected Google Calendar no longer exists or is no longer accessible.");
     }
+
+    logger.info(
+        {
+            orgId: orgId,
+            calendarId: selectedCalendar.id,
+            summary: selectedCalendar.summary,
+            description: selectedCalendar.description ?? null,
+        },
+        "integration.google.retrieve.calendars.member"
+    );
 
     return {
         calendars: [
@@ -399,6 +457,15 @@ export const disconnectGoogleService = async ({
     if (!result) {
         throw new ApiError(500, "Failed to disconnect Google integration.");
     }
+
+    logger.info(
+        {
+            orgId: orgId,
+            email: organization.integrations.google.email,
+            calendarId: organization.integrations.google.calendarId,
+        },
+        "integration.google.disconnected"
+    );
 
     return {
         disconnected: true,
