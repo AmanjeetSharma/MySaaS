@@ -244,21 +244,21 @@ export const ScrollStoryShowcase = () => {
     return (
         <section
             ref={pinContainerRef}
-            className="relative z-10 w-full h-screen bg-transparent text-foreground flex items-center justify-center overflow-hidden border-t border-b border-border/40"
+            className="relative z-10 w-full min-h-[100dvh] h-screen bg-transparent text-foreground flex items-center justify-center overflow-hidden border-t border-b border-border/40 py-2 sm:py-6 select-none"
         >
-            <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center h-full relative z-10">
+            <div className="max-w-7xl w-full mx-auto px-3.5 xs:px-4 sm:px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-2 xs:gap-3 sm:gap-6 lg:gap-8 items-center justify-center my-auto relative z-10">
 
                 {/* Left: Synchronously Animated Step Narratives */}
-                <div className="lg:col-span-5 flex flex-col justify-center space-y-4 sm:space-y-6 text-left">
+                <div className="lg:col-span-5 flex flex-col justify-center space-y-1.5 xs:space-y-2 sm:space-y-4 lg:space-y-6 text-left w-full">
 
                     {/* Step Jumper Pills */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5 max-w-full">
                         {['01 Connect', '02 Choose Account', '03 Connected', '04 Route', '05 Sync Calendars', 'Next ↓'].map((label, idx) => (
                             <button
                                 key={label}
                                 type="button"
                                 onClick={() => handleStepJump(idx)}
-                                className={`px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono transition-all border cursor-pointer ${currentPill === idx
+                                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded text-[9px] xs:text-[10px] sm:text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap ${currentPill === idx
                                     ? 'bg-primary text-primary-foreground font-bold border-primary shadow-sm'
                                     : 'bg-surface-elevated text-muted-foreground border-border hover:text-foreground'
                                     }`}
@@ -269,88 +269,88 @@ export const ScrollStoryShowcase = () => {
                     </div>
 
                     {/* Stacked Narrative Stage Container */}
-                    <div className="relative min-h-[190px] sm:min-h-[220px]">
+                    <div className="relative min-h-[60px] xs:min-h-[70px] sm:min-h-[110px] lg:min-h-[210px]">
                         {/* Stage 1: Connect Google Calendar (Not Connected Page) */}
-                        <div className="narrative-step-1 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
+                        <div className="narrative-step-1 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-primary" />
                                 <span>STEP 01 DIRECT INTEGRATION</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Connect Google Calendar
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Connect your calendar to automatically create events, prevent scheduling conflicts, and generate meeting links for appointments.
                             </p>
                         </div>
 
                         {/* Stage 2: Choose an Account */}
-                        <div className="narrative-step-2 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
+                        <div className="narrative-step-2 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 opacity-0 pointer-events-none transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-primary" />
                                 <span>STEP 02 ACCOUNT SELECTION</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Choose an Account
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Select your Google account with single-click OAuth 2.0 authorization. No complex API keys or manual credentials required.
                             </p>
                         </div>
 
                         {/* Stage 3: Google Account Connected */}
-                        <div className="narrative-step-3 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
+                        <div className="narrative-step-3 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 opacity-0 pointer-events-none transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-primary" />
                                 <span>STEP 03 DIRECT INTEGRATION</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Google Account Connected
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Link your Google Workspace in a single click. miniCRM discovers all personal, shared, and team calendar feeds automatically with zero manual setup.
                             </p>
                         </div>
 
                         {/* Stage 4: Appointments Are Created Here */}
-                        <div className="narrative-step-4 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
+                        <div className="narrative-step-4 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 opacity-0 pointer-events-none transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-emerald-400" />
                                 <span>STEP 04 AUTO-BOOKING DESTINATION</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Appointments Are Created Here
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Designate your primary destination calendar with pinpoint accuracy. Outbound client bookings are routed directly into this feed with automatic buffer rules.
                             </p>
                         </div>
 
                         {/* Stage 5: Sync Calendars */}
-                        <div className="narrative-step-5 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
+                        <div className="narrative-step-5 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 opacity-0 pointer-events-none transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-primary" />
                                 <span>STEP 05 REALTIME SYNC</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Sync Calendars
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Personal appointments and team holidays automatically block booking availability. Video bridges and WhatsApp reminder alerts sync in realtime.
                             </p>
                         </div>
 
                         {/* Stage 6: Next -> Flip & Scroll to CRM */}
-                        <div className="narrative-step-6 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
+                        <div className="narrative-step-6 absolute inset-0 flex flex-col space-y-1 sm:space-y-2 lg:space-y-3.5 opacity-0 pointer-events-none transition-all">
+                            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
                                 <Footprints className="w-3.5 h-3.5 text-emerald-400" />
                                 <span>STEP 06 READY FOR CRM</span>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight flex items-center gap-3">
-                                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-emerald-400 shrink-0 stroke-[2.5]" />
+                            <h2 className="text-base xs:text-lg sm:text-3xl lg:text-5xl font-black tracking-tight text-foreground leading-tight flex items-center gap-2 sm:gap-3">
+                                <CheckCircle className="w-5 h-5 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-emerald-400 shrink-0 stroke-[2.5]" />
                                 <span>Integration Complete</span>
                             </h2>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
+                            <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
                                 Google Calendar is linked and verified. Continue scrolling down to enter the Core CRM & Operations Suite.
                             </p>
                         </div>
@@ -362,7 +362,7 @@ export const ScrollStoryShowcase = () => {
                     {/* Outer Tilt Wrapper (tracks mouse cursor) */}
                     <div
                         ref={cardTiltRef}
-                        className="w-full max-w-[340px] xs:max-w-[420px] sm:max-w-[520px] lg:max-w-[590px] min-h-[460px] sm:min-h-[480px] relative preserve-3d card-3d-wrap gsap-tilt"
+                        className="w-full max-w-[310px] xs:max-w-[350px] sm:max-w-[480px] lg:max-w-[580px] min-h-[350px] xs:min-h-[370px] sm:min-h-[440px] lg:min-h-[470px] relative preserve-3d card-3d-wrap gsap-tilt mx-auto"
                     >
                         {/* Inner Flip Wrapper (rotates 180° upon phase 5 completion) */}
                         <div
@@ -370,185 +370,185 @@ export const ScrollStoryShowcase = () => {
                             className="w-full h-full relative preserve-3d transition-transform duration-700"
                         >
                             {/* ================= FRONT FACE: Google Calendar Integration Cockpit ================= */}
-                            <div className="w-full rounded-2xl border border-border bg-card/95 backdrop-blur-2xl p-3 sm:p-5 shadow-2xl relative backface-hidden flex flex-col gap-3">
+                            <div className="w-full rounded-xl sm:rounded-2xl border border-border bg-card/95 backdrop-blur-2xl p-2.5 xs:p-3 sm:p-4 lg:p-5 shadow-2xl relative backface-hidden flex flex-col gap-2 sm:gap-3">
 
                                 {/* ================= LAYER 1: Not Connected Default Card (Matching Image 1) ================= */}
-                                <div className="not-connected-layer absolute inset-0 z-30 rounded-2xl bg-card/98 backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-500 border border-border">
+                                <div className="not-connected-layer absolute inset-0 z-30 rounded-xl sm:rounded-2xl bg-card/98 backdrop-blur-2xl p-2.5 xs:p-3.5 sm:p-5 flex flex-col justify-between transition-all duration-500 border border-border overflow-hidden">
                                     {/* Topbar: Google Calendar + Not Connected Badge */}
-                                    <div className="flex items-center justify-between pb-3 border-b border-border/60">
-                                        <div className="flex items-center gap-2">
-                                            <GoogleIcon className="w-4 h-4" />
+                                    <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-border/60">
+                                        <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <GoogleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                             <span className="text-xs sm:text-sm font-bold text-foreground tracking-tight">Google Calendar</span>
                                         </div>
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                        <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
                                             <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                                             <span>Not Connected</span>
                                         </span>
                                     </div>
 
                                     {/* Central Box: Connect Your Google Calendar with Rainbow Top Accent */}
-                                    <div className="relative rounded-xl border border-border/80 bg-surface/80 p-4 sm:p-6 flex flex-col items-center text-center shadow-lg overflow-hidden my-auto">
+                                    <div className="relative rounded-xl border border-border/80 bg-surface/80 p-2.5 xs:p-3.5 sm:p-6 flex flex-col items-center text-center shadow-lg overflow-hidden my-1 sm:my-auto">
                                         {/* Google Multicolor Top Border Accent */}
                                         <div className="absolute top-0 inset-x-0 h-[2.5px] bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
                                         {/* Circular Google G Icon Badge */}
-                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-elevated border border-border flex items-center justify-center mb-2.5 shadow-sm">
-                                            <GoogleIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                                        <div className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-full bg-surface-elevated border border-border flex items-center justify-center mb-1.5 sm:mb-2.5 shadow-sm">
+                                            <GoogleIcon className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6" />
                                         </div>
 
-                                        <h3 className="text-sm sm:text-base md:text-lg font-bold text-foreground tracking-tight">
+                                        <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-bold text-foreground tracking-tight">
                                             Connect Your Google Calendar
                                         </h3>
 
-                                        <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground max-w-sm leading-relaxed">
+                                        <p className="mt-0.5 sm:mt-1 text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground max-w-sm leading-relaxed line-clamp-2 sm:line-clamp-none">
                                             Connect your calendar to automatically create events, prevent scheduling conflicts, and generate meeting links for appointments.
                                         </p>
 
                                         {/* Sign in with Google Button */}
-                                        <div className="mt-3.5">
-                                            <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-white text-gray-900 font-semibold text-xs sm:text-sm shadow-md hover:bg-gray-100 transition-all cursor-pointer">
-                                                <GoogleIcon className="w-4 h-4" />
+                                        <div className="mt-2 sm:mt-3.5">
+                                            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full bg-white text-gray-900 font-semibold text-[11px] sm:text-xs md:text-sm shadow-md hover:bg-gray-100 transition-all cursor-pointer">
+                                                <GoogleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                 <span>Sign in with Google</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Bottom: 2x2 Feature Grid */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-2">
+                                    <div className="grid grid-cols-2 gap-1.5 pt-1.5 sm:pt-2">
+                                        <div className="p-1.5 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-1.5 sm:gap-2">
                                             <div className="p-1 rounded-md bg-surface-elevated border border-border text-muted-foreground shrink-0 mt-0.5">
-                                                <Radio className="w-3 h-3 text-foreground" />
+                                                <Radio className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-foreground" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-semibold text-foreground truncate">Real-time Sync</p>
-                                                <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Keep bookings and calendar events updated automatically.</p>
+                                                <p className="text-[10px] xs:text-[11px] font-semibold text-foreground truncate">Real-time Sync</p>
+                                                <p className="hidden sm:block text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Keep bookings and calendar events updated automatically.</p>
                                             </div>
                                         </div>
 
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-2">
+                                        <div className="p-1.5 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-1.5 sm:gap-2">
                                             <div className="p-1 rounded-md bg-surface-elevated border border-border text-muted-foreground shrink-0 mt-0.5">
-                                                <Video className="w-3 h-3 text-foreground" />
+                                                <Video className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-foreground" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-semibold text-foreground truncate">Automatic Meeting Links</p>
-                                                <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Add meeting links to online appointments automatically.</p>
+                                                <p className="text-[10px] xs:text-[11px] font-semibold text-foreground truncate">Auto Meet Links</p>
+                                                <p className="hidden sm:block text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Add meeting links to online appointments automatically.</p>
                                             </div>
                                         </div>
 
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-2">
+                                        <div className="p-1.5 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-1.5 sm:gap-2">
                                             <div className="p-1 rounded-md bg-surface-elevated border border-border text-muted-foreground shrink-0 mt-0.5">
-                                                <Layers className="w-3 h-3 text-foreground" />
+                                                <Layers className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-foreground" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-semibold text-foreground truncate">Flexible Calendars</p>
-                                                <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Choose which calendar receives your bookings.</p>
+                                                <p className="text-[10px] xs:text-[11px] font-semibold text-foreground truncate">Flexible Feeds</p>
+                                                <p className="hidden sm:block text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Choose which calendar receives your bookings.</p>
                                             </div>
                                         </div>
 
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-2">
+                                        <div className="p-1.5 sm:p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-start gap-1.5 sm:gap-2">
                                             <div className="p-1 rounded-md bg-surface-elevated border border-border text-muted-foreground shrink-0 mt-0.5">
-                                                <ShieldCheck className="w-3 h-3 text-foreground" />
+                                                <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-foreground" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-semibold text-foreground truncate">Secure Integration</p>
-                                                <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Connect securely with protected access and permissions.</p>
+                                                <p className="text-[10px] xs:text-[11px] font-semibold text-foreground truncate">Secure Access</p>
+                                                <p className="hidden sm:block text-[9px] sm:text-[10px] text-muted-foreground leading-snug">Connect securely with protected access and permissions.</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* ================= LAYER 2: Choose an Account Modal (Matching Image 2) ================= */}
-                                <div className="choose-account-layer absolute inset-0 z-25 rounded-2xl bg-card/98 backdrop-blur-2xl p-4 sm:p-6 flex flex-col justify-between opacity-0 pointer-events-none transition-all duration-500 border border-border">
+                                <div className="choose-account-layer absolute inset-0 z-25 rounded-xl sm:rounded-2xl bg-card/98 backdrop-blur-2xl p-2.5 xs:p-3.5 sm:p-6 flex flex-col justify-between opacity-0 pointer-events-none transition-all duration-500 border border-border overflow-hidden">
                                     <div>
                                         {/* Google Header */}
-                                        <div className="flex flex-col items-center text-center pb-3">
+                                        <div className="flex flex-col items-center text-center pb-1.5 sm:pb-3">
                                             <GoogleWordmark />
-                                            <h3 className="text-sm sm:text-base md:text-lg font-medium text-foreground mt-2 tracking-tight">
+                                            <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-medium text-foreground mt-1 sm:mt-2 tracking-tight">
                                                 Choose an account
                                             </h3>
-                                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                                            <p className="text-[9px] xs:text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">
                                                 to continue to <span className="font-semibold text-foreground">miniCRM</span>
                                             </p>
                                         </div>
 
                                         {/* Account List */}
-                                        <div className="divide-y divide-border/60 border-t border-b border-border/60 mt-1">
+                                        <div className="divide-y divide-border/60 border-t border-b border-border/60 mt-0.5 sm:mt-1">
                                             {/* Account 1: Parth Shah */}
-                                            <div className="py-2 sm:py-2.5 px-2 flex items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-8 h-8 rounded-full bg-neutral-700 text-neutral-200 font-semibold text-xs flex items-center justify-center shrink-0 border border-border">
+                                            <div className="py-1.5 xs:py-2 sm:py-2.5 px-1 sm:px-2 flex items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
+                                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                                    <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-700 text-neutral-200 font-semibold text-[10px] sm:text-xs flex items-center justify-center shrink-0 border border-border">
                                                         PS
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                                        <p className="text-[11px] xs:text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                                                             Parth Shah
                                                         </p>
-                                                        <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
+                                                        <p className="text-[9px] xs:text-[10px] sm:text-[11px] text-muted-foreground truncate">
                                                             parth.shah@example.com
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
+                                                <span className="text-[9px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
                                                     Signed out
                                                 </span>
                                             </div>
 
                                             {/* Account 2: Heema Shah */}
-                                            <div className="py-2 sm:py-2.5 px-2 flex items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-8 h-8 rounded-full bg-amber-700 text-amber-100 font-semibold text-xs flex items-center justify-center shrink-0 border border-border">
+                                            <div className="py-1.5 xs:py-2 sm:py-2.5 px-1 sm:px-2 flex items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
+                                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                                    <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-amber-700 text-amber-100 font-semibold text-[10px] sm:text-xs flex items-center justify-center shrink-0 border border-border">
                                                         HS
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                                        <p className="text-[11px] xs:text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                                                             Heema Shah
                                                         </p>
-                                                        <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
+                                                        <p className="text-[9px] xs:text-[10px] sm:text-[11px] text-muted-foreground truncate">
                                                             heema.shah@example.com
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
+                                                <span className="text-[9px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
                                                     Signed out
                                                 </span>
                                             </div>
 
-                                            {/* Account 3: Rita Shah */}
-                                            <div className="py-2 sm:py-2.5 px-2 flex items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-8 h-8 rounded-full bg-rose-700 text-rose-100 font-semibold text-xs flex items-center justify-center shrink-0 border border-border">
+                                            {/* Account 3: Rita Shah (hidden on small mobile screens to keep card compact) */}
+                                            <div className="hidden xs:flex py-1.5 sm:py-2.5 px-1 sm:px-2 items-center justify-between hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
+                                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                                    <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-rose-700 text-rose-100 font-semibold text-[10px] sm:text-xs flex items-center justify-center shrink-0 border border-border">
                                                         RS
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                                        <p className="text-[11px] xs:text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                                                             Rita Shah
                                                         </p>
-                                                        <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
+                                                        <p className="text-[9px] xs:text-[10px] sm:text-[11px] text-muted-foreground truncate">
                                                             rita.shah@example.com
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
+                                                <span className="text-[9px] sm:text-[11px] text-muted-foreground font-normal shrink-0">
                                                     Signed out
                                                 </span>
                                             </div>
 
                                             {/* Use another account */}
-                                            <div className="py-2 sm:py-2.5 px-2 flex items-center gap-3 hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
-                                                <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground shrink-0 group-hover:text-foreground">
-                                                    <User className="w-4 h-4" />
+                                            <div className="py-1.5 xs:py-2 sm:py-2.5 px-1 sm:px-2 flex items-center gap-2 sm:gap-3 hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
+                                                <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground shrink-0 group-hover:text-foreground">
+                                                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 </div>
-                                                <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                                                <span className="text-[11px] sm:text-xs font-medium text-foreground group-hover:text-primary transition-colors">
                                                     Use another account
                                                 </span>
                                             </div>
 
                                             {/* Remove an account */}
-                                            <div className="py-2 sm:py-2.5 px-2 flex items-center gap-3 hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
-                                                <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground shrink-0 group-hover:text-foreground">
-                                                    <UserMinus className="w-4 h-4" />
+                                            <div className="py-1.5 xs:py-2 sm:py-2.5 px-1 sm:px-2 flex items-center gap-2 sm:gap-3 hover:bg-surface-elevated/60 rounded-md transition-colors cursor-pointer group">
+                                                <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground shrink-0 group-hover:text-foreground">
+                                                    <UserMinus className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 </div>
-                                                <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                                                <span className="text-[11px] sm:text-xs font-medium text-foreground group-hover:text-primary transition-colors">
                                                     Remove an account
                                                 </span>
                                             </div>
@@ -556,48 +556,48 @@ export const ScrollStoryShowcase = () => {
                                     </div>
 
                                     {/* Modal Footer Notice */}
-                                    <div className="pt-2 text-[10px] text-muted-foreground text-center border-t border-border/40">
-                                        To continue, Google will share your name, email address, and calendar access with miniCRM.
+                                    <div className="pt-1.5 sm:pt-2 text-[9px] sm:text-[10px] text-muted-foreground text-center border-t border-border/40 leading-tight">
+                                        To continue, Google will share your account info and calendar access with miniCRM.
                                     </div>
                                 </div>
 
                                 {/* ================= LAYER 3: Live Google Calendar Integration Cockpit ================= */}
-                                <div className="integration-cockpit-layer opacity-0 pointer-events-none transition-all duration-500 flex flex-col gap-2.5 text-left">
+                                <div className="integration-cockpit-layer opacity-0 pointer-events-none transition-all duration-500 flex flex-col gap-1.5 sm:gap-2.5 text-left">
                                     {/* 1. Header Bar: Google Calendar + Connected Badge + Sync/Disconnect */}
-                                    <div className="flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-surface border border-border">
-                                        <div className="flex items-center gap-2">
-                                            <GoogleIcon className="w-4 h-4" />
+                                    <div className="flex flex-wrap items-center justify-between gap-1.5 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface border border-border">
+                                        <div className="flex items-center gap-1.5 sm:gap-2">
+                                            <GoogleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                             <span className="text-xs sm:text-sm font-bold text-foreground tracking-tight">Google Calendar</span>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                                 <span>Connected</span>
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-1.5">
+                                        <div className="flex items-center gap-1 sm:gap-1.5">
                                             <div className="relative">
-                                                <div className="sync-pulse-indicator inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium bg-surface-elevated border border-border text-foreground transition-all">
-                                                    <RefreshCw className="w-3 h-3 text-muted-foreground sync-spin-icon" />
+                                                <div className="sync-pulse-indicator inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[11px] font-medium bg-surface-elevated border border-border text-foreground transition-all">
+                                                    <RefreshCw className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground sync-spin-icon" />
                                                     <span>Sync</span>
                                                 </div>
 
                                                 {/* Tooltip Indication when Sync Step Arrives */}
-                                                <div className="sync-tooltip-pill absolute -bottom-9 right-0 z-50 whitespace-nowrap px-2.5 py-1 rounded-full bg-white text-neutral-900 border border-white/80 text-[11px] font-medium shadow-[0_8px_24px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] flex items-center gap-2 opacity-0 pointer-events-none transform translate-y-1 transition-all duration-300">
+                                                <div className="sync-tooltip-pill absolute -bottom-8 sm:-bottom-9 right-0 z-50 whitespace-nowrap px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white text-neutral-900 border border-white/80 text-[10px] sm:text-[11px] font-medium shadow-[0_8px_24px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] flex items-center gap-1.5 sm:gap-2 opacity-0 pointer-events-none transform translate-y-1 transition-all duration-300">
                                                     <span className="tracking-tight text-neutral-900 font-semibold">Syncing Calendar . . .</span>
                                                     {/* Tooltip pointer */}
                                                     <div className="absolute -top-1 right-4 w-2 h-2 bg-white border-l border-t border-white/80 rotate-45" />
                                                 </div>
                                             </div>
 
-                                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium bg-red-500/10 border border-red-500/20 text-red-400">
-                                                <Unplug className="w-3 h-3 text-red-400" />
+                                            <div className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[11px] font-medium bg-red-500/10 border border-red-500/20 text-red-400">
+                                                <Unplug className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
                                                 <span>Disconnect</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* 2. Connected Account Strip */}
-                                    <div className="p-2.5 sm:p-3 rounded-xl bg-surface-elevated border border-border flex items-center justify-between gap-2">
+                                    <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-surface-elevated border border-border flex items-center justify-between gap-2">
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-xs sm:text-sm font-semibold text-foreground truncate">
@@ -607,85 +607,86 @@ export const ScrollStoryShowcase = () => {
                                                     Active
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                                                <Clock className="w-3 h-3 text-muted-foreground" />
-                                                <span>Connected on Sep 21, 2026</span>
+                                            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                                                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                                                <span className="hidden xs:inline">Connected on Sep 21, 2026</span>
+                                                <span className="xs:hidden">Connected</span>
                                             </p>
                                         </div>
 
-                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium bg-surface border border-border text-foreground hover:bg-surface-elevated shrink-0">
+                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[11px] font-medium bg-surface border border-border text-foreground hover:bg-surface-elevated shrink-0">
                                             <span>Open Calendar</span>
-                                            <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                            <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
                                         </div>
                                     </div>
 
                                     {/* 3. Feeds Container */}
-                                    <div className="p-2.5 sm:p-3.5 rounded-xl bg-surface border border-border flex flex-col gap-2.5">
+                                    <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-surface border border-border flex flex-col gap-1.5 sm:gap-2.5">
                                         {/* Feeds Header + Filter */}
-                                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
+                                        <div className="flex flex-wrap items-center justify-between gap-1.5 pb-1.5 sm:pb-2 border-b border-border">
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5 text-foreground/80" />
+                                                    <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground/80" />
                                                     <span className="text-xs sm:text-sm font-bold text-foreground">Google Calendar Feeds</span>
-                                                    <span className="px-1.5 py-0.5 rounded text-[10px] text-muted-foreground bg-surface-elevated border border-border">
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] text-muted-foreground bg-surface-elevated border border-border">
                                                         5 calendars
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                                <p className="hidden xs:block text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">
                                                     Select which calendar feed receives incoming client bookings.
                                                 </p>
                                             </div>
 
                                             <div className="flex items-center gap-1.5">
-                                                <div className="relative">
+                                                <div className="relative hidden xs:block">
                                                     <Search className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                                     <input
                                                         type="text"
                                                         readOnly
                                                         placeholder="Filter calendars..."
-                                                        className="h-6 pl-6 pr-2 rounded-md bg-surface-elevated border border-border text-[10px] text-foreground w-28 sm:w-32 focus:outline-none"
+                                                        className="h-5 sm:h-6 pl-6 pr-2 rounded-md bg-surface-elevated border border-border text-[9px] sm:text-[10px] text-foreground w-24 sm:w-32 focus:outline-none"
                                                     />
                                                 </div>
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-surface-elevated border border-border text-foreground">
+                                                <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-medium bg-surface-elevated border border-border text-foreground">
                                                     5 Feeds
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Feed 1: Primary Work Calendar (Destination Feed) */}
-                                        <div className="destination-feed-card p-2.5 sm:p-3 rounded-lg border border-border bg-surface-elevated flex flex-col gap-2 transition-all duration-500">
-                                            <div className="flex items-start justify-between gap-2">
+                                        <div className="destination-feed-card p-2 sm:p-2.5 rounded-lg border border-border bg-surface-elevated flex flex-col gap-1.5 sm:gap-2 transition-all duration-500">
+                                            <div className="flex items-start justify-between gap-1.5">
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                                                        <span className="text-xs font-bold text-foreground truncate">
+                                                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500 shrink-0" />
+                                                        <span className="text-[11px] sm:text-xs font-bold text-foreground truncate">
                                                             Primary Work Calendar
                                                         </span>
-                                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-surface border border-border text-muted-foreground">
+                                                        <span className="px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-surface border border-border text-muted-foreground">
                                                             owner
                                                         </span>
-                                                        <span className="destination-badge px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500 text-white shadow-[0_0_10px_rgba(52,211,153,0.4)] transition-transform duration-300">
+                                                        <span className="destination-badge px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-bold bg-emerald-500 text-white shadow-[0_0_10px_rgba(52,211,153,0.4)] transition-transform duration-300">
                                                             APPOINTMENTS ARE CREATED HERE
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                                    <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">
                                                         Direct client scheduling & consultation pipeline
                                                     </p>
-                                                    <div className="text-[9px] font-mono text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                                                    <div className="hidden xs:flex text-[9px] font-mono text-muted-foreground mt-1 items-center gap-1 truncate">
                                                         <CornerDownRight className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                                                         <span className="truncate">ID: parth.shah@workspace.com</span>
                                                         <Copy className="w-2.5 h-2.5 text-muted-foreground shrink-0 cursor-pointer hover:text-foreground" />
                                                     </div>
                                                 </div>
 
-                                                <span className="px-2 py-1 rounded-md text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 shrink-0 flex items-center gap-1">
-                                                    <Check className="w-3 h-3" />
+                                                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 shrink-0 flex items-center gap-1">
+                                                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                                     <span>Destination Feed</span>
                                                 </span>
                                             </div>
 
                                             {/* Synced Capabilities Strip */}
-                                            <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[10px] text-muted-foreground">
+                                            <div className="pt-1.5 sm:pt-2 border-t border-border/40 flex items-center justify-between text-[9px] sm:text-[10px] text-muted-foreground">
                                                 <span className="text-emerald-400 flex items-center gap-1 sync-status-badge transition-transform">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                                     <span>Two-Way Conflict Elimination Active</span>
@@ -695,33 +696,33 @@ export const ScrollStoryShowcase = () => {
                                         </div>
 
                                         {/* Feed 2 */}
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface-elevated/40 flex items-start justify-between gap-2">
+                                        <div className="p-1.5 sm:p-2.5 rounded-lg border border-border/60 bg-surface-elevated/40 flex items-start justify-between gap-1.5 sm:gap-2">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                                    <span className="text-xs font-semibold text-foreground/80 truncate">
+                                                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 shrink-0" />
+                                                    <span className="text-[11px] sm:text-xs font-semibold text-foreground/80 truncate">
                                                         Team Workshops & Bootcamps
                                                     </span>
-                                                    <span className="px-1.5 py-0.2 rounded text-[9px] bg-surface border border-border text-muted-foreground">
+                                                    <span className="px-1 py-0.2 sm:px-1.5 sm:py-0.2 rounded text-[8px] sm:text-[9px] bg-surface border border-border text-muted-foreground">
                                                         writer
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                                <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">
                                                     Synchronizes availability with internal cohort sessions
                                                 </p>
-                                                <div className="text-[9px] font-mono text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                                                <div className="hidden xs:flex text-[9px] font-mono text-muted-foreground mt-0.5 items-center gap-1 truncate">
                                                     <span className="truncate">ID: team.workshops.c10065@group.calendar.google.com</span>
                                                     <Copy className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                                                 </div>
                                             </div>
 
-                                            <span className="px-2 py-1 rounded-md text-[10px] font-medium text-muted-foreground bg-surface border border-border shrink-0">
+                                            <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-medium text-muted-foreground bg-surface border border-border shrink-0">
                                                 Set as Active
                                             </span>
                                         </div>
 
-                                        {/* Feed 3 */}
-                                        <div className="p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface-elevated/40 flex items-start justify-between gap-2">
+                                        {/* Feed 3 (Hidden on mobile screens to preserve compact vertical height) */}
+                                        <div className="hidden sm:flex p-2 sm:p-2.5 rounded-lg border border-border/60 bg-surface-elevated/40 items-start justify-between gap-2">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
@@ -740,9 +741,9 @@ export const ScrollStoryShowcase = () => {
                                         </div>
 
                                         {/* Scroll indicator */}
-                                        <div className="flex justify-center pt-1">
-                                            <div className="h-4 w-4 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-muted-foreground">
-                                                <ChevronDown className="w-3 h-3" />
+                                        <div className="hidden xs:flex justify-center pt-0.5">
+                                            <div className="h-3.5 w-3.5 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-muted-foreground">
+                                                <ChevronDown className="w-2.5 h-2.5" />
                                             </div>
                                         </div>
                                     </div>
@@ -750,33 +751,33 @@ export const ScrollStoryShowcase = () => {
                             </div>
 
                             {/* ================= BACK FACE: 3D Flip with Big Down Arrow ================= */}
-                            <div className="absolute inset-0 rounded-2xl border border-primary/40 bg-card/95 backdrop-blur-2xl p-6 sm:p-8 shadow-2xl backface-hidden rotate-y-180 flex flex-col items-center justify-between text-center">
+                            <div className="absolute inset-0 rounded-xl sm:rounded-2xl border border-primary/40 bg-card/95 backdrop-blur-2xl p-4 sm:p-8 shadow-2xl backface-hidden rotate-y-180 flex flex-col items-center justify-between text-center overflow-hidden">
                                 {/* Top Badge */}
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                                    <Check className="w-3.5 h-3.5" />
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] sm:text-xs font-semibold">
+                                    <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                     <span>Google Calendar Synchronized</span>
                                 </div>
 
                                 {/* Center: Big Glowing Animated Down Arrow */}
-                                <div className="relative flex flex-col items-center justify-center my-auto py-4">
+                                <div className="relative flex flex-col items-center justify-center my-auto py-2 sm:py-4">
                                     <div className="relative flex items-center justify-center">
-                                        <div className="absolute w-28 h-28 rounded-full bg-primary/10 animate-ping" />
-                                        <div className="absolute w-24 h-24 rounded-full border border-primary/20 animate-pulse" />
-                                        <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-full bg-surface-elevated border-2 border-primary flex items-center justify-center shadow-[0_0_35px_rgba(255,255,255,0.2)]">
-                                            <ArrowDown className="w-9 h-9 sm:w-11 sm:h-11 text-primary animate-pulse" />
+                                        <div className="absolute w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-primary/10 animate-ping" />
+                                        <div className="absolute w-16 h-16 sm:w-24 sm:h-24 rounded-full border border-primary/20 animate-pulse" />
+                                        <div className="w-14 h-14 sm:w-22 sm:h-22 rounded-full bg-surface-elevated border-2 border-primary flex items-center justify-center shadow-[0_0_35px_rgba(255,255,255,0.2)]">
+                                            <ArrowDown className="w-7 h-7 sm:w-11 sm:h-11 text-primary animate-pulse" />
                                         </div>
                                     </div>
-                                    <span className="mt-4 text-xs font-mono tracking-wider text-muted-foreground uppercase">
+                                    <span className="mt-2.5 sm:mt-4 text-[10px] sm:text-xs font-mono tracking-wider text-muted-foreground uppercase">
                                         CONTINUE SCROLLING
                                     </span>
                                 </div>
 
                                 {/* Bottom Direction Text */}
                                 <div>
-                                    <h3 className="text-base sm:text-lg font-bold text-foreground">
+                                    <h3 className="text-sm sm:text-lg font-bold text-foreground">
                                         Core CRM & Operations Suite
                                     </h3>
-                                    <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 max-w-xs leading-relaxed line-clamp-2 sm:line-clamp-none">
                                         Appointments now flow directly into customer directories and sales pipeline stages.
                                     </p>
                                 </div>

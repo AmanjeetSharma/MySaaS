@@ -21,9 +21,9 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
 
         if (!card || !container) return;
 
-        // Clean static initial size vs full zoomed immersion
-        const initialScale = isMobile ? 0.94 : 0.88;
-        const targetScale = isMobile ? 1.02 : 1.14;
+        // Clean static initial size vs full zoomed immersion with proper mobile padding
+        const initialScale = isMobile ? 0.90 : 0.88;
+        const targetScale = isMobile ? 0.97 : 1.12;
 
         gsap.set(card, {
             scale: initialScale,
@@ -54,7 +54,7 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
                     ease: "power2.inOut"
                 }, "<")
                 .to(header, {
-                    y: isMobile ? -8 : -20,
+                    y: isMobile ? -6 : -20,
                     opacity: 0.3,
                     duration: 1.2,
                     ease: "power2.inOut"
@@ -73,67 +73,67 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
         <section
             id="engine"
             ref={engineContainerRef}
-            className="relative z-10 w-full h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden border-t border-border/40 px-4 sm:px-6 select-none"
+            className="relative z-10 w-full min-h-[100dvh] h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden border-t border-border/40 px-5 sm:px-8 md:px-12 select-none"
         >
             {/* Section Header */}
-            <div ref={headerRef} className="flex flex-col items-center max-w-3xl mb-6 sm:mb-8 text-center transition-all duration-300">
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+            <div ref={headerRef} className="flex flex-col items-center max-w-2xl mb-3 sm:mb-6 text-center transition-all duration-300 px-3">
+                <h2 className="text-xl xs:text-2xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
                     Appointment Booking Workflow
                 </h2>
-                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl">
+                <p className="mt-1 sm:mt-2 text-[11px] sm:text-xs md:text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-none">
                     Experience how an inbound client booking automatically synthesizes customer profiles, updates pipeline deal values, and synchronizes Google Calendar in real time.
                 </p>
             </div>
 
-            {/* Telemetry Simulator Card (Static initially -> Smoothly Zooms on Scroll -> Holds -> Next Content) */}
+            {/* Telemetry Simulator Card (Compact for mobile, never occupying whole width) */}
             <div
                 ref={cardRef}
-                className="w-full max-w-5xl rounded-xl border border-border bg-card/95 backdrop-blur-xl p-3.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden transition-colors"
+                className="w-full max-w-[330px] xs:max-w-[400px] sm:max-w-2xl lg:max-w-5xl rounded-xl border border-border bg-card/95 backdrop-blur-xl p-2.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden transition-colors mx-auto"
             >
                 {/* Cockpit Top Bar */}
-                <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-border/60 gap-2 text-[10px] sm:text-[11px] font-medium text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full moon-dot text-primary animate-pulse" />
+                <div className="flex flex-wrap items-center justify-between pb-2 sm:pb-4 border-b border-border/60 gap-1.5 text-[9px] xs:text-[10px] sm:text-[11px] font-medium text-muted-foreground">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full moon-dot text-primary animate-pulse" />
                         <span className="tracking-wide uppercase font-semibold text-foreground">Live Telemetry Simulation</span>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5 sm:gap-3">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded border border-border bg-surface-elevated text-[9px] sm:text-[10px] text-muted-foreground">
                             Google Calendar: Synced
                         </span>
-                        <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] text-foreground font-medium">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[9px] sm:text-[10px] text-foreground font-medium">
                             Realtime Active
                         </span>
                     </div>
                 </div>
 
                 {/* Cockpit Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 pt-4 sm:pt-5 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-6 pt-2.5 sm:pt-5 items-stretch">
                     {/* Left: Booking View */}
-                    <div className="lg:col-span-5 flex flex-col gap-3 p-3.5 sm:p-4 rounded-lg border border-border/80 bg-surface">
+                    <div className="lg:col-span-5 flex flex-col gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-lg border border-border/80 bg-surface">
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 truncate">
+                            <span className="text-[11px] sm:text-xs font-semibold text-foreground flex items-center gap-1.5 truncate">
                                 <Calendar className="h-3.5 w-3.5 text-foreground/70 shrink-0" />
                                 <span className="truncate">Public Booking Interface</span>
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-mono shrink-0">/book/apex/consult</span>
+                            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono shrink-0">/book/consult</span>
                         </div>
 
-                        <div className="p-2.5 sm:p-3 rounded-md bg-surface-elevated border border-border/60">
-                            <p className="text-xs font-semibold text-foreground">45m Technical Architecture Review</p>
-                            <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">Apex Advisory • Google Meet attached</p>
+                        <div className="p-2 sm:p-3 rounded-md bg-surface-elevated border border-border/60">
+                            <p className="text-[11px] sm:text-xs font-semibold text-foreground truncate">Technical Review Session</p>
+                            <p className="text-[9px] sm:text-[11px] text-muted-foreground mt-0.5 truncate">Apex Advisory • Google Meet attached</p>
                         </div>
 
                         <div>
-                            <label className="text-[10px] sm:text-[11px] font-medium text-muted-foreground block mb-2">
-                                Available Slots (Select to test real-time sync)
+                            <label className="text-[9px] sm:text-[11px] font-medium text-muted-foreground block mb-1.5 sm:mb-2">
+                                Available Slots (Select to test sync)
                             </label>
-                            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                            <div className="grid grid-cols-3 gap-1 sm:gap-2">
                                 {['11:30', '14:00', '16:30'].map((slot) => (
                                     <button
                                         key={slot}
                                         type="button"
                                         onClick={() => setSelectedSlot(slot)}
-                                        className={`h-8 sm:h-8 rounded-lg text-[11px] sm:text-xs font-medium border transition-all cursor-pointer ${selectedSlot === slot
+                                        className={`h-7 sm:h-8 rounded-lg text-[10px] sm:text-xs font-medium border transition-all cursor-pointer ${selectedSlot === slot
                                             ? 'border-white/60 bg-white/10 text-foreground font-semibold shadow-[0_0_12px_rgba(255,255,255,0.15)]'
                                             : 'border-border bg-surface-elevated text-muted-foreground hover:text-foreground'
                                             }`}
@@ -156,26 +156,26 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
                     </div>
 
                     {/* Center: Connective Indicator (Mobile/Tablet) */}
-                    <div className="flex lg:hidden items-center justify-center -my-1">
-                        <span className="px-2.5 py-1 rounded-full bg-surface-elevated border border-border text-[10px] font-medium text-foreground flex items-center gap-1.5">
+                    <div className="flex lg:hidden items-center justify-center -my-0.5">
+                        <span className="px-2 py-0.5 rounded-full bg-surface-elevated border border-border text-[9px] font-medium text-foreground flex items-center gap-1">
                             <span>Auto-creates Customer & Deal</span>
-                            <ArrowDown className="h-3 w-3 text-primary" />
+                            <ArrowDown className="h-2.5 w-2.5 text-primary" />
                         </span>
                     </div>
 
                     {/* Right: CRM View */}
-                    <div className="lg:col-span-5 flex flex-col gap-3 p-3.5 sm:p-4 rounded-lg border border-border/80 bg-surface">
+                    <div className="lg:col-span-5 flex flex-col gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-lg border border-border/80 bg-surface">
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 truncate">
+                            <span className="text-[11px] sm:text-xs font-semibold text-foreground flex items-center gap-1.5 truncate">
                                 <Kanban className="h-3.5 w-3.5 text-foreground/70 shrink-0" />
                                 <span className="truncate">CRM Pipeline Workspace</span>
                             </span>
-                            <span className="text-[10px] text-foreground font-medium flex items-center gap-1 shrink-0">
-                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Deal Stage Updated
+                            <span className="text-[9px] sm:text-[10px] text-foreground font-medium flex items-center gap-1 shrink-0">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Updated
                             </span>
                         </div>
 
-                        <div className="p-2.5 sm:p-3 rounded-md bg-surface-elevated border border-border/80 flex flex-col gap-2">
+                        <div className="p-2 sm:p-3 rounded-md bg-surface-elevated border border-border/80 flex flex-col gap-1.5 sm:gap-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-foreground">Apex Engineering</span>
                                 <span className="text-xs font-semibold text-foreground">$4,500</span>
