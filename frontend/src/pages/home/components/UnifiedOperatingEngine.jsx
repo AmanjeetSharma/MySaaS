@@ -3,39 +3,84 @@ import { Calendar, Kanban, Clock, ArrowRight, ArrowDown, Activity } from "lucide
 import gsap from 'gsap';
 
 export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
+    const sectionRef = useRef(null);
     const cockpitWrapRef = useRef(null);
 
     useEffect(() => {
         const card = cockpitWrapRef.current;
-        if (!card) return;
+        const section = sectionRef.current;
+        if (!card || !section) return;
 
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) return;
 
-        // Interactive 3D Parallax Mouse Tilt
-        const handleMouseMove = (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
+        let isVisible = false;
+        let cachedRect = null;
+        let rafId = null;
+        let mouseX = 0;
+        let mouseY = 0;
 
-            gsap.to(card, {
-                rotateY: x * 0.022,
-                rotateX: -y * 0.022,
-                ease: 'power2.out',
-                duration: 0.5,
-            });
+        const updateRect = () => {
+            if (isVisible) {
+                cachedRect = card.getBoundingClientRect();
+            }
+        };
+
+        const onFrame = () => {
+            if (!cachedRect) updateRect();
+            if (cachedRect) {
+                const x = mouseX - cachedRect.left - cachedRect.width / 2;
+                const y = mouseY - cachedRect.top - cachedRect.height / 2;
+
+                gsap.to(card, {
+                    rotateY: x * 0.022,
+                    rotateX: -y * 0.022,
+                    ease: 'power2.out',
+                    duration: 0.5,
+                    overwrite: 'auto'
+                });
+            }
+            rafId = null;
+        };
+
+        const handleMouseMove = (e) => {
+            if (!isVisible) return;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (!rafId) {
+                rafId = requestAnimationFrame(onFrame);
+            }
         };
 
         const handleMouseLeave = () => {
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
             gsap.to(card, {
                 rotateY: 0,
                 rotateX: 0,
                 ease: 'power2.out',
-                duration: 0.7
+                duration: 0.7,
+                overwrite: 'auto'
             });
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
+        // Only attach / run when section is in viewport
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            isVisible = entry.isIntersecting;
+            if (isVisible) {
+                updateRect();
+            } else {
+                handleMouseLeave();
+            }
+        }, { threshold: 0.05 });
+
+        observer.observe(section);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        window.addEventListener('resize', updateRect, { passive: true });
         card.addEventListener('mouseleave', handleMouseLeave);
 
         // Subtle ambient 3D float for touch/mobile screens
@@ -52,14 +97,17 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
         }
 
         return () => {
+            observer.disconnect();
+            if (rafId) cancelAnimationFrame(rafId);
             window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('resize', updateRect);
             card.removeEventListener('mouseleave', handleMouseLeave);
             if (floatTween) floatTween.kill();
         };
     }, []);
 
     return (
-        <section id="engine" className="w-full px-4 sm:px-6 py-16 sm:py-24 md:py-28 max-w-7xl mx-auto flex flex-col items-center text-center perspective-container border-t border-border/40">
+        <section ref={sectionRef} id="engine" className="w-full px-4 sm:px-6 py-16 sm:py-24 md:py-28 max-w-7xl mx-auto flex flex-col items-center text-center perspective-container border-t border-border/40">
             {/* Section Header */}
             <div className="flex flex-col items-center max-w-3xl mb-8 sm:mb-12">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit mb-3">

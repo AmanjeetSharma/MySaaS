@@ -126,3 +126,16 @@
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+/* Performance & GPU Compositing Optimizations */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+

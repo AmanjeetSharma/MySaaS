@@ -48,10 +48,6 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                 {/* Left: Layer Selector (Tabs / Cards) */}
                 <div className="lg:col-span-5 flex flex-col gap-3">
                     <div className="mb-2 sm:mb-4">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-                            <Layers className="h-3.5 w-3.5 text-primary" />
-                            <span>Interactive 3D Deck</span>
-                        </div>
                         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                             Core CRM & Operations Suite
                         </h2>
@@ -155,12 +151,12 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-extrabold shadow-sm">
-                                                        EV
+                                                        JD
                                                     </div>
                                                     <div>
-                                                        <div className="text-xs font-bold text-foreground">Elena Vance</div>
+                                                        <div className="text-xs font-bold text-foreground">Jordan Davies</div>
                                                         <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                                            <Mail className="h-2.5 w-2.5" /> elena@apexengineering.com
+                                                            <Mail className="h-2.5 w-2.5" /> jordan@acmecorp.com
                                                         </div>
                                                     </div>
                                                 </div>
@@ -173,12 +169,12 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                                 <div className="p-2 rounded bg-surface-elevated border border-border/60">
                                                     <span className="text-[10px] text-muted-foreground block">Company</span>
                                                     <span className="font-semibold text-foreground flex items-center gap-1 mt-0.5 truncate">
-                                                        <Building2 className="h-3 w-3 text-muted-foreground shrink-0" /> Apex Engineering Inc.
+                                                        <Building2 className="h-3 w-3 text-muted-foreground shrink-0" /> Acme Global Inc.
                                                     </span>
                                                 </div>
                                                 <div className="p-2 rounded bg-surface-elevated border border-border/60">
                                                     <span className="text-[10px] text-muted-foreground block">Total Pipeline Value</span>
-                                                    <span className="font-semibold text-foreground mt-0.5 block">$17,000 (3 Bookings)</span>
+                                                    <span className="font-semibold text-foreground mt-0.5 block">$24,500 (3 Bookings)</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -188,8 +184,8 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                     {index === 1 && (
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <div className="text-xs font-bold text-foreground">Architecture Advisory Scope</div>
-                                                <div className="text-xs font-mono font-bold text-foreground">$12,500</div>
+                                                <div className="text-xs font-bold text-foreground">Enterprise Platform Retainer</div>
+                                                <div className="text-xs font-mono font-bold text-foreground">$15,000</div>
                                             </div>
 
                                             <div className="space-y-1.5">
@@ -208,7 +204,7 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                             </div>
 
                                             <div className="p-2 rounded bg-surface-elevated border border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">
-                                                <span>Owner: Lead Architect</span>
+                                                <span>Owner: Account Executive</span>
                                                 <span className="text-foreground font-medium">Stage Probability: 75%</span>
                                             </div>
                                         </div>
@@ -226,7 +222,7 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                                 <div className="p-2 rounded bg-surface-elevated border border-border/60 flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                                                        <span className="text-foreground text-[11px]">Generate Scope Proposal PDF</span>
+                                                        <span className="text-foreground text-[11px]">Generate Service Contract PDF</span>
                                                     </div>
                                                     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-card border border-border text-foreground">
                                                         High
@@ -236,7 +232,7 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                                 <div className="p-2 rounded bg-surface-elevated border border-border/60 flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <BellRing className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                                        <span className="text-muted-foreground text-[11px]">WhatsApp 24h Meeting Alert</span>
+                                                        <span className="text-muted-foreground text-[11px]">Automated 24h Meeting Alert</span>
                                                     </div>
                                                     <span className="text-[9px] text-muted-foreground">Auto-Queued</span>
                                                 </div>
@@ -256,30 +252,21 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                                                 <div className="flex items-start gap-2 p-1.5 rounded bg-surface-elevated border border-border/60">
                                                     <div className="h-1.5 w-1.5 rounded-full bg-white mt-1 shrink-0" />
                                                     <div className="flex-1 truncate">
-                                                        <span className="font-semibold text-foreground">Client Booked Public Slot</span>
-                                                        <p className="text-[10px] text-muted-foreground">45m Strategy Session • 14:02 GMT</p>
+                                                        <span className="font-semibold text-foreground">Client Booked Discovery Session</span>
+                                                        <p className="text-[10px] text-muted-foreground">45m Strategy Call • 14:02 UTC</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-start gap-2 p-1.5 rounded bg-surface-elevated/60 border border-border/40">
                                                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 shrink-0" />
                                                     <div className="flex-1 truncate">
-                                                        <span className="font-medium text-foreground">Google Calendar Synced</span>
-                                                        <p className="text-[10px] text-muted-foreground">Event locked to primary feed • 14:03 GMT</p>
+                                                        <span className="font-medium text-foreground">Calendar Bridge Synchronized</span>
+                                                        <p className="text-[10px] text-muted-foreground">Event locked to primary feed • 14:03 UTC</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Bottom Metrology */}
-                                <div className="flex items-center justify-between pt-3 border-t border-border/60 text-[10px] font-mono text-muted-foreground">
-                                    <span>REALTIME OPERATIONAL STREAM</span>
-                                    <span className="flex items-center gap-1 text-foreground font-medium">
-                                        <span>Click layer to focus</span>
-                                        <ArrowRight className="h-3 w-3" />
-                                    </span>
                                 </div>
                             </div>
                         );
@@ -360,7 +347,7 @@ export const CrmCapabilitiesDeck = ({ activeLayer, setActiveLayer, features }) =
                         <BellRing className="h-4 w-4 text-foreground/70" />
                         <h3 className="text-sm sm:text-base font-bold text-foreground mt-2">Reminders & Payments</h3>
                         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                            Automated WhatsApp & email reminders, Razorpay checkout, and multi-workspace tenancy.
+                            Automated messaging & email reminders, payment gateway checkout, and multi-workspace tenancy.
                         </p>
                     </div>
                 </div>

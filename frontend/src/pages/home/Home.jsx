@@ -79,8 +79,13 @@ const Home = () => {
   };
 
   useEffect(() => {
+    let prevScrolled = false;
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 450);
+      const isScrolled = window.scrollY > 450;
+      if (isScrolled !== prevScrolled) {
+        prevScrolled = isScrolled;
+        setShowScrollTop(isScrolled);
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);

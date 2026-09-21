@@ -37,34 +37,78 @@ export const ScrollStoryShowcase = () => {
     // 1. Interactive 3D Cursor Parallax (matching the "Unified Operating Engine" card)
     useEffect(() => {
         const card = cardTiltRef.current;
-        if (!card) return;
+        const container = pinContainerRef.current;
+        if (!card || !container) return;
 
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) return;
 
-        const handleMouseMove = (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
+        let isVisible = false;
+        let cachedRect = null;
+        let rafId = null;
+        let mouseX = 0;
+        let mouseY = 0;
 
-            gsap.to(card, {
-                rotateY: x * 0.02,
-                rotateX: -y * 0.02,
-                ease: 'power2.out',
-                duration: 0.5,
-            });
+        const updateRect = () => {
+            if (isVisible) {
+                cachedRect = card.getBoundingClientRect();
+            }
+        };
+
+        const onFrame = () => {
+            if (!cachedRect) updateRect();
+            if (cachedRect) {
+                const x = mouseX - cachedRect.left - cachedRect.width / 2;
+                const y = mouseY - cachedRect.top - cachedRect.height / 2;
+
+                gsap.to(card, {
+                    rotateY: x * 0.02,
+                    rotateX: -y * 0.02,
+                    ease: 'power2.out',
+                    duration: 0.5,
+                    overwrite: 'auto'
+                });
+            }
+            rafId = null;
+        };
+
+        const handleMouseMove = (e) => {
+            if (!isVisible) return;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (!rafId) {
+                rafId = requestAnimationFrame(onFrame);
+            }
         };
 
         const handleMouseLeave = () => {
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
             gsap.to(card, {
                 rotateY: 0,
                 rotateX: 0,
                 ease: 'power2.out',
-                duration: 0.7
+                duration: 0.7,
+                overwrite: 'auto'
             });
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            isVisible = entry.isIntersecting;
+            if (isVisible) {
+                updateRect();
+            } else {
+                handleMouseLeave();
+            }
+        }, { threshold: 0.05 });
+
+        observer.observe(container);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        window.addEventListener('resize', updateRect, { passive: true });
         card.addEventListener('mouseleave', handleMouseLeave);
 
         // Ambient mobile float
@@ -81,7 +125,10 @@ export const ScrollStoryShowcase = () => {
         }
 
         return () => {
+            observer.disconnect();
+            if (rafId) cancelAnimationFrame(rafId);
             window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('resize', updateRect);
             card.removeEventListener('mouseleave', handleMouseLeave);
             if (floatTween) floatTween.kill();
         };
@@ -277,7 +324,7 @@ export const ScrollStoryShowcase = () => {
                             <span className="text-muted-foreground/70 block text-[10px]">INTEGRATION TELEMETRY</span>
                             <span className="text-foreground font-medium">
                                 {currentPill === 0 && 'Feeds: 5 Detected'}
-                                {currentPill === 1 && 'Active: Amanjeet Sharma Official'}
+                                {currentPill === 1 && 'Active: Primary Work Calendar'}
                                 {currentPill === 2 && 'Sync Status: Realtime Active'}
                                 {currentPill === 3 && 'Ready for CRM Pipeline'}
                             </span>
@@ -324,7 +371,7 @@ export const ScrollStoryShowcase = () => {
                                         </svg>
                                         <div className="p-2.5 rounded-lg border border-border bg-surface text-[10px] font-mono text-foreground">
                                             <div className="flex justify-between">
-                                                <span>CLIENT: Amanjeet Sharma</span>
+                                                <span>CLIENT: Enterprise User</span>
                                                 <span className="text-primary font-semibold">DISCOVERING FEEDS</span>
                                             </div>
                                             <div className="text-muted-foreground mt-0.5">AUTH: accounts.google.com/o/oauth2</div>
@@ -366,7 +413,7 @@ export const ScrollStoryShowcase = () => {
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-xs sm:text-sm font-semibold text-foreground truncate">
-                                                    amansharma23503@gmail.com
+                                                    alex.morgan@workspace.com
                                                 </span>
                                                 <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                                                     Active
@@ -413,21 +460,21 @@ export const ScrollStoryShowcase = () => {
                                                 <div className="flex items-center gap-1.5 flex-wrap">
                                                     <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                                                     <span className="text-xs font-bold text-foreground truncate">
-                                                        Amanjeet Sharma Official
+                                                        Primary Work Calendar
                                                     </span>
                                                     <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-surface border border-border text-muted-foreground">
                                                         Primary
                                                     </span>
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                                                    Primary Calendar For Work Part
+                                                    Primary Calendar For Client & Team Scheduling
                                                 </p>
                                                 <div className="flex items-center gap-1 mt-1 text-[10px] sm:text-[11px] font-semibold text-emerald-400">
                                                     <CornerDownRight className="w-3 h-3 text-emerald-400 shrink-0" />
                                                     <span className="destination-badge">Appointments are being created here</span>
                                                 </div>
                                                 <div className="text-[9px] font-mono text-muted-foreground mt-1 flex items-center gap-1 truncate">
-                                                    <span className="truncate">ID: amansharma23503@gmail.com</span>
+                                                    <span className="truncate">ID: alex.morgan@workspace.com</span>
                                                     <Copy className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                                                 </div>
                                             </div>
@@ -444,14 +491,14 @@ export const ScrollStoryShowcase = () => {
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                                                     <span className="text-xs font-semibold text-foreground/80 truncate">
-                                                        07 Aryan Sharma IX C C
+                                                        Product & Team Workshops
                                                     </span>
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                                                    online classes
+                                                    Internal knowledge sharing & sprints
                                                 </p>
                                                 <div className="text-[9px] font-mono text-muted-foreground mt-1 flex items-center gap-1 truncate">
-                                                    <span className="truncate">ID: classroom100654293611109273934@group...</span>
+                                                    <span className="truncate">ID: team.workshops.c10065@group.calendar.google.com</span>
                                                     <Copy className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                                                 </div>
                                             </div>
@@ -467,11 +514,11 @@ export const ScrollStoryShowcase = () => {
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
                                                     <span className="text-xs font-semibold text-foreground/80 truncate">
-                                                        test1
+                                                        Executive Briefings
                                                     </span>
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                                                    Enterprise SaaS style ⭐ My favorite
+                                                    Enterprise customer syncs & reviews
                                                 </p>
                                             </div>
 

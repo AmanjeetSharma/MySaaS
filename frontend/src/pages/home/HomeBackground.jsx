@@ -1,26 +1,40 @@
+import { useState, useEffect } from 'react';
 import homeBg from "@/assets/animations/home-bg1.webm";
 
 export const HomeBackground = () => {
+    const [reducedMotion, setReducedMotion] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    });
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const handleChange = (e) => setReducedMotion(e.matches);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
     return (
         <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen overflow-hidden select-none">
-            {/* Full-screen background video */}
-            <video
-                className="absolute inset-0 w-full h-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                aria-hidden="true"
-            >
-                <source src={homeBg} type="video/webm" />
-            </video>
-
-            {/* Subtle blur to blend the animation */}
-            <div className="absolute inset-0 backdrop-blur-[5px]" />
+            {/* Full-screen background video with GPU compositing and metadata preload */}
+            {!reducedMotion ? (
+                <video
+                    className="absolute inset-0 w-full h-full object-cover filter blur-[4px] scale-105 transform-gpu"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                >
+                    <source src={homeBg} type="video/webm" />
+                </video>
+            ) : (
+                <div className="absolute inset-0 bg-radial-[circle_at_50%_20%] from-primary/5 via-background to-background" />
+            )}
 
             {/* Gradient fades for header / hero / footer readability and depth */}
-            <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/65 to-background/95" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/95" />
         </div>
     );
 };
