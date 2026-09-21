@@ -144,7 +144,7 @@ const Home = () => {
 
           <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-muted-foreground">
             <a href="#engine" onClick={(e) => handleAnchorClick(e, '#engine')} className="hover:text-foreground transition-colors">
-              Engine
+              Appointments
             </a>
             <a href="#crm" onClick={(e) => handleAnchorClick(e, '#crm')} className="hover:text-foreground transition-colors">
               CRM Suite

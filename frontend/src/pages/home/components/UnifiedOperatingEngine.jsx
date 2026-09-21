@@ -1,104 +1,98 @@
-import { useRef, useEffect } from 'react';
-import { Calendar, Kanban, Clock, ArrowRight, ArrowDown, Activity } from "lucide-react";
+import { useRef, useEffect, useState } from 'react';
+import { Calendar, Kanban, Clock, ArrowRight, ArrowDown, Activity, Sparkles, Maximize2 } from "lucide-react";
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
-    const cockpitWrapRef = useRef(null);
+    const engineContainerRef = useRef(null);
+    const headerRef = useRef(null);
+    const cardRef = useRef(null);
+    const [zoomPercent, setZoomPercent] = useState(0);
 
     useEffect(() => {
-        const card = cockpitWrapRef.current;
-        if (!card) return;
-
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) return;
 
-        let rafId = null;
+        const isMobile = window.innerWidth < 1024;
+        const card = cardRef.current;
+        const header = headerRef.current;
+        const container = engineContainerRef.current;
 
-        const handleMouseMove = (e) => {
-            const rect = card.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
+        if (!card || !container) return;
 
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
+        // Clean static initial size vs full zoomed immersion
+        const initialScale = isMobile ? 0.94 : 0.88;
+        const targetScale = isMobile ? 1.02 : 1.14;
 
-            // Strict clamp to max ±6 degrees so it NEVER flips or looks too up or down
-            const maxDeg = 6;
-            const rotY = Math.max(-maxDeg, Math.min(maxDeg, (x / (rect.width / 2)) * maxDeg));
-            const rotX = Math.max(-maxDeg, Math.min(maxDeg, -(y / (rect.height / 2)) * maxDeg));
+        gsap.set(card, {
+            scale: initialScale,
+            transformOrigin: "center center",
+            willChange: "transform, box-shadow",
+        });
 
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(() => {
-                gsap.to(card, {
-                    rotateY: rotY,
-                    rotateX: rotX,
-                    ease: 'power2.out',
-                    duration: 0.35,
-                    overwrite: 'auto'
-                });
+        const ctx = gsap.context(() => {
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: container,
+                    start: "top top",
+                    end: isMobile ? "+=130%" : "+=170%",
+                    scrub: 0.6,
+                    pin: true,
+                    pinSpacing: true,
+                    onUpdate: (self) => {
+                        setZoomPercent(Math.round(self.progress * 100));
+                    }
+                }
             });
-        };
 
-        const handleReset = () => {
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-            gsap.to(card, {
-                rotateY: 0,
-                rotateX: 0,
-                ease: 'power2.out',
-                duration: 0.5,
-                overwrite: 'auto'
-            });
-        };
+            // 1. Brief hold at initial static card view
+            tl.to({}, { duration: 0.2 })
+                // 2. Smooth zoom scrub: scales up to full size, header floats up slightly
+                .to(card, {
+                    scale: targetScale,
+                    boxShadow: "0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 255, 255, 0.12)",
+                    borderColor: "rgba(255, 255, 255, 0.28)",
+                    duration: 1.2,
+                    ease: "power2.inOut"
+                }, "<")
+                .to(header, {
+                    y: isMobile ? -8 : -20,
+                    opacity: 0.3,
+                    duration: 1.2,
+                    ease: "power2.inOut"
+                }, "<")
+                // 3. Settled hold at full zoom before cleanly transitioning to next section
+                .to({}, { duration: 0.35 });
 
-        card.addEventListener('mousemove', handleMouseMove, { passive: true });
-        card.addEventListener('mouseleave', handleReset);
-        // Level card immediately if the user scrolls
-        window.addEventListener('scroll', handleReset, { passive: true });
-
-        // Subtle ambient 3D float for touch/mobile screens
-        let floatTween = null;
-        if (window.matchMedia('(max-width: 768px)').matches) {
-            floatTween = gsap.to(card, {
-                rotateY: 2,
-                rotateX: -1.2,
-                repeat: -1,
-                yoyo: true,
-                duration: 3,
-                ease: 'sine.inOut',
-            });
-        }
+        }, container);
 
         return () => {
-            if (rafId) cancelAnimationFrame(rafId);
-            card.removeEventListener('mousemove', handleMouseMove);
-            card.removeEventListener('mouseleave', handleReset);
-            window.removeEventListener('scroll', handleReset);
-            if (floatTween) floatTween.kill();
+            ctx.revert();
         };
     }, []);
 
     return (
-        <section id="engine" className="w-full px-4 sm:px-6 py-16 sm:py-24 md:py-28 max-w-7xl mx-auto flex flex-col items-center text-center perspective-container border-t border-border/40">
+        <section
+            id="engine"
+            ref={engineContainerRef}
+            className="relative z-10 w-full h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden border-t border-border/40 px-4 sm:px-6 select-none"
+        >
             {/* Section Header */}
-            <div className="flex flex-col items-center max-w-3xl mb-8 sm:mb-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit mb-3">
-                    <Activity className="w-3.5 h-3.5 text-primary" />
-                    <span>INTERACTIVE ARCHITECTURE // 02</span>
-                </div>
+            <div ref={headerRef} className="flex flex-col items-center max-w-3xl mb-6 sm:mb-8 text-center transition-all duration-300">
                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
-                    Unified Operating Engine
+                    Appointment Booking Workflow
                 </h2>
-                <p className="mt-3 text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl">
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl">
                     Experience how an inbound client booking automatically synthesizes customer profiles, updates pipeline deal values, and synchronizes Google Calendar in real time.
                 </p>
             </div>
 
-            {/* Parallax 3D Cockpit Simulator */}
+            {/* Telemetry Simulator Card (Static initially -> Smoothly Zooms on Scroll -> Holds -> Next Content) */}
             <div
-                ref={cockpitWrapRef}
-                className="w-full max-w-5xl rounded-xl border border-border bg-card/90 backdrop-blur-xl p-3.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden card-3d-wrap gsap-tilt preserve-3d"
+                ref={cardRef}
+                className="w-full max-w-5xl rounded-xl border border-border bg-card/95 backdrop-blur-xl p-3.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden transition-colors"
             >
                 {/* Cockpit Top Bar */}
                 <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-border/60 gap-2 text-[10px] sm:text-[11px] font-medium text-muted-foreground">
@@ -107,7 +101,25 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
                         <span className="tracking-wide uppercase font-semibold text-foreground">Live Telemetry Simulation</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground flex items-center gap-1">
+                            {zoomPercent >= 85 ? (
+                                <>
+                                    <Sparkles className="w-3 h-3 text-emerald-400" />
+                                    <span className="text-emerald-400 font-medium">100% Zoom Immersion</span>
+                                </>
+                            ) : zoomPercent >= 20 ? (
+                                <>
+                                    <Maximize2 className="w-3 h-3 text-primary animate-pulse" />
+                                    <span className="text-foreground">Expanding ({zoomPercent}%)</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Maximize2 className="w-3 h-3 text-muted-foreground" />
+                                    <span>Scroll to Zoom</span>
+                                </>
+                            )}
+                        </span>
+                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
                             Google Calendar: Synced
                         </span>
                         <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] text-foreground font-medium">

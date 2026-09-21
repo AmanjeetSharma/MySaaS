@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-    Sparkles,
+    Footprints,
     RefreshCw,
     Unplug,
     ExternalLink,
@@ -217,7 +217,7 @@ export const ScrollStoryShowcase = () => {
 
                     {/* Step Jumper Pills */}
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                        {['01 // Connect', '02 // Route', '03 // Sync', 'Next ↓'].map((label, idx) => (
+                        {['01 Connect', '02 Activate', '03 Sync', 'Next ↓'].map((label, idx) => (
                             <button
                                 key={label}
                                 type="button"
@@ -237,8 +237,8 @@ export const ScrollStoryShowcase = () => {
                         {/* Stage 1: Connect Google Account */}
                         <div className="narrative-step-1 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 transition-all">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
-                                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                                <span>STEP 01 // DIRECT INTEGRATION</span>
+                                <Footprints className="w-3.5 h-3.5 text-primary" />
+                                <span>STEP 01 DIRECT INTEGRATION</span>
                             </div>
                             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Connect Google Account
@@ -251,8 +251,8 @@ export const ScrollStoryShowcase = () => {
                         {/* Stage 2: Appointments Are Created Here */}
                         <div className="narrative-step-2 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
-                                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                                <span>STEP 02 // AUTO-BOOKING DESTINATION</span>
+                                <Footprints className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>STEP 02 AUTO-BOOKING DESTINATION</span>
                             </div>
                             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Appointments Are Created Here
@@ -265,8 +265,8 @@ export const ScrollStoryShowcase = () => {
                         {/* Stage 3: Two-Way Conflict Elimination */}
                         <div className="narrative-step-3 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit backdrop-blur-md">
-                                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                                <span>STEP 03 // REALTIME SYNC</span>
+                                <Footprints className="w-3.5 h-3.5 text-primary" />
+                                <span>STEP 03 REALTIME SYNC</span>
                             </div>
                             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Two-Way Conflict Elimination
@@ -279,8 +279,8 @@ export const ScrollStoryShowcase = () => {
                         {/* Stage 4: Next -> Flip & Scroll to CRM */}
                         <div className="narrative-step-4 absolute inset-0 flex flex-col space-y-2.5 sm:space-y-3.5 opacity-0 pointer-events-none transition-all">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] sm:text-[11px] font-mono tracking-widest text-emerald-400 w-fit backdrop-blur-md">
-                                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                                <span>STEP 04 // READY FOR CRM</span>
+                                <Footprints className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>STEP 04 READY FOR CRM</span>
                             </div>
                             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
                                 Integration Complete
@@ -329,30 +329,57 @@ export const ScrollStoryShowcase = () => {
                             {/* ================= FRONT FACE: Google Calendar Integration Cockpit ================= */}
                             <div className="w-full rounded-2xl border border-border bg-card/95 backdrop-blur-2xl p-3 sm:p-5 shadow-2xl relative backface-hidden flex flex-col gap-3">
 
-                                {/* Initial "Raw Schematic & Ingestion" Layer (Fades and Disappears on Scroll) */}
-                                <div className="schematic-overlay-layer absolute inset-0 z-30 rounded-2xl bg-card/95 p-4 sm:p-6 flex flex-col justify-between pointer-events-none transition-all duration-500 border border-border">
-                                    <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground border-b border-border pb-2">
-                                        <span>SCHEMATIC_INGEST // RAW DEMAND</span>
-                                        <span className="text-primary font-semibold animate-pulse">CONNECTING MESH...</span>
+                                {/* Initial "Unlinked / Empty Dashboard" Layer (Fades and Disappears on Scroll) */}
+                                <div className="schematic-overlay-layer absolute inset-0 z-30 rounded-2xl bg-card/95 p-3.5 sm:p-5 flex flex-col justify-between pointer-events-none transition-all duration-500 border border-border">
+                                    {/* Topbar: Status & Awaiting Setup */}
+                                    <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground border-b border-border pb-2.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-red-400/80 animate-pulse" />
+                                            <span className="font-semibold text-foreground/80">Integration Google-Calendar</span>
+                                        </div>
+                                        <span className="text-red-400 font-semibold">Not Connected</span>
                                     </div>
 
-                                    <div className="my-auto space-y-3">
-                                        <svg className="w-full h-24 sm:h-32 stroke-muted-foreground/40 fill-none" viewBox="0 0 200 80">
-                                            <rect x="10" y="10" width="180" height="60" rx="6" strokeWidth="1" strokeDasharray="3 3" />
-                                            <path d="M 20 30 L 180 30 M 20 50 L 130 50" strokeWidth="1.2" className="stroke-primary/70" />
-                                            <circle cx="150" cy="50" r="5" className="fill-primary/20 stroke-primary" />
-                                        </svg>
-                                        <div className="p-2.5 rounded-lg border border-border bg-surface text-[10px] font-mono text-foreground">
-                                            <div className="flex justify-between">
-                                                <span>CLIENT: Enterprise User</span>
-                                                <span className="text-primary font-semibold">DISCOVERING FEEDS</span>
+                                    {/* Center: Empty State Dashboard Skeleton */}
+                                    <div className="my-auto space-y-2.5">
+                                        {/* Metric KPI Stubs (Zero State) */}
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { label: 'CLIENTS', value: '0' },
+                                                { label: 'MEETINGS', value: '0' },
+                                                { label: 'REVENUE', value: '$0.00' }
+                                            ].map((metric) => (
+                                                <div key={metric.label} className="p-2 rounded-lg border border-dashed border-border/80 bg-surface/40">
+                                                    <span className="text-[9px] font-mono text-muted-foreground block truncate">{metric.label}</span>
+                                                    <span className="text-xs font-mono font-bold text-foreground/50 mt-0.5 block">{metric.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Empty Visual Board Wireframe */}
+                                        <div className="p-3 rounded-xl border border-dashed border-border bg-surface/30 flex flex-col items-center justify-center text-center py-5 sm:py-6">
+                                            <div className="h-8 w-8 rounded-lg border border-dashed border-border/80 flex items-center justify-center text-muted-foreground/50 mb-2">
+                                                <Calendar className="w-4 h-4 text-muted-foreground/40" />
                                             </div>
-                                            <div className="text-muted-foreground mt-0.5">AUTH: accounts.google.com/o/oauth2</div>
+                                            <span className="text-xs font-semibold text-foreground/70">No Bookings Yet</span>
+                                            <p className="text-[10px] text-muted-foreground max-w-[220px] mt-0.5 leading-relaxed">
+                                                Connect your calendar to automatically manage bookings and client meetings in one place.
+                                            </p>
+                                        </div>
+
+                                        {/* Status Notice */}
+                                        <div className="p-2 rounded-lg border border-border/70 bg-surface text-[10px] font-mono text-foreground flex items-center justify-between">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <span className="text-muted-foreground truncate">CALENDAR STATUS:</span>
+                                                <span className="text-primary font-semibold truncate">NOT CONNECTED</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="text-[10px] font-mono text-muted-foreground text-right">
-                                        SCROLL TO ASSEMBLE LIVE COCKPIT ↓
+                                    {/* Footer Directive */}
+                                    <div className="text-[10px] font-mono text-muted-foreground flex items-center justify-between pt-2 border-t border-border">
+                                        <span>READY TO SET UP</span>
+                                        <span className="text-foreground/90 font-medium animate-pulse">SCROLL TO CONNECT ↓</span>
                                     </div>
                                 </div>
 
