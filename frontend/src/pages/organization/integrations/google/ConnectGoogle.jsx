@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -11,7 +11,6 @@ import {
   Info,
   AlertTriangle,
   X,
-  Mail,
   Clock,
   ExternalLink,
   Video
@@ -47,6 +46,8 @@ const ConnectGoogle = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectTimerRef = useRef(null);
 
   const {
     status,
@@ -84,6 +85,40 @@ const ConnectGoogle = () => {
   const isBusy = isLoading || isConnecting || isDisconnecting;
   const isOwner = role === 'owner';
   const isSyncActive = isSyncing || (isLoading && isFetchingCalendars);
+  const isConnectingOrRedirecting = isConnecting || isRedirecting;
+
+  // Unfreeze redirect state if user navigates back from Google via Back button (bfcache) or tab refocus
+  useEffect(() => {
+    const handleRestoreFromGoogle = () => {
+      setIsRedirecting(false);
+      useGoogleStore.setState({ isConnecting: false });
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setIsRedirecting(false);
+        useGoogleStore.setState({ isConnecting: false });
+        if (redirectTimerRef.current) {
+          clearTimeout(redirectTimerRef.current);
+        }
+      }
+    };
+
+    window.addEventListener('pageshow', handleRestoreFromGoogle);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pageshow', handleRestoreFromGoogle);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      useGoogleStore.setState({ isConnecting: false });
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!userProfile) {
@@ -99,6 +134,19 @@ const ConnectGoogle = () => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const connected = searchParams.get('connected');
+    const errorParam = searchParams.get('error');
+
+    // Handle user cancellation or decline on Google OAuth consent screen
+    if (errorParam) {
+      useGoogleStore.setState({ isConnecting: false });
+      setSearchParams({}, { replace: true });
+      if (errorParam === 'access_denied') {
+        toast.info('Google sign-in was cancelled.');
+      } else {
+        toast.error(`Google connection cancelled: ${errorParam}`);
+      }
+      return;
+    }
 
     const syncGoogleConnection = async () => {
       try {
@@ -150,9 +198,22 @@ const ConnectGoogle = () => {
       return;
     }
 
+    if (isConnectingOrRedirecting) return;
+    setIsRedirecting(true);
+
+    // Safety timeout: if page does not redirect within 8 seconds, unfreeze button
+    if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    redirectTimerRef.current = setTimeout(() => {
+      setIsRedirecting(false);
+      useGoogleStore.setState({ isConnecting: false });
+    }, 8000);
+
     try {
       await redirectToGoogle(organizationId);
     } catch (err) {
+      setIsRedirecting(false);
+      useGoogleStore.setState({ isConnecting: false });
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
       toast.error(err?.response?.data?.message || 'Failed to start Google connection');
     }
   };
@@ -185,7 +246,6 @@ const ConnectGoogle = () => {
   const handleSelectCalendar = async (calendarId) => {
     try {
       await updateSelectedCalendar(organizationId, calendarId);
-      toast.success('Active calendar updated');
     } catch {
       // Store handles error toasts
     }
@@ -194,36 +254,38 @@ const ConnectGoogle = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="w-full h-[calc(100vh-6.25rem)] md:h-[calc(100vh-7.25rem)] max-h-[calc(100vh-6.25rem)] md:max-h-[calc(100vh-7.25rem)] flex flex-col overflow-hidden bg-background text-foreground font-sans">
-        {/* Top Header */}
-        <header className="shrink-0 sticky top-0 z-30 border-b border-border-subtle bg-surface-elevated/95 backdrop-blur-md px-4 sm:px-6 py-3 shadow-xs">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        {/* Top Header - Compact & fully responsive */}
+        <header className="shrink-0 sticky top-0 z-30 border-b border-border-subtle bg-surface-elevated/95 backdrop-blur-md px-3.5 sm:px-6 py-2.5 sm:py-3 shadow-xs">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3">
             {/* Identity */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative size-9 rounded-lg bg-surface border border-border-subtle shadow-xs flex items-center justify-center shrink-0">
-                <GoogleIcon className="size-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-heading text-base font-semibold tracking-tight text-foreground truncate">
+            <div className="flex items-center justify-between w-full sm:w-auto gap-2.5 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="relative size-8 sm:size-9 rounded-lg bg-surface border border-border-subtle shadow-xs flex items-center justify-center shrink-0">
+                  <GoogleIcon className="size-4 sm:size-5" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="font-heading text-sm sm:text-base font-semibold tracking-tight text-foreground truncate">
                     Google Calendar
                   </h1>
-                  {isConnected ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-xs font-medium text-success shrink-0">
-                      <CheckCircle2 className="size-3" />
-                      Connected
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-surface border border-border-subtle px-2 py-0.5 text-xs font-medium text-muted-foreground shrink-0">
-                      Disconnected
-                    </span>
-                  )}
                 </div>
               </div>
+
+              {/* Status pill on mobile aligns cleanly to top-right */}
+              {isConnected ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success shrink-0">
+                  <CheckCircle2 className="size-2.5 sm:size-3" />
+                  Connected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 border border-destructive/30 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-destructive shrink-0">
+                  Not Connected
+                </span>
+              )}
             </div>
 
             {/* Top Bar Actions */}
             {isConnected && (
-              <div className="flex items-center gap-2 w-full sm:w-auto pt-1 sm:pt-0 border-t border-border-subtle sm:border-t-0 shrink-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto pt-1 sm:pt-0 border-t border-border-subtle sm:border-t-0 shrink-0 justify-end">
                 {/* Refresh / Sync */}
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -232,7 +294,7 @@ const ConnectGoogle = () => {
                       size="sm"
                       onClick={handleRefresh}
                       disabled={isBusy || isSyncActive}
-                      className="cursor-pointer flex-1 sm:flex-none text-xs gap-1.5 h-8 hover:bg-surface"
+                      className="cursor-pointer flex-1 sm:flex-none text-xs gap-1.5 h-7.5 sm:h-8 hover:bg-surface"
                       aria-label="Synchronize calendar feeds from Google"
                     >
                       <RefreshCw className={cn('size-3.5', isSyncActive && 'animate-spin')} />
@@ -253,7 +315,7 @@ const ConnectGoogle = () => {
                         size="sm"
                         onClick={() => setIsDisconnectModalOpen(true)}
                         disabled={isDisconnecting}
-                        className="cursor-pointer flex-1 sm:flex-none text-xs gap-1.5 h-8 text-destructive hover:bg-destructive/10 hover:border-destructive/30"
+                        className="cursor-pointer flex-1 sm:flex-none text-xs gap-1.5 h-7.5 sm:h-8 text-destructive hover:bg-destructive/10 hover:border-destructive/30"
                         aria-label="Disconnect Google Calendar integration"
                       >
                         <Unplug className="size-3.5" />
@@ -271,22 +333,22 @@ const ConnectGoogle = () => {
         </header>
 
         {/* Warning Banners */}
-        <div className="shrink-0 max-w-4xl mx-auto w-full px-4 sm:px-6 pt-3 space-y-2">
+        <div className="shrink-0 max-w-4xl mx-auto w-full px-3.5 sm:px-6 pt-2.5 sm:pt-3 space-y-2">
           {!organizationId && (
-            <div className="rounded-xl bg-warning/10 border border-warning/20 p-3 text-xs font-medium text-warning flex items-center gap-2.5">
+            <div className="rounded-xl bg-warning/10 border border-warning/20 p-2.5 sm:p-3 text-xs font-medium text-warning flex items-center gap-2">
               <Info className="size-4 shrink-0" />
               <span>Select an active organization in your sidebar to manage calendar integrations.</span>
             </div>
           )}
 
           {error && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 flex items-center justify-between text-xs text-destructive">
-              <span>{error}</span>
+            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-2.5 sm:p-3 flex items-center justify-between text-xs text-destructive">
+              <span className="truncate pr-2">{error}</span>
               <Button
                 variant="link"
                 size="xs"
                 onClick={clearError}
-                className="cursor-pointer text-destructive font-semibold p-0 h-auto underline"
+                className="cursor-pointer text-destructive font-semibold p-0 h-auto underline shrink-0"
               >
                 Dismiss
               </Button>
@@ -295,72 +357,72 @@ const ConnectGoogle = () => {
         </div>
 
         {/* Body Area */}
-        <main className="flex-1 min-h-0 max-w-4xl mx-auto w-full px-4 sm:px-6 py-3 flex flex-col overflow-hidden">
+        <main className="flex-1 min-h-0 max-w-4xl mx-auto w-full px-3.5 sm:px-6 py-2.5 sm:py-3 flex flex-col overflow-hidden">
           {!isConnected ? (
             /* Not Connected */
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-5 py-2">
-              <div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-surface-elevated p-8 sm:p-10 text-center shadow-xs">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-4 sm:space-y-5 py-2">
+              <div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-surface-elevated p-6 sm:p-10 text-center shadow-xs">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
-                <div className="size-14 rounded-2xl bg-surface border border-border-subtle shadow-xs flex items-center justify-center mx-auto mb-4">
-                  <GoogleIcon className="size-7" />
+                <div className="size-12 sm:size-14 rounded-2xl bg-surface border border-border-subtle shadow-xs flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <GoogleIcon className="size-6 sm:size-7" />
                 </div>
 
-                <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                <h2 className="font-heading text-lg sm:text-2xl font-bold tracking-tight text-foreground">
                   Connect Your Google Calendar
                 </h2>
-                <p className="text-muted-foreground text-sm max-w-lg mx-auto mt-2 leading-relaxed">
-                  Seamlessly bridge your client booking flow with Google Workspace. Automate event creation, prevent double bookings, and attach instant Google Meet links.
+                <p className="text-muted-foreground text-xs sm:text-sm max-w-lg mx-auto mt-1.5 sm:mt-2 leading-relaxed">
+                  Connect your calendar to automatically create events, prevent scheduling conflicts, and generate meeting links for appointments.
                 </p>
 
-                <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                   <Button
                     size="lg"
                     onClick={handleConnect}
-                    disabled={isBusy || !organizationId}
-                    className="cursor-pointer w-full sm:w-auto px-7 py-5 gap-3 bg-foreground text-background hover:bg-foreground/90 font-semibold shadow-md transition-all active:scale-[0.98]"
+                    disabled={isBusy || !organizationId || isConnectingOrRedirecting}
+                    className="cursor-pointer w-full sm:w-auto px-6 sm:px-7 py-4 sm:py-5 gap-2.5 sm:gap-3 bg-foreground text-background hover:bg-foreground/90 font-semibold shadow-md transition-all active:scale-[0.98] text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    {isConnecting ? (
+                    {isConnectingOrRedirecting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <GoogleIcon className="size-4" />
                     )}
-                    <span>{isConnecting ? 'Connecting to Google...' : 'Sign in with Google'}</span>
+                    <span>{isConnectingOrRedirecting ? 'Redirecting to Google...' : 'Sign in with Google'}</span>
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 pb-2">
                 {[
                   {
                     icon: Radio,
-                    title: 'Real-time Bidirectional Sync',
-                    desc: 'New appointments booked by customers immediately populate in your Google Calendar feed.'
+                    title: 'Real-time Sync',
+                    desc: 'Keep bookings and calendar events updated automatically.'
                   },
                   {
                     icon: Video,
-                    title: 'Automated Google Meet Links',
-                    desc: 'Every video appointment automatically includes a unique, encrypted Google Meet join URL.'
+                    title: 'Automatic Meeting Links',
+                    desc: 'Add meeting links to online appointments automatically.'
                   },
                   {
                     icon: Layers,
-                    title: 'Feed Switching',
-                    desc: 'Direct bookings to your primary personal schedule or an isolated organization service calendar.'
+                    title: 'Flexible Calendars',
+                    desc: 'Choose which calendar receives your bookings.'
                   },
                   {
                     icon: ShieldCheck,
-                    title: 'Enterprise-grade OAuth 2.0',
-                    desc: 'Secured with token encryption, granular permissions, and zero credential storage.'
+                    title: 'Secure Integration',
+                    desc: 'Connect securely with protected access and permissions.'
                   }
                 ].map((feat) => (
                   <div
                     key={feat.title}
-                    className="rounded-xl border border-border-subtle bg-surface-elevated/70 p-4 shadow-2xs hover:border-border transition-colors flex items-start gap-3.5"
+                    className="rounded-xl border border-border-subtle bg-surface-elevated/70 p-3.5 sm:p-4 shadow-2xs hover:border-border transition-colors flex items-start gap-3"
                   >
-                    <div className="size-8 rounded-lg bg-surface border border-border-subtle text-foreground flex items-center justify-center shrink-0 mt-0.5">
-                      <feat.icon className="size-4 text-foreground/80" />
+                    <div className="size-7 sm:size-8 rounded-lg bg-surface border border-border-subtle text-foreground flex items-center justify-center shrink-0 mt-0.5">
+                      <feat.icon className="size-3.5 sm:size-4 text-foreground/80" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="font-heading text-xs font-semibold text-foreground">{feat.title}</h3>
                       <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{feat.desc}</p>
                     </div>
@@ -370,53 +432,48 @@ const ConnectGoogle = () => {
             </div>
           ) : (
             /* Connected */
-            <div className="flex-1 min-h-0 flex flex-col overflow-hidden space-y-3">
-              {/* Connected Account Strip with shifted Open Calendar button on the right */}
-              <div className="shrink-0 rounded-xl border border-border-subtle bg-surface-elevated p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-full bg-surface border border-border-subtle flex items-center justify-center shrink-0 font-heading font-semibold text-xs text-foreground">
-                    {status?.email ? status.email.charAt(0).toUpperCase() : <Mail className="size-4 text-muted-foreground" />}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-semibold text-foreground truncate" title={status?.email}>
-                        {status?.email || 'N/A'}
-                      </p>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
-                        Active
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Clock className="size-3 shrink-0" />
-                      <span>
-                        Connected on{' '}
-                        {status?.connectedAt
-                          ? new Date(status.connectedAt).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })
-                          : 'Active'}
-                      </span>
-                      {activeOrg?.name && (
-                        <>
-                          <span className="mx-1">•</span>
-                          <span>Workspace: {activeOrg.name}</span>
-                        </>
-                      )}
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden space-y-2.5 sm:space-y-3">
+              {/* Connected Account Strip - Avatar removed, compact & responsive */}
+              <div className="shrink-0 rounded-xl border border-border-subtle bg-surface-elevated p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-xs min-w-0">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <p className="text-xs sm:text-sm font-semibold text-foreground truncate min-w-0" title={status?.email}>
+                      {status?.email || 'N/A'}
                     </p>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success shrink-0">
+                      Active
+                    </span>
                   </div>
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5 flex-wrap min-w-0">
+                    <Clock className="size-3 shrink-0" />
+                    <span>
+                      Connected on{' '}
+                      {status?.connectedAt
+                        ? new Date(status.connectedAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })
+                        : 'Active'}
+                    </span>
+                    {activeOrg?.name && (
+                      <>
+                        <span className="mx-1">•</span>
+                        <span className="truncate max-w-[140px] sm:max-w-none">Workspace: {activeOrg.name}</span>
+                      </>
+                    )}
+                  </p>
                 </div>
 
                 {/* Right Side: Open Calendar button */}
-                <div className="shrink-0 self-start sm:self-auto pt-1 sm:pt-0 border-t border-border-subtle sm:border-t-0">
+                <div className="shrink-0 self-end sm:self-auto pt-1 sm:pt-0 border-t border-border-subtle sm:border-t-0">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
                         asChild
-                        className="cursor-pointer text-xs gap-1.5 h-8 hover:bg-surface"
+                        className="cursor-pointer text-[11px] sm:text-xs gap-1.5 h-7.5 sm:h-8 px-2.5 sm:px-3 hover:bg-surface"
                       >
                         <a
                           href="https://calendar.google.com"
@@ -424,7 +481,7 @@ const ConnectGoogle = () => {
                           rel="noopener noreferrer"
                           aria-label="Open Google Calendar in a new browser tab"
                         >
-                          <ExternalLink className="size-3.5 text-muted-foreground" />
+                          <ExternalLink className="size-3 sm:size-3.5 text-muted-foreground" />
                           <span>Open Calendar</span>
                         </a>
                       </Button>
@@ -459,7 +516,7 @@ const ConnectGoogle = () => {
             aria-labelledby="disconnect-modal-title"
           >
             <div
-              className="cursor-default relative w-full max-w-md rounded-xl border border-border bg-surface-elevated text-surface-elevated-foreground p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+              className="cursor-default relative w-full max-w-md rounded-xl border border-border bg-surface-elevated text-surface-elevated-foreground p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <Tooltip>
@@ -469,7 +526,7 @@ const ConnectGoogle = () => {
                     size="icon"
                     onClick={() => setIsDisconnectModalOpen(false)}
                     disabled={isDisconnecting}
-                    className="cursor-pointer absolute right-3 top-3 size-9 text-muted-foreground hover:text-foreground"
+                    className="cursor-pointer absolute right-3 top-3 size-8 sm:size-9 text-muted-foreground hover:text-foreground"
                     aria-label="Close dialog"
                   >
                     <X className="size-4" />
@@ -478,26 +535,26 @@ const ConnectGoogle = () => {
                 <TooltipContent>Close</TooltipContent>
               </Tooltip>
 
-              <div className="flex items-start gap-4">
-                <div className="size-10 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 border border-destructive/20">
-                  <AlertTriangle className="size-5" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="size-9 sm:size-10 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 border border-destructive/20">
+                  <AlertTriangle className="size-4 sm:size-5" />
                 </div>
                 <div className="pr-4">
-                  <h3 id="disconnect-modal-title" className="font-heading text-base font-semibold tracking-tight text-foreground">
+                  <h3 id="disconnect-modal-title" className="font-heading text-sm sm:text-base font-semibold tracking-tight text-foreground">
                     Disconnect Google Calendar?
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-1.5 sm:mt-2 leading-relaxed">
                     Future bookings will no longer sync with Google Calendar, and Google Meet video conference links will not be automatically generated. Previously scheduled meetings will remain in your calendar.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 mt-6 w-full">
+              <div className="flex items-center justify-end gap-2.5 sm:gap-3 mt-5 sm:mt-6 w-full">
                 <Button
                   variant="outline"
                   onClick={() => setIsDisconnectModalOpen(false)}
                   disabled={isDisconnecting}
-                  className="cursor-pointer text-xs"
+                  className="cursor-pointer text-xs h-8 sm:h-9"
                 >
                   Cancel
                 </Button>
@@ -506,7 +563,7 @@ const ConnectGoogle = () => {
                   variant="destructive"
                   onClick={confirmDisconnect}
                   disabled={isDisconnecting}
-                  className="cursor-pointer text-xs gap-1.5"
+                  className="cursor-pointer text-xs gap-1.5 h-8 sm:h-9"
                 >
                   {isDisconnecting ? (
                     <Loader2 className="size-3.5 animate-spin" />

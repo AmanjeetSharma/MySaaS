@@ -42,7 +42,6 @@ export const useGoogleStore = create((set) => ({
 
             set({
                 authUrl: data?.authUrl || null,
-                isConnecting: false,
                 error: null
             });
 
@@ -66,6 +65,7 @@ export const useGoogleStore = create((set) => ({
         const data = await useGoogleStore.getState().connectGoogle(orgId);
 
         if (!data?.authUrl) {
+            useGoogleStore.setState({ isConnecting: false });
             throw new Error('Google authorization URL was not returned');
         }
 
@@ -76,6 +76,7 @@ export const useGoogleStore = create((set) => ({
     handleCallback: async ({ code, state }) => {
         set({
             isLoading: true,
+            isConnecting: false,
             error: null
         });
 
@@ -97,6 +98,7 @@ export const useGoogleStore = create((set) => ({
                 calendarsOrgId: null,
                 role: null,
                 isLoading: false,
+                isConnecting: false,
                 error: null
             });
 
@@ -176,6 +178,7 @@ export const useGoogleStore = create((set) => ({
     getStatus: async (orgId) => {
         set({
             isLoading: true,
+            isConnecting: false,
             error: null
         });
 
