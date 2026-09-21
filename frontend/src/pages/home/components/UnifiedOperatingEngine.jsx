@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
-import { Calendar, Kanban, Clock, ArrowRight, ArrowDown, Activity, Sparkles, Maximize2 } from "lucide-react";
+import { useRef, useEffect } from 'react';
+import { Calendar, Kanban, Clock, ArrowRight, ArrowDown } from "lucide-react";
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,7 +9,6 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
     const engineContainerRef = useRef(null);
     const headerRef = useRef(null);
     const cardRef = useRef(null);
-    const [zoomPercent, setZoomPercent] = useState(0);
 
     useEffect(() => {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -40,10 +39,7 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
                     end: isMobile ? "+=130%" : "+=170%",
                     scrub: 0.6,
                     pin: true,
-                    pinSpacing: true,
-                    onUpdate: (self) => {
-                        setZoomPercent(Math.round(self.progress * 100));
-                    }
+                    pinSpacing: true
                 }
             });
 
@@ -101,25 +97,7 @@ export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
                         <span className="tracking-wide uppercase font-semibold text-foreground">Live Telemetry Simulation</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground flex items-center gap-1">
-                            {zoomPercent >= 85 ? (
-                                <>
-                                    <Sparkles className="w-3 h-3 text-emerald-400" />
-                                    <span className="text-emerald-400 font-medium">100% Zoom Immersion</span>
-                                </>
-                            ) : zoomPercent >= 20 ? (
-                                <>
-                                    <Maximize2 className="w-3 h-3 text-primary animate-pulse" />
-                                    <span className="text-foreground">Expanding ({zoomPercent}%)</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Maximize2 className="w-3 h-3 text-muted-foreground" />
-                                    <span>Scroll to Zoom</span>
-                                </>
-                            )}
-                        </span>
-                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
+                        <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
                             Google Calendar: Synced
                         </span>
                         <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] text-foreground font-medium">

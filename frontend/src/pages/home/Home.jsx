@@ -242,9 +242,8 @@ const Home = () => {
 
       {/* Main Experience Flow */}
       <main className="relative z-10 flex-1 flex flex-col items-center w-full">
-        {/* 1. Full Viewport App Introduction (Headline, value prop, CTAs, metrology indicators) */}
+        {/* 1. Full Viewport App Introduction */}
         <HeroIntro
-          onExploreClick={(e) => handleAnchorClick(e, '#crm')}
           onSimulatorClick={(e) => handleAnchorClick(e, '#engine')}
         />
 
@@ -271,10 +270,10 @@ const Home = () => {
               From first booked slot to closed revenue.
             </h2>
             <p className="mt-3 text-xs sm:text-sm text-muted-foreground max-w-lg leading-relaxed">
-              Run client scheduling, interaction timelines, and your sales pipeline in a single surgical workspace built for boutique teams.
+              Manage bookings, customer conversations, and active deals all in one place.
             </p>
             <Button
-              className="mt-6 h-9 sm:h-10 px-6 rounded-lg bg-primary text-primary-foreground font-semibold text-xs sm:text-sm hover:opacity-90 shadow-sm cursor-pointer"
+              className="mt-6 w-auto h-11 px-8 rounded-xl bg-surface-elevated/75 hover:bg-surface-elevated text-foreground border border-white/20 hover:border-white/40 backdrop-blur-xl font-semibold text-xs sm:text-sm cursor-pointer transition-all active:translate-y-px shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_20px_rgba(255,255,255,0.08)] hover:shadow-[0_8px_36px_rgba(0,0,0,0.5),0_0_28px_rgba(255,255,255,0.18)]"
               onClick={() => navigate("/signup")}
             >
               Start Free Trial
@@ -287,11 +286,6 @@ const Home = () => {
       <footer className="w-full py-10 px-4 sm:px-6 md:px-12 border-t border-border bg-background/95 backdrop-blur-md relative z-20 text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full moon-dot text-primary" />
-              <span className="font-semibold text-foreground tracking-tight">miniCRM</span>
-            </div>
-            <span className="hidden sm:inline text-border">•</span>
             <span>&copy; {new Date().getFullYear()} miniCRM. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-5 text-xs text-muted-foreground">

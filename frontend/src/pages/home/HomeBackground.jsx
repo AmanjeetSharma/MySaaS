@@ -19,7 +19,7 @@ export const HomeBackground = () => {
             {/* Full-screen background video with GPU compositing and metadata preload */}
             {!reducedMotion ? (
                 <video
-                    className="absolute inset-0 w-full h-full object-cover filter blur-[4px] scale-105 transform-gpu"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-[5px] scale-100 opacity-90 transform-gpu"
                     autoPlay
                     loop
                     muted
@@ -33,8 +33,8 @@ export const HomeBackground = () => {
                 <div className="absolute inset-0 bg-radial-[circle_at_50%_20%] from-primary/5 via-background to-background" />
             )}
 
-            {/* Gradient fades for header / hero / footer readability and depth */}
-            <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/95" />
+            {/* Subtle atmospheric vignette that keeps video prominent while protecting text contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/25 to-background/70" />
         </div>
     );
 };

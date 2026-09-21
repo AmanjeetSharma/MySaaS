@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, Calendar, ShieldCheck, Zap, Layers, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
-export const HeroIntro = ({ onExploreClick, onSimulatorClick }) => {
+export const HeroIntro = ({ onSimulatorClick }) => {
     const navigate = useNavigate();
 
     return (
@@ -24,16 +24,15 @@ export const HeroIntro = ({ onExploreClick, onSimulatorClick }) => {
                 <p className="mt-5 sm:mt-7 text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl font-normal leading-relaxed px-2">
                     Book appointments and manage customers with ease. miniCRM keeps booking and CRM in sync, automatically adding new customers and syncing your calendar.                </p>
 
-                {/* Primary & Secondary Call to Actions */}
-                <div className="mt-7 sm:mt-9 flex flex-col xs:flex-row gap-3 justify-center items-stretch xs:items-center w-full xs:w-auto px-4 xs:px-0">
+                {/* Primary Call to Action */}
+                <div className="mt-7 sm:mt-9 flex justify-center items-center w-full px-4">
                     <Button
-                        className="h-11 px-7 rounded-lg bg-primary text-primary-foreground hover:opacity-90 font-semibold text-xs sm:text-sm cursor-pointer transition-all active:translate-y-px flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.12)] hover:shadow-[0_0_28px_rgba(255,255,255,0.24)]"
+                        className="w-auto h-11 px-8 rounded-xl bg-surface-elevated/75 hover:bg-surface-elevated text-foreground border border-white/20 hover:border-white/40 backdrop-blur-xl font-semibold text-xs sm:text-sm cursor-pointer transition-all active:translate-y-px flex items-center justify-center gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_20px_rgba(255,255,255,0.08)] hover:shadow-[0_8px_36px_rgba(0,0,0,0.5),0_0_28px_rgba(255,255,255,0.18)]"
                         onClick={() => navigate("/signup")}
                     >
                         <span>Start Free Trial</span>
                         <ArrowRight className="h-4 w-4" />
                     </Button>
-
                 </div>
 
 
