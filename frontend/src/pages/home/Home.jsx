@@ -9,7 +9,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 
 import { HomeBackground } from './HomeBackground';
-import { HeroCockpit } from './components/HeroCockpit';
+import { HeroIntro } from './components/HeroIntro';
+import { UnifiedOperatingEngine } from './components/UnifiedOperatingEngine';
 import { ScrollStoryShowcase } from './components/ScrollStoryShowcase';
 import { CrmCapabilitiesDeck } from './components/CrmCapabilitiesDeck';
 import './Home.css';
@@ -129,6 +130,9 @@ const Home = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-muted-foreground">
+            <a href="#engine" onClick={(e) => handleAnchorClick(e, '#engine')} className="hover:text-foreground transition-colors">
+              Engine
+            </a>
             <a href="#crm" onClick={(e) => handleAnchorClick(e, '#crm')} className="hover:text-foreground transition-colors">
               CRM Suite
             </a>
@@ -171,6 +175,15 @@ const Home = () => {
                   <SheetDescription>Main application navigation links</SheetDescription>
                 </VisuallyHidden>
                 <nav className="flex flex-col gap-4 text-sm mt-10">
+                  <SheetClose asChild>
+                    <a
+                      href="#engine"
+                      onClick={(e) => handleAnchorClick(e, '#engine')}
+                      className="text-foreground hover:text-primary transition-colors py-1"
+                    >
+                      Engine
+                    </a>
+                  </SheetClose>
                   <SheetClose asChild>
                     <a
                       href="#crm"
@@ -216,17 +229,22 @@ const Home = () => {
 
       {/* Main Experience Flow */}
       <main className="relative z-10 flex-1 flex flex-col items-center w-full">
-        {/* 1. Cockpit Hero */}
-        <HeroCockpit
-          selectedSlot={selectedSlot}
-          setSelectedSlot={setSelectedSlot}
+        {/* 1. Full Viewport App Introduction (Headline, value prop, CTAs, metrology indicators) */}
+        <HeroIntro
           onExploreClick={(e) => handleAnchorClick(e, '#crm')}
+          onSimulatorClick={(e) => handleAnchorClick(e, '#engine')}
         />
 
-        {/* 2. Google Calendar Integration with 3D Flip to Arrow & Smooth Exit */}
+        {/* 2. Unified Operating Engine (Cockpit Simulator - 2nd Section) */}
+        <UnifiedOperatingEngine
+          selectedSlot={selectedSlot}
+          setSelectedSlot={setSelectedSlot}
+        />
+
+        {/* 3. Google Calendar Integration with 3D Flip to Arrow & Smooth Exit */}
         <ScrollStoryShowcase />
 
-        {/* 3. Core CRM & Operations Suite (3D Stacking Deck) & Capabilities */}
+        {/* 4. Core CRM & Operations Suite (3D Stacking Deck) & Capabilities */}
         <CrmCapabilitiesDeck
           activeLayer={activeCrmLayer}
           setActiveLayer={setActiveCrmLayer}
@@ -252,19 +270,24 @@ const Home = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-6 px-4 sm:px-6 md:px-12 border-t border-border bg-background/90 text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
-          <span>&copy; {new Date().getFullYear()} miniCRM. The appointment-driven CRM for high-velocity teams.</span>
-          <div className="flex items-center gap-4">
+      {/* Minimal Footer */}
+      <footer className="w-full py-8 px-4 sm:px-6 md:px-12 border-t border-border bg-background/95 text-xs text-muted-foreground">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full moon-dot text-primary" />
+            <span className="font-medium text-foreground">&copy; miniCRM 2026. All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-5 text-xs">
             <button
               type="button"
               onClick={scrollToTop}
-              className="hover:text-foreground transition-colors cursor-pointer text-xs"
+              className="hover:text-foreground transition-colors cursor-pointer"
             >
               Back to top
             </button>
+            <span className="text-border">•</span>
             <Link to="/signin" className="hover:text-foreground transition-colors">Sign In</Link>
+            <span className="text-border">•</span>
             <Link to="/signup" className="hover:text-foreground transition-colors">Sign Up</Link>
           </div>
         </div>

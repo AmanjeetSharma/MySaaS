@@ -1,13 +1,9 @@
 import { useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronRight, Calendar, Kanban, Clock, ArrowDown } from "lucide-react";
+import { Calendar, Kanban, Clock, ArrowRight, ArrowDown, Activity } from "lucide-react";
 import gsap from 'gsap';
 
-export const HeroCockpit = ({ selectedSlot, setSelectedSlot, onExploreClick }) => {
-    const navigate = useNavigate();
+export const UnifiedOperatingEngine = ({ selectedSlot, setSelectedSlot }) => {
     const cockpitWrapRef = useRef(null);
-    const headlineRef = useRef(null);
 
     useEffect(() => {
         const card = cockpitWrapRef.current;
@@ -63,44 +59,31 @@ export const HeroCockpit = ({ selectedSlot, setSelectedSlot, onExploreClick }) =
     }, []);
 
     return (
-        <section className="w-full px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 md:pt-24 md:pb-28 max-w-7xl mx-auto flex flex-col items-center text-center perspective-container">
-            <h1 ref={headlineRef} className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground tracking-tight leading-[1.06] max-w-5xl">
-                The appointment-driven CRM for high-velocity teams.
-            </h1>
-
-            <p className="mt-4 sm:mt-6 text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl font-normal leading-relaxed px-2">
-                miniCRM pairs public client booking directly with full customer relationship management. Every booked session captures customer details, advances deals across stages, and syncs your calendar automatically.
-            </p>
-
-            <div className="mt-6 sm:mt-8 flex flex-col xs:flex-row gap-3 justify-center items-stretch xs:items-center w-full xs:w-auto px-4 xs:px-0">
-                <Button
-                    className="h-10 px-6 rounded-lg bg-primary text-primary-foreground hover:opacity-90 font-semibold text-xs sm:text-sm cursor-pointer transition-all active:translate-y-px flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.12)] hover:shadow-[0_0_28px_rgba(255,255,255,0.24)]"
-                    onClick={() => navigate("/signup")}
-                >
-                    <span>Start Free Trial</span>
-                    <ArrowRight className="h-4 w-4" />
-                </Button>
-
-                <a
-                    href="#crm"
-                    onClick={onExploreClick}
-                    className="h-10 px-5 rounded-lg border border-border bg-surface text-foreground hover:bg-surface-elevated font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors hover:border-white/30"
-                >
-                    <span>Explore Platform</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </a>
+        <section id="engine" className="w-full px-4 sm:px-6 py-16 sm:py-24 md:py-28 max-w-7xl mx-auto flex flex-col items-center text-center perspective-container border-t border-border/40">
+            {/* Section Header */}
+            <div className="flex flex-col items-center max-w-3xl mb-8 sm:mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface-elevated text-[10px] sm:text-[11px] font-mono tracking-widest text-muted-foreground w-fit mb-3">
+                    <Activity className="w-3.5 h-3.5 text-primary" />
+                    <span>INTERACTIVE ARCHITECTURE // 02</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+                    Unified Operating Engine
+                </h2>
+                <p className="mt-3 text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl">
+                    Experience how an inbound client booking automatically synthesizes customer profiles, updates pipeline deal values, and synchronizes Google Calendar in real time.
+                </p>
             </div>
 
             {/* Parallax 3D Cockpit Simulator */}
             <div
                 ref={cockpitWrapRef}
-                className="mt-10 sm:mt-14 w-full max-w-5xl rounded-xl border border-border bg-card/90 backdrop-blur-xl p-3.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden card-3d-wrap preserve-3d"
+                className="w-full max-w-5xl rounded-xl border border-border bg-card/90 backdrop-blur-xl p-3.5 sm:p-5 md:p-6 shadow-2xl text-left relative overflow-hidden card-3d-wrap preserve-3d"
             >
                 {/* Cockpit Top Bar */}
                 <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-border/60 gap-2 text-[10px] sm:text-[11px] font-medium text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full moon-dot text-primary animate-pulse" />
-                        <span className="tracking-wide uppercase font-semibold text-foreground">Unified Operating Engine</span>
+                        <span className="tracking-wide uppercase font-semibold text-foreground">Live Telemetry Simulation</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
                         <span className="px-2 py-0.5 rounded border border-border bg-surface-elevated text-[10px] text-muted-foreground">
@@ -131,7 +114,7 @@ export const HeroCockpit = ({ selectedSlot, setSelectedSlot, onExploreClick }) =
 
                         <div>
                             <label className="text-[10px] sm:text-[11px] font-medium text-muted-foreground block mb-2">
-                                Available Slots (Today)
+                                Available Slots (Select to test real-time sync)
                             </label>
                             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                 {['11:30', '14:00', '16:30'].map((slot) => (
