@@ -19,8 +19,8 @@ export const HomeBackground = () => {
             {/* Subtle blur to blend the animation */}
             <div className="absolute inset-0 backdrop-blur-[5px]" />
 
-            {/* Dark gradient fades for header / hero / footer readability and near-black depth */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/80 via-[#000000]/60 to-[#000000]/95" />
+            {/* Gradient fades for header / hero / footer readability and depth */}
+            <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/65 to-background/95" />
         </div>
     );
 };

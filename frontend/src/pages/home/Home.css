@@ -1,4 +1,4 @@
-/* Home.css - 3D Interactive Card Stacking & Moonlit Precision Accents */
+/* Home.css - 3D Interactive Card Stacking & Cinematic Depth */
 
 /* 3D Perspective Context */
 .perspective-container {
@@ -6,42 +6,86 @@
   transform-style: preserve-3d;
 }
 
-/* 3D Card Elements */
+@media (max-width: 768px) {
+  .perspective-container {
+    perspective: 800px;
+  }
+}
+
+/* 3D Card Elements with Natural Hover & Tilt */
 .card-3d-wrap {
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
 .card-3d-wrap:hover {
-  transform: translateY(-4px) rotateX(2deg) rotateY(-1deg);
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7), 0 0 24px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px) rotateX(2deg) rotateY(-1.5deg);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Interactive 3D Stacking Cards */
+/* Interactive 3D Stacking Card Deck */
+.stack-deck-container {
+  position: relative;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
 .stack-card-layer {
   transform-style: preserve-3d;
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
-  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.4s ease;
+  will-change: transform, opacity;
 }
 
-.stack-card-1 {
-  transform: translateZ(0px) scale(1);
+/* Desktop 3D Stack Depths */
+.stack-pos-0 {
+  transform: translateZ(0px) translateY(0px) scale(1);
+  z-index: 40;
+  opacity: 1;
 }
 
-.stack-card-2 {
-  transform: translateZ(-20px) translateY(8px) scale(0.98);
+.stack-pos-1 {
+  transform: translateZ(-30px) translateY(12px) scale(0.97);
+  z-index: 30;
+  opacity: 0.85;
 }
 
-.stack-card-3 {
-  transform: translateZ(-40px) translateY(16px) scale(0.96);
-}
-
-.stack-card-4 {
+.stack-pos-2 {
   transform: translateZ(-60px) translateY(24px) scale(0.94);
+  z-index: 20;
+  opacity: 0.65;
 }
 
-/* Moonlit Precision Lighting */
+.stack-pos-3 {
+  transform: translateZ(-90px) translateY(36px) scale(0.91);
+  z-index: 10;
+  opacity: 0.45;
+}
+
+/* Mobile 3D Stack Depths (Compact & Zero Overflow) */
+@media (max-width: 768px) {
+  .stack-pos-0 {
+    transform: translateZ(0px) translateY(0px) scale(1);
+    z-index: 40;
+    opacity: 1;
+  }
+  .stack-pos-1 {
+    transform: translateZ(-16px) translateY(8px) scale(0.98);
+    z-index: 30;
+    opacity: 0.8;
+  }
+  .stack-pos-2 {
+    transform: translateZ(-32px) translateY(16px) scale(0.96);
+    z-index: 20;
+    opacity: 0.6;
+  }
+  .stack-pos-3 {
+    transform: translateZ(-48px) translateY(24px) scale(0.93);
+    z-index: 10;
+    opacity: 0.4;
+  }
+}
+
+/* Precision Lighting & Depth Rings */
 .moon-glow-subtle {
   box-shadow: 0 0 25px rgba(255, 255, 255, 0.06);
 }
@@ -56,7 +100,7 @@
 
 .moon-border-active {
   border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
 }
 
 .moon-dot {
@@ -64,23 +108,21 @@
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
 }
 
-/* Timeline 3D connector lines */
+/* Timeline 3D Connector Line */
 .timeline-3d-line {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 100%);
 }
 
-/* Responsive adjustment for 3D transforms */
-@media (max-width: 767px) {
-  .perspective-container {
-    perspective: none;
-  }
-  .card-3d-wrap:hover {
-    transform: none;
-  }
-  .stack-card-1,
-  .stack-card-2,
-  .stack-card-3,
-  .stack-card-4 {
-    transform: none !important;
-  }
+/* 3D Card Flip Helpers */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }

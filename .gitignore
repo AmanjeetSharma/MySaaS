@@ -124,7 +124,6 @@ lib-cov/
 example/
 
 
-# AI coding agents / local agent config
 .agent/
 .agents/
 .claude/
