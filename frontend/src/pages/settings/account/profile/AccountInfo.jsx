@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { useUserStore } from '@/stores/userStore';
 
 const AccountInfo = () => {
     const { userProfile } = useUserStore();
+    const [, setTick] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => setTick((t) => t + 1), 30000);
+        return () => clearInterval(timer);
+    }, []);
 
     if (!userProfile) return null;
 
@@ -99,7 +105,7 @@ const AccountInfo = () => {
                 <div className="py-3 flex items-center justify-between gap-4">
                     <div>
                         <p className="text-xs sm:text-sm font-medium text-foreground">Timezone</p>
-                        <p className="text-[11px] text-muted-foreground">Workspace operating clock</p>
+                        <p className="text-[11px] text-muted-foreground">Workspace operating time</p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs sm:text-sm font-medium text-foreground">{timezone}</p>
@@ -111,7 +117,7 @@ const AccountInfo = () => {
                 <div className="py-3 flex items-center justify-between gap-4">
                     <div>
                         <p className="text-xs sm:text-sm font-medium text-foreground">Plan & Theme</p>
-                        <p className="text-[11px] text-muted-foreground">Subscription tier and interface theme</p>
+                        <p className="text-[11px] text-muted-foreground">Subscription tier and theme</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xs sm:text-sm font-medium text-foreground capitalize">

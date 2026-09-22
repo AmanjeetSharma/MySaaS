@@ -68,6 +68,7 @@ export const updateUserService = async (userId, payload) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        updatedAt: user.updatedAt,
     };
 };
 
@@ -145,6 +146,7 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
+        updatedAt: user.updatedAt,
     };
 };
 
@@ -206,6 +208,7 @@ export const deleteUserAvatarService = async (userId) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        updatedAt: user.updatedAt,
     };
 };
 

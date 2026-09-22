@@ -14,7 +14,10 @@ const updateSettings = async (userId, updateObj) => {
         throw new ApiError(404, "User not found or update failed");
     }
 
-    return updatedUser.settings;
+    return {
+        settings: updatedUser.settings,
+        updatedAt: updatedUser.updatedAt
+    };
 };
 
 
@@ -37,7 +40,7 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
         throw new ApiError(403, "Upgrade to pro to unlock this theme");
     }
 
-    const settings = await updateSettings(userId, {
+    const result = await updateSettings(userId, {
         "settings.theme.name": themeName,
         "settings.theme.mode": themeMode
     });
@@ -46,17 +49,18 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
         {
             userId,
             theme: {
-                name: settings.theme.name,
-                mode: settings.theme.mode,
-                tier: settings.theme.tier,
+                name: result.settings.theme.name,
+                mode: result.settings.theme.mode,
+                tier: result.settings.theme.tier,
             },
         },
         "user.theme_updated"
     );
 
     return {
-        theme: settings.theme,
-        message: `Theme updated to ${settings.theme.name} (${settings.theme.mode} mode)`
+        theme: result.settings.theme,
+        message: `Theme updated to ${result.settings.theme.name} (${result.settings.theme.mode} mode)`,
+        updatedAt: result.updatedAt
     };
 };
 
@@ -71,21 +75,22 @@ export const updateTimezoneService = async (userId, timezone) => {
         throw new ApiError(400, validation.errors.join(", "));
     }
 
-    const settings = await updateSettings(userId, {
+    const result = await updateSettings(userId, {
         "settings.timezone": timezone
     });
 
     logger.info(
         {
             userId,
-            timezone: settings.timezone,
+            timezone: result.settings.timezone,
         },
         "user.timezone_updated"
     );
 
     return {
-        timezone: settings.timezone,
-        message: `Timezone updated to ${settings.timezone}`
+        timezone: result.settings.timezone,
+        message: `Timezone updated to ${result.settings.timezone}`,
+        updatedAt: result.updatedAt
     };
 };
 

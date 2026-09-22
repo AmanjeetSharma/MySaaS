@@ -4,6 +4,7 @@ import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
 import { applyUserTheme } from '../theme/theme.utils.js';
 import { saveThemeToLocalStorage } from '../theme/themeSync.utils.js';
 import { toast } from 'sonner';
+import { useUserStore } from './userStore';
 
 export const useSettingsStore = create((set, get) => ({
     theme: {
@@ -74,6 +75,20 @@ export const useSettingsStore = create((set, get) => ({
             applyUserTheme(newTheme.name, newTheme.mode);
             saveThemeToLocalStorage(newTheme.name, newTheme.mode);
 
+            const userProfile = useUserStore.getState().userProfile;
+            if (userProfile) {
+                useUserStore.setState({
+                    userProfile: {
+                        ...userProfile,
+                        settings: {
+                            ...userProfile.settings,
+                            theme: newTheme
+                        },
+                        updatedAt: data.updatedAt || new Date().toISOString()
+                    }
+                });
+            }
+
             toast.success(data.message || 'Theme updated successfully!');
 
             return data;
@@ -96,6 +111,20 @@ export const useSettingsStore = create((set, get) => ({
                 isUpdating: false,
                 error: null
             });
+
+            const userProfile = useUserStore.getState().userProfile;
+            if (userProfile) {
+                useUserStore.setState({
+                    userProfile: {
+                        ...userProfile,
+                        settings: {
+                            ...userProfile.settings,
+                            timezone: data.timezone
+                        },
+                        updatedAt: data.updatedAt || new Date().toISOString()
+                    }
+                });
+            }
 
             toast.success(data.message || 'Timezone updated successfully!');
 
