@@ -262,6 +262,14 @@ export const useUserStore = create((set, get) => ({
             set({
                 phoneNumber: data.pendingNumber,
                 isPhoneVerified: false,
+                userProfile: {
+                    ...get().userProfile,
+                    phone: {
+                        ...get().userProfile?.phone,
+                        pendingNumber: data.pendingNumber,
+                        isVerified: false
+                    }
+                },
                 isUpdating: false,
                 error: null
             });

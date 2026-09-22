@@ -1,25 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useUserStore } from '@/stores/userStore';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import {
   Loader2,
-  User,
-  UserRoundPen,
   Camera,
   Trash2,
   Save,
-  X,
-  ChevronRight
+  RotateCcw,
+  Copy,
+  Check,
+  Lock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -31,7 +24,6 @@ const Profile = () => {
   const {
     userProfile,
     isLoading,
-    isUpdating,
     getUserProfile,
     updateUserProfile,
     updateUserAvatar,
@@ -39,10 +31,11 @@ const Profile = () => {
   } = useUserStore();
 
   const [name, setName] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
+  const [isSavingName, setIsSavingName] = useState(false);
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(null);
+  const [copiedId, setCopiedId] = useState(false);
 
   // Crop states
   const [selectedImageSrc, setSelectedImageSrc] = useState(null);
@@ -53,7 +46,7 @@ const Profile = () => {
 
   useEffect(() => {
     getUserProfile();
-  }, []);
+  }, [getUserProfile]);
 
   useEffect(() => {
     if (userProfile) {
@@ -61,31 +54,51 @@ const Profile = () => {
     }
   }, [userProfile]);
 
-  const handleNameUpdate = async () => {
+  const isDirty = useMemo(() => {
+    return name.trim() !== (userProfile?.name || '').trim();
+  }, [name, userProfile?.name]);
+
+  const handleCopyId = async () => {
+    if (!userProfile?._id) return;
+    try {
+      await navigator.clipboard.writeText(userProfile._id);
+      setCopiedId(true);
+      toast.success('User ID copied to clipboard');
+      setTimeout(() => setCopiedId(false), 2000);
+    } catch {
+      toast.error('Failed to copy ID');
+    }
+  };
+
+  const handleNameUpdate = async (e) => {
+    e?.preventDefault();
     if (!name.trim()) {
       toast.error('Name cannot be empty');
       return;
     }
 
-    if (name.trim() === userProfile?.name) {
-      setIsEditing(false);
+    if (!isDirty) {
+      toast.info('No changes to save');
       return;
     }
 
+    setIsSavingName(true);
     try {
       await updateUserProfile({ name: name.trim() });
-
-      setIsEditing(false);
-
-      toast.success('Name updated successfully', {
-        icon: <Save className="h-4 w-4 text-accent" />,
+      toast.success('Changes saved successfully', {
+        icon: <Save className="h-4 w-4 text-primary" />,
         duration: 2000
       });
     } catch (error) {
       setName(userProfile?.name || '');
-
       toast.error(error.message || 'Failed to update name');
+    } finally {
+      setIsSavingName(false);
     }
+  };
+
+  const handleResetName = () => {
+    setName(userProfile?.name || '');
   };
 
   // Direct upload handler for uncroppable media like animated GIFs
@@ -94,9 +107,8 @@ const Profile = () => {
     try {
       await updateUserAvatar(file);
       await getUserProfile();
-
       toast.success('Avatar updated successfully', {
-        icon: <Camera className="h-4 w-4 text-accent" />,
+        icon: <Camera className="h-4 w-4 text-primary" />,
         duration: 2000
       });
     } catch (error) {
@@ -109,10 +121,9 @@ const Profile = () => {
     }
   };
 
-  // Step 1: File selection routing & size validations
+  // File selection routing & size validations
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     const allowedTypes = [
@@ -124,13 +135,10 @@ const Profile = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        'Please upload a valid image file (JPEG, PNG, GIF, or WEBP)'
-      );
+      toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WEBP)');
       return;
     }
 
-    // Specific check for GIF files: Max size 2MB
     if (file.type === 'image/gif') {
       if (file.size > 2 * 1024 * 1024) {
         toast.error('GIF size should be less than 2MB');
@@ -139,13 +147,10 @@ const Profile = () => {
         }
         return;
       }
-
-      // Bypass crop modal and upload directly
       uploadDirectAvatar(file);
       return;
     }
 
-    // Standard check for non-GIF files: Max size 5MB
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size should be less than 5MB');
       if (fileInputRef.current) {
@@ -154,7 +159,6 @@ const Profile = () => {
       return;
     }
 
-    // Cropping path for static images
     setSelectedFileType(file.type);
 
     if (selectedImageSrc) {
@@ -164,22 +168,17 @@ const Profile = () => {
     const objectUrl = URL.createObjectURL(file);
     setSelectedImageSrc(objectUrl);
     setIsCropModalOpen(true);
-
     event.target.value = '';
   };
 
-  // Step 2: Modal completes crop -> execute actual upload
   const handleCropAndUpload = async (croppedFile) => {
     setIsAvatarUploading(true);
-
     try {
       await updateUserAvatar(croppedFile);
-
       cleanupCropState();
       await getUserProfile();
-
       toast.success('Avatar updated successfully', {
-        icon: <Camera className="h-4 w-4 text-accent" />,
+        icon: <Camera className="h-4 w-4 text-primary" />,
         duration: 2000
       });
     } catch (error) {
@@ -208,15 +207,12 @@ const Profile = () => {
     }
 
     setIsRemovingAvatar(true);
-
     try {
       await deleteUserAvatar();
-
       setPreviewAvatar(null);
       await getUserProfile();
-
       toast.success('Avatar removed successfully', {
-        icon: <Trash2 className="h-4 w-4 text-accent" />,
+        icon: <Trash2 className="h-4 w-4 text-primary" />,
         duration: 2000
       });
     } catch (error) {
@@ -226,334 +222,232 @@ const Profile = () => {
     }
   };
 
-  const cancelEdit = () => {
-    setName(userProfile?.name || '');
-    setIsEditing(false);
-  };
+  const initials =
+    userProfile?.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U';
 
-  const cancelAvatarPreview = () => {
-    setPreviewAvatar(null);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading && !userProfile) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-subtle-foreground/40 text-xs">
-        Synchronizing Workspace...
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center font-semibold text-xs uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
+        Synchronizing Profile...
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5 bg-background text-foreground">
-      {/* Header */}
-      <div className="space-y-0.5 sm:space-y-1">
-        <h1 className="font-heading text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8 bg-background text-foreground">
+      {/* Page Title Header */}
+      <div className="space-y-1">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
           Profile
-        </h1>
-
-        <p className="text-xs sm:text-base text-subtle-foreground">
-          Manage your personal information and profile picture.
+        </h2>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Manage your personal identity, contact credentials, and account settings.
         </p>
       </div>
 
-      {/* Profile Card */}
-      <Card className="border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs overflow-hidden rounded-xl sm:rounded-2xl">
-        <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 border-b border-border-subtle bg-surface-sunken/40">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/20">
-              <User className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-            </div>
+      <Separator className="bg-border-subtle" />
 
-            <div>
-              <CardTitle className="font-heading text-sm sm:text-lg font-semibold text-foreground">
-                Personal Information
-              </CardTitle>
+      {/* Section 1: Avatar */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">Avatar</h3>
+          <p className="text-xs text-muted-foreground">
+            This avatar is displayed on your profile and across your team workspaces.
+          </p>
+        </div>
 
-              <CardDescription className="text-xs sm:text-sm mt-0.5 sm:mt-1 text-subtle-foreground">
-                Update your name and profile picture.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+        <Separator className="bg-border-subtle" />
 
-        <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <div className="relative flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-8">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center gap-2 sm:gap-3 w-full sm:w-1/2 min-w-0">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isAvatarUploading}
-                  className="relative rounded-full cursor-pointer group focus:outline-none"
-                >
-                  <Avatar className="h-20 w-20 sm:h-28 sm:w-28 ring-2 ring-border-subtle transition-all group-hover:ring-accent">
-                    {previewAvatar ? (
-                      <img
-                        src={previewAvatar}
-                        alt="Avatar preview"
-                        className="h-full w-full object-cover rounded-full"
-                      />
-                    ) : (
-                      <>
-                        {userProfile?.avatar?.url ? (
-                          <AvatarImage
-                            src={userProfile.avatar.url}
-                            alt={userProfile.name}
-                          />
-                        ) : null}
-
-                        <AvatarFallback className="text-xl sm:text-2xl bg-accent/10 text-accent">
-                          <UserRoundPen className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </AvatarFallback>
-                      </>
-                    )}
-                  </Avatar>
-
-                  {/* Hover Overlay */}
-                  {!isAvatarUploading && (
-                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
-                      <Camera className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
-
-                      <span className="text-[10px] sm:text-xs font-medium">
-                        Choose Picture
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-                {/* Uploading Overlay */}
-                {isAvatarUploading && (
-                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-                    <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-white" />
-                  </div>
-                )}
-
-                {/* Cancel Preview */}
-                {previewAvatar && !isAvatarUploading && (
-                  <button
-                    onClick={cancelAvatarPreview}
-                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 p-0.5 sm:p-1 bg-destructive rounded-full text-white hover:bg-destructive/90 transition-colors cursor-pointer"
-                  >
-                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Avatar Buttons */}
-              <div className="flex gap-1.5 sm:gap-2">
-                {/* Remove */}
-                {userProfile?.avatar?.url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAvatarRemove}
-                    disabled={isAvatarUploading || isRemovingAvatar}
-                    className="
-                      gap-1 sm:gap-2
-                      h-8 sm:h-9
-                      text-xs sm:text-sm
-                      cursor-pointer
-                      rounded-xl
-                      bg-secondary
-                      text-secondary-foreground
-                      border-border-subtle
-                      hover:border-destructive/40
-                      hover:bg-destructive/10
-                      hover:text-destructive
-                      transition-all duration-200
-                      active:scale-[0.98]
-                    "
-                  >
-                    {isRemovingAvatar ? (
-                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    )}
-
-                    <span className="hidden sm:inline">
-                      {isRemovingAvatar ? 'Removing...' : 'Remove'}
-                    </span>
-                  </Button>
-                )}
-
-                {/* Upload */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isAvatarUploading}
-                  className="
-                    gap-1 sm:gap-2
-                    h-8 sm:h-9
-                    text-xs sm:text-sm
-                    cursor-pointer
-                    rounded-xl
-                    bg-secondary
-                    text-secondary-foreground
-                    border-border-subtle
-                    hover:bg-accent
-                    hover:text-accent-foreground
-                    hover:shadow-md
-                    hover:shadow-accent/20
-                    transition-all duration-200
-                    active:scale-[0.98]
-                  "
-                >
-                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
-
-                  <span>
-                    {isAvatarUploading ? 'Uploading...' : 'Upload'}
-                  </span>
-                </Button>
-              </div>
-
-              {/* Hidden Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleFileSelect}
-                className="hidden"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pt-1">
+          <Avatar className="h-20 w-20 ring-1 ring-border/80 shadow-xs bg-background shrink-0">
+            {previewAvatar ? (
+              <img
+                src={previewAvatar}
+                alt="Avatar preview"
+                className="h-full w-full object-cover rounded-full"
               />
+            ) : userProfile?.avatar?.url ? (
+              <AvatarImage
+                src={userProfile.avatar.url}
+                alt={userProfile.name}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-muted text-lg font-bold text-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
 
-              <p className="text-[10px] sm:text-xs text-subtle-foreground text-center wrap-break-word max-w-full hidden sm:block">
-                Supported formats: JPEG, PNG, GIF, WEBP. Max size: 5MB.
-              </p>
-            </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAvatarUploading}
+                className="h-8 px-3 text-xs font-medium rounded-lg cursor-pointer"
+              >
+                <Camera className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                <span>{isAvatarUploading ? 'Uploading...' : 'Change avatar'}</span>
+              </Button>
 
-            {/* Desktop Vertical Separator */}
-            <div className="hidden sm:flex absolute left-1/2 top-0 -translate-x-1/2 h-full items-center">
-              <Separator orientation="vertical" className="h-full bg-border-subtle" />
-            </div>
-
-            {/* Mobile Separator */}
-            <Separator className="sm:hidden bg-border-subtle" />
-
-            {/* Name Section */}
-            <div className="w-full sm:w-1/2 space-y-3 sm:space-y-4 min-w-0">
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="text-xs sm:text-sm font-medium text-foreground"
+              {userProfile?.avatar?.url && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAvatarRemove}
+                  disabled={isAvatarUploading || isRemovingAvatar}
+                  className="h-8 px-3 text-xs font-medium rounded-lg text-subtle-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                 >
-                  Email Address
-                </Label>
-
-                <Input
-                  id="email"
-                  type="email"
-                  value={userProfile?.email || ''}
-                  disabled
-                  className="bg-surface-sunken/60 text-subtle-foreground border-border-subtle cursor-not-allowed h-9 sm:h-10 text-sm rounded-xl"
-                />
-
-                <p className="text-[10px] sm:text-xs text-subtle-foreground">
-                  Email address cannot be changed
-                </p>
-              </div>
-
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label
-                  htmlFor="name"
-                  className="text-xs sm:text-sm font-medium text-foreground"
-                >
-                  Full Name
-                </Label>
-
-                {isEditing ? (
-                  <div className="flex gap-2">
-                    <Input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your name"
-                      className="flex-1 h-9 sm:h-10 text-sm bg-surface border-border focus-visible:ring-ring rounded-xl text-foreground"
-                      autoFocus
-                      disabled={isUpdating}
-                    />
-
-                    <Button
-                      onClick={handleNameUpdate}
-                      disabled={isUpdating}
-                      size="sm"
-                      className="
-                        h-9 sm:h-10 px-4
-                        cursor-pointer
-                        rounded-xl
-                        bg-accent
-                        text-accent-foreground
-                        shadow-md
-                        shadow-accent/20
-                        hover:opacity-90
-                        transition-all duration-200
-                        active:scale-[0.98]
-                        font-bold
-                        text-xs
-                        uppercase
-                        tracking-wider
-                        gap-2
-                      "
-                    >
-                      {isUpdating && (
-                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      )}
-
-                      <span className={!isUpdating ? 'hidden sm:inline' : ''}>
-                        {isUpdating ? 'Saving...' : 'Save'}
-                      </span>
-                    </Button>
-
-                    <Button
-                      onClick={cancelEdit}
-                      disabled={isUpdating}
-                      variant="outline"
-                      size="sm"
-                      className="
-                        h-9 sm:h-10 px-4
-                        cursor-pointer
-                        rounded-xl
-                        border-border
-                        bg-surface
-                        text-subtle-foreground
-                        hover:bg-surface-sunken
-                        hover:text-foreground
-                        hover:border-border-strong
-                        transition-all duration-200
-                        active:scale-[0.98]
-                        font-medium
-                        text-xs
-                      "
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <div
-                    className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-surface rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-sunken transition-colors"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    <span className="text-sm sm:text-base font-medium text-foreground truncate">
-                      {userProfile?.name || 'Not set'}
-                    </span>
-
-                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-subtle-foreground" />
-                  </div>
-                )}
-              </div>
+                  {isRemovingAvatar ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  <span>Remove</span>
+                </Button>
+              )}
             </div>
+
+            <p className="text-[11px] text-muted-foreground">
+              JPG, PNG, GIF or WebP. Maximum file size 5MB.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
+      <Separator className="bg-border-subtle" />
+
+      {/* Section 2: Personal Information */}
+      <form onSubmit={handleNameUpdate} className="space-y-5">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">Personal Information</h3>
+          <p className="text-xs text-muted-foreground">
+            Update your public display identity and email credentials.
+          </p>
+        </div>
+
+        <Separator className="bg-border-subtle" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl pt-1">
+          {/* Full Name */}
+          <div className="space-y-1.5">
+            <Label htmlFor="fullName" className="text-xs font-medium text-foreground">
+              Full Name
+            </Label>
+            <Input
+              id="fullName"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              maxLength={50}
+              className="h-9 text-xs sm:text-sm rounded-lg"
+              disabled={isSavingName}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Your name as visible across all your team workspaces.
+            </p>
+          </div>
+
+          {/* Email Address */}
+          <div className="space-y-1.5">
+            <Label htmlFor="accountEmail" className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <span>Email Address</span>
+              <Lock className="h-3 w-3 text-muted-foreground opacity-70" />
+            </Label>
+            <Input
+              id="accountEmail"
+              type="email"
+              value={userProfile?.email || ''}
+              disabled
+              className="h-9 text-xs sm:text-sm bg-muted/40 text-muted-foreground cursor-not-allowed rounded-lg"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Email cannot be changed.
+            </p>
+          </div>
+        </div>
+
+        {/* User ID inline info */}
+        {userProfile?._id && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+            <span>User ID:</span>
+            <code className="px-2 py-0.5 rounded bg-muted/50 font-mono text-[11px] text-foreground border border-border-subtle">
+              {userProfile._id}
+            </code>
+            <button
+              type="button"
+              onClick={handleCopyId}
+              aria-label="Copy User ID"
+              className="text-muted-foreground hover:text-foreground p-1 transition-colors cursor-pointer rounded"
+              title="Copy User ID"
+            >
+              {copiedId ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 pt-2">
+          <Button
+            type="submit"
+            disabled={isSavingName || !isDirty}
+            size="sm"
+            className="h-9 px-4 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50"
+          >
+            {isSavingName ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                Saving...
+              </>
+            ) : (
+              <>
+                Save
+              </>
+            )}
+          </Button>
+
+          {isDirty && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleResetName}
+              disabled={isSavingName}
+              className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              Discard
+            </Button>
+          )}
+        </div>
+      </form>
+
+      <Separator className="bg-border-subtle" />
+
+      {/* Section 3: Phone & SMS Security */}
       <PhoneComponent />
 
+      <Separator className="bg-border-subtle" />
+
+      {/* Section 4: Account Metadata & Preferences */}
       <AccountInfo />
+
+      {/* Hidden File Input for Avatar */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
       {/* Avatar Crop Modal */}
       <AvatarCropModal
