@@ -209,6 +209,10 @@ export const inviteMemberService = async ({
             }
         }
 
+        if (existingUser && existingUser._id.toString() === userId.toString()) {
+            throw new ApiError(400, "You cannot invite yourself to the organization.");
+        }
+
         const alreadyInvited = await findInvitationByEmail(org, cleanedEmail, session);
         if (alreadyInvited) {
             throw new ApiError(400, `An invitation has already been sent to ${cleanedEmail}`);
