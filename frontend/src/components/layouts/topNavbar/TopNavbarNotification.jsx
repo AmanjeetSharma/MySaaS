@@ -50,12 +50,12 @@ export function TopNavbarNotification() {
                         setOpen(false);
                         navigate('/notifications');
                     }}
-                    className="group relative h-9 w-9 shrink-0 rounded-xl transition-all hover:bg-hover hover:text-hover-foreground active:bg-active active:scale-95 cursor-pointer"
+                    className="group relative h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-lg sm:rounded-xl transition-all hover:bg-hover hover:text-hover-foreground active:bg-active active:scale-95 cursor-pointer"
                     aria-label={label}
                 >
                     {/* Ringing bell icon */}
                     <Bell
-                        className={`h-4.5 w-4.5 text-muted-foreground transition-all duration-300 group-hover:text-foreground ${hasUnread
+                        className={`h-4 w-4 sm:h-4.5 sm:w-4.5 text-muted-foreground transition-all duration-300 group-hover:text-foreground ${hasUnread
                             ? 'text-foreground animate-[wiggle_1s_ease-in-out_infinite] origin-top'
                             : ''
                             }`}
