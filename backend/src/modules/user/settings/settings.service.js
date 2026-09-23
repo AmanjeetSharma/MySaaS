@@ -33,7 +33,7 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
 
     const user = await getUserById(userId);
     if (user.settings.theme.name === themeName && user.settings.theme.mode === themeMode) {
-        throw new ApiError(400, "You are already using this theme");
+        throw new ApiError(400, "You are already using this setting");
     }
 
     if (user.settings.theme.tier === "free" && themeName !== THEME_IDS.DEFAULT) {
@@ -59,7 +59,7 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
 
     return {
         theme: result.settings.theme,
-        message: `Theme updated to ${result.settings.theme.name} (${result.settings.theme.mode} mode)`,
+        message: `Theme updated to ${result.settings.theme.name} (mode: ${result.settings.theme.mode})`,
         updatedAt: result.updatedAt
     };
 };

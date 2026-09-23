@@ -5,7 +5,7 @@ export const themeValidator = (theme) => {
     const errors = [];
 
     const allowedNames = Object.values(THEME_IDS);
-    const allowedModes = ["light", "dark"];
+    const allowedModes = ["light", "dark", "system"];
 
     if (!theme || typeof theme !== "object") {
         return { valid: false, errors: ["Theme must be an object"] };

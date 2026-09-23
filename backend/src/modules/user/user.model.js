@@ -22,8 +22,8 @@ const settingsSchema = new mongoose.Schema({
         },
         mode: {
             type: String,
-            enum: ["light", "dark"],
-            default: "dark"
+            enum: ["light", "dark", "system"],
+            default: "system"
         },
         tier: {
             type: String,

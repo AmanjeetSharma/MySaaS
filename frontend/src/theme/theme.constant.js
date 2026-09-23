@@ -15,5 +15,6 @@ export const THEME_IDS = {
 
 export const THEME_MODES = {
     LIGHT: "light",
-    DARK: "dark"
+    DARK: "dark",
+    SYSTEM: "system"
 };

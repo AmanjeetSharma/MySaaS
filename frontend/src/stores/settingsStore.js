@@ -1,15 +1,15 @@
 import { create } from 'zustand';
 import { http } from '../api/httpClient';
 import { THEME_IDS, THEME_MODES } from '../theme/theme.constant.js';
-import { applyUserTheme } from '../theme/theme.utils.js';
-import { saveThemeToLocalStorage } from '../theme/themeSync.utils.js';
+import { applyUserTheme, getEffectiveThemeMode } from '../theme/theme.utils.js';
+import { saveThemeToLocalStorage, getThemeFromLocalStorage } from '../theme/themeSync.utils.js';
 import { toast } from 'sonner';
 import { useUserStore } from './userStore';
 
 export const useSettingsStore = create((set, get) => ({
     theme: {
         name: THEME_IDS.DEFAULT,
-        mode: THEME_MODES.DARK,
+        mode: THEME_MODES.SYSTEM,
         tier: 'free'
     },
     timezone: 'Asia/Kolkata',
@@ -27,9 +27,12 @@ export const useSettingsStore = create((set, get) => ({
             const response = await http.get('/users/me');
             const { data } = response.data;
             const settings = data.settings || {};
+            const localTheme = getThemeFromLocalStorage();
+            const effectiveMode = localTheme?.mode || settings.theme?.mode || THEME_MODES.SYSTEM;
+
             const themeData = {
                 name: settings.theme?.name || THEME_IDS.DEFAULT,
-                mode: settings.theme?.mode || THEME_MODES.DARK,
+                mode: effectiveMode,
                 tier: settings.theme?.tier || 'free'
             };
 
@@ -43,6 +46,9 @@ export const useSettingsStore = create((set, get) => ({
                 isLoading: false,
                 error: null
             });
+
+            // Automatically apply theme on fetch
+            applyUserTheme(themeData.name, themeData.mode);
 
             return data.settings;
         } catch (error) {
@@ -62,7 +68,7 @@ export const useSettingsStore = create((set, get) => ({
 
             const newTheme = {
                 name: data.theme.name,
-                mode: data.theme.mode,
+                mode: data.theme.mode || themeMode,
                 tier: get().theme.tier
             };
 
@@ -184,12 +190,23 @@ export const useSettingsStore = create((set, get) => ({
         return allThemes;
     },
 
+    // Helper method to get all themes with locked metadata
+    getAllThemes: () => {
+        const currentTier = get().theme.tier;
+        const isPro = currentTier === 'pro';
+        return Object.values(THEME_IDS).map(themeId => ({
+            value: themeId,
+            label: themeId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            isLocked: !isPro && themeId !== THEME_IDS.DEFAULT
+        }));
+    },
+
     clearError: () => set({ error: null }),
 
     resetSettings: () => set({
         theme: {
             name: THEME_IDS.DEFAULT,
-            mode: THEME_MODES.DARK,
+            mode: THEME_MODES.SYSTEM,
             tier: 'free'
         },
         timezone: 'Asia/Kolkata',
