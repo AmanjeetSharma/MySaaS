@@ -38,6 +38,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_PRICE = 99999999;
 
@@ -222,6 +231,7 @@ export default function ServiceDetails() {
 
   useEffect(() => {
     if (selectedService) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(toFormState(selectedService));
       setMeetingLinkEnabled(!!selectedService.autoGenerateMeetingLink);
     }
@@ -347,8 +357,27 @@ export default function ServiceDetails() {
 
   if (isLoading && !selectedService) {
     return (
-      <div className="flex h-[70vh] items-center justify-center p-4 text-center font-bold tracking-wider text-subtle-foreground/60 text-xs uppercase animate-pulse">
-        Synchronizing Workspace...
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 animate-pulse">
+        <Skeleton className="h-8 w-32" />
+        <div className="flex flex-col gap-4 border-b border-border/80 pb-5 sm:pb-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-20 rounded-xl" />
+            <Skeleton className="h-9 w-24 rounded-xl" />
+            <Skeleton className="h-9 w-20 rounded-xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-18 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
+        <Skeleton className="h-40 rounded-xl" />
       </div>
     );
   }
@@ -358,42 +387,52 @@ export default function ServiceDetails() {
   const isOffline = (isEditing ? form.mode : selectedService?.mode) === 'OFFLINE';
 
   const fieldInputClass =
-    'h-10 w-full rounded-xl border-border bg-surface px-3 font-medium text-sm text-foreground shadow-xs transition-all focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-border-strong';
+    'h-10 w-full rounded-xl border-border/80 bg-background px-3 font-medium text-xs sm:text-sm text-foreground shadow-2xs transition-all focus-visible:ring-1 focus-visible:ring-ring';
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-8 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {/* Back Navigation */}
+      <div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/organizations/${selectedService?.organization}/services`)}
+          className="text-muted-foreground hover:text-foreground -ml-2 h-8 gap-1.5 cursor-pointer text-xs sm:text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Services
+        </Button>
+      </div>
+
       {/* Header Toolbar */}
-      <div className="flex flex-col gap-4 border-b border-border-subtle pb-4 sm:pb-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3 min-w-0">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/organizations/${selectedService.organization}/services`)}
-            className="h-10 w-10 shrink-0 rounded-xl border border-border-subtle bg-surface-elevated shadow-xs hover:bg-hover hover:text-hover-foreground active:bg-active active:scale-95 sm:h-9 sm:w-9 cursor-pointer text-subtle-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-heading truncate text-lg font-bold tracking-tight text-foreground sm:text-2xl">
-                {selectedService?.name || 'Service Details'}
-              </h1>
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${selectedService?.isActive
-                  ? 'bg-success/10 text-success border border-success/20'
-                  : 'bg-surface text-subtle-foreground border border-border-subtle'
-                  }`}
-              >
-                {selectedService?.isActive ? 'Active' : 'Inactive'}
+      <div className="flex flex-col gap-4 border-b border-border/80 pb-5 sm:pb-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="truncate text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              {selectedService?.name || 'Service Details'}
+            </h1>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wider ${selectedService?.isActive
+                ? 'bg-success/10 text-success border border-success/20'
+                : 'bg-muted text-muted-foreground border border-border'
+                }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${selectedService?.isActive ? 'bg-success animate-pulse' : 'bg-muted-foreground'}`} />
+              {selectedService?.isActive ? 'ACTIVE' : 'INACTIVE'}
+            </span>
+            {selectedService?.isSlugStale && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">
+                <AlertTriangle className="h-3 w-3" />
+                URL DESYNCED
               </span>
-            </div>
-            <p className="mt-0.5 text-xs font-medium text-subtle-foreground sm:text-sm">
-              {isEditing
-                ? 'Editing configuration parameters & scheduling options'
-                : 'Service settings, pricing structures, and external integrations'}
-            </p>
+            )}
           </div>
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+            {isEditing
+              ? 'Editing configuration parameters & scheduling options'
+              : 'Service settings, pricing structures, and external integrations'}
+          </p>
         </div>
 
         {/* Action Button Hierarchy */}
@@ -401,104 +440,120 @@ export default function ServiceDetails() {
           {!isEditing ? (
             <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setIsEditing(true)}
-              className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle px-3.5 text-xs font-bold uppercase tracking-wider shadow-xs transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:shadow-accent/20 active:scale-95 sm:h-9 sm:flex-none"
+              className="h-9 px-3.5 text-xs font-medium cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-2xs gap-1.5"
             >
               <Edit3 className="h-3.5 w-3.5" />
-              Edit
+              <span>Edit</span>
             </Button>
           ) : (
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={handleCancelEdit}
-              className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-xl border border-border bg-surface text-subtle-foreground px-3.5 text-xs font-bold transition-all hover:bg-surface-sunken hover:text-foreground hover:border-border-strong active:scale-95 sm:h-9 sm:flex-none shadow-xs"
+              className="h-9 px-3.5 text-xs font-medium cursor-pointer rounded-xl border border-border/80 hover:bg-muted active:scale-[0.98] gap-1.5"
             >
               <X className="h-3.5 w-3.5" />
-              Cancel Edit
+              <span>Cancel Edit</span>
             </Button>
           )}
 
           <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => navigate(`/services/all/${serviceId}/availability`)}
-            className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle px-3.5 text-xs font-bold tracking-wider shadow-xs transition-all hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:shadow-accent/20 active:scale-95 sm:h-9 sm:flex-none"
+            className="h-9 px-3.5 text-xs font-medium cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-2xs gap-1.5"
           >
             <CalendarClock className="h-3.5 w-3.5" />
-            Availability
+            <span>Availability</span>
           </Button>
 
           <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setShowDeleteModal(true)}
-            className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-xl bg-secondary text-secondary-foreground border border-border-subtle px-3 text-xs font-bold uppercase tracking-wider shadow-xs transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95 sm:h-9 sm:flex-none"
+            className="h-9 px-3.5 text-xs font-medium cursor-pointer rounded-xl bg-card/80 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 active:scale-[0.98] border border-border/80 shadow-2xs gap-1.5"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
+            <span>Delete</span>
           </Button>
 
-          <div className="flex h-10 min-h-[40px] w-full items-center justify-between gap-2.5 rounded-xl border border-border-subtle bg-surface-elevated px-3 shadow-xs sm:h-9 sm:w-auto sm:justify-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground whitespace-nowrap">
+          <div className="flex h-9 items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-card/80 px-3 shadow-2xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
               Accepting Bookings
             </span>
             <Switch
               checked={!!selectedService?.isActive}
               onCheckedChange={handleToggleStatus}
               disabled={isActionLoading}
-              className="cursor-pointer transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
+              className="cursor-pointer"
             />
           </div>
         </div>
       </div>
-
       {/* Quick Summary Bar */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 sm:gap-3">
-        <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-3 shadow-xs sm:p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-subtle-foreground">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 md:grid-cols-4 sm:gap-3">
+        <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 shadow-2xs sm:p-4">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Mode
           </span>
           <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-foreground sm:text-sm">
             {isOffline ? (
               <>
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
                 <span className="truncate">Offline</span>
               </>
             ) : (
               <>
-                <Video className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <Video className="h-3.5 w-3.5 shrink-0 text-primary" />
                 <span className="truncate">Online</span>
               </>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-3 shadow-xs sm:p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-subtle-foreground">
+        <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 shadow-2xs sm:p-4">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Duration
           </span>
           <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-foreground sm:text-sm">
-            <Clock className="h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
+            <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate">{selectedService?.durationInMinutes || 30} min</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-3 shadow-xs sm:p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-subtle-foreground">
+        <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 shadow-2xs sm:p-4">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Price
           </span>
-          <div className="mt-1 truncate text-xs font-bold text-foreground sm:text-sm">
-            {formatAmountDisplay(selectedService?.price, selectedService?.currency)}
+          <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-foreground sm:text-sm">
+            <CurrencyIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">{formatAmountDisplay(selectedService?.price, selectedService?.currency)}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-3 shadow-xs sm:p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-subtle-foreground">
+        <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 shadow-2xs sm:p-4">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             {isOffline ? 'Location' : 'Provider'}
           </span>
-          <div className="mt-1 truncate text-xs font-bold text-foreground sm:text-sm">
-            {isOffline
-              ? formatShortAddress(selectedService?.address)
-              : currentProviderConfig?.name || selectedService?.meetingProvider || 'Online'}
+          <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-foreground sm:text-sm">
+            {isOffline ? (
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            ) : currentProviderConfig?.icon ? (
+              <currentProviderConfig.icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            ) : (
+              <Globe2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            )}
+            <span className="truncate">
+              {isOffline
+                ? formatShortAddress(selectedService?.address)
+                : currentProviderConfig?.name || selectedService?.meetingProvider || 'Online'}
+            </span>
           </div>
         </div>
       </div>
@@ -506,33 +561,33 @@ export default function ServiceDetails() {
       {/* Main Workspace Form */}
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Dedicated Public Booking URL Card */}
-        <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-3.5 shadow-xs transition-all sm:p-4">
+        <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 shadow-2xs sm:p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-surface text-subtle-foreground">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-muted/60 text-muted-foreground">
                 <Globe2 className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Public Booking Page
                 </span>
-                <p className="truncate text-xs font-mono font-semibold text-foreground/90 sm:text-sm">
+                <p className="truncate text-xs font-mono font-medium text-foreground select-all sm:text-sm">
                   {selectedService?.publicUrl || `/${selectedService?.slug}`}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 border-t border-border-subtle pt-2.5 sm:border-t-0 sm:pt-0 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-2.5 sm:border-t-0 sm:pt-0 shrink-0">
               {selectedService?.publicUrl && (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   asChild
-                  className="h-9 min-h-[36px] flex-1 rounded-xl text-xs font-semibold border-border hover:bg-hover hover:text-hover-foreground sm:h-8 sm:flex-none"
+                  className="h-8 rounded-xl text-xs font-medium border-border/80 hover:bg-muted"
                 >
                   <a href={selectedService.publicUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" />
                     Open
                   </a>
                 </Button>
@@ -543,16 +598,16 @@ export default function ServiceDetails() {
                 variant="outline"
                 size="sm"
                 onClick={handleCopyUrl}
-                className="h-9 min-h-[36px] flex-1 rounded-xl text-xs font-semibold border-border hover:bg-hover hover:text-hover-foreground cursor-pointer sm:h-8 sm:flex-none"
+                className="h-8 rounded-xl text-xs font-medium border-border/80 hover:bg-muted cursor-pointer"
               >
                 {hasCopied ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-success" />
+                    <Check className="h-3.5 w-3.5 mr-1 text-success" />
                     Copied
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="h-3.5 w-3.5 mr-1" />
                     Copy
                   </>
                 )}
@@ -565,7 +620,7 @@ export default function ServiceDetails() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSyncModal(true)}
-                  className="h-9 min-h-[36px] flex-1 cursor-pointer gap-1.5 rounded-xl border-warning/30 bg-warning/10 text-warning hover:bg-warning/20 sm:h-8 sm:flex-none text-[10px] font-bold uppercase tracking-wider transition-colors"
+                  className="h-8 cursor-pointer gap-1.5 rounded-xl border-warning/30 bg-warning/10 text-warning hover:bg-warning/20 text-xs font-medium transition-colors"
                 >
                   <RefreshCw className="h-3 w-3" />
                   Sync URL
@@ -576,19 +631,19 @@ export default function ServiceDetails() {
         </div>
 
         {/* Section 1: General Details */}
-        <div className="space-y-4 rounded-2xl border border-border-subtle bg-surface-elevated p-4 shadow-xs sm:p-5">
-          <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
-            <h2 className="font-heading text-xs font-bold uppercase tracking-wider text-subtle-foreground">
+        <div className="space-y-4 rounded-xl border border-border/80 bg-card/60 p-4 shadow-2xs sm:p-5">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               General Settings
             </h2>
-            <span className="text-[10px] font-medium text-subtle-foreground/70">
+            <span className="text-[10px] font-medium text-muted-foreground/70">
               {isEditing ? 'Editing...' : 'Service Overview'}
             </span>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Service Name
               </Label>
               {isEditing ? (
@@ -600,75 +655,116 @@ export default function ServiceDetails() {
                   required
                 />
               ) : (
-                <p className="font-heading text-sm font-bold text-foreground sm:text-base">{selectedService?.name}</p>
+                <p className="text-sm font-semibold text-foreground sm:text-base">{selectedService?.name}</p>
               )}
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Description
               </Label>
               {isEditing ? (
                 <Textarea
                   value={form.description}
                   onChange={(e) => updateField('description', e.target.value)}
-                  className="min-h-24 w-full rounded-xl border-border bg-surface p-3 font-medium text-xs sm:text-sm text-foreground shadow-xs focus-visible:ring-1 focus-visible:ring-ring"
+                  className="min-h-24 w-full rounded-xl border-border/80 bg-background p-3 font-medium text-xs sm:text-sm text-foreground shadow-2xs focus-visible:ring-1 focus-visible:ring-ring"
                   placeholder="Summarize key takeaways for clients..."
                 />
               ) : (
-                <p className="text-xs font-medium leading-relaxed text-subtle-foreground sm:text-sm">
+                <p className="text-xs font-normal leading-relaxed text-muted-foreground sm:text-sm">
                   {selectedService?.description || 'No description provided.'}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
-                Mode
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Service Mode
               </Label>
               {isEditing ? (
-                <div className="relative rounded-xl border border-border-subtle bg-surface-sunken p-1">
-                  <div
-                    className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-lg bg-surface shadow-xs transition-transform duration-200 ${form.mode === 'ONLINE' ? 'translate-x-full' : 'translate-x-0'
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => updateField('mode', 'OFFLINE')}
+                    className={`relative flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all cursor-pointer ${form.mode === 'OFFLINE'
+                      ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary shadow-xs'
+                      : 'border-border/80 bg-background/50 text-muted-foreground hover:border-border hover:bg-background hover:text-foreground'
                       }`}
-                  />
-                  <div className="relative grid grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => updateField('mode', 'OFFLINE')}
-                      className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'OFFLINE'
-                        ? 'text-foreground font-semibold'
-                        : 'text-subtle-foreground hover:text-foreground'
-                        }`}
-                    >
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      Offline
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateField('mode', 'ONLINE')}
-                      className={`flex h-10 min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors sm:h-9 ${form.mode === 'ONLINE'
-                        ? 'text-foreground font-semibold'
-                        : 'text-subtle-foreground hover:text-foreground'
-                        }`}
-                    >
-                      <Video className="h-3.5 w-3.5 shrink-0" />
-                      Online
-                    </button>
-                  </div>
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${form.mode === 'OFFLINE'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                          }`}
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold ${form.mode === 'OFFLINE' ? 'text-foreground' : 'text-foreground/80'}`}>
+                          Offline
+                        </p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          In-person venue or address
+                        </p>
+                      </div>
+                    </div>
+                    {form.mode === 'OFFLINE' ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0 rounded-full border border-border/80" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateField('mode', 'ONLINE')}
+                    className={`relative flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all cursor-pointer ${form.mode === 'ONLINE'
+                      ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary shadow-xs'
+                      : 'border-border/80 bg-background/50 text-muted-foreground hover:border-border hover:bg-background hover:text-foreground'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${form.mode === 'ONLINE'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                          }`}
+                      >
+                        <Video className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold ${form.mode === 'ONLINE' ? 'text-foreground' : 'text-foreground/80'}`}>
+                          Online
+                        </p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          Virtual call (Google Meet, etc.)
+                        </p>
+                      </div>
+                    </div>
+                    {form.mode === 'ONLINE' ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0 rounded-full border border-border/80" />
+                    )}
+                  </button>
                 </div>
               ) : (
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface px-3 py-1.5 text-xs font-bold text-foreground">
+                  <span className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-card px-3.5 py-2 text-xs font-medium text-foreground shadow-2xs">
                     {isOffline ? (
                       <>
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
-                        Offline / In-Person
+                        <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                        </div>
+                        <span>Offline / In-Person</span>
                       </>
                     ) : (
                       <>
-                        <Video className="h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
-                        Online / Virtual
+                        <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <Video className="h-3 w-3" />
+                        </div>
+                        <span>Online / Virtual</span>
                       </>
                     )}
                   </span>
@@ -680,9 +776,9 @@ export default function ServiceDetails() {
 
         {/* Section 2: Online or Offline Setup */}
         {!isOffline ? (
-          <div className="space-y-4 rounded-2xl border border-border-subtle bg-surface-elevated p-4 shadow-xs sm:p-5">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
-              <h2 className="font-heading text-xs font-bold uppercase tracking-wider text-subtle-foreground">
+          <div className="space-y-4 rounded-xl border border-border/80 bg-card/60 p-4 shadow-2xs sm:p-5">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Online Integration Settings
               </h2>
             </div>
@@ -690,23 +786,23 @@ export default function ServiceDetails() {
             {isEditing ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Choose Meeting Platform
                   </Label>
                   <Select
                     value={form.meetingProvider}
                     onValueChange={(v) => updateField('meetingProvider', v)}
                   >
-                    <SelectTrigger className="h-10 w-full cursor-pointer rounded-xl border-border bg-surface shadow-xs">
+                    <SelectTrigger className="h-10 w-full cursor-pointer rounded-xl border-border/80 bg-background shadow-2xs">
                       <SelectValue placeholder="Select provider" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover text-popover-foreground border-border">
                       {Object.entries(INTEGRATION_CONFIG).map(([key, config]) => {
                         const IconComponent = config.icon;
                         return (
-                          <SelectItem key={key} value={key} className="cursor-pointer hover:bg-hover hover:text-hover-foreground">
-                            <div className="flex items-center gap-2 font-bold text-xs">
-                              {IconComponent && <IconComponent className="h-3.5 w-3.5 shrink-0 text-accent" />}
+                          <SelectItem key={key} value={key} className="cursor-pointer hover:bg-muted">
+                            <div className="flex items-center gap-2 font-medium text-xs">
+                              {IconComponent && <IconComponent className="h-3.5 w-3.5 shrink-0 text-primary" />}
                               <span>{config.name}</span>
                             </div>
                           </SelectItem>
@@ -717,43 +813,43 @@ export default function ServiceDetails() {
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Meeting Link Settings
                   </Label>
-                  <div className="flex h-12 items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3.5 shadow-xs sm:h-11">
+                  <div className="flex h-11 items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3.5 shadow-2xs">
                     <div className="min-w-0">
-                      <div className="truncate text-xs font-bold text-foreground">Auto Generate Link</div>
-                      <div className="truncate text-[10px] font-medium text-subtle-foreground">
+                      <div className="truncate text-xs font-semibold text-foreground">Auto Generate Link</div>
+                      <div className="truncate text-[10px] font-medium text-muted-foreground">
                         {currentProviderConfig?.name || 'Selected Provider'}
                       </div>
                     </div>
                     <Switch
                       checked={meetingLinkEnabled}
                       onCheckedChange={handleMeetingLinkToggle}
-                      className="cursor-pointer ring-ring data-checked:ring-2 data-unchecked:bg-muted-foreground/35"
+                      className="cursor-pointer"
                     />
                   </div>
                 </div>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-border-subtle bg-surface p-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <div className="rounded-xl border border-border/80 bg-card p-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Meeting Platform
                   </span>
-                  <div className="mt-1 flex items-center gap-2 text-xs font-bold text-foreground sm:text-sm">
+                  <div className="mt-1 flex items-center gap-2 text-xs font-semibold text-foreground sm:text-sm">
                     {currentProviderConfig?.icon && (
-                      <currentProviderConfig.icon className="h-4 w-4 shrink-0 text-subtle-foreground" />
+                      <currentProviderConfig.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
                     <span className="truncate">{currentProviderConfig?.name || selectedService?.meetingProvider}</span>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border-subtle bg-surface p-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <div className="rounded-xl border border-border/80 bg-card p-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Link Generation
                   </span>
-                  <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-foreground sm:text-sm">
+                  <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-foreground sm:text-sm">
                     {selectedService?.autoGenerateMeetingLink ? (
                       <>
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
@@ -771,9 +867,9 @@ export default function ServiceDetails() {
             )}
           </div>
         ) : (
-          <div className="space-y-4 rounded-2xl border border-border-subtle bg-surface-elevated p-4 shadow-xs sm:p-5">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
-              <h2 className="font-heading text-xs font-bold uppercase tracking-wider text-subtle-foreground">
+          <div className="space-y-4 rounded-xl border border-border/80 bg-card/60 p-4 shadow-2xs sm:p-5">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Location & Address Details
               </h2>
             </div>
@@ -781,7 +877,7 @@ export default function ServiceDetails() {
             {isEditing ? (
               <div className="grid gap-3.5 sm:grid-cols-2">
                 <div className="space-y-1 sm:col-span-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Street Address
                   </Label>
                   <Input
@@ -793,7 +889,7 @@ export default function ServiceDetails() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     City
                   </Label>
                   <Input
@@ -804,7 +900,7 @@ export default function ServiceDetails() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     State / Province
                   </Label>
                   <Input
@@ -814,7 +910,7 @@ export default function ServiceDetails() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Country
                   </Label>
                   <Input
@@ -825,7 +921,7 @@ export default function ServiceDetails() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Zip / Postal Code
                   </Label>
                   <Input
@@ -836,12 +932,12 @@ export default function ServiceDetails() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-border-subtle bg-surface p-3.5">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
-                  <Building2 className="h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
+              <div className="rounded-xl border border-border/80 bg-card p-3.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   Venue Location
                 </div>
-                <p className="mt-1 text-xs font-bold text-foreground sm:text-sm">
+                <p className="mt-1 text-xs font-semibold text-foreground sm:text-sm">
                   {formatFullAddress(selectedService?.address)}
                 </p>
               </div>
@@ -850,9 +946,9 @@ export default function ServiceDetails() {
         )}
 
         {/* Section 3: Pricing & Duration */}
-        <div className="space-y-4 rounded-2xl border border-border-subtle bg-surface-elevated p-4 shadow-xs sm:p-5">
-          <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
-            <h2 className="font-heading text-xs font-bold uppercase tracking-wider text-subtle-foreground">
+        <div className="space-y-4 rounded-xl border border-border/80 bg-card/60 p-4 shadow-2xs sm:p-5">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Pricing & Scheduling Parameters
             </h2>
           </div>
@@ -860,24 +956,24 @@ export default function ServiceDetails() {
           {isEditing ? (
             <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Currency
                 </Label>
                 <Select
                   value={form.currency}
                   onValueChange={(v) => updateField('currency', v)}
                 >
-                  <SelectTrigger className="h-10 w-full cursor-pointer rounded-xl border-border bg-surface shadow-xs">
+                  <SelectTrigger className="h-10 w-full cursor-pointer rounded-xl border-border/80 bg-background shadow-2xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover text-popover-foreground border-border">
-                    <SelectItem value="INR" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">
+                    <SelectItem value="INR" className="cursor-pointer hover:bg-muted">
                       INR (₹)
                     </SelectItem>
-                    <SelectItem value="USD" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">
+                    <SelectItem value="USD" className="cursor-pointer hover:bg-muted">
                       USD ($)
                     </SelectItem>
-                    <SelectItem value="EUR" className="cursor-pointer hover:bg-hover hover:text-hover-foreground">
+                    <SelectItem value="EUR" className="cursor-pointer hover:bg-muted">
                       EUR (€)
                     </SelectItem>
                   </SelectContent>
@@ -885,7 +981,7 @@ export default function ServiceDetails() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Duration (mins)
                 </Label>
                 <Input
@@ -902,11 +998,11 @@ export default function ServiceDetails() {
               </div>
 
               <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Price Amount
                 </Label>
                 <div className="relative">
-                  <WalletCards className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-subtle-foreground" />
+                  <WalletCards className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                   <CurrencyIcon className="pointer-events-none absolute left-8 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-foreground" />
                   <Input
                     type="number"
@@ -926,20 +1022,20 @@ export default function ServiceDetails() {
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-border-subtle bg-surface p-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+              <div className="rounded-xl border border-border/80 bg-card p-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Session Duration
                 </span>
-                <p className="mt-1 text-sm font-extrabold text-foreground">
+                <p className="mt-1 text-sm font-semibold text-foreground">
                   {selectedService?.durationInMinutes} minutes
                 </p>
               </div>
 
-              <div className="rounded-xl border border-border-subtle bg-surface p-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+              <div className="rounded-xl border border-border/80 bg-card p-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Fee Structure
                 </span>
-                <p className="mt-1 text-sm font-extrabold text-foreground">
+                <p className="mt-1 text-sm font-semibold text-foreground">
                   {formatAmountDisplay(selectedService?.price, selectedService?.currency)}
                 </p>
               </div>
@@ -949,17 +1045,18 @@ export default function ServiceDetails() {
 
         {/* Sticky Embedded Save Bar */}
         {isEditing && (
-          <div className="sticky bottom-3 z-40 flex items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface-elevated/95 p-3 shadow-xl backdrop-blur-md sm:bottom-5 sm:p-3.5">
-            <span className="hidden text-xs font-semibold text-subtle-foreground sm:inline">
-              Unsaved changes will be lost, click "Save Changes" to see the changes.
-            </span>
+          <div className="sticky bottom-4 z-40 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/95 p-3.5 shadow-xl backdrop-blur-md">
+            <div className="hidden items-center gap-2 text-xs font-medium text-muted-foreground sm:flex">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span>Editing mode active - Unsaved changes will be lost</span>
+            </div>
 
             <div className="flex w-full items-center gap-2.5 sm:ml-auto sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCancelEdit}
-                className="h-10 min-h-[40px] flex-1 cursor-pointer rounded-xl border-border px-4 text-xs font-bold transition-all hover:bg-hover hover:text-hover-foreground active:scale-98 sm:h-9 sm:flex-initial sm:px-5"
+                className="h-9 flex-1 cursor-pointer rounded-xl border-border/80 px-4 text-xs font-medium sm:flex-initial"
               >
                 Cancel
               </Button>
@@ -967,7 +1064,7 @@ export default function ServiceDetails() {
               <Button
                 type="submit"
                 disabled={isUpdating}
-                className="h-10 min-h-[40px] flex-1 cursor-pointer gap-2 rounded-xl bg-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md shadow-accent/20 transition-all hover:opacity-90 active:scale-98 sm:h-9 sm:flex-initial"
+                className="h-9 flex-1 cursor-pointer gap-2 rounded-xl px-5 text-xs font-medium shadow-2xs active:scale-[0.98] transition-all sm:flex-initial"
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -977,92 +1074,81 @@ export default function ServiceDetails() {
       </form>
 
       {/* Sync URL Confirmation Modal */}
-      {showSyncModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
-          <div className="w-full max-w-md space-y-5 rounded-2xl border border-border-strong bg-surface-elevated p-6 shadow-2xl animate-in zoom-in-95 duration-150 text-surface-elevated-foreground">
-            {/* Content Block */}
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning border border-warning/20">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-
-              <div className="space-y-1.5 pt-0.5">
-                <h3 className="font-heading text-lg font-bold text-foreground">Sync Booking URL?</h3>
-                <p className="text-xs leading-relaxed text-subtle-foreground">
-                  Create a new booking link that matches the current service name.
-                </p>
-                <p className="text-xs font-semibold leading-relaxed text-warning">
-                  Warning: Previously shared links will stop working.
-                </p>
-              </div>
+      <Dialog open={showSyncModal} onOpenChange={setShowSyncModal}>
+        <DialogContent className="sm:max-w-md rounded-2xl border-border bg-card text-card-foreground [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:p-1.5">
+          <DialogHeader className="space-y-2 text-left">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning border border-warning/20">
+              <AlertTriangle className="h-5 w-5" />
             </div>
-
-            {/* 50/50 Equal Width Buttons */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isSyncing}
-                onClick={() => setShowSyncModal(false)}
-                className="h-10 w-full rounded-xl text-xs font-bold border-border hover:bg-hover hover:text-hover-foreground cursor-pointer"
-              >
-                Cancel
-              </Button>
-
-              <Button
-                type="button"
-                disabled={isSyncing}
-                onClick={handleConfirmSyncSlug}
-                className="h-10 w-full cursor-pointer gap-2 rounded-xl bg-warning px-4 text-xs font-bold uppercase tracking-wider text-background shadow-xs hover:opacity-90 transition-opacity"
-              >
-                {isSyncing ? (
-                  <>
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  'Confirm Sync'
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            <DialogTitle className="text-base font-bold text-foreground">Sync Booking URL?</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Create a new booking link that matches the current service name.
+              <span className="block mt-1 text-warning font-medium">Warning: Previously shared links will stop working.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSyncing}
+              onClick={() => setShowSyncModal(false)}
+              className="h-9 rounded-xl text-xs font-medium cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={isSyncing}
+              onClick={handleConfirmSyncSlug}
+              className="h-9 rounded-xl text-xs font-medium cursor-pointer gap-1.5 bg-warning text-warning-foreground hover:bg-warning/90 shadow-2xs"
+            >
+              {isSyncing ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                'Confirm Sync'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-border-strong bg-surface-elevated p-6 shadow-2xl text-surface-elevated-foreground">
-            <div className="space-y-1.5">
-              <h3 className="font-heading text-base font-bold text-destructive sm:text-lg">Delete Service</h3>
-              <p className="text-xs text-subtle-foreground sm:text-sm leading-relaxed">
-                Are you sure you want to delete <strong className="text-foreground">{selectedService?.name}</strong>? This action cannot be undone and will remove all public booking capabilities for this service.
-              </p>
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="sm:max-w-md rounded-2xl border-border bg-card text-card-foreground [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:p-1.5">
+          <DialogHeader className="space-y-2 text-left">
+            <div className="h-9 w-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+              <AlertCircle className="h-5 w-5" />
             </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isDeleting}
-                onClick={() => setShowDeleteModal(false)}
-                className="h-9 rounded-xl text-xs font-bold border-border hover:bg-hover hover:text-hover-foreground cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={isDeleting}
-                onClick={handleDeleteService}
-                className="h-9 rounded-xl px-4 text-xs font-bold uppercase tracking-wider cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete Service'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            <DialogTitle className="text-base font-bold text-destructive">Delete Service</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-foreground underline">{selectedService?.name}</span>? This action is permanent and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setShowDeleteModal(false)}
+              className="h-9 rounded-xl text-xs font-medium cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={handleDeleteService}
+              className="h-9 rounded-xl text-xs font-medium cursor-pointer shadow-2xs"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Service'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
