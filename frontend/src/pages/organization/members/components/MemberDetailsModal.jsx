@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials, formatDate } from "../helpers/member.helper.js";
 import {
-    Shield,
+    Crown,
     User,
     Mail,
     Phone,
@@ -43,12 +43,13 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
             {/* Discord-Style Member Details Modal */}
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 {/* 1. Main Member Details Modal */}
-                <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md p-0 overflow-hidden border border-border/80 bg-card shadow-2xl rounded-2xl [&>button]:cursor-pointer">                    <DialogHeader className="sr-only">
-                    <DialogTitle>Member Profile</DialogTitle>
-                    <DialogDescription>
-                        Detailed profile and account metadata for this workspace member.
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md p-0 overflow-hidden border border-border/80 bg-card shadow-2xl rounded-2xl [&>button]:cursor-pointer [&>button]:top-3.5 [&>button]:right-3.5 [&>button]:z-20 [&>button]:bg-background/80 [&>button]:hover:bg-background [&>button]:backdrop-blur-md [&>button]:border [&>button]:border-border/60 [&>button]:rounded-full [&>button]:p-1.5 [&>button]:shadow-xs [&>button]:transition-all">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Member Profile</DialogTitle>
+                        <DialogDescription>
+                            Detailed profile and account metadata for this workspace member.
+                        </DialogDescription>
+                    </DialogHeader>
 
                     {isLoading || !memberInfo ? (
                         <div className="relative">
@@ -86,6 +87,7 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
                                     type="button"
                                     onClick={() => memberInfo.avatar && setIsAvatarPreviewOpen(true)}
                                     disabled={!memberInfo.avatar}
+                                    aria-label="View full size avatar"
                                     className="relative group rounded-full p-0 border-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer disabled:cursor-default"
                                 >
                                     <Avatar className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-card shadow-xl bg-muted ring-2 ring-border/40 transition-transform duration-200 group-hover:scale-105">
@@ -111,77 +113,79 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
 
                             {/* Profile Body */}
                             <div className="p-5 sm:p-6 pt-3 space-y-4">
-                                <div>
+                                <div className="space-y-1">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <h3 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
                                             {memberInfo.name}
                                         </h3>
                                         <Badge
                                             variant={isOwner ? "default" : "secondary"}
-                                            className={`capitalize text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-0.5 font-medium rounded-full inline-flex items-center gap-1.5 ${isOwner
+                                            className={`capitalize text-[10px] sm:text-[11px] px-2.5 py-0.5 font-medium rounded-full inline-flex items-center gap-1.5 shadow-2xs ${isOwner
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-foreground border border-border"
                                                 }`}
                                         >
                                             {isOwner ? (
-                                                <Shield className="h-3 w-3" />
+                                                <Crown className="h-3 w-3" />
                                             ) : (
                                                 <User className="h-3 w-3 text-muted-foreground" />
                                             )}
                                             {memberInfo.role}
                                         </Badge>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                                    <p className="text-xs text-muted-foreground font-mono truncate select-all">
                                         {memberInfo.email}
                                     </p>
                                 </div>
 
                                 {/* Metadata Card */}
-                                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 sm:p-3.5 space-y-2.5 sm:space-y-3">
+                                <div className="rounded-xl border border-border/70 bg-muted/30 p-3.5 sm:p-4 space-y-2.5">
                                     <div className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
                                         Member Information
                                     </div>
 
-                                    <div className="grid grid-cols-1 gap-2 sm:gap-2.5 text-xs">
-                                        <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/40 gap-2">
-                                            <span className="text-muted-foreground flex items-center gap-1.5 sm:gap-2 shrink-0 text-[11px] sm:text-xs">
+                                    <div className="divide-y divide-border/40 text-xs">
+                                        <div className="flex items-center justify-between py-2 gap-3 min-w-0">
+                                            <span className="text-muted-foreground flex items-center gap-2 shrink-0 text-xs">
                                                 <Mail className="h-3.5 w-3.5" /> Email
                                             </span>
-                                            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">{memberInfo.email}</span>
+                                            <span className="font-medium text-foreground truncate text-xs select-all text-right min-w-0">
+                                                {memberInfo.email}
+                                            </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/40 gap-2">
-                                            <span className="text-muted-foreground flex items-center gap-1.5 sm:gap-2 shrink-0 text-[11px] sm:text-xs">
+                                        <div className="flex items-center justify-between py-2 gap-3 min-w-0">
+                                            <span className="text-muted-foreground flex items-center gap-2 shrink-0 text-xs">
                                                 <Phone className="h-3.5 w-3.5" /> Phone
                                             </span>
-                                            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">
+                                            <span className="font-medium text-foreground truncate text-xs text-right min-w-0">
                                                 {memberInfo.phone || "Not provided"}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/40 gap-2">
-                                            <span className="text-muted-foreground flex items-center gap-1.5 sm:gap-2 shrink-0 text-[11px] sm:text-xs">
+                                        <div className="flex items-center justify-between py-2 gap-3 min-w-0">
+                                            <span className="text-muted-foreground flex items-center gap-2 shrink-0 text-xs">
                                                 <Globe className="h-3.5 w-3.5" /> Timezone
                                             </span>
-                                            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">
+                                            <span className="font-medium text-foreground truncate text-xs text-right min-w-0">
                                                 {memberInfo.timezone || "Device Default"}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between py-0.5 sm:py-1 border-b border-border/40 gap-2">
-                                            <span className="text-muted-foreground flex items-center gap-1.5 sm:gap-2 shrink-0 text-[11px] sm:text-xs">
+                                        <div className="flex items-center justify-between py-2 gap-3 min-w-0">
+                                            <span className="text-muted-foreground flex items-center gap-2 shrink-0 text-xs">
                                                 <Calendar className="h-3.5 w-3.5" /> Joined Workspace
                                             </span>
-                                            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">
+                                            <span className="font-medium text-foreground truncate text-xs text-right min-w-0">
                                                 {memberInfo.joinedAt ? formatDate(memberInfo.joinedAt) : "—"}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between py-0.5 sm:py-1 gap-2">
-                                            <span className="text-muted-foreground flex items-center gap-1.5 sm:gap-2 shrink-0 text-[11px] sm:text-xs">
+                                        <div className="flex items-center justify-between py-2 gap-3 min-w-0">
+                                            <span className="text-muted-foreground flex items-center gap-2 shrink-0 text-xs">
                                                 <Calendar className="h-3.5 w-3.5" /> Account Created
                                             </span>
-                                            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">
+                                            <span className="font-medium text-foreground truncate text-xs text-right min-w-0">
                                                 {memberInfo.createdAt ? formatDate(memberInfo.createdAt) : "—"}
                                             </span>
                                         </div>
@@ -190,19 +194,20 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
 
                                 {/* Full User ID with Copy & Sonner Toast */}
                                 {userId && (
-                                    <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground bg-muted/20 px-3 py-2 rounded-lg border border-border/40">
-                                        <span className="font-mono truncate select-all">
+                                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground bg-muted/20 px-3 py-2 rounded-xl border border-border/60">
+                                        <span className="font-mono text-[11px] truncate select-all flex-1 min-w-0">
                                             {userId}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={handleCopyId}
-                                            className="flex items-center gap-1 shrink-0 text-muted-foreground hover:text-foreground transition-colors cursor-pointer font-medium ml-2"
+                                            aria-label="Copy User ID"
+                                            className="flex items-center gap-1.5 shrink-0 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs font-medium ml-2 active:scale-95"
                                         >
                                             {copied ? (
                                                 <>
                                                     <Check className="h-3.5 w-3.5 text-emerald-500" />
-                                                    <span className="text-emerald-500 font-semibold">Copied to clipboard!</span>
+                                                    <span className="text-emerald-500 font-semibold">Copied!</span>
                                                 </>
                                             ) : (
                                                 <>
@@ -221,7 +226,7 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
 
             {/* Compact & Responsive Avatar Preview Modal */}
             <Dialog open={isAvatarPreviewOpen} onOpenChange={setIsAvatarPreviewOpen}>
-                <DialogContent className="w-[calc(100vw-2.5rem)] max-w-[300px] sm:max-w-[320px] p-4 sm:p-5 bg-card/95 backdrop-blur-xl border border-border/80 rounded-3xl flex flex-col items-center justify-center gap-3 sm:gap-4 shadow-2xl [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:opacity-80 hover:[&>button]:opacity-100">
+                <DialogContent className="w-[calc(100vw-2.5rem)] max-w-[300px] sm:max-w-[320px] p-4 sm:p-5 bg-card/95 backdrop-blur-xl border border-border/80 rounded-3xl flex flex-col items-center justify-center gap-3 sm:gap-4 shadow-2xl [&>button]:cursor-pointer [&>button]:rounded-full [&>button]:p-1.5 [&>button]:bg-background/80 [&>button]:hover:bg-background [&>button]:border [&>button]:border-border/60 [&>button]:opacity-80 hover:[&>button]:opacity-100">
                     <DialogHeader className="w-full text-center space-y-0.5 sm:space-y-1">
                         <DialogTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate px-2">
                             {memberInfo?.name}
@@ -234,7 +239,7 @@ export const MemberDetailsModal = ({ isOpen, onOpenChange, memberInfo, isLoading
                     {/* Circular Avatar Container */}
                     <div className="relative group p-1">
                         <div className="absolute -inset-1 rounded-full bg-linear-to-tr from-primary/30 to-accent/30 blur-md opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="relative h-44 w-44 min-[380px]:h-48 min-[380px]:w-48 sm:h-56 sm:w-56 rounded-full overflow-hidden border-4 border-card ring-2 ring-border/80 shadow-2xl bg-muted shrink-0">
+                        <div className="relative h-44 w-44 min-[380px]:h-48 min-[380px]:w-48 sm:h-56 sm:w-56 aspect-square rounded-full overflow-hidden border-4 border-card ring-2 ring-border/80 shadow-2xl bg-muted shrink-0">
                             <img
                                 src={memberInfo?.avatar}
                                 alt={memberInfo?.name}
