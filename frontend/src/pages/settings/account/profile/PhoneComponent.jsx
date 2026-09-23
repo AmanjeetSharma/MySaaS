@@ -1,27 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUserStore } from '@/stores/userStore';
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from '@/components/ui/card';
-
+import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-
 import {
     Loader2,
-    Phone,
     ShieldCheck,
     ShieldAlert,
     Smartphone,
     Unlink,
+    KeyRound,
+    Send
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -44,7 +35,6 @@ const phoneNumberValidator = (phoneNumber) => {
 const PhoneComponent = () => {
     const {
         userProfile,
-        isUpdating,
         addPhoneNumber,
         verifyPhoneOtp,
         unlinkPhoneNumber
@@ -53,6 +43,7 @@ const PhoneComponent = () => {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [showOtpSection, setShowOtpSection] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -65,6 +56,14 @@ const PhoneComponent = () => {
     const isVerified = phoneData?.isVerified || false;
 
     useEffect(() => {
+        let timer;
+        if (resendCooldown > 0) {
+            timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+        }
+        return () => clearTimeout(timer);
+    }, [resendCooldown]);
+
+    useEffect(() => {
         if (isVerified && verifiedPhone) {
             setPhone(verifiedPhone);
             setShowOtpSection(false);
@@ -73,6 +72,7 @@ const PhoneComponent = () => {
 
         if (pendingPhone && !isVerified) {
             setPhone(pendingPhone);
+            setShowOtpSection(true);
             return;
         }
 
@@ -85,26 +85,25 @@ const PhoneComponent = () => {
         if (isVerified && verifiedPhone) {
             return {
                 type: 'verified',
-                description: 'Your phone number is verified and linked to your account.'
+                description: 'Your phone number is verified and linked for security notifications.'
             };
         }
 
         if (pendingPhone && !isVerified) {
             return {
                 type: 'pending',
-                description: 'OTP verification is pending for this phone number.'
+                description: 'OTP verification is pending. Please enter the 6-digit code sent to your phone.'
             };
         }
 
         return {
             type: 'none',
-            description: 'Add a phone number to improve account security.'
+            description: 'Link your phone number to enable SMS notifications and enhance account security.'
         };
     }, [verifiedPhone, pendingPhone, isVerified]);
 
     const handlePhoneChange = (e) => {
         const onlyNumbers = e.target.value.replace(/\D/g, '');
-
         if (onlyNumbers.length <= 10) {
             setPhone(onlyNumbers);
         }
@@ -112,7 +111,6 @@ const PhoneComponent = () => {
 
     const handleOtpChange = (e) => {
         const onlyNumbers = e.target.value.replace(/\D/g, '');
-
         if (onlyNumbers.length <= 6) {
             setOtp(onlyNumbers);
         }
@@ -130,9 +128,11 @@ const PhoneComponent = () => {
         try {
             await addPhoneNumber(phone);
             setShowOtpSection(true);
+            setResendCooldown(30);
             toast.success('OTP sent successfully');
         } catch (error) {
-            setShowOtpSection(false);
+            // Keep OTP section open so user can enter code even if resend fails/rate-limited
+            setShowOtpSection(true);
             toast.error(
                 error?.response?.data?.message ||
                 error?.message ||
@@ -195,72 +195,90 @@ const PhoneComponent = () => {
     };
 
     return (
-        <Card className="border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-xs overflow-hidden rounded-2xl">
-            {/* Header */}
-            <CardHeader className="border-b border-border-subtle bg-surface-sunken/40">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-accent/10 border border-accent/20 shrink-0">
-                            <Phone className="h-5 w-5 text-accent" />
-                        </div>
+        <div className="space-y-4">
+            {/* Header with status badge */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                    <h3 className="text-base font-semibold text-foreground">
+                        Phone & SMS Security
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                        Verify your phone number for account alerts and verification.
+                    </p>
+                </div>
 
-                        <div>
-                            <CardTitle className="font-heading text-base sm:text-lg font-semibold text-foreground">
-                                Phone Number
-                            </CardTitle>
-
-                            <CardDescription className="mt-0.5 text-xs sm:text-sm text-subtle-foreground">
-                                Secure your account with OTP verification.
-                            </CardDescription>
-                        </div>
-                    </div>
-
+                <div>
                     {statusConfig.type === 'verified' && (
-                        <Badge className="rounded-full border border-success/20 bg-success/10 text-success hover:bg-success/15 text-[11px] sm:text-xs px-2.5 py-1">
-                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-success">
+                            <ShieldCheck className="h-3.5 w-3.5" />
                             Verified
-                        </Badge>
+                        </span>
                     )}
 
                     {statusConfig.type === 'pending' && (
-                        <Badge className="rounded-full border border-warning/20 bg-warning/10 text-warning hover:bg-warning/15 text-[11px] sm:text-xs px-2.5 py-1">
-                            <ShieldAlert className="mr-1 h-3.5 w-3.5" />
-                            Verification Pending
-                        </Badge>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-warning">
+                            <ShieldAlert className="h-3.5 w-3.5" />
+                            Pending Verification
+                        </span>
+                    )}
+
+                    {statusConfig.type === 'none' && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-subtle-foreground">
+                            Not Configured
+                        </span>
                     )}
                 </div>
-            </CardHeader>
+            </div>
 
-            <CardContent className="p-3 sm:p-5 space-y-4 sm:space-y-5">
-                {/* Status */}
-                <div className="rounded-xl sm:rounded-2xl border border-border-subtle bg-surface p-3 sm:p-4">
-                    <div className="flex items-start gap-2.5 sm:gap-3">
-                        <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-surface-sunken border border-border-subtle flex items-center justify-center shrink-0">
-                            <Smartphone className="h-5 w-5 text-accent" />
+            <Separator className="bg-border-subtle" />
+
+            <div className="space-y-4 pt-1">
+                {/* Active Phone Overview Tile */}
+                <div className="rounded-xl border border-border-subtle bg-surface/50 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-8 w-8 rounded-lg bg-surface-sunken border border-border-subtle flex items-center justify-center shrink-0 text-primary">
+                            <Smartphone className="h-4 w-4" />
                         </div>
 
-                        <div className="space-y-1 min-w-0">
-                            <p className="font-heading text-sm sm:text-base font-bold text-foreground break-all">
-                                {verifiedPhone || pendingPhone || 'No phone number added'}
+                        <div className="space-y-0.5 min-w-0">
+                            <p className="font-heading text-xs sm:text-sm font-semibold text-foreground truncate">
+                                {verifiedPhone ? `+91 ${verifiedPhone}` : pendingPhone ? `+91 ${pendingPhone}` : 'No phone linked'}
                             </p>
-
-                            <p className="text-[11px] sm:text-xs text-subtle-foreground leading-relaxed">
+                            <p className="text-[11px] text-muted-foreground">
                                 {statusConfig.description}
                             </p>
                         </div>
                     </div>
+
+                    {(verifiedPhone || pendingPhone) && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemovePhone}
+                            disabled={isRemovingPhone || isSendingOtp || isVerifyingOtp}
+                            className="h-8 px-2.5 text-xs text-subtle-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg cursor-pointer transition-colors shrink-0"
+                        >
+                            {isRemovingPhone ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                            ) : (
+                                <Unlink className="h-3.5 w-3.5 mr-1.5" />
+                            )}
+                            <span>{isVerified ? 'Unlink Number' : 'Remove'}</span>
+                        </Button>
+                    )}
                 </div>
 
-                {/* Phone Input */}
+                {/* Add / Change Phone Input */}
                 {!isVerified && (
-                    <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-xs font-semibold text-foreground">
-                            Phone Number
+                    <div className="space-y-2 max-w-lg">
+                        <Label htmlFor="phone" className="text-xs font-medium text-foreground">
+                            {pendingPhone ? 'Update Phone Number' : 'Enter Phone Number (India)'}
                         </Label>
 
-                        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                        <div className="flex flex-col sm:flex-row gap-2.5">
                             <div className="relative flex-1">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-subtle-foreground">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-subtle-foreground select-none">
                                     +91
                                 </span>
 
@@ -269,100 +287,120 @@ const PhoneComponent = () => {
                                     type="tel"
                                     value={phone}
                                     onChange={handlePhoneChange}
-                                    placeholder="Enter phone number"
-                                    className="h-10 sm:h-11 pl-11 sm:pl-12 rounded-xl border-border bg-surface text-sm text-foreground focus-visible:ring-ring"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (!isSendingOtp && phone.length === 10) {
+                                                handleSendOtp();
+                                            }
+                                        }
+                                    }}
+                                    placeholder="Enter 10-digit number"
+                                    className="h-9 pl-11 rounded-lg border-border bg-surface text-xs sm:text-sm text-foreground focus-visible:ring-primary"
                                 />
                             </div>
 
                             <Button
+                                type="button"
                                 onClick={handleSendOtp}
                                 disabled={isSendingOtp || phone.length !== 10}
-                                className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-35 text-xs font-bold uppercase tracking-wider bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                                className="h-9 px-4 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs transition-all cursor-pointer shrink-0"
                             >
                                 {isSendingOtp ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                                         Sending...
                                     </>
                                 ) : (
-                                    <>Send OTP</>
+                                    <>
+                                        <Send className="mr-1.5 h-3.5 w-3.5" />
+                                        Send OTP
+                                    </>
                                 )}
                             </Button>
                         </div>
                     </div>
                 )}
 
-                {/* OTP */}
+                {/* OTP Verification Box */}
                 {showOtpSection && !isVerified && (
-                    <>
-                        <Separator className="bg-border-subtle" />
-
-                        <div className="space-y-3">
-                            <div className="space-y-1">
-                                <h3 className="font-heading text-sm font-semibold text-foreground">
-                                    Verify OTP
-                                </h3>
-
-                                <p className="text-[11px] sm:text-xs text-subtle-foreground">
-                                    Enter the 6-digit OTP sent to your phone number.
-                                </p>
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 max-w-lg">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <KeyRound className="h-4 w-4 text-primary" />
+                                <h4 className="font-heading text-xs font-semibold text-foreground">
+                                    Verify One-Time Passcode (OTP)
+                                </h4>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-                                <Input
-                                    type="text"
-                                    value={otp}
-                                    onChange={handleOtpChange}
-                                    placeholder="Enter OTP"
-                                    className="h-10 sm:h-11 rounded-xl border-border bg-surface text-sm text-foreground focus-visible:ring-ring"
-                                />
-
-                                <Button
-                                    onClick={handleVerifyOtp}
-                                    disabled={isVerifyingOtp || otp.length !== 6}
-                                    className="h-10 sm:h-11 rounded-xl w-full sm:w-auto sm:min-w-35 text-xs font-bold uppercase tracking-wider bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-                                >
-                                    {isVerifyingOtp ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Verifying...
-                                        </>
-                                    ) : (
-                                        <>Verify OTP</>
-                                    )}
-                                </Button>
-                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setShowOtpSection(false);
+                                    setOtp('');
+                                }}
+                                className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground cursor-pointer rounded"
+                            >
+                                Change number
+                            </Button>
                         </div>
-                    </>
-                )}
 
-                {/* Remove / Unlink */}
-                {(verifiedPhone || pendingPhone) && (
-                    <>
-                        <Separator className="bg-border-subtle" />
+                        <p className="text-[11px] text-muted-foreground">
+                            A 6-digit confirmation code was sent via SMS to <span className="font-medium text-foreground">+91 {phone}</span>.
+                        </p>
 
-                        <Button
-                            variant="outline"
-                            onClick={handleRemovePhone}
-                            disabled={isRemovingPhone || isUpdating}
-                            className="w-full h-10 sm:h-11 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer bg-secondary text-secondary-foreground border-border-subtle hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-all"
-                        >
-                            {isRemovingPhone ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <Unlink  className="mr-2 h-4 w-4" />
-                                    {isVerified ? 'Unlink Phone' : 'Remove Phone'}
-                                </>
-                            )}
-                        </Button>
-                    </>
+                        <div className="flex flex-col sm:flex-row gap-2.5">
+                            <Input
+                                type="text"
+                                value={otp}
+                                onChange={handleOtpChange}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (!isVerifyingOtp && otp.length === 6) {
+                                            handleVerifyOtp();
+                                        }
+                                    }
+                                }}
+                                placeholder="Enter 6-digit OTP"
+                                maxLength={6}
+                                className="h-9 rounded-lg border-border bg-surface text-xs sm:text-sm text-foreground focus-visible:ring-primary flex-1 tracking-widest text-center sm:text-left font-mono"
+                            />
+
+                            <Button
+                                type="button"
+                                onClick={handleVerifyOtp}
+                                disabled={isVerifyingOtp || otp.length !== 6}
+                                className="h-9 px-4 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs transition-all cursor-pointer shrink-0"
+                            >
+                                {isVerifyingOtp ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    <>Verify OTP</>
+                                )}
+                            </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
+                            <span>Didn't receive the SMS code?</span>
+                            <button
+                                type="button"
+                                onClick={handleSendOtp}
+                                disabled={isSendingOtp || resendCooldown > 0}
+                                className="font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                            >
+                                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                            </button>
+                        </div>
+                    </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 };
 

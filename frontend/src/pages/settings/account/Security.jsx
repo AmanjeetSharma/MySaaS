@@ -1,27 +1,15 @@
 import React, { useEffect } from 'react';
 import { useUserStore } from '@/stores/userStore';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
+import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-
 import {
   Loader2,
-  Shield,
   Laptop,
   Smartphone,
   Clock,
   LogOut,
   History,
 } from 'lucide-react';
-
 import { toast } from 'sonner';
 import DangerZone from './DangerZone';
 
@@ -44,7 +32,7 @@ const Security = () => {
   const fetchSessions = async () => {
     try {
       await getUserSessions();
-    } catch (error) {
+    } catch {
       toast.error('Failed to load sessions');
     }
   };
@@ -84,8 +72,8 @@ const Security = () => {
 
   if (isLoading && (!sessions || sessions.length === 0)) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center animate-pulse font-black uppercase tracking-widest text-subtle-foreground/40 text-xs">
-        Synchronizing Workspace...
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center font-semibold text-xs uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
+        Synchronizing Security...
       </div>
     );
   }
@@ -94,195 +82,181 @@ const Security = () => {
     if (a.isActive === b.isActive) {
       return new Date(b.latestLogin) - new Date(a.latestLogin);
     }
-
     return a.isActive ? -1 : 1;
   });
 
   return (
-    <div className="relative container mx-auto max-w-4xl space-y-5 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6 md:space-y-8 md:py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-      {/* Background Glow */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 right-0 h-72 w-72 rounded-full bg-accent/5 blur-3xl" />
-      </div>
-
-      {/* Header */}
-      <div className="relative z-10 flex flex-col gap-2">
-        <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-foreground sm:gap-3 md:text-3xl">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 border border-accent/20">
-            <Shield className="h-5 w-5 text-accent md:h-6 md:w-6" />
-          </div>
-
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 bg-background text-foreground">
+      {/* 1. Page Title Header */}
+      <div className="space-y-1">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
           Security
-        </h1>
-
-        <p className="ml-1 text-sm text-subtle-foreground md:text-base">
-          Manage your account sessions and security settings.
+        </h2>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Manage your active sessions, device authorizations, and account credentials.
         </p>
       </div>
 
-      {/* Sessions */}
-      <Card className="relative z-10 overflow-hidden rounded-2xl border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-lg backdrop-blur sm:rounded-3xl">
-        <CardHeader className="flex flex-col gap-4 border-b border-border-subtle bg-surface-sunken/40 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5 md:p-6">
-          <div className="space-y-1">
-            <CardTitle className="text-lg font-semibold md:text-xl text-foreground">
-              Device Status
-            </CardTitle>
+      <Separator className="bg-border-subtle" />
 
-            <CardDescription className="max-w-lg text-sm text-subtle-foreground md:text-base">
-              Review all active and past sessions associated with your account.
-            </CardDescription>
+      {/* 2. Device & Active Sessions */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">
+              Device Sessions
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Review all active and past sessions authenticated with your account.
+            </p>
           </div>
 
           {activeSessionsCount > 0 && (
             <Button
               variant="outline"
+              size="sm"
               onClick={handleLogoutAll}
               disabled={isUpdating}
-              className="h-10 w-full rounded-xl bg-secondary text-secondary-foreground border border-border-subtle transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive sm:w-auto cursor-pointer"
+              className="h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 shrink-0 transition-all cursor-pointer self-start sm:self-auto"
             >
               {isUpdating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
-                <LogOut className="mr-2 h-4 w-4" />
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
               )}
-
               Logout Other Devices
             </Button>
           )}
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-2 sm:p-3">
-          {sortedSessions.length === 0 ? (
-            <div className="py-10 text-center text-sm text-subtle-foreground">
-              No session history found.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sortedSessions.map((session) => {
-                const isMobile =
-                  session.device?.toLowerCase().match(/mobile|ios|android/);
+        <Separator className="bg-border-subtle" />
 
-                const isCurrentSession =
-                  session.sessionId === currentSessionId;
+        {sortedSessions.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border-subtle p-8 text-center text-xs text-muted-foreground">
+            No session history found.
+          </div>
+        ) : (
+          <div className="space-y-3 pt-1">
+            {sortedSessions.map((session) => {
+              const isMobile =
+                session.device?.toLowerCase().match(/mobile|ios|android/);
+              const isCurrentSession =
+                session.sessionId === currentSessionId;
 
-                return (
-                  <div
-                    key={session.sessionId}
-                    className={`group relative rounded-2xl border border-transparent px-3 py-3 transition-all duration-200 sm:px-4 sm:py-4 ${session.isActive
-                      ? 'bg-surface hover:border-border hover:bg-surface-sunken hover:shadow-md'
-                      : 'bg-surface-sunken/40 opacity-80'
-                      }`}
-                  >
-                    <div className="flex items-start gap-3">
-
-                      {/* Device Icon */}
+              return (
+                <div
+                  key={session.sessionId}
+                  className={`group relative rounded-xl border p-3.5 sm:p-4 transition-all duration-200 ${
+                    session.isActive
+                      ? 'border-border-subtle bg-surface/50 hover:bg-surface/80 hover:border-border'
+                      : 'border-border-subtle/50 bg-surface-sunken/20 opacity-70'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                    {/* Left: Device Icon & Info */}
+                    <div className="flex items-start gap-3 min-w-0">
                       <div
-                        className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${session.isActive
-                          ? 'bg-accent/10 text-accent border border-accent/20'
-                          : 'bg-surface-sunken text-subtle-foreground'
-                          }`}
+                        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                          session.isActive
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'bg-surface-sunken text-muted-foreground border-border-subtle'
+                        }`}
                       >
                         {isMobile ? (
-                          <Smartphone className="h-4.5 w-4.5" />
+                          <Smartphone className="h-4 w-4" />
                         ) : (
-                          <Laptop className="h-4.5 w-4.5" />
+                          <Laptop className="h-4 w-4" />
                         )}
                       </div>
 
-                      {/* Content */}
-                      <div className="min-w-0 flex-1">
-
-                        {/* Top */}
-                        <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="space-y-1 min-w-0">
+                        {/* Device Name & Badges */}
+                        <div className="flex flex-wrap items-center gap-2">
                           <h4
-                            className={`wrap-break-word text-sm font-medium sm:text-[15px] ${session.isActive
-                              ? 'text-foreground'
-                              : 'text-subtle-foreground'
-                              }`}
+                            className={`text-xs sm:text-sm font-semibold truncate ${
+                              session.isActive
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
+                            }`}
                           >
                             {session.device || 'Unknown Device'}
                           </h4>
 
-                          {/* Status Badges */}
                           {isCurrentSession && session.isActive && (
-                            <Badge
-                              variant="secondary"
-                              className="border-transparent bg-accent/15 px-1.5 py-0 text-[10px] font-medium text-accent"
-                            >
-                              Current
-                            </Badge>
+                            <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary uppercase tracking-wider">
+                              Current Session
+                            </span>
                           )}
 
                           {session.isActive && !isCurrentSession && (
-                            <Badge
-                              variant="secondary"
-                              className="border-transparent bg-success/10 px-1.5 py-0 text-[10px] font-medium text-success"
-                            >
-                              Online
-                            </Badge>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Active
+                            </span>
                           )}
 
                           {!session.isActive && (
-                            <Badge
-                              variant="outline"
-                              className="px-1.5 py-0 text-[10px] font-medium text-subtle-foreground border-border-subtle"
-                            >
+                            <span className="inline-flex items-center rounded-full border border-border-subtle bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                               Inactive
-                            </Badge>
+                            </span>
                           )}
                         </div>
 
-                        {/* Details */}
-                        <div className="mt-2 space-y-1.5 text-[11px] text-subtle-foreground sm:text-xs">
-
-                          <div className="flex items-start gap-1.5">
-                            <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" />
-
-                            <span className="wrap-break-word leading-relaxed">
-                              Last active:{' '}
-                              {new Date(session.latestLogin).toLocaleString()}
+                        {/* Timestamps */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-3 w-3 opacity-70 shrink-0" />
+                            <span>
+                              Last active: {new Date(session.latestLogin).toLocaleString()}
                             </span>
                           </div>
 
-                          <div className="flex items-start gap-1.5">
-                            <History className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" />
-
-                            <span className="wrap-break-word leading-relaxed">
-                              Signed in:{' '}
-                              {new Date(session.firstLogin).toLocaleString()}
+                          <div className="flex items-center gap-1.5">
+                            <History className="h-3 w-3 opacity-70 shrink-0" />
+                            <span>
+                              Signed in: {new Date(session.firstLogin).toLocaleString()}
                             </span>
                           </div>
                         </div>
-
-                        {/* Action */}
-                        {session.isActive && !isCurrentSession && (
-                          <div className="mt-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleLogoutSession(session.sessionId)
-                              }
-                              disabled={isUpdating}
-                              className="h-8 rounded-lg bg-secondary text-secondary-foreground border border-border-subtle px-3 text-xs font-medium transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive cursor-pointer"
-                            >
-                              Logout Session
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Danger Zone */}
-      <div className="relative z-10">
+                    {/* Right: Logout Action */}
+                    {session.isActive && !isCurrentSession && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleLogoutSession(session.sessionId)}
+                        disabled={isUpdating}
+                        className="h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 shrink-0 transition-all cursor-pointer self-start sm:self-center"
+                      >
+                        <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                        Logout
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <Separator className="bg-border-subtle" />
+
+      {/* 3. Danger Zone */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-base font-semibold text-destructive">
+            Danger Zone
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Irreversible actions and permanent deletion of your account.
+          </p>
+        </div>
+
+        <Separator className="bg-border-subtle" />
+
         <DangerZone
           onDeleteAccount={handleDeleteAccount}
           isUpdating={isUpdating}

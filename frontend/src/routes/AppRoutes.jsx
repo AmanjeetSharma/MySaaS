@@ -53,7 +53,7 @@ import Reminder from '@/pages/reminder/Reminder';
 
 // Settings imports
 import Profile from '@/pages/settings/account/profile/Profile';
-import Appearance from '@/pages/settings/system/Appearance';
+import Appearance from '@/pages/settings/system/theme/Appearance';
 import Preferences from '@/pages/settings/system/Preferences';
 import Security from '@/pages/settings/account/Security';
 import ChangePassword from '@/pages/settings/account/ChangePassword';

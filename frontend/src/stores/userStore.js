@@ -64,7 +64,8 @@ export const useUserStore = create((set, get) => ({
             set({
                 userProfile: {
                     ...get().userProfile,
-                    ...data
+                    ...data,
+                    updatedAt: data.updatedAt || new Date().toISOString()
                 },
                 isUpdating: false,
                 error: null
@@ -94,7 +95,8 @@ export const useUserStore = create((set, get) => ({
                     ...get().userProfile,
                     avatar: data.avatar,
                     name: data.name,
-                    email: data.email
+                    email: data.email,
+                    updatedAt: data.updatedAt || new Date().toISOString()
                 },
                 isUpdating: false,
                 error: null
@@ -117,7 +119,8 @@ export const useUserStore = create((set, get) => ({
             set({
                 userProfile: {
                     ...get().userProfile,
-                    avatar: null
+                    avatar: null,
+                    updatedAt: data?.updatedAt || new Date().toISOString()
                 },
                 isUpdating: false,
                 error: null
@@ -262,6 +265,14 @@ export const useUserStore = create((set, get) => ({
             set({
                 phoneNumber: data.pendingNumber,
                 isPhoneVerified: false,
+                userProfile: {
+                    ...get().userProfile,
+                    phone: {
+                        ...get().userProfile?.phone,
+                        pendingNumber: data.pendingNumber,
+                        isVerified: false
+                    }
+                },
                 isUpdating: false,
                 error: null
             });
@@ -288,7 +299,8 @@ export const useUserStore = create((set, get) => ({
                     phone: {
                         number: data.phoneNumber,
                         isVerified: data.isVerified
-                    }
+                    },
+                    updatedAt: data?.updatedAt || new Date().toISOString()
                 },
                 isUpdating: false,
                 error: null
@@ -313,7 +325,8 @@ export const useUserStore = create((set, get) => ({
                 isPhoneVerified: false,
                 userProfile: {
                     ...get().userProfile,
-                    phone: null
+                    phone: null,
+                    updatedAt: data?.updatedAt || new Date().toISOString()
                 },
                 isUpdating: false,
                 error: null

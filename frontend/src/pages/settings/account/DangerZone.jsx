@@ -28,21 +28,18 @@ const DangerZone = ({ onDeleteAccount, isUpdating }) => {
     };
 
     return (
-        <Card className="relative overflow-hidden border-destructive/30 bg-destructive/5 shadow-[0_12px_40px_rgba(0,0,0,0.15)]">
-
-            <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 via-transparent to-transparent opacity-60 pointer-events-none" />
-
-            <CardHeader className="relative z-10 border-b border-destructive/10 pb-3 sm:pb-4 px-4 sm:px-6">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-destructive">
-                    <AlertTriangle className="h-5 w-5" />
-                    Danger Zone
+        <Card className="relative overflow-hidden border-destructive/25 bg-destructive/5 shadow-xs rounded-xl">
+            <CardHeader className="border-b border-destructive/15 pb-3 px-4 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    Delete Account
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                    This action cannot be undone.
+                <CardDescription className="text-xs text-muted-foreground">
+                    This action is immediate and cannot be reversed.
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="relative z-10 p-4 sm:p-6">
+            <CardContent className="p-4 sm:p-6">
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
 

@@ -27,7 +27,7 @@ export const addPhoneService = async (userId, phone) => {
     ) {
         const remainingSeconds = Math.ceil((user.phone.otpResendAllowedAt - Date.now()) / 1000);
 
-        throw new ApiError(429, `Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
+        throw new ApiError(409, `Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
     }
 
     const existingPhoneOwner = await getUserByPhone(userId, phone);
@@ -137,7 +137,8 @@ export const verifyPhoneOtpService = async (userId, otp) => {
         name: user.name,
         email: user.email,
         phoneNumber: user.phone.number,
-        isVerified: true
+        isVerified: true,
+        updatedAt: user.updatedAt,
     };
 };
 
@@ -189,6 +190,7 @@ export const unlinkPhoneService = async (userId) => {
 
     return {
         removed: true,
-        message
+        message,
+        updatedAt: user.updatedAt,
     };
 };
