@@ -34,22 +34,23 @@ const MODE_OPTIONS = [
     {
         id: THEME_MODES.LIGHT,
         label: 'Light',
-        description: 'Clean daylight theme',
+        description: 'For brighter environments',
         icon: Sun
     },
     {
         id: THEME_MODES.DARK,
         label: 'Dark',
-        description: 'Focused low-light contrast',
+        description: 'For darker environments',
         icon: Moon
     },
     {
         id: THEME_MODES.SYSTEM,
         label: 'System',
-        description: 'Follows operating system settings',
+        description: 'Follows your system preference',
         icon: Laptop
     }
 ];
+
 
 const Appearance = () => {
     // Atomic store subscriptions to avoid unnecessary re-renders
@@ -181,7 +182,7 @@ const Appearance = () => {
                         Appearance
                     </h2>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                        Personalize your workspace palette, interface mode, and display styling.
+                        Choose your preferred theme and interface mode.
                     </p>
                 </div>
 
@@ -202,7 +203,7 @@ const Appearance = () => {
                         Choose desired mode
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                        Choose your preferred appearance mode, or let your device automatically adjust it for you.
+                        Choose your preferred theme and mode, or let your device automatically adjust it for you.
                     </p>
                 </div>
 
@@ -234,7 +235,7 @@ const Appearance = () => {
                             </h3>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            Choose an accent palette to customize sidebars, buttons, indicators, and charts.
+                            Choose your desired theme preset.
                         </p>
                     </div>
 
@@ -281,14 +282,14 @@ const Appearance = () => {
 
             <Separator className="bg-border-subtle" />
 
-            {/* 4. WORKSPACE SPECIFICATIONS */}
+            {/* 4. WORKSPACE */}
             <div className="space-y-4">
                 <div>
                     <h3 className="text-base font-semibold text-foreground">
                         Workspace Specifications
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                        Current visual engine tokens and workspace rendering parameters.
+                        View your current workspace theme, mode, and plan details.
                     </p>
                 </div>
 
@@ -296,7 +297,7 @@ const Appearance = () => {
 
                 <div className="rounded-xl border border-border-subtle divide-y divide-border-subtle bg-surface text-sm">
                     <div className="flex items-center justify-between py-3 px-4">
-                        <span className="text-muted-foreground">Active Palette</span>
+                        <span className="text-muted-foreground">Active Theme Preset</span>
                         <span className="font-medium text-foreground flex items-center gap-2">
                             <span
                                 className="h-2.5 w-2.5 rounded-full ring-1 ring-border/50"
@@ -323,7 +324,7 @@ const Appearance = () => {
                     </div>
 
                     <div className="flex items-center justify-between py-3 px-4">
-                        <span className="text-muted-foreground">Theme License</span>
+                        <span className="text-muted-foreground">Current Plan</span>
                         <span className="font-medium text-foreground flex items-center gap-1.5">
                             {isPro ? (
                                 <span>Pro</span>
@@ -337,44 +338,38 @@ const Appearance = () => {
 
             {/* Pro Upgrade Modal Dialog */}
             <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader className="gap-2">
-                        <div className="h-10 w-10 rounded-full bg-warning/10 text-warning flex items-center justify-center border border-warning/20 mb-1">
-                            <Crown className="h-5 w-5" />
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-5 sm:p-6 rounded-2xl border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-2xl">
+
+                    {/* Header Section */}
+                    <DialogHeader className="gap-3 text-left">
+                        <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl border border-warning/30 bg-warning/10 text-warning">
+                            <Crown className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <DialogTitle className="text-lg font-bold">
-                            Unlock {upgradeTarget?.label || 'Pro'} Theme
-                        </DialogTitle>
-                        <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
-                            This theme preset is part of the Pro workspace suite. Upgrade your account to unlock all 10 custom designer color palettes, advanced workspace branding, and priority team sync.
-                        </DialogDescription>
+
+                        <div className="space-y-1">
+                            <DialogTitle className="text-base sm:text-lg font-bold text-foreground">
+                                Unlock {upgradeTarget?.label || 'Pro'} Theme
+                            </DialogTitle>
+                            <DialogDescription className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                                Upgrade to unlock full aesthetic control across your entire workspace.
+                            </DialogDescription>
+                        </div>
                     </DialogHeader>
 
-                    {/* Pro Feature Highlights */}
-                    <div className="rounded-lg border border-border-subtle bg-muted/30 p-3 space-y-2 text-xs">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                            <span>Instant access to all 10 crafted themes</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                            <span>Custom workspace accents & navigation tokens</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                            <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                            <span>Priority cross-device preference sync</span>
-                        </div>
-                    </div>
 
-                    <DialogFooter className="gap-2 sm:gap-0">
+
+                    {/* Responsive Button Group */}
+                    <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                         <Button
                             variant="outline"
+                            className="w-full sm:w-auto flex-1 h-10 sm:h-11 rounded-lg border-border-subtle bg-surface text-subtle-foreground hover:bg-hover hover:text-hover-foreground text-xs sm:text-sm font-medium cursor-pointer"
                             onClick={() => setIsUpgradeModalOpen(false)}
                         >
                             Maybe Later
                         </Button>
+
                         <Button
-                            className="bg-primary text-primary-foreground font-semibold gap-1.5"
+                            className="w-full sm:w-auto flex-1 h-10 sm:h-11 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-xs sm:text-sm font-semibold gap-2 cursor-pointer"
                             onClick={() => {
                                 setIsUpgradeModalOpen(false);
                                 toast.info('Billing & Pro subscription plans opening soon!');
@@ -384,6 +379,7 @@ const Appearance = () => {
                             Upgrade to Pro
                         </Button>
                     </DialogFooter>
+
                 </DialogContent>
             </Dialog>
         </div>
