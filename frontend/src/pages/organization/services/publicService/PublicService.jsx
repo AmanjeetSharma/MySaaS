@@ -163,21 +163,25 @@ const PublicService = () => {
                 serviceSlug: service?.slug || serviceSlug,
                 startTime: selectedSlot.isoString,
                 clientTimezone: displayTimezone,
-                bookerName: formData.name.trim(),
-                bookerEmail: formData.email.trim(),
-                bookerPhone: formData.phone.trim(),
-                notes: formData.notes.trim() || undefined,
+                booker: {
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone?.trim() || undefined,
+                },
+                notes: formData.notes?.trim() || undefined,
             };
 
             const paymentData = await createPayment(payload);
+            const razorpayOrderId = paymentData?.razorpayOrderId || paymentData?.orderId || paymentData?.order_id;
+            const razorpayKey = paymentData?.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_default";
 
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_default",
+                key: razorpayKey,
                 amount: paymentData.amount,
                 currency: paymentData.currency,
                 name: organization?.name || "Service Booking",
                 description: `Booking for ${name}`,
-                order_id: paymentData.orderId,
+                order_id: razorpayOrderId,
                 prefill: {
                     name: formData.name,
                     email: formData.email,
@@ -197,7 +201,7 @@ const PublicService = () => {
                     try {
                         await Promise.all([
                             verifyPayment({
-                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_order_id: response.razorpay_order_id || razorpayOrderId,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
                             }),
