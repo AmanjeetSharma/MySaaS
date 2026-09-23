@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { TIMEZONES } from "@/constants/timezone.constant";
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from '@/components/ui/card';
-
+import { TIMEZONES } from '@/constants/timezone.constant';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-
+import { Button } from '@/components/ui/button';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-
+    Popover,
+    PopoverContent,
+    PopoverTrigger
+} from '@/components/ui/popover';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList
+} from '@/components/ui/command';
 import { Separator } from '@/components/ui/separator';
-
+import { cn } from '@/lib/utils';
 import {
     Loader2,
     Globe,
     Bell,
-    Clock3
+    Mail,
+    Clock3,
+    Check,
+    ChevronsUpDown
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Preferences = () => {
     const {
@@ -49,12 +49,20 @@ const Preferences = () => {
     );
 
     const [isTimezoneUpdating, setIsTimezoneUpdating] = useState(false);
+    const [timezoneSearchOpen, setTimezoneSearchOpen] = useState(false);
     const [isEmailNotificationsUpdating, setIsEmailNotificationsUpdating] = useState(false);
     const [isInAppNotificationsUpdating, setIsInAppNotificationsUpdating] = useState(false);
+    const [, setTick] = useState(0);
+
+    // Live clock ticker
+    useEffect(() => {
+        const timer = setInterval(() => setTick((t) => t + 1), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         fetchSettings();
-    }, []);
+    }, [fetchSettings]);
 
     useEffect(() => {
         if (timezone) {
@@ -75,8 +83,10 @@ const Preferences = () => {
 
         try {
             await updateTimezone(newTimezone);
-        } catch (error) {
+            toast.success('Timezone updated successfully');
+        } catch {
             setLocalTimezone(timezone);
+            toast.error('Failed to update timezone');
         } finally {
             setIsTimezoneUpdating(false);
         }
@@ -94,8 +104,10 @@ const Preferences = () => {
 
         try {
             await updateNotifications(updated);
-        } catch (error) {
+            toast.success(checked ? 'Email notifications enabled' : 'Email notifications disabled');
+        } catch {
             setLocalNotifications(notifications);
+            toast.error('Failed to update email notification preferences');
         } finally {
             setIsEmailNotificationsUpdating(false);
         }
@@ -113,8 +125,10 @@ const Preferences = () => {
 
         try {
             await updateNotifications(updated);
-        } catch (error) {
+            toast.success(checked ? 'In-app alerts enabled' : 'In-app alerts disabled');
+        } catch {
             setLocalNotifications(notifications);
+            toast.error('Failed to update in-app alert preferences');
         } finally {
             setIsInAppNotificationsUpdating(false);
         }
@@ -122,148 +136,209 @@ const Preferences = () => {
 
     if (isLoading) {
         return (
-            <div className="fixed inset-0 flex items-center justify-center animate-pulse font-semibold uppercase tracking-widest text-subtle-foreground/60 text-xs">
-                Synchronizing Workspace...
+            <div className="flex h-[calc(100vh-10rem)] items-center justify-center font-semibold text-xs uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
+                Synchronizing Preferences...
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-5xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-5">
-            {/* Header */}
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 bg-background text-foreground">
+            {/* 1. Page Title Header */}
             <div className="space-y-1">
-                <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                     Preferences
-                </h1>
-                <p className="text-sm sm:text-base text-subtle-foreground">
-                    Customize your workspace experience and notifications.
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                    Customize your workspace experience, operating timezone, and notification channels.
                 </p>
             </div>
 
-            {/* Main Grid */}
-            <div className="grid gap-4">
-                {/* Localization */}
-                <Card className="border-border-subtle bg-surface-elevated shadow-xs overflow-hidden rounded-2xl text-surface-elevated-foreground">
-                    <CardHeader className="pb-4 border-b border-border-subtle bg-surface-sunken/50">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-accent/10 border border-accent/20 text-accent">
-                                <Globe className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <CardTitle className="font-heading text-base sm:text-lg font-bold text-foreground">
-                                    Localization
-                                </CardTitle>
-                                <CardDescription className="text-xs sm:text-sm mt-0.5 text-subtle-foreground">
-                                    Configure timezone and regional preferences.
-                                </CardDescription>
-                            </div>
-                        </div>
-                    </CardHeader>
+            <Separator className="bg-border-subtle" />
 
-                    <CardContent className="p-4 sm:p-5">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <div className="space-y-1.5">
-                                <Label className="text-xs font-bold uppercase tracking-wider text-subtle-foreground">
-                                    Timezone
-                                </Label>
-                                <div className="flex items-center gap-2 text-sm text-subtle-foreground">
-                                    <Clock3 className="h-4 w-4 shrink-0 text-accent" />
-                                    <span>Local Time:</span>
-                                    <span className="font-bold text-foreground">
+            {/* 2. Localization */}
+            <div className="space-y-4">
+                <div>
+                    <h3 className="text-base font-semibold text-foreground">
+                        Localization & Time
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                        Set your primary operating timezone to align scheduling, timestamps, and reporting.
+                    </p>
+                </div>
+
+                <Separator className="bg-border-subtle" />
+
+                <div className="rounded-xl border border-border-subtle bg-surface/50 p-4 transition-all duration-200 hover:border-border hover:bg-surface/80">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                                <Globe className="h-4.5 w-4.5" />
+                            </div>
+
+                            <div className="space-y-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-sm font-semibold text-foreground">
+                                        Operating Timezone
+                                    </Label>
+                                    {isTimezoneUpdating && (
+                                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                            <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                            <span>Saving...</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Clock3 className="h-3.5 w-3.5 opacity-70 shrink-0" />
+                                    <span>Current local time:</span>
+                                    <span className="font-semibold text-foreground font-mono">
                                         {new Date().toLocaleString('en-US', {
                                             timeZone: localTimezone,
                                             hour: 'numeric',
                                             minute: 'numeric',
+                                            second: 'numeric',
                                             hour12: true
                                         })}
                                     </span>
                                 </div>
                             </div>
-
-                            <Select
-                                value={localTimezone}
-                                onValueChange={handleTimezoneChange}
-                                disabled={isTimezoneUpdating}
-                            >
-                                <SelectTrigger className="w-full lg:w-64 h-10 rounded-xl border-border bg-surface text-foreground shadow-xs cursor-pointer focus-visible:ring-1 focus-visible:ring-ring">
-                                    <SelectValue placeholder="Select timezone" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-70 bg-popover text-popover-foreground border-border">
-                                    {TIMEZONES.map((tz) => (
-                                        <SelectItem
-                                            key={tz}
-                                            value={tz}
-                                            className="cursor-pointer hover:bg-hover hover:text-hover-foreground font-medium text-xs"
-                                        >
-                                            {tz.replace('_', ' ')}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
                         </div>
-                    </CardContent>
-                </Card>
 
-                {/* Notifications */}
-                <Card className="border-border-subtle bg-surface-elevated shadow-xs overflow-hidden rounded-2xl text-surface-elevated-foreground">
-                    <CardHeader className="pb-4 border-b border-border-subtle bg-surface-sunken/50">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-accent/10 border border-accent/20 text-accent">
-                                <Bell className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <CardTitle className="font-heading text-base sm:text-lg font-bold text-foreground">
-                                    Notifications
-                                </CardTitle>
-                                <CardDescription className="text-xs sm:text-sm mt-0.5 text-subtle-foreground">
-                                    Manage alerts and notification delivery.
-                                </CardDescription>
-                            </div>
+                        <div className="w-full sm:w-72 shrink-0">
+                            <Popover open={timezoneSearchOpen} onOpenChange={setTimezoneSearchOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={timezoneSearchOpen}
+                                        disabled={isTimezoneUpdating}
+                                        className="h-9 w-full justify-between rounded-lg border-border bg-surface px-3 font-normal text-xs sm:text-sm text-foreground cursor-pointer hover:border-border-strong hover:bg-hover transition-all shadow-xs"
+                                    >
+                                        <span className="truncate">
+                                            {localTimezone ? localTimezone.replace(/_/g, ' ') : 'Select timezone'}
+                                        </span>
+                                        <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className="w-[var(--radix-popover-trigger-width)] p-0 z-50 border-border bg-popover text-popover-foreground shadow-2xl rounded-xl"
+                                    align="end"
+                                >
+                                    <Command className="bg-popover text-popover-foreground">
+                                        <CommandInput placeholder="Search timezone..." className="h-9 text-xs" />
+                                        <CommandList className="max-h-56 overflow-y-auto">
+                                            <CommandEmpty className="py-3 text-center text-xs font-medium text-muted-foreground">
+                                                No timezone found.
+                                            </CommandEmpty>
+                                            <CommandGroup>
+                                                {TIMEZONES.map((tz) => (
+                                                    <CommandItem
+                                                        key={tz}
+                                                        value={tz}
+                                                        onSelect={() => {
+                                                            handleTimezoneChange(tz);
+                                                            setTimezoneSearchOpen(false);
+                                                        }}
+                                                        className="text-xs font-medium cursor-pointer hover:bg-hover hover:text-hover-foreground flex items-center justify-between py-2 px-2.5 rounded-md"
+                                                    >
+                                                        <span className="truncate">{tz.replace(/_/g, ' ')}</span>
+                                                        <Check
+                                                            className={cn(
+                                                                'ml-2 h-3.5 w-3.5 text-primary shrink-0',
+                                                                localTimezone === tz ? 'opacity-100' : 'opacity-0'
+                                                            )}
+                                                        />
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
-                    </CardHeader>
+                    </div>
+                </div>
+            </div>
 
-                    <CardContent className="p-2 sm:p-3">
-                        {/* Email Notifications */}
-                        <div className="flex items-start justify-between gap-4 rounded-xl p-3 sm:p-4 hover:bg-hover/60 transition-all">
-                            <div className="space-y-1 flex-1">
-                                <Label className="text-sm font-semibold text-foreground">
-                                    Email Notifications
-                                </Label>
-                                <p className="text-xs sm:text-sm text-subtle-foreground leading-relaxed">
-                                    Receive important updates, reminders, and summaries via email.
+            <Separator className="bg-border-subtle" />
+
+            {/* 3. Notifications */}
+            <div className="space-y-4">
+                <div>
+                    <h3 className="text-base font-semibold text-foreground">
+                        Notification Preferences
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                        Choose how and when you receive workspace alerts, security reminders, and activity updates.
+                    </p>
+                </div>
+
+                <Separator className="bg-border-subtle" />
+
+                <div className="space-y-3 pt-1">
+                    {/* Email Notifications */}
+                    <div className="flex items-start sm:items-center justify-between gap-4 rounded-xl border border-border-subtle bg-surface/50 p-4 transition-all duration-200 hover:border-border hover:bg-surface/80">
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                                <Mail className="h-4.5 w-4.5" />
+                            </div>
+
+                            <div className="space-y-0.5 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-foreground">
+                                        Email Notifications
+                                    </span>
+                                    {isEmailNotificationsUpdating && (
+                                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                    )}
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Receive daily digest summaries, account security alerts, and critical workspace reminders via email.
                                 </p>
                             </div>
-
-                            <Switch
-                                checked={localNotifications.email}
-                                onCheckedChange={handleEmailNotificationChange}
-                                disabled={isEmailNotificationsUpdating}
-                                className="mt-1 cursor-pointer transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
-                            />
                         </div>
 
-                        <Separator className="bg-border-subtle my-1" />
+                        <Switch
+                            checked={localNotifications.email}
+                            onCheckedChange={handleEmailNotificationChange}
+                            disabled={isEmailNotificationsUpdating}
+                            aria-label="Toggle Email Notifications"
+                            className="mt-0.5 sm:mt-0"
+                        />
+                    </div>
 
-                        {/* In-App Notifications */}
-                        <div className="flex items-start justify-between gap-4 rounded-xl p-3 sm:p-4 hover:bg-hover/60 transition-all">
-                            <div className="space-y-1 flex-1">
-                                <Label className="text-sm font-semibold text-foreground">
-                                    In-App Alerts
-                                </Label>
-                                <p className="text-xs sm:text-sm text-subtle-foreground leading-relaxed">
-                                    Show real-time alerts and activity updates while using the app.
-                                </p>
+                    {/* In-App Alerts */}
+                    <div className="flex items-start sm:items-center justify-between gap-4 rounded-xl border border-border-subtle bg-surface/50 p-4 transition-all duration-200 hover:border-border hover:bg-surface/80">
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                                <Bell className="h-4.5 w-4.5" />
                             </div>
 
-                            <Switch
-                                checked={localNotifications.inApp}
-                                onCheckedChange={handleInAppNotificationChange}
-                                disabled={isInAppNotificationsUpdating}
-                                className="mt-1 cursor-pointer transition-all data-[state=checked]:bg-accent data-[state=checked]:shadow-md data-[state=checked]:shadow-accent/30 data-[state=unchecked]:bg-muted-foreground/30 [&>span]:data-[state=checked]:bg-accent-foreground"
-                            />
+                            <div className="space-y-0.5 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-foreground">
+                                        In-App Alerts
+                                    </span>
+                                    {isInAppNotificationsUpdating && (
+                                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                    )}
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Display real-time notification badges and banner updates while actively working in the workspace.
+                                </p>
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+
+                        <Switch
+                            checked={localNotifications.inApp}
+                            onCheckedChange={handleInAppNotificationChange}
+                            disabled={isInAppNotificationsUpdating}
+                            aria-label="Toggle In-App Alerts"
+                            className="mt-0.5 sm:mt-0"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

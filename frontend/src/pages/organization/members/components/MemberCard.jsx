@@ -18,7 +18,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { getEntityId, isSameId, getInitials, formatDate } from "../helpers/member.helper.js";
-import { MoreVertical, Shield, User, UserMinus, Loader2, AlertTriangle } from "lucide-react";
+import { MoreVertical, Crown, User, UserMinus, Loader2, AlertTriangle } from "lucide-react";
 
 export const MemberCard = ({
     member,
@@ -46,12 +46,12 @@ export const MemberCard = ({
                 onClick={() => onViewDetails(memberId)}
                 className="group relative border border-border/80 bg-card/60 hover:bg-card hover:border-primary/40 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer rounded-xl overflow-hidden"
             >
-                <CardContent className="p-3.5 sm:p-5 flex flex-col sm:flex-row items-center sm:justify-between text-center sm:text-left gap-2 sm:gap-4 h-full relative">
+                <CardContent className="p-3.5 sm:p-4.5 flex items-center justify-between gap-3 sm:gap-3.5 h-full relative">
                     {/* Left: Avatar + Details Container */}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3.5 min-w-0 w-full">
+                    <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
                         {/* Avatar */}
-                        <div className="relative shrink-0 mt-1 sm:mt-0">
-                            <Avatar className="h-12 w-12 sm:h-12 sm:w-12 rounded-full border-2 border-border/80 group-hover:border-primary/50 transition-colors shadow-xs">
+                        <div className="relative shrink-0">
+                            <Avatar className="h-11 w-11 sm:h-12 sm:w-12 rounded-full border-2 border-border/80 group-hover:border-primary/50 transition-colors shadow-xs">
                                 <AvatarImage src={member.avatar} alt={member.name} className="object-cover" />
                                 <AvatarFallback className="font-semibold text-xs sm:text-sm bg-muted text-foreground">
                                     {getInitials(member.name)}
@@ -60,13 +60,13 @@ export const MemberCard = ({
                         </div>
 
                         {/* Details */}
-                        <div className="min-w-0 w-full space-y-1">
-                            <div className="flex items-center justify-center sm:justify-start gap-1 min-w-0">
+                        <div className="min-w-0 flex-1 space-y-1 text-left">
+                            <div className="flex items-center gap-1.5 min-w-0">
                                 <p className="font-semibold text-xs sm:text-sm text-foreground truncate group-hover:text-primary transition-colors leading-tight">
                                     {member.name}
                                 </p>
                                 {isSelf && (
-                                    <span className="text-[9px] sm:text-[10px] bg-muted text-muted-foreground px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded-md font-medium shrink-0">
+                                    <span className="text-[9px] sm:text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-md font-medium shrink-0">
                                         You
                                     </span>
                                 )}
@@ -76,21 +76,21 @@ export const MemberCard = ({
                                 {member.email}
                             </p>
 
-                            <div className="flex items-center justify-center sm:justify-start gap-1.5 pt-0.5 flex-wrap">
+                            <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
                                 <Badge
                                     variant={memberIsOwner ? "default" : "secondary"}
                                     className="capitalize text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0 h-4 sm:h-4.5 font-medium rounded-md inline-flex items-center gap-1"
                                 >
                                     {memberIsOwner ? (
-                                        <Shield className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                                        <Crown className="h-2.5 w-2.5" />
                                     ) : (
-                                        <User className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-muted-foreground" />
+                                        <User className="h-2.5 w-2.5 text-muted-foreground" />
                                     )}
                                     {member.role}
                                 </Badge>
 
                                 {member.joinedAt && (
-                                    <span className="text-[10px] sm:text-[11px] text-muted-foreground/70 truncate hidden sm:inline">
+                                    <span className="text-[10px] sm:text-[11px] text-muted-foreground/70 truncate hidden md:inline">
                                         Joined {formatDate(member.joinedAt)}
                                     </span>
                                 )}
@@ -98,20 +98,21 @@ export const MemberCard = ({
                         </div>
                     </div>
 
-                    {/* Right: 3-Dot Actions (Anchored absolute top-right on mobile, flex centered on desktop) */}
+                    {/* Right: 3-Dot Actions */}
                     {canRemove && (
                         <div
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute top-2 right-2 sm:static sm:shrink-0"
+                            className="shrink-0 -mr-1"
                         >
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
+                                        type="button"
                                         variant="ghost"
                                         size="icon"
-                                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 cursor-pointer"
+                                        className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 cursor-pointer"
                                     >
-                                        <MoreVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                        <MoreVertical className="h-4 w-4" />
                                         <span className="sr-only">Open options</span>
                                     </Button>
                                 </DropdownMenuTrigger>

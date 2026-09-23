@@ -1,8 +1,8 @@
-import React from "react";
+import { forwardRef } from "react";
 import { User, Mail, Phone, FileText, ArrowRight, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/pages/organization/services/publicService/publicService.helper.js";
 
-const AttendeeForm = ({
+const AttendeeForm = forwardRef(({
     formData,
     onInputChange,
     onSubmit,
@@ -10,21 +10,21 @@ const AttendeeForm = ({
     isProcessing,
     price,
     currency
-}) => {
+}, ref) => {
     return (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
-            <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight">Your Details</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Please provide your contact information to finalize and pay.</p>
+        <div ref={ref} id="attendee-form" className="bg-card rounded-2xl border border-border/80 shadow-xs p-4 sm:p-6 lg:p-8 space-y-6 text-card-foreground">
+            <div className="border-b border-border/60 pb-4">
+                <h2 className="text-lg font-bold text-foreground tracking-tight">Your Details</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Please provide your contact information to finalize and pay.</p>
             </div>
 
             <form onSubmit={onSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Full Name <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Full Name <span className="text-destructive">*</span>
                     </label>
                     <div className="relative">
-                        <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <User className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                         <input
                             type="text"
                             name="name"
@@ -32,17 +32,17 @@ const AttendeeForm = ({
                             value={formData.name}
                             onChange={onInputChange}
                             placeholder="Your full name"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Email Address <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Email Address <span className="text-destructive">*</span>
                     </label>
                     <div className="relative">
-                        <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <Mail className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                         <input
                             type="email"
                             name="email"
@@ -50,17 +50,17 @@ const AttendeeForm = ({
                             value={formData.email}
                             onChange={onInputChange}
                             placeholder="you@example.com"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Phone Number <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Phone Number <span className="text-destructive">*</span>
                     </label>
                     <div className="relative">
-                        <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <Phone className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                         <input
                             type="tel"
                             name="phone"
@@ -68,24 +68,24 @@ const AttendeeForm = ({
                             value={formData.phone}
                             onChange={onInputChange}
                             placeholder="+91 98765 43210"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Notes <span className="text-slate-400 font-normal">(Optional)</span>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Notes <span className="text-muted-foreground font-normal">(Optional)</span>
                     </label>
                     <div className="relative">
-                        <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <FileText className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                         <input
                             type="text"
                             name="notes"
                             value={formData.notes}
                             onChange={onInputChange}
                             placeholder="Any specific requests or notes for the appointment"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
@@ -94,15 +94,16 @@ const AttendeeForm = ({
                     <button
                         type="submit"
                         disabled={!isFormValid || isProcessing}
-                        className={`w-full py-3.5 px-4 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${isFormValid && !isProcessing
-                            ? "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/10 cursor-pointer active:scale-[0.99]"
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                            }`}
+                        className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-xs ${
+                            isFormValid && !isProcessing
+                                ? "bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer active:scale-[0.99]"
+                                : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
+                        }`}
                     >
                         {isProcessing ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                                <span>Just a moment, we're getting everything ready for you...</span>
+                                <Loader2 className="w-4 h-4 animate-spin text-primary-foreground/70" />
+                                <span>Securing appointment...</span>
                             </>
                         ) : (
                             <>
@@ -115,6 +116,8 @@ const AttendeeForm = ({
             </form>
         </div>
     );
-};
+});
+
+AttendeeForm.displayName = "AttendeeForm";
 
 export default AttendeeForm;

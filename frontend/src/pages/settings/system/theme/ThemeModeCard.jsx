@@ -18,7 +18,7 @@ const ThemeModeCard = memo(({ option, isSelected, isThemeUpdating, onSelect }) =
                 isSelected
                     ? "border-primary bg-surface-elevated ring-1 ring-primary/20 shadow-xs"
                     : "border-border-subtle bg-surface hover:bg-hover hover:border-border cursor-pointer",
-                isThemeUpdating && "opacity-70 cursor-wait"
+                isThemeUpdating && "opacity-70"
             )}
         >
             <div className="flex w-full items-center justify-between">

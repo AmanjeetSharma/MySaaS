@@ -36,6 +36,7 @@ import {
   Search,
   Users,
   ArrowLeft,
+  X,
 } from "lucide-react";
 
 export default function Members() {
@@ -150,8 +151,8 @@ export default function Members() {
 
   if (hasNoActiveOrganization && !currentOrganization) {
     return (
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col items-center justify-center min-h-[380px] border border-border/80 rounded-xl bg-card/60 text-center p-8 space-y-4">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col items-center justify-center min-h-[380px] border border-border/80 rounded-2xl bg-card/60 text-center p-8 space-y-4">
           <div className="p-3.5 bg-muted rounded-full">
             <Building2 className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -160,6 +161,7 @@ export default function Members() {
             You must select or accept an invite to an active workspace to manage members.
           </p>
           <Button
+            type="button"
             variant="outline"
             onClick={() => navigate("/my-invitations")}
             className="rounded-xl cursor-pointer"
@@ -173,10 +175,11 @@ export default function Members() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 transition-all duration-300">
-        {/* Back Button */}
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 transition-all duration-300">
+        {/* Back Navigation */}
         <div>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
@@ -187,8 +190,8 @@ export default function Members() {
           </Button>
         </div>
 
-        {/* Header & Right-Aligned Tab Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-5">
+        {/* Header & Action Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/80 pb-5 sm:pb-6">
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
@@ -197,11 +200,12 @@ export default function Members() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    type="button"
                     variant="outline"
                     size="icon"
                     onClick={handleRefresh}
                     disabled={showLoadingCards || isUpdating}
-                    className="h-8 w-8 rounded-xl border border-border/80 bg-card/80 hover:bg-accent hover:border-border text-muted-foreground hover:text-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
+                    className="h-8 w-8 rounded-xl border border-border/80 bg-card/80 hover:bg-accent hover:border-border text-muted-foreground hover:text-foreground shadow-2xs active:scale-95 transition-all cursor-pointer"
                   >
                     <RotateCw
                       className={`h-3.5 w-3.5 ${showLoadingCards ? "animate-spin text-primary" : ""
@@ -215,17 +219,19 @@ export default function Members() {
                 </TooltipContent>
               </Tooltip>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Manage team access and roles for {currentOrganization?.name || "this workspace"}.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Manage team access, permissions, and roles for {currentOrganization?.name || "this workspace"}.
             </p>
           </div>
 
-          <div className="w-full sm:w-auto grid grid-cols-2 gap-2 sm:gap-2.5 sm:flex sm:items-center">
+          {/* Action buttons toolbar */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => navigate("/my-invitations")}
-              className="h-10 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-xs"
+              className="h-9 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-2xs"
             >
               <Inbox className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="truncate">My Invitations</span>
@@ -233,10 +239,11 @@ export default function Members() {
 
             {isOwner && currentOrgId && (
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => navigate(`/organizations/${currentOrgId}/members/invitations`)}
-                className="h-10 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-xs"
+                className="h-9 px-3 sm:px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl bg-card/80 hover:bg-accent/40 active:scale-[0.98] border border-border/80 shadow-2xs"
               >
                 <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="truncate">Organization Invites</span>
@@ -247,14 +254,15 @@ export default function Members() {
               <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                 <DialogTrigger asChild>
                   <Button
+                    type="button"
                     size="sm"
-                    className="col-span-2 sm:col-span-1 h-10 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl shadow-xs active:scale-[0.98] transition-all"
+                    className="h-9 px-3.5 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer rounded-xl shadow-2xs active:scale-[0.98] transition-all"
                   >
                     <UserPlus className="h-3.5 w-3.5 shrink-0" />
                     <span>Invite Member</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md rounded-2xl">
+                <DialogContent className="sm:max-w-md rounded-2xl [&>button]:cursor-pointer">
                   <form onSubmit={handleSendInvite}>
                     <DialogHeader>
                       <DialogTitle>Invite Teammate</DialogTitle>
@@ -301,61 +309,103 @@ export default function Members() {
           </div>
         </div>
 
-        {/* Stats + Search Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          <div className="p-4 rounded-xl border border-border/80 bg-card/60 shadow-xs flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
-              <Users className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs text-muted-foreground block truncate">Active Members</span>
-              <span className="text-lg font-bold text-foreground leading-tight">
-                {members.length}
+        {/* Controls Toolbar: Search & Member Stats */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search members by name, email, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 pl-9.5 pr-8 rounded-xl border-border/80 bg-card/60 focus-visible:ring-1 text-xs sm:text-sm placeholder:text-muted-foreground/70"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label="Clear search query"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground self-start sm:self-auto shrink-0">
+            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border/80 bg-card/60 shadow-2xs font-medium">
+              <Users className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>
+                {searchQuery ? (
+                  <>
+                    Showing <span className="font-semibold text-foreground">{filteredMembers.length}</span> of {members.length} members
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold text-foreground">{members.length}</span> {members.length === 1 ? "Active Member" : "Active Members"}
+                  </>
+                )}
               </span>
             </div>
           </div>
-
-          <div className="md:col-span-2 relative flex items-center">
-            <Search className="absolute left-4 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Filter members by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-full min-h-[56px] pl-10.5 pr-4 rounded-xl border-border/80 bg-card/60 focus-visible:ring-1 text-xs"
-            />
-          </div>
         </div>
 
-        {/* Grid of Members (2 per row on mobile, 3 on desktop) */}
+        {/* Grid of Members: 1 column on mobile, 2 on tablet, 3 on desktop */}
         {showLoadingCards ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={index}
-                className="p-3.5 sm:p-5 rounded-xl border border-border/70 bg-card/40 flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3.5 animate-pulse"
+                className="p-3.5 sm:p-4.5 rounded-xl border border-border/70 bg-card/40 flex items-center gap-3 sm:gap-3.5 animate-pulse"
               >
-                <Skeleton className="h-12 w-12 rounded-full shrink-0" />
-                <div className="space-y-1.5 w-full flex flex-col items-center sm:items-start">
-                  <Skeleton className="h-3.5 w-20 sm:w-28" />
-                  <Skeleton className="h-2.5 w-24 sm:w-40" />
+                <Skeleton className="h-11 w-11 sm:h-12 sm:w-12 rounded-full shrink-0" />
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <Skeleton className="h-4 w-28 sm:w-36" />
+                  <Skeleton className="h-3 w-36 sm:w-48" />
+                  <Skeleton className="h-3.5 w-16 rounded-md" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border/80 rounded-xl bg-card/40 text-center space-y-2">
+          <div className="flex flex-col items-center justify-center p-10 sm:p-12 border border-dashed border-border/80 rounded-2xl bg-card/40 text-center space-y-3">
             <div className="p-3 bg-muted rounded-full">
               <Users className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-semibold text-foreground">No members found</p>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              {searchQuery
-                ? "No team members matched your search query."
-                : "No members found in this workspace."}
-            </p>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                {searchQuery ? "No members match your search" : "No members found"}
+              </p>
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                {searchQuery
+                  ? `We couldn't find any members matching "${searchQuery}". Try a different name, email, or role.`
+                  : "No members have been added to this workspace yet."}
+              </p>
+            </div>
+            {searchQuery ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchQuery("")}
+                className="h-8 rounded-lg text-xs font-medium cursor-pointer"
+              >
+                Clear Search
+              </Button>
+            ) : isOwner ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setIsInviteOpen(true)}
+                className="h-8 rounded-lg text-xs font-medium cursor-pointer gap-1.5"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Invite First Member
+              </Button>
+            ) : null}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
             {filteredMembers.map((member) => (
               <MemberCard
                 key={getEntityId(member)}

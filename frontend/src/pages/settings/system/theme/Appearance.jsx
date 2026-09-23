@@ -6,6 +6,7 @@ import { applyUserTheme } from '@/theme/theme.utils.js';
 import { saveThemeToLocalStorage } from '@/theme/themeSync.utils.js';
 import ThemeModeCard from './ThemeModeCard';
 import ThemePreviewCard from './ThemePreviewCard';
+import ThemeLoader from '@/pages/settings/system/ThemeLoader';
 
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +28,7 @@ import {
     Smartphone,
     Crown,
     Check,
-    Palette,
-    Loader2
+    Palette
 } from 'lucide-react';
 
 const Appearance = () => {
@@ -195,6 +195,9 @@ const Appearance = () => {
 
     return (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 bg-background text-foreground">
+            {/* Full Screen Theme Transition Loader */}
+            {isThemeUpdating && <ThemeLoader mode={effectivePreviewMode} />}
+
             {/* 1. TITLE HEADER */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-1">
@@ -205,13 +208,6 @@ const Appearance = () => {
                         Choose your preferred theme and interface mode.
                     </p>
                 </div>
-
-                {isThemeUpdating && (
-                    <div className="flex items-center gap-2 self-start sm:self-auto rounded-full bg-surface-sunken px-3 py-1 border border-border-subtle text-xs text-muted-foreground">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                        <span>Synchronizing...</span>
-                    </div>
-                )}
             </div>
 
             <Separator className="bg-border-subtle" />

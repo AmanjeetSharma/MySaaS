@@ -6,12 +6,14 @@ export const WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thurs
  * Format currency with ISO code fallback
  */
 export const formatCurrency = (amount, currency = "INR") => {
-    if (amount === 0 || amount === "0") return "Free";
+    if (amount == null || amount === "" || isNaN(Number(amount))) return "Free";
+    const num = Number(amount);
+    if (num === 0) return "Free";
     return new Intl.NumberFormat("en-IN", {
         style: "currency",
-        currency: currency,
+        currency: currency || "INR",
         maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(num);
 };
 
 /**

@@ -21,7 +21,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 
 // Organization imports
 import Organizations from '@/pages/organization/Organizations';
-import OrganizationDetails from '@/pages/organization/OrganizationDetails';
+import OrganizationDetails from '@/pages/organization/organizationDetails/OrganizationDetails';
 import Members from '@/pages/organization/members/Members';
 import Invitations from '@/pages/organization/members/Invitations';
 import MyInvitations from '@/pages/organization/members/MyInvitations';
