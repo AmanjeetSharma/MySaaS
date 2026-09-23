@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -22,9 +22,13 @@ import {
   formatCurrency,
   getDateKeyInTimezone,
   normalizeTimezone,
-  createInstantFromServiceSlot,
   formatSlotTimeInTimezone,
+  getUserBrowserTimezone,
+  generateAllAvailableInstants,
+  isDayDisabledInDisplayTz,
 } from "@/pages/organization/services/publicService/publicService.helper.js";
+
+import TimezoneCombobox from "@/components/publicService/TimezoneCombobox";
 
 // shadcn UI Components
 import { Badge } from "@/components/ui/badge";
@@ -41,16 +45,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-const WEEKDAY_NAMES = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-];
 
 // In-file formatters
 const formatBookingDate = (dateString, timezone) => {
@@ -104,9 +98,12 @@ export default function ManagePublicBooking() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
+  // Default detect user's device/browser timezone
+  const [displayTimezone, setDisplayTimezone] = useState(() => getUserBrowserTimezone());
+
   useEffect(() => {
     if (token) {
-      getPublicBooking(token).catch(() => {});
+      getPublicBooking(token).catch(() => { });
     }
   }, [token, getPublicBooking]);
 
@@ -117,6 +114,7 @@ export default function ManagePublicBooking() {
         cancellationReason: cancelReason.trim() || undefined,
       });
       toast.success("Appointment cancelled successfully.");
+      await getPublicBooking(token).catch(() => { });
       setIsCancelDialogOpen(false);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to cancel appointment.");
@@ -125,15 +123,15 @@ export default function ManagePublicBooking() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xs text-center">
-          <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-6 h-6 text-amber-600" />
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xs text-center text-card-foreground">
+          <div className="w-12 h-12 bg-warning/10 text-warning border border-warning/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">
+          <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">
             Invalid Access Link
           </h2>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             A valid security token is required to manage this booking. Please check your confirmation email.
           </p>
         </div>
@@ -143,8 +141,8 @@ export default function ManagePublicBooking() {
 
   if (isLoadingBooking) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex flex-col justify-center items-center p-4 sm:p-6">
-        <div className="w-full max-w-xl bg-white border border-slate-200/70 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center p-4 sm:p-6">
+        <div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 text-card-foreground">
           <div className="flex justify-between items-start">
             <div className="space-y-2">
               <Skeleton className="h-4 w-28" />
@@ -161,8 +159,8 @@ export default function ManagePublicBooking() {
           </div>
           <Separator />
           <div className="flex justify-end gap-3 pt-2">
-            <Skeleton className="h-10 w-28 rounded-lg" />
-            <Skeleton className="h-10 w-32 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-xl" />
+            <Skeleton className="h-9 w-32 rounded-xl" />
           </div>
         </div>
       </div>
@@ -171,20 +169,20 @@ export default function ManagePublicBooking() {
 
   if (bookingError || !bookingData) {
     return (
-      <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xs text-center">
-          <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <ShieldAlert className="w-6 h-6 text-rose-600" />
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xs text-center text-card-foreground">
+          <div className="w-12 h-12 bg-destructive/10 text-destructive border border-destructive/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">
+          <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">
             Unable to Load Booking
           </h2>
-          <p className="text-sm text-slate-500 leading-relaxed mb-6">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
             {bookingError || "This booking link has expired or is invalid."}
           </p>
           <Button
             variant="outline"
-            className="border-slate-200 text-slate-700"
+            className="h-9 rounded-xl border-border/80 text-foreground cursor-pointer text-xs font-medium"
             onClick={() => getPublicBooking(token)}
           >
             Try Again
@@ -195,47 +193,66 @@ export default function ManagePublicBooking() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between antialiased selection:bg-primary selection:text-primary-foreground">
       {/* Brand Header */}
-      <header className="w-full max-w-6xl pb-8 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold tracking-tight text-slate-900">mini<span className="text-purple-600">CRM</span></span>
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <a
+            href="/"
+            className="flex items-center gap-2 group transition-all cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-lg p-1 -ml-1"
+          >
+            <span className="font-extrabold text-foreground tracking-tight text-lg group-hover:opacity-80 transition-opacity">
+              mini<span className="text-primary">CRM</span>
+            </span>
+          </a>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">
+            Manage Booking
+          </span>
         </div>
       </header>
 
-      {/* Main Content: Details vs Inline Reschedule */}
-      {isReschedulingView ? (
-        <RescheduleInlineView
-          token={token}
-          bookingData={bookingData}
-          onBack={() => setIsReschedulingView(false)}
-        />
-      ) : (
-        <div className="w-full max-w-xl">
-          <BookingDetailsCard
-            data={bookingData}
-            onOpenReschedule={() => setIsReschedulingView(true)}
-            onOpenCancel={() => setIsCancelDialogOpen(true)}
+      {/* Main Content Area */}
+      <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 flex flex-col items-center justify-center">
+        {isReschedulingView ? (
+          <RescheduleInlineView
+            token={token}
+            bookingData={bookingData}
+            onBack={() => setIsReschedulingView(false)}
+            displayTimezone={displayTimezone}
+            setDisplayTimezone={setDisplayTimezone}
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full max-w-xl">
+            <BookingDetailsCard
+              data={bookingData}
+              onOpenReschedule={() => setIsReschedulingView(true)}
+              onOpenCancel={() => setIsCancelDialogOpen(true)}
+              displayTimezone={displayTimezone}
+              setDisplayTimezone={setDisplayTimezone}
+            />
+          </div>
+        )}
+      </main>
 
       {/* Cancellation Dialog */}
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white border-slate-200 p-6 rounded-2xl">
+        <DialogContent className="sm:max-w-md bg-card border-border text-card-foreground p-6 rounded-2xl [&>button]:cursor-pointer [&>button]:rounded-full">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-slate-900">
+            <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 flex items-center justify-center mb-1">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-foreground">
               Cancel Appointment
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500 mt-1.5">
+            <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1.5 leading-relaxed">
               Are you sure you want to cancel your upcoming session? This action cannot be reversed.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-2">
+          <div className="py-2 space-y-2">
             <label
               htmlFor="cancel-reason"
-              className="text-xs font-semibold text-slate-600 mb-2 block"
+              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block"
             >
               Reason for cancellation (optional)
             </label>
@@ -244,16 +261,16 @@ export default function ManagePublicBooking() {
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="Let us know why you need to cancel..."
-              className="resize-none h-24 border-slate-200 focus-visible:ring-purple-600 text-sm"
+              className="resize-none h-24 rounded-xl border-border/80 bg-background text-xs sm:text-sm text-foreground focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground/60 shadow-2xs"
             />
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button
               variant="outline"
               type="button"
               onClick={() => setIsCancelDialogOpen(false)}
-              className="border-slate-200 text-slate-700"
+              className="h-9 rounded-xl text-xs font-medium border-border/80 text-foreground cursor-pointer"
             >
               Keep Appointment
             </Button>
@@ -262,13 +279,18 @@ export default function ManagePublicBooking() {
               type="button"
               disabled={isCancelling}
               onClick={handleCancelSubmit}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-medium"
+              className="h-9 rounded-xl text-xs font-medium cursor-pointer shadow-2xs"
             >
               {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Public Footer */}
+      <footer className="border-t border-border/60 bg-background/50 py-6 text-center text-xs text-muted-foreground">
+        &copy; {new Date().getFullYear()} <span className="font-semibold text-foreground">miniCRM</span>. All rights reserved.
+      </footer>
     </div>
   );
 }
@@ -276,79 +298,148 @@ export default function ManagePublicBooking() {
 // ============================================================================
 // Component 2: BookingDetailsCard (Standalone Overview)
 // ============================================================================
-function BookingDetailsCard({ data, onOpenReschedule, onOpenCancel }) {
-  const { organization, service, booker, booking, meeting, cancellation, permissions } = data;
-  const timezone = normalizeTimezone(booking?.timezone);
+function BookingDetailsCard({ data, onOpenReschedule, onOpenCancel, displayTimezone, setDisplayTimezone }) {
+  const {
+    organization = {},
+    service = {},
+    booker = {},
+    booking = {},
+    meeting = {},
+    cancellation = {},
+    permissions = {},
+  } = data || {};
+  const serviceTimezone = normalizeTimezone(booking?.timezone || booking?.service?.availability?.timezone || "UTC");
+  const clientTimezone = displayTimezone || serviceTimezone;
   const isTerminalState = ["CANCELLED", "COMPLETED", "NO_SHOW"].includes(booking?.status);
 
   const getStatusBadge = (status) => {
     const config = {
-      CONFIRMED: { label: "Confirmed", className: "bg-emerald-50 text-emerald-700 border-emerald-200/70" },
-      CANCELLED: { label: "Cancelled", className: "bg-rose-50 text-rose-700 border-rose-200/70" },
-      COMPLETED: { label: "Completed", className: "bg-slate-100 text-slate-600 border-slate-200" },
-      NO_SHOW: { label: "No Show", className: "bg-amber-50 text-amber-700 border-amber-200/70" },
+      CONFIRMED: {
+        label: "Confirmed",
+        className: "bg-success/10 text-success border-success/20",
+        dotClassName: "bg-success animate-pulse",
+      },
+      CANCELLED: {
+        label: "Cancelled",
+        className: "bg-destructive/10 text-destructive border-destructive/20",
+        dotClassName: "bg-destructive",
+      },
+      COMPLETED: {
+        label: "Completed",
+        className: "bg-muted text-muted-foreground border-border",
+        dotClassName: "bg-muted-foreground",
+      },
+      NO_SHOW: {
+        label: "No Show",
+        className: "bg-warning/10 text-warning border-warning/20",
+        dotClassName: "bg-warning",
+      },
     };
-    const current = config[status] || { label: status, className: "bg-slate-100 text-slate-600 border-slate-200" };
+    const current = config[status] || {
+      label: status || "Pending",
+      className: "bg-muted text-muted-foreground border-border",
+      dotClassName: "bg-muted-foreground",
+    };
     return (
-      <Badge variant="outline" className={`px-2.5 py-0.5 font-medium ${current.className}`}>
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${current.className}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${current.dotClassName}`} />
         {current.label}
-      </Badge>
+      </span>
     );
   };
 
   return (
-    <section className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-6 sm:p-9">
+    <section className="bg-card border border-border/80 rounded-2xl shadow-xs p-6 sm:p-8 text-card-foreground">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 pb-6">
-        <div className="space-y-1">
-          <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+      <div className="flex items-start justify-between gap-4 pb-6 border-b border-border/60">
+        <div className="space-y-1 min-w-0">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             {organization?.name || "Appointment"}
           </span>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {service?.name}
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground truncate">
+            {service?.name || "Service Session"}
           </h1>
-          <p className="text-sm font-medium text-slate-500 flex items-center gap-1.5 pt-0.5">
-            <span>{service?.durationInMinutes} min</span>
-            <span className="text-slate-300">·</span>
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-1.5 pt-0.5">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{service?.durationInMinutes || 30} mins</span>
+            <span>·</span>
             <span>{formatCurrency(service?.price, service?.currency)}</span>
           </p>
         </div>
-        <div>{getStatusBadge(booking?.status)}</div>
+        <div className="shrink-0">{getStatusBadge(booking?.status)}</div>
       </div>
 
-      <Separator className="bg-slate-100" />
-
       {/* Details list */}
-      <div className="py-6 space-y-6">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0 border border-purple-100/70">
-            <CalendarIcon className="w-5 h-5 text-purple-600" />
+      <div className="py-6 space-y-4 sm:space-y-5">
+        {/* Timezone Context Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border/80 bg-muted/20">
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="text-xs">
+              <span className="text-muted-foreground">Service Timezone: </span>
+              <span className="font-semibold text-foreground">{serviceTimezone}</span>
+            </div>
           </div>
-          <div>
-            <p className="text-base font-semibold text-slate-800">
-              {formatBookingDate(booking?.startTime, timezone)}
+          {setDisplayTimezone && (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Your Timezone:
+              </span>
+              <TimezoneCombobox
+                value={clientTimezone}
+                onChange={setDisplayTimezone}
+                className="h-8 text-xs"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Date & Time */}
+        <div className="flex items-start gap-3.5 rounded-xl border border-border/80 bg-muted/30 p-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+            <CalendarIcon className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <p className="text-base font-bold text-foreground">
+                {formatBookingDate(booking?.startTime, clientTimezone) || "Date pending"}
+              </p>
+              <span className="text-xs text-primary font-medium">
+                ({clientTimezone})
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-foreground/80 font-semibold mt-0.5">
+              {formatBookingTimeRange(booking?.startTime, booking?.endTime, clientTimezone) || "Time pending"}
             </p>
-            <p className="text-sm text-slate-600 font-medium mt-0.5">
-              {formatBookingTimeRange(booking?.startTime, booking?.endTime, timezone)}
-            </p>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              Timezone: {timezone}
-            </p>
+            {clientTimezone !== serviceTimezone && (
+              <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/60 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span>
+                  Provider operating time:{" "}
+                  <strong className="text-foreground font-semibold">
+                    {formatBookingTimeRange(booking?.startTime, booking?.endTime, serviceTimezone)}
+                  </strong>{" "}
+                  ({serviceTimezone})
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+        {/* Location / Meeting Link */}
+        <div className="flex items-start gap-3.5 rounded-xl border border-border/80 bg-muted/30 p-4">
+          <div className="w-10 h-10 rounded-xl bg-muted/60 text-muted-foreground border border-border/80 flex items-center justify-center shrink-0">
             {service?.mode === "ONLINE" ? (
-              <Video className="w-5 h-5 text-slate-600" />
+              <Video className="w-5 h-5" />
             ) : (
-              <MapPin className="w-5 h-5 text-slate-600" />
+              <MapPin className="w-5 h-5" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-800">
-              {service?.mode === "ONLINE" ? "Online Session" : "In-Person Meeting"}
+            <p className="text-xs sm:text-sm font-bold text-foreground">
+              {service?.mode === "ONLINE" ? "Online Virtual Session" : "In-Person Meeting"}
             </p>
             {service?.mode === "ONLINE" ? (
               <div className="mt-2">
@@ -356,7 +447,7 @@ function BookingDetailsCard({ data, onOpenReschedule, onOpenCancel }) {
                   <Button
                     size="sm"
                     asChild
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-xs gap-1.5 transition-colors"
+                    className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-2xs gap-1.5 transition-colors cursor-pointer text-xs"
                   >
                     <a href={meeting.link} target="_blank" rel="noopener noreferrer">
                       Join {meeting.provider ? meeting.provider.replace("_", " ") : "Meeting"}
@@ -364,7 +455,7 @@ function BookingDetailsCard({ data, onOpenReschedule, onOpenCancel }) {
                     </a>
                   </Button>
                 ) : (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {isTerminalState
                       ? "Meeting link is inactive."
                       : "Meeting details will be provided before the session starts."}
@@ -372,76 +463,82 @@ function BookingDetailsCard({ data, onOpenReschedule, onOpenCancel }) {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 mt-1">Location provided upon confirmation.</p>
+              <p className="text-xs text-muted-foreground mt-1">Location provided upon confirmation.</p>
             )}
           </div>
         </div>
 
-        <div className="bg-slate-50/70 border border-slate-200/60 rounded-xl p-4">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+        {/* Attendee Info */}
+        <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Booked For
           </p>
-          <div className="mt-1.5">
-            <p className="text-sm font-semibold text-slate-800">{booker?.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+          <div className="pt-1">
+            <p className="text-xs sm:text-sm font-bold text-foreground">{booker?.name || "Client"}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               {booker?.email} {booker?.phone ? `· ${booker.phone}` : ""}
             </p>
           </div>
           {booking?.notes && booking.notes !== "No additional notes were provided." && (
-            <p className="text-xs text-slate-500 mt-2.5 pt-2 border-t border-slate-200/50">
-              <span className="font-medium text-slate-600">Notes:</span> {booking.notes}
+            <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/60">
+              <span className="font-semibold text-foreground">Notes:</span> {booking.notes}
             </p>
           )}
         </div>
 
+        {/* Cancelled Notice */}
         {booking?.status === "CANCELLED" && (
-          <div className="bg-rose-50/60 border border-rose-200/70 rounded-xl p-4 text-xs text-rose-800">
-            <p className="font-semibold mb-0.5">This appointment has been cancelled.</p>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive space-y-1">
+            <p className="font-bold">This appointment has been cancelled.</p>
             {cancellation?.reason && (
-              <p className="text-rose-700">Reason: {cancellation.reason}</p>
+              <p className="text-destructive/80">Reason: {cancellation.reason}</p>
             )}
           </div>
         )}
       </div>
 
+      {/* Action Buttons */}
       {!isTerminalState && (
-        <>
-          <Separator className="bg-slate-100" />
-          <div className="pt-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
-            {permissions?.canCancel && (
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={onOpenCancel}
-                className="w-full sm:w-auto text-slate-500 hover:text-rose-600 hover:bg-rose-50/80 font-medium"
-              >
-                Cancel Booking
-              </Button>
-            )}
-            {permissions?.canReschedule && (
-              <Button
-                type="button"
-                onClick={onOpenReschedule}
-                className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-xs transition-colors"
-              >
-                Reschedule Appointment
-              </Button>
-            )}
-          </div>
-        </>
+        <div className="pt-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3 border-t border-border/60">
+          {permissions?.canCancel && (
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={onOpenCancel}
+              className="w-full sm:w-auto h-9 rounded-xl text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+            >
+              Cancel Booking
+            </Button>
+          )}
+          {permissions?.canReschedule && (
+            <Button
+              type="button"
+              onClick={onOpenReschedule}
+              className="w-full sm:w-auto h-9 px-4 rounded-xl text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs transition-colors cursor-pointer"
+            >
+              Reschedule Appointment
+            </Button>
+          )}
+        </div>
       )}
     </section>
   );
 }
 
 // ============================================================================
-// Component 3: RescheduleInlineView (Inline Split View Inspired by Booking UI)
+// Component 3: RescheduleInlineView (Inline Split View with Timezone Switching)
 // ============================================================================
-function RescheduleInlineView({ token, bookingData, onBack }) {
+function RescheduleInlineView({
+  token,
+  bookingData,
+  onBack,
+  displayTimezone,
+  setDisplayTimezone,
+}) {
   const { publicRescheduleBooking, isRescheduling, getPublicBooking } = useBookingStore();
 
-  const { organization, service, booking, rescheduling } = bookingData;
-  const timezone = normalizeTimezone(
+  const { organization, service, booking, rescheduling } = bookingData || {};
+  const serviceTimezone = normalizeTimezone(
     rescheduling?.availability?.timezone || booking?.timezone
   );
   const availability = rescheduling?.availability;
@@ -451,78 +548,37 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // Maximum selectable window: strictly 30 days ahead from today in target timezone
-  const { minDateKey, maxDateKey } = useMemo(() => {
-    const today = new Date();
-    const minKey = getDateKeyInTimezone(today, timezone);
+  // Generate concrete UTC instants for all available slots in the upcoming window
+  const allSlotInstants = useMemo(() => {
+    if (!availability) return [];
+    return generateAllAvailableInstants(availability, duration);
+  }, [availability, duration]);
 
-    const max = new Date();
-    max.setDate(max.getDate() + 30);
-    const maxKey = getDateKeyInTimezone(max, timezone);
+  // Filter available slots into the attendee's selected display timezone for the selected calendar date
+  const displayedSlots = useMemo(() => {
+    if (!selectedDate || !allSlotInstants.length) return [];
+    const dateKey = getDateKeyInTimezone(selectedDate, displayTimezone);
+    const currentStartMs = currentStartTime ? new Date(currentStartTime).getTime() : null;
 
-    return { minDateKey: minKey, maxDateKey: maxKey };
-  }, [timezone]);
-
-  // Available slots for currently selected calendar date
-  const availableSlots = useMemo(() => {
-    if (!selectedDate || !availability?.days) return [];
-
-    const dateKey = getDateKeyInTimezone(selectedDate, timezone);
-    const [year, month, day] = dateKey.split("-").map(Number);
-    const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-    const dayName = WEEKDAY_NAMES[dayIndex];
-
-    const dayConfig = availability.days[dayName];
-    if (!dayConfig?.enabled || !dayConfig?.slots?.length) return [];
-
-    const step = duration > 0 ? duration : 30;
-    const slots = [];
-    const now = new Date();
-
-    dayConfig.slots.forEach((range) => {
-      let current = range.startTime;
-      while (current + step <= range.endTime) {
-        const instant = createInstantFromServiceSlot(dateKey, current, timezone);
-        const endInstant = createInstantFromServiceSlot(dateKey, current + step, timezone);
-
-        const isPast = instant <= now;
-        const isCurrent = currentStartTime
-          ? new Date(currentStartTime).getTime() === instant.getTime()
-          : false;
-
-        slots.push({
-          startTimeMinutes: current,
-          endTimeMinutes: current + step,
-          utcInstant: instant,
-          isoString: instant.toISOString(),
-          label: formatSlotTimeInTimezone(instant, timezone),
-          endLabel: formatSlotTimeInTimezone(endInstant, timezone),
-          isPast,
+    return allSlotInstants
+      .filter((slot) => getDateKeyInTimezone(slot.utcDate, displayTimezone) === dateKey)
+      .map((slot) => {
+        const endInstant = new Date(slot.utcDate.getTime() + duration * 60 * 1000);
+        const isCurrent = currentStartMs === slot.utcDate.getTime();
+        return {
+          ...slot,
+          label: formatSlotTimeInTimezone(slot.utcDate, displayTimezone),
+          endLabel: formatSlotTimeInTimezone(endInstant, displayTimezone),
           isCurrent,
-          isBooked: false, // Clean anchor for backend-provided reserved ranges
-          isSelectable: !isPast && !isCurrent,
-        });
+          isSelectable: !isCurrent,
+        };
+      });
+  }, [selectedDate, allSlotInstants, displayTimezone, duration, currentStartTime]);
 
-        current += step;
-      }
-    });
-
-    return slots;
-  }, [selectedDate, availability, duration, currentStartTime, timezone]);
-
-  // Calendar Day Disablement: (Past dates, >30 days, or disabled recurring days)
+  // Calendar Day Disablement: only enables days that actually have bookable slots in the chosen timezone
   const isDateDisabled = (date) => {
-    if (!availability?.days || !date) return true;
-
-    const targetDateKey = getDateKeyInTimezone(date, timezone);
-    if (targetDateKey < minDateKey || targetDateKey > maxDateKey) return true;
-
-    const [year, month, day] = targetDateKey.split("-").map(Number);
-    const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-    const dayName = WEEKDAY_NAMES[dayIndex];
-
-    const dayConfig = availability.days[dayName];
-    return !(dayConfig?.enabled && Array.isArray(dayConfig?.slots) && dayConfig.slots.length > 0);
+    if (!date || !allSlotInstants.length) return true;
+    return isDayDisabledInDisplayTz(date, allSlotInstants, displayTimezone);
   };
 
   const handleDateSelect = (date) => {
@@ -539,6 +595,7 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
         startTime: selectedSlot.isoString,
       });
       toast.success("Your appointment has been rescheduled.");
+      await getPublicBooking(token).catch(() => { });
       onBack();
     } catch (error) {
       const errorMsg = error?.response?.data?.message || "";
@@ -548,7 +605,7 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
         error?.response?.status === 409
       ) {
         toast.error("This slot was just booked. Please select another time.");
-        await getPublicBooking(token).catch(() => {});
+        await getPublicBooking(token).catch(() => { });
         setSelectedSlot(null);
       } else {
         toast.error(errorMsg || "Unable to reschedule appointment. Please try again.");
@@ -557,14 +614,14 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
   };
 
   return (
-    <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
       {/* Left Column: Service Details & Current Schedule */}
-      <div className="lg:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] space-y-6">
+      <div className="lg:col-span-4 lg:sticky lg:top-24 bg-card border border-border/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6 text-card-foreground">
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="text-slate-500 hover:text-slate-900 -ml-2 mb-2 flex items-center gap-1.5"
+          className="text-muted-foreground hover:text-foreground -ml-2 h-8 gap-1.5 cursor-pointer text-xs font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to details
@@ -573,47 +630,47 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
         <div>
           <Badge
             variant="outline"
-            className="bg-purple-50 text-purple-700 border-purple-200/60 uppercase tracking-wider text-[10px] font-semibold px-2.5 py-0.5 rounded-full"
+            className="bg-primary/10 text-primary border-primary/20 uppercase tracking-wider text-[10px] font-semibold px-2.5 py-0.5 rounded-full"
           >
             {organization?.name || "Service Provider"}
           </Badge>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 mt-2.5">
-            {service?.name}
+          <h2 className="text-2xl font-bold tracking-tight text-foreground mt-2.5">
+            {service?.name || "Reschedule Appointment"}
           </h2>
-          <p className="text-sm text-slate-500 leading-relaxed mt-3">
-            Select a new date and time for your appointment from the available calendar slots within the next 30 days.
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-2.5">
+            Select a new date and time for your appointment from the available slots within the upcoming booking window.
           </p>
         </div>
 
-        <Separator className="bg-slate-100" />
+        <Separator />
 
-        <div className="space-y-4 text-sm">
+        <div className="space-y-4 text-xs sm:text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Price</span>
-            <span className="text-xl font-bold text-slate-900">
+            <span className="text-muted-foreground">Price</span>
+            <span className="text-lg font-bold text-foreground">
               {formatCurrency(service?.price, service?.currency)}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Duration</span>
-            <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 text-xs">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              {service?.durationInMinutes} mins
+            <span className="text-muted-foreground">Duration</span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-foreground bg-muted/60 px-2.5 py-1 rounded-lg border border-border/80 text-xs">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              {duration} mins
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Location</span>
-            <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 text-xs">
+            <span className="text-muted-foreground">Location</span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-foreground text-xs">
               {service?.mode === "ONLINE" ? (
                 <>
-                  <Video className="w-3.5 h-3.5 text-purple-600" />
+                  <Video className="w-3.5 h-3.5 text-primary" />
                   Virtual Video Call
                 </>
               ) : (
                 <>
-                  <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                   In-Person
                 </>
               )}
@@ -621,102 +678,132 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Service Timezone</span>
-            <span className="inline-flex items-center gap-1.5 font-medium text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100 text-xs">
-              <Globe className="w-3.5 h-3.5 text-purple-600" />
-              {timezone}
+            <span className="text-muted-foreground">Service Timezone</span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-foreground bg-muted/60 px-2.5 py-1 rounded-lg border border-border/80 text-xs">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+              {serviceTimezone}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Your Timezone</span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 text-xs">
+              <Globe className="w-3.5 h-3.5 text-primary" />
+              {displayTimezone}
             </span>
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="rounded-xl border border-border/80 bg-muted/40 p-3.5 space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Current Appointment
           </p>
-          <p className="text-sm font-semibold text-slate-800 mt-1">
-            {formatCompactDate(currentStartTime, timezone)}
+          <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">
+            {formatCompactDate(currentStartTime, displayTimezone)}
           </p>
-          <p className="text-xs text-slate-500">
-            {formatBookingTimeRange(currentStartTime, booking?.endTime, timezone)}
+          <p className="text-xs text-foreground/90 font-medium">
+            {formatBookingTimeRange(currentStartTime, booking?.endTime, displayTimezone)} ({displayTimezone})
           </p>
+          {displayTimezone !== serviceTimezone && (
+            <p className="text-[11px] text-muted-foreground border-t border-border/60 pt-1.5 mt-1">
+              Host time: {formatBookingTimeRange(currentStartTime, booking?.endTime, serviceTimezone)} ({serviceTimezone})
+            </p>
+          )}
         </div>
       </div>
 
       {/* Right Column: Calendar & Available Slots */}
-      <div className="lg:col-span-8 bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] space-y-8">
-        {/* Section Title & Timezone Indicator */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 className="text-xl font-bold tracking-tight text-slate-900">
+      <div className="lg:col-span-8 bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 sm:space-y-8 text-card-foreground">
+        {/* Section Title & Timezone Dropdown Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold tracking-tight text-foreground">
               Select Date & Time
             </h3>
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-slate-400" />
-              Provider operates in <span className="font-semibold text-slate-700">{timezone}</span>. Displayed slots are adjusted to this timezone.
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>
+                Service operates in <strong className="font-semibold text-foreground">{serviceTimezone}</strong>. Displayed slots are converted to your timezone.
+              </span>
             </p>
           </div>
-          <div className="flex items-center gap-1.5 self-start sm:self-auto bg-slate-50 border border-slate-200/70 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-lg">
-            <Globe className="w-3.5 h-3.5 text-purple-600" />
-            <span>{timezone}</span>
+
+          {/* Timezone Combobox Dropdown */}
+          <div className="flex flex-col sm:items-end gap-1 shrink-0">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+              Your Timezone
+            </span>
+            <TimezoneCombobox
+              value={displayTimezone}
+              onChange={(newTz) => {
+                setDisplayTimezone(newTz);
+                setSelectedSlot(null);
+              }}
+            />
           </div>
         </div>
 
         {/* Centered Calendar Card */}
-        <div className="bg-slate-50/50 border border-slate-200/60 rounded-2xl p-6 flex flex-col items-center justify-center">
+        <div className="rounded-2xl border border-border/80 bg-muted/20 p-4 sm:p-6 flex flex-col items-center justify-center">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
             initialFocus
-            className="p-3 bg-white border border-slate-200/80 rounded-xl shadow-xs pointer-events-auto"
+            className="p-3 bg-card border border-border/80 rounded-xl shadow-2xs pointer-events-auto"
             classNames={{
               day_selected:
-                "bg-purple-600 text-white hover:bg-purple-600 hover:text-white focus:bg-purple-600 focus:text-white rounded-xl font-medium",
-              day_today: "bg-slate-100 text-slate-900 font-semibold rounded-xl",
-              day: "h-10 w-10 p-0 font-normal rounded-xl hover:bg-purple-50 transition-colors",
+                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl font-semibold shadow-xs",
+              day_today: "bg-muted text-foreground font-semibold rounded-xl",
+              day: "h-9 w-9 p-0 font-medium rounded-xl hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
             }}
           />
         </div>
 
         {/* Available Slots Section */}
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               {selectedDate
-                ? `Available Slots (${formatCompactDate(selectedDate, timezone)})`
+                ? `Available Slots (${formatCompactDate(selectedDate, displayTimezone)})`
                 : "Available Slots"}
             </span>
+            {selectedDate && (
+              <span className="text-[10px] text-muted-foreground font-medium">
+                Times shown in {displayTimezone}
+              </span>
+            )}
           </div>
 
           {!selectedDate ? (
-            <div className="p-8 border border-dashed border-slate-200 rounded-xl text-center">
-              <CalendarIcon className="w-8 h-8 text-slate-300 mx-auto mb-2 stroke-1" />
-              <p className="text-sm font-medium text-slate-600">Please select a date from the calendar</p>
-              <p className="text-xs text-slate-400 mt-0.5">Bookings can be scheduled up to 30 days in advance.</p>
+            <div className="p-8 border border-dashed border-border/80 rounded-xl text-center">
+              <CalendarIcon className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2 stroke-1" />
+              <p className="text-xs sm:text-sm font-semibold text-foreground">Please select a date from the calendar</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Bookings can be scheduled up to 35 days in advance.</p>
             </div>
-          ) : availableSlots.length === 0 ? (
-            <div className="p-8 border border-dashed border-slate-200 rounded-xl text-center">
-              <p className="text-sm font-medium text-slate-600">
-                No available slots on this day in {timezone}.
+          ) : displayedSlots.length === 0 ? (
+            <div className="p-8 border border-dashed border-border/80 rounded-xl text-center">
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                No available slots on this day in {displayTimezone}.
               </p>
-              <p className="text-xs text-slate-400 mt-1">Please select another date from the calendar.</p>
+              <p className="text-xs text-muted-foreground mt-1">Please select another date from the calendar.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {availableSlots.map((slot) => {
+              {displayedSlots.map((slot) => {
                 const isSelected = selectedSlot?.isoString === slot.isoString;
 
                 if (slot.isCurrent) {
                   return (
                     <button
-                      key={slot.startTimeMinutes}
+                      key={slot.isoString}
                       disabled
                       type="button"
-                      className="py-2.5 px-3 text-xs font-medium rounded-xl border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed text-center"
+                      className="h-11 px-3 text-xs font-medium rounded-xl border border-border/60 bg-muted/40 text-muted-foreground cursor-not-allowed text-center flex flex-col items-center justify-center"
                     >
-                      {slot.label}
-                      <span className="block text-[10px] text-slate-400 font-normal">Current</span>
+                      <span className="font-semibold">{slot.label}</span>
+                      <span className="text-[10px] text-muted-foreground/70 font-normal">Current</span>
                     </button>
                   );
                 }
@@ -724,26 +811,26 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
                 if (!slot.isSelectable) {
                   return (
                     <button
-                      key={slot.startTimeMinutes}
+                      key={slot.isoString}
                       disabled
                       type="button"
-                      className="py-2.5 px-3 text-xs font-medium rounded-xl border border-slate-200/50 bg-slate-50/50 text-slate-300 cursor-not-allowed text-center"
+                      className="h-11 px-3 text-xs font-medium rounded-xl border border-border/30 bg-muted/20 text-muted-foreground/40 cursor-not-allowed text-center flex flex-col items-center justify-center"
                     >
-                      {slot.label}
-                      <span className="block text-[10px] text-slate-300 font-normal">Unavailable</span>
+                      <span className="font-semibold">{slot.label}</span>
+                      <span className="text-[10px] text-muted-foreground/40 font-normal">Unavailable</span>
                     </button>
                   );
                 }
 
                 return (
                   <button
-                    key={slot.startTimeMinutes}
+                    key={slot.isoString}
                     type="button"
                     onClick={() => setSelectedSlot(slot)}
-                    className={`py-3 px-3 text-xs font-medium rounded-xl border transition-all text-center ${
+                    className={`h-11 px-3 text-xs font-medium rounded-xl border transition-all text-center flex items-center justify-center cursor-pointer ${
                       isSelected
-                        ? "bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-200"
-                        : "bg-white text-slate-700 border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/30"
+                        ? "bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20 font-semibold"
+                        : "bg-card text-foreground border-border/80 hover:border-primary/60 hover:bg-primary/5 active:scale-[0.98]"
                     }`}
                   >
                     {slot.label}
@@ -756,21 +843,29 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
 
         {/* Confirmation Footer Bar */}
         {selectedSlot && (
-          <div className="p-4 bg-purple-50/80 border border-purple-100 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs text-purple-950 font-medium">
-              <Check className="w-4 h-4 text-purple-600 shrink-0" />
-              <span>
-                New appointment:{" "}
-                <span className="font-bold">
-                  {formatCompactDate(selectedSlot.isoString, timezone)} · {selectedSlot.label} – {selectedSlot.endLabel}
+          <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in-0 duration-200">
+            <div className="flex flex-col gap-1 text-xs text-foreground font-medium">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-primary shrink-0" />
+                <span>
+                  New time:{" "}
+                  <span className="font-bold">
+                    {formatCompactDate(selectedSlot.isoString, displayTimezone)} · {selectedSlot.label} – {selectedSlot.endLabel}
+                  </span>
+                  <span className="text-primary font-semibold ml-1">({displayTimezone})</span>
                 </span>
-              </span>
+              </div>
+              {displayTimezone !== serviceTimezone && (
+                <p className="text-[11px] text-muted-foreground ml-6">
+                  Provider operates in {serviceTimezone}: {formatSlotTimeInTimezone(selectedSlot.utcDate, serviceTimezone)} – {formatSlotTimeInTimezone(new Date(selectedSlot.utcDate.getTime() + duration * 60000), serviceTimezone)}
+                </p>
+              )}
             </div>
             <Button
               type="button"
               disabled={isRescheduling}
               onClick={handleConfirmReschedule}
-              className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium shadow-xs"
+              className="w-full sm:w-auto h-9 px-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium shadow-2xs cursor-pointer"
             >
               {isRescheduling ? (
                 <>
@@ -786,4 +881,4 @@ function RescheduleInlineView({ token, bookingData, onBack }) {
       </div>
     </div>
   );
-}   
+}

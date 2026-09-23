@@ -1013,13 +1013,7 @@ export const publicRescheduleBookingService = async ({
         "booking.rescheduled"
     );
 
-    return {
-        bookingId: updatedBooking._id,
-        startTime: updatedBooking.startTime,
-        endTime: updatedBooking.endTime,
-        timezone: updatedBooking.timezone,
-        meeting: updatedBooking.meeting,
-    };
+    return await getPublicBookingService({ rawToken });
 };
 
 
@@ -1105,12 +1099,7 @@ export const publicCancelBookingService = async ({
         "booking.cancelled"
     );
 
-    return {
-        bookingId: cancelledBooking._id,
-        status: cancelledBooking.status,
-        cancellationReason: cancelledBooking.cancellationReason,
-        cancelledAt: cancelledBooking.cancelledAt,
-    };
+    return await getPublicBookingService({ rawToken });
 };
 
 

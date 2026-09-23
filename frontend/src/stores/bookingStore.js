@@ -55,8 +55,17 @@ export const useBookingStore = create((set) => ({
                 { startTime }
             );
             const bookingData = response.data.data;
-            set({ booking: bookingData });
-            return bookingData;
+            if (bookingData && bookingData.service && bookingData.booker) {
+                set({ booking: bookingData });
+                return bookingData;
+            }
+            // If backend returned compact object, refetch full details
+            const fullResponse = await axiosInstance.get(
+                `/bookings/manage?token=${encodeURIComponent(token)}`
+            );
+            const fullData = fullResponse.data.data;
+            set({ booking: fullData });
+            return fullData;
         } catch (error) {
             const message =
                 error?.response?.data?.message || "Unable to reschedule booking.";
@@ -75,8 +84,17 @@ export const useBookingStore = create((set) => ({
                 { cancellationReason }
             );
             const bookingData = response.data.data;
-            set({ booking: bookingData });
-            return bookingData;
+            if (bookingData && bookingData.service && bookingData.booker) {
+                set({ booking: bookingData });
+                return bookingData;
+            }
+            // If backend returned compact object, refetch full details
+            const fullResponse = await axiosInstance.get(
+                `/bookings/manage?token=${encodeURIComponent(token)}`
+            );
+            const fullData = fullResponse.data.data;
+            set({ booking: fullData });
+            return fullData;
         } catch (error) {
             const message =
                 error?.response?.data?.message || "Unable to cancel booking.";

@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const CustomCalendar = ({ selected, onSelect, isDayDisabled }) => {
     const [viewDate, setViewDate] = useState(
-        () => new Date(selected.getFullYear(), selected.getMonth(), 1)
+        () => new Date((selected || new Date()).getFullYear(), (selected || new Date()).getMonth(), 1)
     );
 
     const weeks = useMemo(() => {
@@ -33,16 +33,16 @@ const CustomCalendar = ({ selected, onSelect, isDayDisabled }) => {
                     type="button"
                     onClick={() => setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
                     aria-label="Previous month"
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
                 >
                     <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm font-bold text-slate-900 tracking-tight">{monthLabel}</span>
+                <span className="text-sm font-bold text-foreground tracking-tight">{monthLabel}</span>
                 <button
                     type="button"
                     onClick={() => setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
                     aria-label="Next month"
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
                 >
                     <ChevronRight className="w-4 h-4" />
                 </button>
@@ -52,7 +52,7 @@ const CustomCalendar = ({ selected, onSelect, isDayDisabled }) => {
                 {WEEKDAY_LABELS.map((label) => (
                     <div
                         key={label}
-                        className="h-8 flex items-center justify-center text-[11px] font-bold uppercase tracking-wider text-slate-400"
+                        className="h-8 flex items-center justify-center text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
                     >
                         {label}
                     </div>
@@ -65,7 +65,7 @@ const CustomCalendar = ({ selected, onSelect, isDayDisabled }) => {
                         {week.map((date, di) => {
                             if (!date) return <div key={di} className="h-10" />;
 
-                            const disabled = isDayDisabled(date);
+                            const disabled = isDayDisabled ? isDayDisabled(date) : false;
                             const isSelected = selected && date.toDateString() === selected.toDateString();
 
                             return (
@@ -74,12 +74,13 @@ const CustomCalendar = ({ selected, onSelect, isDayDisabled }) => {
                                     type="button"
                                     disabled={disabled}
                                     onClick={() => !disabled && onSelect(date)}
-                                    className={`relative h-10 rounded-xl text-sm font-semibold transition-all flex items-center justify-center ${isSelected
-                                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25 ring-2 ring-indigo-600/20 cursor-pointer"
+                                    className={`relative h-10 rounded-xl text-sm font-semibold transition-all flex items-center justify-center ${
+                                        isSelected
+                                            ? "bg-primary text-primary-foreground shadow-xs ring-2 ring-primary/20 cursor-pointer"
                                             : disabled
-                                                ? "text-slate-300 cursor-not-allowed"
-                                                : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 active:scale-95 cursor-pointer"
-                                        }`}
+                                                ? "text-muted-foreground/30 cursor-not-allowed"
+                                                : "text-foreground hover:bg-accent hover:text-accent-foreground active:scale-95 cursor-pointer"
+                                    }`}
                                 >
                                     {date.getDate()}
                                 </button>

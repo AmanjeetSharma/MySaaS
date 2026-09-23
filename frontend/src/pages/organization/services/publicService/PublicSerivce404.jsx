@@ -1,5 +1,4 @@
-// src/components/PublicService404.jsx
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home, Compass } from "lucide-react";
