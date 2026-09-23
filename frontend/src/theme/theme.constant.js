@@ -7,10 +7,12 @@ export const THEME_IDS = {
     MIDNIGHT_VIOLET: "midnight-violet",
     FOREST_WOOD: "forest-wood",
     VOLCANIC: "volcanic",
-    COFFEE: "coffee",
+    SUPERNOVA: "supernova",
     SAKURA: "sakura",
     SKYLINE_AFTERDARK: "skyline-afterdark",
-    BUMBLEBEE: "bumblebee"
+    BUMBLEBEE: "bumblebee",
+    CYBER_SUNSET: "cyber-sunset",
+    AURORA_BOREALIS: "aurora-borealis"
 };
 
 export const THEME_MODES = {

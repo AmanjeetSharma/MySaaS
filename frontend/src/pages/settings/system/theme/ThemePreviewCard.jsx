@@ -29,6 +29,9 @@ const ThemePreviewCard = memo(({
         '--p-subtle': colors['--subtle-foreground'] || '#fff',
         '--p-primary': colors['--primary'] || '#3b82f6',
         '--p-primary-fg': colors['--primary-foreground'] || '#fff',
+        '--p-secondary': colors['--secondary'] || 'rgba(255,255,255,0.08)',
+        '--p-accent': colors['--accent'] || colors['--primary'] || '#3b82f6',
+        '--p-accent-fg': colors['--accent-foreground'] || '#fff',
         '--p-destr': colors['--destructive'] || '#ef4444',
         '--p-warn': colors['--warning'] || '#f59e0b',
         '--p-success': colors['--success'] || '#10b981',
@@ -72,7 +75,10 @@ const ThemePreviewCard = memo(({
 
                     <div className="h-1.5 w-10 rounded-full opacity-40 bg-[var(--p-fg)]" />
 
-                    <div className="w-2 h-2 rounded-full bg-[var(--p-primary)]" />
+                    <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-accent)] opacity-90" />
+                        <div className="w-2 h-2 rounded-full bg-[var(--p-primary)]" />
+                    </div>
                 </div>
 
                 {/* Mini App Body: Sidebar + Main Canvas */}
@@ -80,7 +86,7 @@ const ThemePreviewCard = memo(({
                     {/* Mini Sidebar */}
                     <div className="w-5 rounded flex flex-col gap-1 p-1 bg-[var(--p-surface)]">
                         <div className="h-1.5 w-full rounded-xs bg-[var(--p-primary)]" />
-                        <div className="h-1.5 w-3/4 rounded-xs opacity-25 bg-[var(--p-subtle)]" />
+                        <div className="h-1.5 w-3/4 rounded-xs bg-[var(--p-accent)] opacity-75" />
                         <div className="h-1.5 w-2/3 rounded-xs opacity-25 bg-[var(--p-subtle)]" />
                     </div>
 
@@ -91,9 +97,12 @@ const ThemePreviewCard = memo(({
                             <div className="h-1 w-16 rounded-xs opacity-30 bg-[var(--p-muted)]" />
                         </div>
 
-                        {/* Micro Action Button */}
+                        {/* Micro Action Button & Accent Tag */}
                         <div className="flex items-center justify-between pt-1">
-                            <div className="h-1 w-6 rounded-xs opacity-30 bg-[var(--p-subtle)]" />
+                            <div className="flex items-center gap-1">
+                                <div className="h-1.5 w-3.5 rounded-xs bg-[var(--p-accent)] opacity-80" />
+                                <div className="h-1 w-4 rounded-xs opacity-30 bg-[var(--p-subtle)]" />
+                            </div>
                             <div className="h-2.5 px-1.5 rounded-xs flex items-center justify-center text-[7px] font-bold shadow-2xs bg-[var(--p-primary)] text-[var(--p-primary-fg)]">
                                 Active
                             </div>
@@ -106,6 +115,18 @@ const ThemePreviewCard = memo(({
             <div className="flex items-center justify-between pt-3">
                 <div className="min-w-0 pr-2">
                     <div className="flex items-center gap-1.5">
+                        {/* Dual-tone palette dot preview */}
+                        <div className="flex items-center -space-x-1 shrink-0">
+                            <span
+                                className="h-2.5 w-2.5 rounded-full ring-1 ring-surface-elevated z-10 shadow-2xs"
+                                style={{ backgroundColor: colors['--primary'] || '#3b82f6' }}
+                            />
+                            <span
+                                className="h-2.5 w-2.5 rounded-full ring-1 ring-surface-elevated shadow-2xs"
+                                style={{ backgroundColor: colors['--accent'] || colors['--primary'] || '#3b82f6' }}
+                            />
+                        </div>
+
                         <p className="text-sm font-semibold truncate text-foreground">
                             {label}
                         </p>

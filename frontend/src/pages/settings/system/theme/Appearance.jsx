@@ -25,7 +25,6 @@ import {
     Moon,
     Laptop,
     Crown,
-    Check,
     Palette,
     Loader2
 } from 'lucide-react';
@@ -299,10 +298,16 @@ const Appearance = () => {
                     <div className="flex items-center justify-between py-3 px-4">
                         <span className="text-muted-foreground">Active Theme Preset</span>
                         <span className="font-medium text-foreground flex items-center gap-2">
-                            <span
-                                className="h-2.5 w-2.5 rounded-full ring-1 ring-border/50"
-                                style={{ backgroundColor: activeProfileColors['--primary'] || '#3b82f6' }}
-                            />
+                            <div className="flex items-center -space-x-1 shrink-0">
+                                <span
+                                    className="h-2.5 w-2.5 rounded-full ring-1 ring-surface-elevated z-10 shadow-2xs"
+                                    style={{ backgroundColor: activeProfileColors['--primary'] || '#3b82f6' }}
+                                />
+                                <span
+                                    className="h-2.5 w-2.5 rounded-full ring-1 ring-surface-elevated shadow-2xs"
+                                    style={{ backgroundColor: activeProfileColors['--accent'] || activeProfileColors['--primary'] || '#3b82f6' }}
+                                />
+                            </div>
                             {themeProfiles[theme.name]?.name || 'Default'}
                         </span>
                     </div>
