@@ -239,7 +239,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8 bg-background text-foreground">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 bg-background text-foreground">
       {/* Page Title Header */}
       <div className="space-y-1">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -336,7 +336,7 @@ const Profile = () => {
 
         <Separator className="bg-border-subtle" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl pt-1">
           {/* Full Name */}
           <div className="space-y-1.5">
             <Label htmlFor="fullName" className="text-xs font-medium text-foreground">

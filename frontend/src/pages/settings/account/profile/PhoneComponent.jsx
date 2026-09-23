@@ -271,7 +271,7 @@ const PhoneComponent = () => {
 
                 {/* Add / Change Phone Input */}
                 {!isVerified && (
-                    <div className="space-y-2 max-w-md">
+                    <div className="space-y-2 max-w-lg">
                         <Label htmlFor="phone" className="text-xs font-medium text-foreground">
                             {pendingPhone ? 'Update Phone Number' : 'Enter Phone Number (India)'}
                         </Label>
@@ -324,7 +324,7 @@ const PhoneComponent = () => {
 
                 {/* OTP Verification Box */}
                 {showOtpSection && !isVerified && (
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 max-w-md">
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 max-w-lg">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <KeyRound className="h-4 w-4 text-primary" />
