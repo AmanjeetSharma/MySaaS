@@ -231,8 +231,7 @@ export const buildServiceSnapshot = (service) => ({
 
 
 export const shouldCreateGoogleCalendarEvent = (organization) => {
-    const google =
-        organization.integrations?.google;
+    const google = organization.integrations?.google;
 
     return (
         google?.isConnected === true &&
