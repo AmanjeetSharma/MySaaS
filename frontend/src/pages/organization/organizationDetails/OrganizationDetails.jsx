@@ -11,9 +11,14 @@ import {
     Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useOrganizationStore, useUserStore } from '@/stores';
+import { useOrganizationStore, useUserStore, useMemberStore } from '@/stores';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import {
+    Avatar,
+    AvatarImage,
+    AvatarFallback,
+} from '@/components/ui/avatar';
 import { INTEGRATION_LIST } from '@/constants/integrations.constant';
 
 const getEntityId = (entity) => {
@@ -26,6 +31,17 @@ const hasSameId = (left, right) => {
     const leftId = getEntityId(left);
     const rightId = getEntityId(right);
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
+};
+
+const getInitials = (name = '') => {
+    if (!name) return 'U';
+    return name
+        .split(' ')
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
 };
 
 const SectionHeader = memo(({ icon: Icon, title, description, action }) => (
@@ -366,6 +382,14 @@ export default function OrganizationDetails() {
         }))
     );
 
+    // Fetch members for avatar stack
+    const { members: storeMembers = [], fetchMembers } = useMemberStore(
+        useShallow((state) => ({
+            members: state.members,
+            fetchMembers: state.fetchMembers,
+        }))
+    );
+
     const currentUserId = useUserStore((state) => state.userProfile?._id);
 
     const [organization, setOrganization] = useState(null);
@@ -406,6 +430,12 @@ export default function OrganizationDetails() {
         };
         fetchOrganization();
     }, [orgId, currentUserId, getOrganization, navigate]);
+
+    useEffect(() => {
+        if (orgId) {
+            fetchMembers(orgId);
+        }
+    }, [orgId, fetchMembers]);
 
     // Handle cursor focus when switching into edit mode
     useEffect(() => {
@@ -512,6 +542,24 @@ export default function OrganizationDetails() {
     const remainingSlots = useMemo(() => {
         return Math.max(maxMembers - memberCount, 0);
     }, [maxMembers, memberCount]);
+
+    // Resolved members list for avatar stack
+    const membersList = useMemo(() => {
+        if (Array.isArray(storeMembers) && storeMembers.length > 0) return storeMembers;
+        if (Array.isArray(organization?.members) && organization.members.length > 0) return organization.members;
+        if (organization?.owner) {
+            return [{
+                name: typeof organization.owner === 'object' ? (organization.owner.name || organization.owner.email) : 'Owner',
+                avatar: typeof organization.owner === 'object' ? organization.owner.avatar : null,
+                _id: getEntityId(organization.owner)
+            }];
+        }
+        return [];
+    }, [storeMembers, organization?.members, organization?.owner]);
+
+    const maxVisibleAvatars = 4;
+    const visibleMembers = useMemo(() => membersList.slice(0, maxVisibleAvatars), [membersList]);
+    const overflowMembersCount = membersList.length > maxVisibleAvatars ? membersList.length - (maxVisibleAvatars - 1) : 0;
 
     // Memoize statistics list so StatItem props remain referentially stable
     const stats = useMemo(() => {
@@ -896,15 +944,49 @@ export default function OrganizationDetails() {
                                     onClick={() => navigate(`/organizations/${orgId}/members`)}
                                     className="w-full flex items-center justify-between p-3 rounded-lg border border-border-subtle hover:bg-hover hover:border-border transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-left"
                                 >
-                                    <div className="text-left">
-                                        <span className="text-xs font-semibold text-foreground group-hover:text-hover-foreground block">
+                                    <div className="text-left min-w-0 pr-2">
+                                        <span className="text-xs font-semibold text-foreground group-hover:text-hover-foreground block truncate">
                                             View all members
                                         </span>
-                                        <span className="text-[11px] text-muted-foreground">
+                                        <span className="text-[11px] text-muted-foreground truncate block">
                                             Member permissions & invitations
                                         </span>
                                     </div>
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-transform group-hover:translate-x-0.5" />
+
+                                    <div className="flex items-center gap-2.5 shrink-0">
+                                        {membersList.length > 0 && (
+                                            <div className="flex items-center -space-x-2 group-hover:space-x-0.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                                                {visibleMembers.map((member, index) => {
+                                                    const isLast = index === maxVisibleAvatars - 1;
+                                                    const hasOverlay = isLast && overflowMembersCount > 0;
+                                                    const memberName = member.name || member.user?.name || member.email || 'Member';
+                                                    const memberAvatar = member.avatar || member.user?.avatar;
+                                                    const memberId = member._id || member.id || member.userId || index;
+
+                                                    return (
+                                                        <div
+                                                            key={memberId}
+                                                            className="relative shrink-0 transition-transform duration-200 group-hover:scale-105"
+                                                            style={{ zIndex: index + 1 }}
+                                                        >
+                                                            <Avatar className="h-6 w-6 border-2 border-background shadow-xs">
+                                                                <AvatarImage src={memberAvatar} alt={memberName} />
+                                                                <AvatarFallback className="text-[9px] font-bold bg-muted text-foreground">
+                                                                    {getInitials(memberName)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            {hasOverlay && (
+                                                                <div className="absolute inset-0 rounded-full border border-background bg-foreground/90 text-background text-[9px] font-bold flex items-center justify-center shadow-xs pointer-events-none">
+                                                                    +{overflowMembersCount}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-transform group-hover:translate-x-0.5 shrink-0" />
+                                    </div>
                                 </button>
 
                                 {remainingSlots > 0 ? (
