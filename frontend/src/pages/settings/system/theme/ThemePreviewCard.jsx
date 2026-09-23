@@ -56,8 +56,7 @@ const ThemePreviewCard = memo(({
                 isActive
                     ? "border-primary bg-surface-elevated ring-1 ring-primary/25 shadow-xs"
                     : "border-border-subtle bg-surface hover:border-border hover:bg-hover/80 hover:-translate-y-0.5 cursor-pointer",
-                isLocked && "hover:border-warning/40",
-                isThemeUpdating && "cursor-wait"
+                isLocked && "hover:border-warning/40"
             )}
         >
             {/* Miniature UI Workspace Canvas */}
@@ -67,17 +66,17 @@ const ThemePreviewCard = memo(({
             >
                 {/* Mini Window Bar */}
                 <div className="flex items-center justify-between pb-1.5 border-b border-[var(--p-border-line)]">
-                    <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-destr)]" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-warn)]" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-success)]" />
+                    {/* Left: App Brand & Route Placeholder */}
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-10 h-1.5 rounded-full bg-[var(--p-subtle)] opacity-20" />
                     </div>
 
-                    <div className="h-1.5 w-10 rounded-full opacity-40 bg-[var(--p-fg)]" />
-
-                    <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-accent)] opacity-90" />
-                        <div className="w-2 h-2 rounded-full bg-[var(--p-primary)]" />
+                    {/* Right: Palette Accent Indicators & User Avatar */}
+                    <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--p-accent)] opacity-90" />
+                            <div className="w-2 h-2 rounded-full bg-[var(--p-primary)]" />
+                        </div>
                     </div>
                 </div>
 
@@ -104,7 +103,7 @@ const ThemePreviewCard = memo(({
                                 <div className="h-1 w-4 rounded-xs opacity-30 bg-[var(--p-subtle)]" />
                             </div>
                             <div className="h-2.5 px-1.5 rounded-xs flex items-center justify-center text-[7px] font-bold shadow-2xs bg-[var(--p-primary)] text-[var(--p-primary-fg)]">
-                                Active
+                                Theme
                             </div>
                         </div>
                     </div>

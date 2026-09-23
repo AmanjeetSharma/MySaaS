@@ -46,7 +46,7 @@ const ThemeLoader = ({ mode = THEME_MODES.LIGHT }) => {
                 {/* Text */}
                 <div className="space-y-1.5">
                     <p className="text-sm font-bold">
-                        Applying appearance
+                        Applying Theme
                     </p>
 
                     <p

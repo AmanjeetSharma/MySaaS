@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-    Building2, ArrowLeft, ShieldCheck,
+    Building2, ArrowLeft,
     Users, Cpu, UserPlus,
     Settings2, ChevronRight, LayoutGrid,
     CreditCard, ExternalLink, X, Send,
     AlertTriangle, RefreshCw, CheckCircle2, AlertCircle,
-    FileText, Edit3
+    FileText, Edit3, Copy, Check,
+    Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrganizationStore, useUserStore } from '@/stores';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 import { INTEGRATION_LIST } from '@/constants/integrations.constant';
 
 const getEntityId = (entity) => {
@@ -25,109 +27,114 @@ const hasSameId = (left, right) => {
     return !!leftId && !!rightId && leftId.toString() === rightId.toString();
 };
 
-// Reusable UI Components
-const Card = ({ children, className = '', padding = 'md' }) => {
-    const paddingClasses = {
-        sm: 'p-3 md:p-4',
-        md: 'p-4 md:p-6',
-        lg: 'p-6 md:p-8'
-    };
-    return (
-        <div className={cn(
-            "bg-surface-elevated border border-border-subtle rounded-xl shadow-xs text-surface-elevated-foreground",
-            paddingClasses[padding],
-            className
-        )}>
-            {children}
-        </div>
-    );
-};
-
-const StatCard = ({ label, value, limit, icon: Icon, badge, action }) => {
-    const percentage = ((value || 0) / (limit || 1)) * 100;
-
-    return (
-        <Card padding="sm" className="hover:border-border transition-colors">
-            <div className="space-y-2 md:space-y-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 md:gap-2 text-subtle-foreground">
-                        <Icon className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
-                        <span className="text-[10px] md:text-xs font-medium uppercase tracking-wide">
-                            {label}
-                        </span>
-                    </div>
-                    {badge && (
-                        <span className="text-[10px] md:text-xs text-subtle-foreground">{badge}</span>
-                    )}
-                </div>
-                <div>
-                    <div className="flex items-baseline justify-between mb-1.5 md:mb-2">
-                        <div className="flex items-baseline gap-1 md:gap-1.5">
-                            <span className="text-xl md:text-2xl font-semibold text-foreground">
-                                {value?.toLocaleString() ?? 0}
-                            </span>
-                            <span className="text-xs md:text-sm text-subtle-foreground">/ {limit?.toLocaleString()}</span>
-                        </div>
-                        {action}
-                    </div>
-                    <div className="h-1 md:h-1.5 bg-surface-sunken rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-primary rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min(percentage, 100)}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
-        </Card>
-    );
-};
-
 const SectionHeader = ({ icon: Icon, title, description, action }) => (
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-4 pb-3">
         <div className="space-y-1">
             <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-subtle-foreground" />
-                <h2 className="font-heading text-sm font-semibold text-foreground">
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <h2 className="font-heading text-sm font-semibold tracking-tight text-foreground uppercase">
                     {title}
                 </h2>
             </div>
             {description && (
-                <p className="text-xs sm:text-sm text-subtle-foreground">{description}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
             )}
         </div>
         {action}
     </div>
 );
 
+// Flat Stat Metrology Item
+const StatItem = ({ label, value, limit, icon: Icon, badge, unit = '' }) => {
+    const percentage = Math.min(((value || 0) / (limit || 1)) * 100, 100);
+
+    return (
+        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {label}
+                    </span>
+                </div>
+                {badge && (
+                    <span className="text-[10px] font-medium text-muted-foreground/80 px-1.5 py-0.5 rounded bg-surface border border-border-subtle/60">
+                        {badge}
+                    </span>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
+                            {value?.toLocaleString() ?? 0}
+                        </span>
+                        {limit !== undefined && (
+                            <span className="text-xs text-muted-foreground font-normal">
+                                / {limit?.toLocaleString()} {unit}
+                            </span>
+                        )}
+                    </div>
+                    <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+                        {percentage.toFixed(0)}%
+                    </span>
+                </div>
+
+                <div className="h-1 bg-surface-sunken rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${percentage}%` }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Flat Integration Row
 const IntegrationRow = ({ name, description, icon: Icon, connected, path }) => (
     <Link
         to={path}
-        className="flex items-center justify-between p-3 md:p-4 border border-border-subtle rounded-lg hover:bg-hover hover:border-border transition-all group cursor-pointer"
+        className="flex items-center justify-between py-3.5 px-2 hover:bg-hover/50 -mx-2 rounded-lg transition-colors group cursor-pointer"
     >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5 min-w-0">
             <div className={cn(
-                "p-2 rounded-lg transition-colors",
+                "p-2 rounded-lg shrink-0 transition-colors",
                 connected
                     ? "bg-success/10 text-success border border-success/20"
-                    : "bg-surface text-subtle-foreground border border-border-subtle"
+                    : "bg-surface text-muted-foreground border border-border-subtle"
             )}>
                 <Icon className="h-4 w-4" />
             </div>
-            <div>
-                <p className="text-sm font-medium text-foreground group-hover:text-hover-foreground transition-colors">{name}</p>
-                <p className="text-xs text-subtle-foreground">
-                    {connected ? 'Connected' : description || 'Not configured'}
+            <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground group-hover:text-hover-foreground transition-colors truncate">
+                        {name}
+                    </p>
+                    {connected && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success uppercase tracking-wider">
+                            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                            Connected
+                        </span>
+                    )}
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                    {connected ? 'Active & synchronized' : description || 'Not configured'}
                 </p>
             </div>
         </div>
-        <ExternalLink className="h-4 w-4 text-subtle-foreground group-hover:text-hover-foreground transition-colors" />
+        <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 ml-3">
+            <span className="text-xs font-medium hidden sm:inline">Configure</span>
+            <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </div>
     </Link>
 );
 
 const DetailRow = ({ label, value, valueClassName }) => (
-    <div className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0">
-        <span className="text-sm text-subtle-foreground">{label}</span>
-        <span className={cn("text-sm font-medium text-foreground", valueClassName)}>
+    <div className="flex items-center justify-between py-2.5 border-b border-border-subtle/50 last:border-0">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className={cn("text-xs font-medium text-foreground", valueClassName)}>
             {value}
         </span>
     </div>
@@ -140,14 +147,14 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email) {
+        if (!email.trim()) {
             toast.error('Please enter an email address');
             return;
         }
 
         setIsSending(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        onInvite(email);
+        await new Promise(resolve => setTimeout(resolve, 800));
+        onInvite(email.trim());
         setEmail('');
         setIsSending(false);
         onClose();
@@ -156,21 +163,24 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-            <div className="bg-surface-elevated border border-border-strong rounded-2xl w-full max-w-md shadow-2xl text-surface-elevated-foreground animate-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between p-4 md:p-6 border-b border-border-subtle">
-                    <h3 className="font-heading text-lg font-semibold text-foreground">Invite Team Member</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs animate-in fade-in-0 duration-150">
+            <div className="bg-surface-elevated border border-border-strong rounded-xl w-full max-w-md shadow-2xl text-surface-elevated-foreground animate-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border-subtle">
+                    <div className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4 text-primary" />
+                        <h3 className="font-heading text-base font-semibold text-foreground">Invite Team Member</h3>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="text-subtle-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-md hover:bg-hover"
+                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-md hover:bg-hover"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    <div className="p-4 md:p-6 space-y-4">
+                    <div className="p-4 sm:p-5 space-y-3">
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-2">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                                 Email Address
                             </label>
                             <input
@@ -178,33 +188,33 @@ const InviteMemberModal = ({ isOpen, onClose, onInvite }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="colleague@company.com"
-                                className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm"
+                                className="w-full h-9 px-3 bg-surface border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground/60 text-sm"
                                 autoFocus
                                 required
                             />
-                            <p className="mt-2 text-xs text-subtle-foreground">
-                                They'll receive an email with instructions to join your organization.
+                            <p className="mt-1.5 text-xs text-muted-foreground">
+                                They will receive an invitation to join this organization workspace.
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-3 p-4 md:p-6 border-t border-border-subtle">
+                    <div className="flex gap-2.5 p-4 sm:p-5 border-t border-border-subtle bg-surface/40">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
+                            className="flex-1 h-8 px-3 border border-border rounded-lg text-xs font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSending}
-                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                            className="flex-1 h-8 px-3 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                         >
                             {isSending ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
                             ) : (
                                 <>
-                                    <Send className="h-4 w-4" />
+                                    <Send className="h-3.5 w-3.5" />
                                     Send Invite
                                 </>
                             )}
@@ -235,10 +245,11 @@ export default function OrganizationDetails() {
     const [orgName, setOrgName] = useState('');
     const [orgDescription, setOrgDescription] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-    const [focusTarget, setFocusTarget] = useState('name'); // 'name' | 'description'
+    const [focusTarget, setFocusTarget] = useState('name');
     const [isSyncingSlug, setIsSyncingSlug] = useState(false);
     const [showSyncModal, setShowSyncModal] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [copiedSlug, setCopiedSlug] = useState(false);
 
     const nameInputRef = useRef(null);
     const descriptionInputRef = useRef(null);
@@ -282,8 +293,8 @@ export default function OrganizationDetails() {
     const handleUpdate = async () => {
         try {
             const updatedOrganization = await updateOrganization(orgId, {
-                orgName: orgName,
-                description: orgDescription
+                orgName: orgName.trim(),
+                description: orgDescription.trim()
             });
             const unpackedData = updatedOrganization?.data || updatedOrganization;
             setOrganization((currentOrganization) => ({
@@ -319,6 +330,15 @@ export default function OrganizationDetails() {
         toast.success(`Invitation sent to ${email}`);
     };
 
+    const handleCopySlug = () => {
+        if (!organization?.slug) return;
+        const bookingUrl = `${window.location.origin}/book/${organization.slug}`;
+        navigator.clipboard.writeText(bookingUrl);
+        setCopiedSlug(true);
+        toast.success('Booking link copied to clipboard');
+        setTimeout(() => setCopiedSlug(false), 2000);
+    };
+
     const openEditMode = (target = 'name') => {
         setFocusTarget(target);
         setIsEditing(true);
@@ -326,16 +346,20 @@ export default function OrganizationDetails() {
 
     if (isLoading || !organization) {
         return (
-            <div className="fixed inset-0 flex items-center justify-center bg-background">
-                <p className="text-sm font-semibold uppercase tracking-widest text-subtle-foreground/60 animate-pulse">
-                    Synchronizing Workspace...
-                </p>
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground animate-pulse">
+                        Synchronizing Workspace...
+                    </p>
+                </div>
             </div>
         );
     }
 
     const memberCount = (organization.members?.length ?? organization.usage?.memberCount ?? 0) + 1;
     const maxMembers = organization.meta?.limits?.maxMembers || 0;
+    const remainingSlots = Math.max(maxMembers - memberCount, 0);
 
     const stats = [
         {
@@ -346,345 +370,392 @@ export default function OrganizationDetails() {
             badge: 'Resets daily'
         },
         {
-            label: 'Customers',
+            label: 'Customers Tracked',
             value: organization.usage?.customerCount,
             limit: organization.meta?.limits?.maxCustomers,
             icon: UserPlus,
             badge: `${((organization.usage?.customerCount || 0) / (organization.meta?.limits?.maxCustomers || 1) * 100).toFixed(0)}% of limit`
         },
         {
-            label: 'Team Members',
+            label: 'Team Capacity',
             value: memberCount,
             limit: maxMembers,
             icon: Users,
-            badge: `${memberCount} / ${maxMembers}`
+            badge: `${remainingSlots} seat${remainingSlots === 1 ? '' : 's'} available`
         }
     ];
 
-    const remainingSlots = maxMembers - memberCount;
-
     return (
-        <>
-            <div className="min-h-screen bg-background">
-                <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
-                    {/* Navigation Header */}
-                    <div className="mb-6">
-                        <button
-                            onClick={() => navigate('/organizations')}
-                            className="group flex items-center gap-2 text-sm text-subtle-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
-                        >
-                            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                            Back to organizations
-                        </button>
+        <div className="min-h-screen bg-background text-foreground pb-20">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl space-y-8 sm:space-y-10">
 
-                        {/* Organization Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-surface rounded-2xl flex items-center justify-center border border-border-subtle shrink-0">
-                                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-subtle-foreground" />
-                                </div>
-                                <div>
-                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h1 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground break-all">
-                                            {organization.name}
-                                        </h1>
-                                        <span className="px-2.5 py-0.5 bg-secondary text-[10px] sm:text-xs font-semibold text-secondary-foreground rounded-full border border-border-subtle">
-                                            {organization.subscription?.plan?.toUpperCase() || 'FREE'}
+                {/* Navigation Header */}
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/organizations')}
+                        className="group inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+                        <span>Back to organizations</span>
+                    </button>
+
+                    {/* Organization Hero Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex items-center gap-3.5 sm:gap-4">
+                            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-surface border border-border flex items-center justify-center text-foreground shrink-0">
+                                <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-subtle-foreground" />
+                            </div>
+
+                            <div className="space-y-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h1 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate max-w-md">
+                                        {organization.name}
+                                    </h1>
+                                    <span className="px-2 py-0.5 bg-secondary text-[10px] sm:text-xs font-semibold text-secondary-foreground rounded-full border border-border-subtle uppercase tracking-wider">
+                                        {organization.subscription?.plan?.toUpperCase() || 'FREE'}
+                                    </span>
+                                    {isOwner && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-warning bg-warning/10 border border-warning/20 rounded-full">
+                                            <Crown className="h-3 w-3" />
+                                            Owner
                                         </span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-subtle-foreground">
-                                        <span>Created {new Date(organization.createdAt).toLocaleDateString()}</span>
-                                        {isOwner && (
-                                            <span className="flex items-center gap-1 font-medium text-warning">
-                                                <ShieldCheck className="h-3.5 w-3.5 text-warning" />
-                                                Owner
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {isOwner && !isEditing && (
-                                <button
-                                    onClick={() => openEditMode('name')}
-                                    className="self-start sm:self-auto px-3.5 py-2 text-sm font-semibold text-foreground border border-border rounded-xl hover:bg-hover hover:text-hover-foreground hover:border-border-strong transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
-                                >
-                                    <Edit3 className="h-3.5 w-3.5" />
-                                    Edit details
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Stale Slug Alert Banner */}
-                    {organization.isSlugStale && (
-                        <div className="mb-6 p-4 rounded-2xl border border-warning/30 bg-warning/10 text-warning flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                                <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
-                                <div>
-                                    <h4 className="text-sm font-bold">Public URL Out of Sync</h4>
-                                    <p className="text-xs sm:text-sm opacity-90 mt-0.5">
-                                        Your organization name was updated, but your public URL (<code className="font-mono font-bold bg-warning/15 px-1 rounded">{organization.slug}</code>) is still out of sync.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="self-end sm:self-auto shrink-0">
-                                <button
-                                    onClick={() => setShowSyncModal(true)}
-                                    disabled={isSyncingSlug || isUpdating}
-                                    className="px-3.5 py-1.5 bg-warning hover:opacity-90 text-background rounded-xl text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
-                                >
-                                    <RefreshCw className="h-3.5 w-3.5" />
-                                    Sync URL Slug
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                        {stats.map((stat) => (
-                            <StatCard key={stat.label} {...stat} />
-                        ))}
-                    </div>
-
-                    {/* Two Column Layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                        {/* Left Column */}
-                        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-                            <Card>
-                                <SectionHeader
-                                    icon={Settings2}
-                                    title="Organization Settings"
-                                    description="Manage your organization's basic information and public profile"
-                                />
-                                <div className="mt-4 sm:mt-6">
-                                    {isEditing ? (
-                                        <div className="space-y-5">
-                                            <div>
-                                                <label className="block text-sm font-medium text-foreground mb-2">
-                                                    Organization Name
-                                                </label>
-                                                <input
-                                                    ref={nameInputRef}
-                                                    type="text"
-                                                    value={orgName}
-                                                    onChange={(e) => setOrgName(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm"
-                                                    placeholder="Organization name"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <label className="block text-sm font-medium text-foreground">
-                                                        Description
-                                                    </label>
-                                                    <span className={cn(
-                                                        "text-xs font-mono",
-                                                        orgDescription.length > DESCRIPTION_LIMIT ? "text-destructive font-medium" : "text-subtle-foreground"
-                                                    )}>
-                                                        {orgDescription.length}/{DESCRIPTION_LIMIT}
-                                                    </span>
-                                                </div>
-                                                <textarea
-                                                    ref={descriptionInputRef}
-                                                    rows={4}
-                                                    maxLength={DESCRIPTION_LIMIT}
-                                                    value={orgDescription}
-                                                    onChange={(e) => setOrgDescription(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-subtle-foreground/60 text-sm resize-y"
-                                                    placeholder="Briefly describe your organization's mission or service..."
-                                                />
-                                            </div>
-
-                                            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setIsEditing(false);
-                                                        setOrgName(organization.name);
-                                                        setOrgDescription(organization.description || '');
-                                                    }}
-                                                    className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    onClick={handleUpdate}
-                                                    disabled={isUpdating || orgDescription.length > DESCRIPTION_LIMIT}
-                                                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-                                                >
-                                                    {isUpdating ? 'Saving...' : 'Save changes'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-6">
-                                            {/* Top Key Data Grid */}
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-border-subtle">
-                                                <div className="space-y-1">
-                                                    <span className="text-xs text-subtle-foreground uppercase font-semibold tracking-wider">
-                                                        Organization Name
-                                                    </span>
-                                                    <p className="text-sm font-medium text-foreground break-all">
-                                                        {organization.name}
-                                                    </p>
-                                                </div>
-
-                                                <div className="space-y-1">
-                                                    <span className="text-xs text-subtle-foreground font-semibold tracking-wider uppercase">
-                                                        Public URL: Path
-                                                    </span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-mono bg-surface px-2.5 py-0.5 rounded-lg text-foreground border border-border-subtle">
-                                                            /{organization.slug}
-                                                        </span>
-                                                        {organization.isSlugStale ? (
-                                                            <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20 uppercase tracking-wide">
-                                                                Sync needed
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-xs text-success flex items-center gap-1 font-medium">
-                                                                <CheckCircle2 className="h-3.5 w-3.5" /> Synced
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Redesigned Description Card */}
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-subtle-foreground uppercase font-semibold tracking-wider flex items-center gap-1.5">
-                                                        <FileText className="h-3.5 w-3.5" /> Description
-                                                    </span>
-                                                    {organization?.description && (
-                                                        <span className="text-[11px] font-mono text-subtle-foreground/70">
-                                                            {organization.description.length}/500 chars
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div className="p-4 bg-surface-sunken border border-border-subtle rounded-xl">
-                                                    {organization?.description ? (
-                                                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-line break-words">
-                                                            {organization.description}
-                                                        </p>
-                                                    ) : (
-                                                        <div className="py-2 text-center sm:text-left">
-                                                            <p className="text-sm text-subtle-foreground italic">
-                                                                No description provided yet.
-                                                            </p>
-                                                            {isOwner && (
-                                                                <button
-                                                                    onClick={() => openEditMode('description')}
-                                                                    className="mt-2 text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
-                                                                >
-                                                                    + Add description
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {!isOwner && (
-                                                <div className="pt-1 text-xs text-subtle-foreground flex items-center gap-1.5">
-                                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                                                    Contact your organization owner to edit these details.
-                                                </div>
-                                            )}
-                                        </div>
                                     )}
                                 </div>
-                            </Card>
 
-                            {/* Integrations Section */}
-                            <Card>
-                                <SectionHeader
-                                    icon={LayoutGrid}
-                                    title="Integrations"
-                                    description="Connect external services to your organization"
-                                />
-                                <div className="mt-4 sm:mt-6 space-y-2">
-                                    {INTEGRATION_LIST.map((item) => {
-                                        const isConnected = organization.integrations?.[item.integrationKey]?.isConnected;
-                                        const Icon = item.icon;
-
-                                        return (
-                                            <IntegrationRow
-                                                key={item.integrationKey}
-                                                name={item.name}
-                                                description={item.description}
-                                                icon={Icon}
-                                                connected={isConnected}
-                                                path={item.path}
-                                            />
-                                        );
-                                    })}
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                    <span>Created {new Date(organization.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-border-subtle">•</span>
+                                    <button
+                                        onClick={handleCopySlug}
+                                        title="Click to copy public booking link"
+                                        className="inline-flex items-center gap-1.5 font-mono text-foreground/80 hover:text-foreground hover:underline transition-colors cursor-pointer group"
+                                    >
+                                        <span>/{organization.slug}</span>
+                                        {copiedSlug ? (
+                                            <Check className="h-3 w-3 text-success shrink-0" />
+                                        ) : (
+                                            <Copy className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                        )}
+                                    </button>
                                 </div>
-                            </Card>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stale Slug Alert Banner (Flat) */}
+                {organization.isSlugStale && (
+                    <div className="p-3.5 sm:p-4 rounded-xl border border-warning/30 bg-warning/10 text-warning flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-2.5">
+                            <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                            <div>
+                                <h4 className="text-xs font-bold uppercase tracking-wider">Public URL Out of Sync</h4>
+                                <p className="text-xs opacity-90 mt-0.5">
+                                    Your organization name was updated, but your public URL (<code className="font-mono font-bold bg-warning/15 px-1 rounded">{organization.slug}</code>) is still out of sync.
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Right Column */}
-                        <div className="space-y-6 sm:space-y-8">
-                            <Card>
-                                <SectionHeader
-                                    icon={CreditCard}
-                                    title="Subscription"
-                                    description="Your current plan and billing"
-                                />
-                                <div className="mt-4 sm:mt-6 space-y-3">
-                                    <DetailRow
-                                        label="Current Plan"
-                                        value={organization.subscription?.plan?.toUpperCase() || 'FREE'}
-                                        valueClassName="capitalize font-semibold text-primary"
-                                    />
-                                    <DetailRow
-                                        label="Renewal Date"
-                                        value={organization.subscription?.endDate
-                                            ? new Date(organization.subscription.endDate).toLocaleDateString()
-                                            : 'No expiration'}
-                                    />
-                                    <button className="w-full mt-4 px-4 py-2.5 bg-accent text-accent-foreground rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-md shadow-accent/20">
-                                        Manage subscription
-                                    </button>
-                                </div>
-                            </Card>
+                        <button
+                            onClick={() => setShowSyncModal(true)}
+                            disabled={isSyncingSlug || isUpdating}
+                            className="self-end sm:self-auto h-7 px-3 bg-warning hover:opacity-90 text-background rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                        >
+                            <RefreshCw className="h-3 w-3" />
+                            <span>Sync URL Slug</span>
+                        </button>
+                    </div>
+                )}
 
-                            <Card>
-                                <SectionHeader
-                                    icon={Users}
-                                    title="Team Members"
-                                    description={`${memberCount} of ${maxMembers} members`}
-                                />
-                                <div className="mt-4">
-                                    <button
-                                        onClick={() => navigate(`/organizations/${orgId}/members`)}
-                                        className="w-full flex items-center justify-between p-3 border border-border-subtle rounded-xl hover:bg-hover hover:border-border transition-all group cursor-pointer"
-                                    >
-                                        <span className="text-sm font-medium text-foreground group-hover:text-hover-foreground">View all members</span>
-                                        <ChevronRight className="h-4 w-4 text-subtle-foreground group-hover:text-hover-foreground transition-colors" />
-                                    </button>
+                {/* Flat Metrology Summary Strip (border-y divider based) */}
+                <div className="border-y border-border-subtle grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border-subtle -mx-4 sm:mx-0">
+                    {stats.map((stat) => (
+                        <StatItem key={stat.label} {...stat} />
+                    ))}
+                </div>
 
-                                    {remainingSlots > 0 ? (
+                {/* Flat 2-Column Content Layout with Vertical shadcn Separator */}
+                <div className="flex flex-col lg:flex-row items-stretch gap-8 lg:gap-10">
+
+                    {/* Left Column: Organization Details & Integrations */}
+                    <div className="flex-1 min-w-0 space-y-10 sm:space-y-12">
+
+                        {/* Flat Organization Settings Section */}
+                        <section className="space-y-5">
+                            <SectionHeader
+                                icon={Settings2}
+                                title="Organization Settings"
+                                description="Manage your organization's basic information and public profile"
+                                action={
+                                    isOwner && !isEditing && (
                                         <button
-                                            onClick={() => setIsInviteModalOpen(true)}
-                                            className="w-full mt-3 px-4 py-2.5 text-sm text-accent hover:text-accent-foreground hover:bg-accent font-semibold border border-dashed border-border-strong rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                            onClick={() => openEditMode('name')}
+                                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
                                         >
-                                            + Invite members
+                                            <Edit3 className="h-3.5 w-3.5" />
+                                            <span>Edit Details</span>
                                         </button>
-                                    ) : (
-                                        <div className="mt-4 p-3 bg-surface-sunken border border-border-subtle rounded-xl">
-                                            <p className="text-xs text-subtle-foreground text-center">
-                                                Member limit reached. Upgrade to add more members.
+                                    )
+                                }
+                            />
+
+                            {isEditing ? (
+                                <div className="space-y-4 pt-1">
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                                            Organization Name
+                                        </label>
+                                        <input
+                                            ref={nameInputRef}
+                                            type="text"
+                                            value={orgName}
+                                            onChange={(e) => setOrgName(e.target.value)}
+                                            className="w-full h-9 px-3 bg-surface border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground/60 text-sm"
+                                            placeholder="Organization name"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                Description
+                                            </label>
+                                            <span className={cn(
+                                                "text-[11px] font-mono",
+                                                orgDescription.length > DESCRIPTION_LIMIT ? "text-destructive font-medium" : "text-muted-foreground"
+                                            )}>
+                                                {orgDescription.length}/{DESCRIPTION_LIMIT}
+                                            </span>
+                                        </div>
+                                        <textarea
+                                            ref={descriptionInputRef}
+                                            rows={4}
+                                            maxLength={DESCRIPTION_LIMIT}
+                                            value={orgDescription}
+                                            onChange={(e) => setOrgDescription(e.target.value)}
+                                            className="w-full p-3 bg-surface border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring text-foreground placeholder:text-muted-foreground/60 text-sm resize-y"
+                                            placeholder="Briefly describe your organization's mission or service..."
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-2.5 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                setOrgName(organization.name);
+                                                setOrgDescription(organization.description || '');
+                                            }}
+                                            className="h-8 px-3 border border-border rounded-lg text-xs font-medium hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleUpdate}
+                                            disabled={isUpdating || !orgName.trim() || orgDescription.length > DESCRIPTION_LIMIT}
+                                            className="h-8 px-4 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                                        >
+                                            {isUpdating ? 'Saving...' : 'Save changes'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6 pt-1">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-border-subtle/50">
+                                        <div className="space-y-1">
+                                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                Organization Name
+                                            </span>
+                                            <p className="text-sm font-semibold text-foreground">
+                                                {organization.name}
                                             </p>
                                         </div>
+
+                                        <div className="space-y-1">
+                                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                Public URL: Path
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-mono bg-surface px-2.5 py-0.5 rounded text-foreground border border-border-subtle">
+                                                    /{organization.slug}
+                                                </span>
+                                                {organization.isSlugStale ? (
+                                                    <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20 uppercase tracking-wide">
+                                                        Sync needed
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-success inline-flex items-center gap-1 font-medium">
+                                                        <CheckCircle2 className="h-3 w-3" /> Synced
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                                <FileText className="h-3.5 w-3.5" /> Description
+                                            </span>
+                                            {organization?.description && (
+                                                <span className="text-[10px] font-mono text-muted-foreground/70">
+                                                    {organization.description.length}/500 chars
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {organization?.description ? (
+                                            <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                                                {organization.description}
+                                            </p>
+                                        ) : (
+                                            <div className="py-2">
+                                                <p className="text-xs text-muted-foreground italic">
+                                                    No description provided yet.
+                                                </p>
+                                                {isOwner && (
+                                                    <button
+                                                        onClick={() => openEditMode('description')}
+                                                        className="mt-1 text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                                                    >
+                                                        + Add description
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {!isOwner && (
+                                        <div className="pt-2 text-xs text-muted-foreground flex items-center gap-1.5">
+                                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                            Contact your organization owner to edit these details.
+                                        </div>
                                     )}
                                 </div>
-                            </Card>
-                        </div>
+                            )}
+                        </section>
+
+                        <Separator className="bg-border-subtle" />
+
+                        {/* Flat Integrations Section */}
+                        <section className="space-y-4">
+                            <SectionHeader
+                                icon={LayoutGrid}
+                                title="Integrations"
+                                description="Connect external services to your organization"
+                            />
+
+                            <div className="divide-y divide-border-subtle/60 border-y border-border-subtle/60">
+                                {INTEGRATION_LIST.map((item) => {
+                                    const isConnected = organization.integrations?.[item.integrationKey]?.isConnected;
+                                    const Icon = item.icon;
+
+                                    return (
+                                        <IntegrationRow
+                                            key={item.integrationKey}
+                                            name={item.name}
+                                            description={item.description}
+                                            icon={Icon}
+                                            connected={isConnected}
+                                            path={item.path}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    </div>
+
+                    {/* Vertical shadcn Separator for Desktop */}
+                    <Separator orientation="vertical" className="hidden lg:block h-auto self-stretch bg-border-subtle" />
+                    {/* Horizontal Separator for Mobile/Tablet */}
+                    <Separator className="lg:hidden bg-border-subtle" />
+
+                    {/* Right Column: Team & Subscription */}
+                    <div className="w-full lg:w-80 xl:w-88 shrink-0 space-y-10 sm:space-y-12">
+
+                        {/* Flat Team Members Section */}
+                        <section className="space-y-4">
+                            <SectionHeader
+                                icon={Users}
+                                title="Team Members"
+                                description={`${memberCount} of ${maxMembers} members`}
+                            />
+
+                            <div className="space-y-3 pt-1">
+                                <button
+                                    onClick={() => navigate(`/organizations/${orgId}/members`)}
+                                    className="w-full flex items-center justify-between p-3 rounded-lg border border-border-subtle hover:bg-hover hover:border-border transition-all group cursor-pointer"
+                                >
+                                    <div className="text-left">
+                                        <span className="text-xs font-semibold text-foreground group-hover:text-hover-foreground block">
+                                            View all members
+                                        </span>
+                                        <span className="text-[11px] text-muted-foreground">
+                                            Member permissions & invitations
+                                        </span>
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-transform group-hover:translate-x-0.5" />
+                                </button>
+
+                                {remainingSlots > 0 ? (
+                                    <button
+                                        onClick={() => setIsInviteModalOpen(true)}
+                                        className="w-full h-8 px-3 text-xs font-semibold text-primary hover:bg-primary/10 border border-dashed border-primary/50 hover:border-primary rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <UserPlus className="h-3.5 w-3.5" />
+                                        <span>Invite Team Member</span>
+                                    </button>
+                                ) : (
+                                    <div className="p-2.5 bg-surface rounded-lg border border-border-subtle text-center">
+                                        <p className="text-[11px] text-muted-foreground">
+                                            Member limit reached. Upgrade to add more members.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        <Separator className="bg-border-subtle" />
+
+                        {/* Flat Subscription Section */}
+                        <section className="space-y-4">
+                            <SectionHeader
+                                icon={CreditCard}
+                                title="Subscription"
+                                description="Your current plan and billing"
+                            />
+
+                            <div className="space-y-1 pt-1">
+                                <DetailRow
+                                    label="Current Plan"
+                                    value={organization.subscription?.plan?.toUpperCase() || 'FREE'}
+                                    valueClassName="uppercase font-bold tracking-wider text-primary text-xs"
+                                />
+                                <DetailRow
+                                    label="Renewal Date"
+                                    value={organization.subscription?.endDate
+                                        ? new Date(organization.subscription.endDate).toLocaleDateString()
+                                        : 'No expiration'}
+                                />
+                                <DetailRow
+                                    label="Billing Status"
+                                    value={organization.subscription?.status || 'Active'}
+                                    valueClassName="capitalize text-xs font-medium text-success"
+                                />
+
+                                <div className="pt-3">
+                                    <button
+                                        onClick={() => toast.info('Billing & Pro subscription plans opening soon!')}
+                                        className="w-full h-8 px-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                                    >
+                                        <ExternalLink className="h-3.5 w-3.5 text-primary" />
+                                        <span>Manage subscription</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
                     </div>
                 </div>
             </div>
@@ -692,30 +763,31 @@ export default function OrganizationDetails() {
             {/* Sync Organization URL Slug Confirmation Modal */}
             {showSyncModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-xs animate-in fade-in-0 duration-150">
-                    <div className="w-full max-w-md space-y-5 rounded-2xl border border-border-strong bg-surface-elevated p-6 shadow-2xl animate-in zoom-in-95 duration-150 text-surface-elevated-foreground">
-                        {/* Content Block */}
-                        <div className="flex items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning border border-warning/20">
-                                <AlertTriangle className="h-6 w-6" />
+                    <div className="w-full max-w-md space-y-4 rounded-xl border border-border-strong bg-surface-elevated p-5 sm:p-6 shadow-2xl text-surface-elevated-foreground animate-in zoom-in-95 duration-150">
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning border border-warning/20">
+                                <AlertTriangle className="h-5 w-5" />
                             </div>
 
-                            <div className="space-y-1.5 pt-0.5">
-                                <h3 className="font-heading text-lg font-bold text-foreground">Sync Organization URL?</h3>
-                                <p className="text-xs leading-relaxed text-subtle-foreground">
+                            <div className="space-y-1">
+                                <h3 className="font-heading text-base font-bold text-foreground">
+                                    Sync Organization URL?
+                                </h3>
+                                <p className="text-xs leading-relaxed text-muted-foreground">
                                     Create a new booking link that matches the current organization name.
                                 </p>
-                                <p className="text-xs font-semibold leading-relaxed text-warning">
+                                <p className="text-xs font-semibold leading-relaxed text-warning pt-1">
                                     Warning: All existing links using this organization prefix will be disabled immediately.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div className="grid grid-cols-2 gap-2.5 pt-2">
                             <button
                                 type="button"
                                 disabled={isSyncingSlug}
                                 onClick={() => setShowSyncModal(false)}
-                                className="h-10 w-full rounded-xl border border-border bg-surface text-xs font-bold text-foreground hover:bg-hover hover:text-hover-foreground transition-colors cursor-pointer disabled:opacity-50"
+                                className="h-8 w-full rounded-lg border border-border bg-surface text-xs font-medium text-foreground hover:bg-hover transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 Cancel
                             </button>
@@ -724,12 +796,12 @@ export default function OrganizationDetails() {
                                 type="button"
                                 disabled={isSyncingSlug}
                                 onClick={handleConfirmSyncSlug}
-                                className="h-10 w-full cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-warning px-4 text-xs font-bold uppercase tracking-wider text-background shadow-xs hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="h-8 w-full cursor-pointer flex items-center justify-center gap-1.5 rounded-lg bg-warning px-3 text-xs font-bold text-background shadow-xs hover:opacity-90 transition-opacity disabled:opacity-50"
                             >
                                 {isSyncingSlug ? (
                                     <>
-                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                        Syncing...
+                                        <RefreshCw className="h-3 w-3 animate-spin" />
+                                        <span>Syncing...</span>
                                     </>
                                 ) : (
                                     'Confirm Sync'
@@ -745,6 +817,6 @@ export default function OrganizationDetails() {
                 onClose={() => setIsInviteModalOpen(false)}
                 onInvite={handleInviteMember}
             />
-        </>
+        </div>
     );
 }
