@@ -53,10 +53,10 @@ const TimezoneCombobox = ({ value, onChange, className }) => {
                 </button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-72 p-0 rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl" align="end">
+            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-72 max-w-sm p-0 rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl" align="end">
                 <Command className="bg-popover text-popover-foreground">
                     <CommandInput placeholder="Search timezone (e.g. Kolkata)..." className="h-9 text-xs text-foreground placeholder:text-muted-foreground" />
-                    <CommandList className="max-h-60 overflow-y-auto p-1">
+                    <CommandList className="max-h-60 overflow-y-auto p-1 [scrollbar-width:thin]">
                         <CommandEmpty className="py-6 text-center text-xs text-muted-foreground">
                             No timezone found.
                         </CommandEmpty>

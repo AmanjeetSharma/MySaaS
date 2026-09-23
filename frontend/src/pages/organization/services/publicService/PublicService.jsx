@@ -1,5 +1,4 @@
-// src/pages/public-service/PublicService.jsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { toastIcon } from "@/constants/toastIcon.constant";
@@ -33,6 +32,7 @@ import AttendeeForm from "@/components/publicService/AttendeeForm";
 import ConfirmationSuccess from "@/components/publicService/ConfirmationSuccess";
 import TimezoneCombobox from "@/components/publicService/TimezoneCombobox";
 import VerifyPaymentPage from "@/components/publicService/VerifyPaymentPage";
+import { Separator } from "@/components/ui/separator";
 
 import PublicServiceSkeleton from "./PublicServiceSkeleton";
 
@@ -51,6 +51,9 @@ const PublicService = () => {
     const [selectedDate, setSelectedDate] = useState(() => new Date());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", notes: "" });
+
+    // Ref to attendee form for smooth mobile scroll
+    const attendeeFormRef = useRef(null);
 
     useEffect(() => {
         getServiceBySlug(orgSlug, serviceSlug);
@@ -247,31 +250,48 @@ const PublicService = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground antialiased flex flex-col justify-between selection:bg-primary selection:text-primary-foreground">
+        <div className="min-h-screen bg-background text-foreground antialiased flex flex-col justify-between selection:bg-primary selection:text-primary-foreground lg:h-screen lg:overflow-hidden">
             <Header />
 
-            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-                    {/* LEFT COLUMN: Service Summary */}
-                    <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
-                        <div className="bg-card rounded-2xl p-6 sm:p-7 border border-border/80 shadow-xs space-y-6 text-card-foreground">
+            <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 flex-1 w-full flex flex-col lg:flex-row items-stretch lg:overflow-hidden min-h-0">
+                {/* LEFT COLUMN: Service Info Card (Fixed part taking left space) */}
+                <aside className="w-full lg:w-[440px] xl:w-[480px] shrink-0 py-4 sm:py-6 lg:py-8 lg:pr-6 xl:pr-8 flex flex-col lg:h-full lg:overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]">
+                    <div className="bg-card rounded-2xl p-4 sm:p-6 lg:p-7 border border-border/80 shadow-xs space-y-4 sm:space-y-6 text-card-foreground flex-1 flex flex-col justify-between">
+                        <div className="space-y-4 sm:space-y-6">
                             <div>
                                 <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary mb-2 bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
                                     <Building2 className="w-3 h-3 text-primary" />
                                     <span>{organization?.name || "Workspace"}</span>
                                 </div>
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">
+                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight leading-tight">
                                     {name}
                                 </h1>
                             </div>
 
                             {description && (
-                                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed border-b border-border/60 pb-5">
+                                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed border-b border-border/60 pb-4 sm:pb-5">
                                     {description}
                                 </p>
                             )}
 
-                            <div className="space-y-4 text-xs sm:text-sm font-medium">
+                            {/* Mobile compact key metrics pill bar */}
+                            <div className="grid grid-cols-3 gap-2 p-2.5 sm:hidden bg-muted/40 rounded-xl border border-border/70 text-center">
+                                <div className="min-w-0">
+                                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Price</span>
+                                    <span className="block text-xs font-bold text-foreground mt-0.5 truncate">{formatCurrency(price, currency)}</span>
+                                </div>
+                                <div className="border-x border-border/70 px-1 min-w-0">
+                                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Duration</span>
+                                    <span className="block text-xs font-bold text-foreground mt-0.5 truncate">{durationInMinutes} mins</span>
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Format</span>
+                                    <span className="block text-xs font-bold text-foreground mt-0.5 truncate">{mode === "OFFLINE" ? "In-Person" : "Video Call"}</span>
+                                </div>
+                            </div>
+
+                            {/* Desktop & tablet detailed metrics list */}
+                            <div className="hidden sm:block space-y-4 text-xs sm:text-sm font-medium">
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Price</span>
                                     <span className="text-lg font-bold text-foreground">
@@ -333,113 +353,160 @@ const PublicService = () => {
                                 )}
                             </div>
 
-                            {selectedDate && selectedSlot && (
-                                <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl space-y-1.5">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Selected Appointment</p>
-                                    <p className="text-xs sm:text-sm font-bold text-foreground">
-                                        {selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {selectedSlot.formattedTime}
-                                    </p>
-                                    <p className="text-xs text-primary font-medium flex items-center gap-1">
-                                        <Globe2 className="w-3 h-3" />
-                                        <span>In your timezone ({formattedDisplayTimezone})</span>
-                                    </p>
-                                    {displayTimezone !== serviceTimezone && (
-                                        <p className="text-[11px] text-muted-foreground border-t border-border/50 pt-1 mt-1">
-                                            Host time: {formatSlotTimeInTimezone(selectedSlot.utcDate, serviceTimezone)} ({formattedServiceTimezone})
-                                        </p>
-                                    )}
+                            {/* Mobile offline address display */}
+                            {mode === "OFFLINE" && address && (
+                                <div className="sm:hidden bg-muted/40 p-3 rounded-xl border border-border/70 text-xs text-muted-foreground space-y-0.5">
+                                    <p className="font-semibold text-foreground">{address.street}</p>
+                                    <p>{address.city}, {address.state} {address.zipCode}</p>
                                 </div>
                             )}
                         </div>
-                    </aside>
 
-                    {/* RIGHT COLUMN: Booking Flow */}
-                    <section className="lg:col-span-8 space-y-8">
-                        {/* Step 1: Calendar & Slots */}
-                        <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 sm:p-8 space-y-8 text-card-foreground">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-                                <div className="space-y-1">
-                                    <h2 className="text-xl font-bold text-foreground tracking-tight">Select Date & Time</h2>
-                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <Info className="w-3.5 h-3.5 text-primary shrink-0" />
-                                        <span>
-                                            Service operates in <strong className="text-foreground font-semibold">{formattedServiceTimezone}</strong>. Displayed slots are converted to your timezone.
-                                        </span>
-                                    </div>
-                                </div>
+                        {selectedDate && selectedSlot && (
+                            <div className="bg-primary/5 border border-primary/20 p-3.5 sm:p-4 rounded-xl space-y-1.5 mt-4 sm:mt-6">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Selected Appointment</p>
+                                <p className="text-xs sm:text-sm font-bold text-foreground">
+                                    {selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {selectedSlot.formattedTime}
+                                </p>
+                                <p className="text-xs text-primary font-medium flex items-center gap-1">
+                                    <Globe2 className="w-3 h-3" />
+                                    <span>In your timezone ({formattedDisplayTimezone})</span>
+                                </p>
+                                {displayTimezone !== serviceTimezone && (
+                                    <p className="text-[11px] text-muted-foreground border-t border-border/50 pt-1 mt-1">
+                                        Host time: {formatSlotTimeInTimezone(selectedSlot.utcDate, serviceTimezone)} ({formattedServiceTimezone})
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </aside>
 
-                                <div className="flex flex-col sm:items-end gap-1 shrink-0">
-                                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Your Timezone</span>
-                                    <TimezoneCombobox
-                                        value={displayTimezone}
-                                        onChange={(newTz) => {
-                                            setDisplayTimezone(newTz);
-                                            setSelectedSlot(null);
-                                        }}
-                                    />
+                {/* VERTICAL SHADCN SEPARATOR */}
+                <Separator orientation="vertical" className="hidden lg:block shrink-0 self-stretch my-6 lg:my-8" />
+                <Separator orientation="horizontal" className="block lg:hidden shrink-0 my-3" />
+
+                {/* RIGHT COLUMN: Booking Flow (Scrollable part) */}
+                <section className="flex-1 w-full py-4 sm:py-6 lg:py-8 lg:pl-6 xl:pl-8 space-y-6 sm:space-y-8 lg:h-full lg:overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]">
+                    {/* Step 1: Calendar & Slots */}
+                    <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 text-card-foreground">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-border/60 pb-4 sm:pb-5">
+                            <div className="space-y-1">
+                                <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Select Date & Time</h2>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+                                    <span>
+                                        Service operates in <strong className="text-foreground font-semibold">{formattedServiceTimezone}</strong>. Displayed slots are converted to your timezone.
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="flex justify-center p-4 sm:p-6 bg-muted/20 rounded-2xl border border-border/80">
-                                <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-4 sm:p-5 w-full max-w-md">
-                                    <CustomCalendar
-                                        selected={selectedDate}
-                                        onSelect={(date) => {
-                                            setSelectedDate(date);
-                                            setSelectedSlot(null);
-                                        }}
-                                        isDayDisabled={(date) => isDayDisabledInDisplayTz(date, allSlotInstants, displayTimezone)}
-                                    />
-                                </div>
+                            <div className="flex flex-col sm:items-end gap-1 shrink-0">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Your Timezone</span>
+                                <TimezoneCombobox
+                                    value={displayTimezone}
+                                    onChange={(newTz) => {
+                                        setDisplayTimezone(newTz);
+                                        setSelectedSlot(null);
+                                    }}
+                                />
                             </div>
-
-                            <BookingSlotsGrid
-                                slots={displayedSlots}
-                                selectedSlot={selectedSlot}
-                                onSelectSlot={(slot) => setSelectedSlot(slot)}
-                                selectedDate={selectedDate}
-                                displayTimezone={displayTimezone}
-                            />
                         </div>
 
-                        {/* Step 2: Attendee Details */}
-                        <AttendeeForm
-                            formData={formData}
-                            onInputChange={handleInputChange}
-                            onSubmit={handleBookingSubmit}
-                            isFormValid={isFormValid}
-                            isProcessing={isCreatingPayment}
-                            price={price}
-                            currency={currency}
+                        <div className="flex justify-center p-2.5 sm:p-5 bg-muted/20 rounded-xl sm:rounded-2xl border border-border/80">
+                            <div className="bg-card rounded-xl sm:rounded-2xl border border-border/80 shadow-xs p-3 sm:p-5 w-full max-w-md">
+                                <CustomCalendar
+                                    selected={selectedDate}
+                                    onSelect={(date) => {
+                                        setSelectedDate(date);
+                                        setSelectedSlot(null);
+                                    }}
+                                    isDayDisabled={(date) => isDayDisabledInDisplayTz(date, allSlotInstants, displayTimezone)}
+                                />
+                            </div>
+                        </div>
+
+                        <BookingSlotsGrid
+                            slots={displayedSlots}
+                            selectedSlot={selectedSlot}
+                            onSelectSlot={(slot) => setSelectedSlot(slot)}
+                            selectedDate={selectedDate}
+                            displayTimezone={displayTimezone}
                         />
-                    </section>
-                </div>
+                    </div>
+
+                    {/* Step 2: Attendee Details */}
+                    <AttendeeForm
+                        ref={attendeeFormRef}
+                        formData={formData}
+                        onInputChange={handleInputChange}
+                        onSubmit={handleBookingSubmit}
+                        isFormValid={isFormValid}
+                        isProcessing={isCreatingPayment}
+                        price={price}
+                        currency={currency}
+                    />
+                </section>
             </main>
 
-            {/* Mobile Fixed CTA */}
-            <div className="sm:hidden sticky bottom-0 z-40 bg-card border-t border-border/80 p-4 shadow-xl">
-                <button
-                    type="button"
-                    onClick={handleBookingSubmit}
-                    disabled={!isFormValid || isCreatingPayment}
-                    className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-xs ${
-                        isFormValid && !isCreatingPayment
-                            ? "bg-primary text-primary-foreground cursor-pointer active:scale-[0.98]"
-                            : "bg-muted text-muted-foreground cursor-not-allowed"
-                    }`}
-                >
-                    {isCreatingPayment ? (
-                        <>
-                            <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
-                            <span>Opening Checkout...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span>{selectedSlot ? `Pay & Book (${selectedSlot.formattedTime})` : "Select Slot to Book"}</span>
-                            <ArrowRight className="w-4 h-4" />
-                        </>
-                    )}
-                </button>
+            {/* Mobile Fixed Sticky Action Bar with iOS Safe-Area Inset */}
+            <div className="sm:hidden sticky bottom-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/80 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-2xl">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        {selectedSlot ? (
+                            <div>
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-primary truncate">
+                                    {selectedDate?.toLocaleDateString("en-US", { month: "short", day: "numeric" })} • {selectedSlot.formattedTime}
+                                </span>
+                                <span className="block text-xs font-semibold text-foreground truncate">
+                                    {formatCurrency(price, currency)}
+                                </span>
+                            </div>
+                        ) : (
+                            <div>
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Step 1 of 2</span>
+                                <span className="block text-xs font-semibold text-muted-foreground/80">Select date & time</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (!selectedSlot) return;
+                            if (!isFormValid) {
+                                attendeeFormRef.current?.scrollIntoView({ behavior: "smooth" });
+                            } else {
+                                handleBookingSubmit();
+                            }
+                        }}
+                        disabled={!selectedSlot || isCreatingPayment}
+                        className={`py-2.5 px-4 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs shrink-0 ${
+                            selectedSlot && !isCreatingPayment
+                                ? "bg-primary text-primary-foreground cursor-pointer active:scale-[0.98]"
+                                : "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                        }`}
+                    >
+                        {isCreatingPayment ? (
+                            <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-foreground" />
+                                <span>Processing...</span>
+                            </>
+                        ) : isFormValid ? (
+                            <>
+                                <span>Pay & Book</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                        ) : selectedSlot ? (
+                            <>
+                                <span>Enter Details</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                        ) : (
+                            <span>Select Slot</span>
+                        )}
+                    </button>
+                </div>
             </div>
 
             <Footer />
@@ -449,17 +516,17 @@ const PublicService = () => {
 
 /* --- Supplementary Layout Components --- */
 const Header = () => (
-    <header className="border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-50 shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
             <a
                 href="/"
                 className="flex items-center gap-2 group transition-all cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-lg p-1 -ml-1"
             >
-                <span className="font-extrabold text-foreground tracking-tight text-lg group-hover:opacity-80 transition-opacity">
+                <span className="font-extrabold text-foreground tracking-tight text-base sm:text-lg group-hover:opacity-80 transition-opacity">
                     mini<span className="text-primary">CRM</span>
                 </span>
             </a>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">
                 Public Booking
             </span>
         </div>
@@ -467,7 +534,7 @@ const Header = () => (
 );
 
 const Footer = () => (
-    <footer className="border-t border-border/60 bg-background/50 py-6 text-center text-xs text-muted-foreground">
+    <footer className="border-t border-border/60 bg-background/50 py-3.5 sm:py-4 shrink-0 text-center text-xs text-muted-foreground">
         &copy; {new Date().getFullYear()} <span className="font-semibold text-foreground">miniCRM</span>. All rights reserved.
     </footer>
 );

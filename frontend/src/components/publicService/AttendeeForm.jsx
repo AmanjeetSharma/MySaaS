@@ -1,7 +1,8 @@
+import { forwardRef } from "react";
 import { User, Mail, Phone, FileText, ArrowRight, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/pages/organization/services/publicService/publicService.helper.js";
 
-const AttendeeForm = ({
+const AttendeeForm = forwardRef(({
     formData,
     onInputChange,
     onSubmit,
@@ -9,9 +10,9 @@ const AttendeeForm = ({
     isProcessing,
     price,
     currency
-}) => {
+}, ref) => {
     return (
-        <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 sm:p-8 space-y-6 text-card-foreground">
+        <div ref={ref} id="attendee-form" className="bg-card rounded-2xl border border-border/80 shadow-xs p-4 sm:p-6 lg:p-8 space-y-6 text-card-foreground">
             <div className="border-b border-border/60 pb-4">
                 <h2 className="text-lg font-bold text-foreground tracking-tight">Your Details</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Please provide your contact information to finalize and pay.</p>
@@ -31,7 +32,7 @@ const AttendeeForm = ({
                             value={formData.name}
                             onChange={onInputChange}
                             placeholder="Your full name"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-input/20 text-foreground text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
@@ -49,7 +50,7 @@ const AttendeeForm = ({
                             value={formData.email}
                             onChange={onInputChange}
                             placeholder="you@example.com"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-input/20 text-foreground text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
@@ -67,7 +68,7 @@ const AttendeeForm = ({
                             value={formData.phone}
                             onChange={onInputChange}
                             placeholder="+91 98765 43210"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-input/20 text-foreground text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
@@ -84,7 +85,7 @@ const AttendeeForm = ({
                             value={formData.notes}
                             onChange={onInputChange}
                             placeholder="Any specific requests or notes for the appointment"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-input/20 text-foreground text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-10 pr-4 py-2.5 h-11 sm:h-10 rounded-xl border border-input bg-input/20 text-foreground text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                 </div>
@@ -115,6 +116,8 @@ const AttendeeForm = ({
             </form>
         </div>
     );
-};
+});
+
+AttendeeForm.displayName = "AttendeeForm";
 
 export default AttendeeForm;
