@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { THEME_IDS, THEME_MODES } from '@/theme/theme.constant.js';
 import { themeProfiles } from '@/config/theme.config.js';
@@ -24,32 +24,12 @@ import {
     Sun,
     Moon,
     Laptop,
+    Smartphone,
     Crown,
+    Check,
     Palette,
     Loader2
 } from 'lucide-react';
-
-const MODE_OPTIONS = [
-    {
-        id: THEME_MODES.LIGHT,
-        label: 'Light',
-        description: 'For brighter environments',
-        icon: Sun
-    },
-    {
-        id: THEME_MODES.DARK,
-        label: 'Dark',
-        description: 'For darker environments',
-        icon: Moon
-    },
-    {
-        id: THEME_MODES.SYSTEM,
-        label: 'System',
-        description: 'Follows your system preference',
-        icon: Laptop
-    }
-];
-
 
 const Appearance = () => {
     // Atomic store subscriptions to avoid unnecessary re-renders
@@ -63,6 +43,47 @@ const Appearance = () => {
     const [isThemeUpdating, setIsThemeUpdating] = useState(false);
     const [upgradeTarget, setUpgradeTarget] = useState(null);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+    // Track viewport width for responsive mobile vs desktop icon switching
+    const [isMobileDevice, setIsMobileDevice] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 768;
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const handleResize = () => {
+            setIsMobileDevice(window.innerWidth < 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Dynamic mode options switching to Smartphone when viewed on mobile screens
+    const modeOptions = useMemo(() => [
+        {
+            id: THEME_MODES.LIGHT,
+            label: 'Light',
+            description: 'For brighter environments',
+            icon: Sun
+        },
+        {
+            id: THEME_MODES.DARK,
+            label: 'Dark',
+            description: 'For darker environments',
+            icon: Moon
+        },
+        {
+            id: THEME_MODES.SYSTEM,
+            label: 'System',
+            description: 'Follows your system preference',
+            icon: isMobileDevice ? Smartphone : Laptop
+        }
+    ], [isMobileDevice]);
 
     // Stable themes list with pro metadata
     const allThemes = useMemo(() => {
@@ -130,7 +151,7 @@ const Appearance = () => {
         } finally {
             setIsThemeUpdating(false);
         }
-    }, [selectedThemeMode, isThemeUpdating, theme.name, updateTheme]);
+    }, [selectedThemeMode, isThemeUpdating, theme?.name, updateTheme]);
 
     const handleThemeClick = useCallback(async (themeOption) => {
         if (themeOption.isLocked) {
@@ -157,12 +178,12 @@ const Appearance = () => {
         } finally {
             setIsThemeUpdating(false);
         }
-    }, [theme.name, isThemeUpdating, selectedThemeMode, updateTheme]);
+    }, [theme?.name, isThemeUpdating, selectedThemeMode, updateTheme]);
 
     const activeProfileColors = useMemo(() => {
-        const profile = themeProfiles[theme.name] || themeProfiles[THEME_IDS.DEFAULT];
+        const profile = themeProfiles[theme?.name] || themeProfiles[THEME_IDS.DEFAULT];
         return profile?.mode?.[effectivePreviewMode] || profile?.mode?.dark || {};
-    }, [theme.name, effectivePreviewMode]);
+    }, [theme?.name, effectivePreviewMode]);
 
     if (isLoading && !theme?.name) {
         return (
@@ -209,7 +230,7 @@ const Appearance = () => {
                 <Separator className="bg-border-subtle" />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                    {MODE_OPTIONS.map((opt) => (
+                    {modeOptions.map((opt) => (
                         <ThemeModeCard
                             key={opt.id}
                             option={opt}
@@ -308,7 +329,7 @@ const Appearance = () => {
                                     style={{ backgroundColor: activeProfileColors['--accent'] || activeProfileColors['--primary'] || '#3b82f6' }}
                                 />
                             </div>
-                            {themeProfiles[theme.name]?.name || 'Default'}
+                            {themeProfiles[theme?.name]?.name || 'Default'}
                         </span>
                     </div>
 
@@ -344,8 +365,6 @@ const Appearance = () => {
             {/* Pro Upgrade Modal Dialog */}
             <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
                 <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md p-5 sm:p-6 rounded-2xl border border-border-subtle bg-surface-elevated text-surface-elevated-foreground shadow-2xl">
-
-                    {/* Header Section */}
                     <DialogHeader className="gap-3 text-left">
                         <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl border border-warning/30 bg-warning/10 text-warning">
                             <Crown className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -361,7 +380,24 @@ const Appearance = () => {
                         </div>
                     </DialogHeader>
 
+                    {/* Pro Feature Highlights */}
+                    <div className="my-1 rounded-xl border border-border-subtle bg-surface-sunken p-3.5 sm:p-4 space-y-2.5">
+                        <div className="flex items-center gap-2.5 text-xs sm:text-sm text-surface-sunken-foreground">
+                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success/30 bg-success/10 text-success">
+                                <Check className="h-3 w-3 stroke-[2.5]" />
+                            </div>
+                            <span>
+                                Instant access to all <strong className="font-semibold text-foreground">{allThemes.length} crafted themes</strong>
+                            </span>
+                        </div>
 
+                        <div className="flex items-center gap-2.5 text-xs sm:text-sm text-surface-sunken-foreground">
+                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success/30 bg-success/10 text-success">
+                                <Check className="h-3 w-3 stroke-[2.5]" />
+                            </div>
+                            <span>Custom workspace accents & theme customization</span>
+                        </div>
+                    </div>
 
                     {/* Responsive Button Group */}
                     <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
@@ -384,7 +420,6 @@ const Appearance = () => {
                             Upgrade to Pro
                         </Button>
                     </DialogFooter>
-
                 </DialogContent>
             </Dialog>
         </div>
