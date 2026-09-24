@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
 import { organizationNameValidator } from "./organization.validator.js";
 import {
@@ -16,8 +15,6 @@ import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
 import { checkOrganizationAccess } from "./organization.access.js";
 import logger from "#/config/logger.js";
-import { buildNotification, createNotification } from "../notification/notification.utils.js";
-import { NOTIFICATION_TYPES } from "../notification/notification.constants.js";
 
 
 
@@ -329,22 +326,6 @@ export const switchOrganizationService = async (userId, orgId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
-
-    const notification = buildNotification({
-        type: NOTIFICATION_TYPES.ORGANIZATION_SWITCHED,
-        title: "Organization Switched",
-        message: `You switched to ${org.name}`,
-        data: {
-            organizationId: org._id,
-            organizationName: org.name,
-        },
-    });
-
-    await createNotification({
-        userId: user._id,
-        organizationId: org._id,
-        notification,
-    });
 
     logger.info(
         {

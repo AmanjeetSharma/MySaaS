@@ -1,7 +1,4 @@
 export const NOTIFICATION_TYPES = {
-    //ORGANIZATION TYPES
-    ORGANIZATION_SWITCHED: "organization_switched",
-
     //BOOKING TYPES
     BOOKING_NEW: "booking_new",
     BOOKING_UPDATED: "booking_updated",
