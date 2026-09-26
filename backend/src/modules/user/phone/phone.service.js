@@ -4,7 +4,7 @@ import { ApiError } from "../../../utils/ApiError.js";
 import { phoneNumberValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getUserByPhone } from "../user.repository.js";
 import logger from "#/config/logger.js";
-
+import { invalidateUserProfileCache } from "../user.cache.js";
 
 
 
@@ -56,6 +56,8 @@ export const addPhoneService = async (userId, phone) => {
     } catch (err) {
         throw new ApiError(500, "Failed to save phone number. Please try again.");
     }
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {
@@ -124,6 +126,8 @@ export const verifyPhoneOtpService = async (userId, otp) => {
         throw new ApiError(500, "Failed to verify phone number. Please try again");
     }
 
+    await invalidateUserProfileCache(userId);
+
     logger.info(
         {
             userId: user._id,
@@ -179,6 +183,8 @@ export const unlinkPhoneService = async (userId) => {
     } catch (error) {
         throw new ApiError(500, "Failed to remove phone number. Please try again.");
     }
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

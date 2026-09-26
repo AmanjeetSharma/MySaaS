@@ -3,8 +3,7 @@ import { themeValidator, timezoneValidator, notificationValidator } from "./sett
 import { getUserById, updateUserSettingsField } from "../user.repository.js";
 import { THEME_IDS } from '../../../constants/theme.constants.js';
 import logger from "#/config/logger.js";
-
-
+import { invalidateUserProfileCache } from "../user.cache.js";
 
 
 // helper func
@@ -45,6 +44,8 @@ export const updateThemeService = async (userId, themeName, themeMode) => {
         "settings.theme.mode": themeMode
     });
 
+    await invalidateUserProfileCache(userId);
+
     logger.info(
         {
             userId,
@@ -79,6 +80,8 @@ export const updateTimezoneService = async (userId, timezone) => {
         "settings.timezone": timezone
     });
 
+    await invalidateUserProfileCache(userId);
+
     logger.info(
         {
             userId,
@@ -109,6 +112,8 @@ export const updateNotificationsService = async (userId, notifications) => {
         "settings.notifications.email": notifications.email,
         "settings.notifications.inApp": notifications.inApp
     });
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

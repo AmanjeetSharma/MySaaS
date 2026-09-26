@@ -3,8 +3,13 @@ import logger from "../../../config/logger.js";
 import { nameValidator, avatarValidator } from "../../../validations/auth.validators.js";
 import { getUserById, getOrganizationByUserId, deleteOrganization } from "../user.repository.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../../integrations/cloudinary.integration.js";
+import { buildUserProfile } from "../user.helper.js";
 import { cleanupAvatar } from "../../auth/auth.helper.js";
-
+import {
+    getUserProfileCache,
+    setUserProfileCache,
+    invalidateUserProfileCache
+} from "../user.cache.js";
 
 
 
@@ -14,21 +19,39 @@ import { cleanupAvatar } from "../../auth/auth.helper.js";
 
 
 export const getUserService = async (userId) => {
+    const cachedProfile = await getUserProfileCache(userId);
+
+    if (cachedProfile) {
+        logger.info(
+            {
+                source: "cache",
+                email: cachedProfile.email,
+            },
+            "user.retrieved"
+        );
+
+        return cachedProfile;
+    }
+
     const user = await getUserById(userId);
     if (!user) {
         throw new ApiError(404, "User not found");
     }
 
+    const profile = buildUserProfile(user);
+
+    await setUserProfileCache(userId, profile);
+
     logger.info(
         {
-            userId: user._id,
-            email: user.email,
+            source: "database",
+            email: profile.email,
         },
         "user.retrieved"
     );
 
-    return user;
-};
+    return profile;
+}
 
 
 
@@ -54,6 +77,8 @@ export const updateUserService = async (userId, payload) => {
     user.name = payload.name.trim();
 
     await user.save();
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {
@@ -128,6 +153,8 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
         throw new ApiError(500, "Failed to update user avatar");
     }
 
+    await invalidateUserProfileCache(userId);
+
     if (oldAvatarPublicId) {
         await deleteFromCloudinary(oldAvatarPublicId);
     }
@@ -178,6 +205,8 @@ export const deleteUserAvatarService = async (userId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to delete user avatar");
     }
+
+    await invalidateUserProfileCache(userId);
 
     try {
         if (avatarPublicId) {
@@ -297,6 +326,8 @@ export const deleteUserService = async (userId) => {
 
         throw new ApiError(500, "Failed to delete user account");
     }
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

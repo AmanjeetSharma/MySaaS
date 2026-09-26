@@ -7,7 +7,7 @@ export const getUserById = async (userId, selectFields) => {
     if (selectFields) {
         query = query.select(selectFields);
     }
-    return await query;
+    return query;
 };
 
 
@@ -16,7 +16,7 @@ export const getUserByEmail = async (email, selectFields) => {
     if (selectFields) {
         query = query.select(selectFields);
     }
-    return await query;
+    return query;
 };
 
 
@@ -28,7 +28,7 @@ export const getUserByHashedToken = async (hashedToken, selectFields) => {
     if (selectFields) {
         query = query.select(selectFields);
     }
-    return await query;
+    return query;
 }
 
 
@@ -44,13 +44,13 @@ export const getUserByPhone = async (userId, phone, selectFields) => {
     if (selectFields) {
         query = query.select(selectFields);
     }
-    return await query;
+    return query;
 };
 
 
 
 export const updateUserSettingsField = async (userId, updateObj) => {
-    return await User.findByIdAndUpdate(
+    return User.findByIdAndUpdate(
         userId,
         { $set: updateObj },
         { returnDocument: "after", runValidators: true } // after: return doc after update
@@ -60,11 +60,11 @@ export const updateUserSettingsField = async (userId, updateObj) => {
 
 
 export const getOrganizationByUserId = async (userId) => {
-    return await Organization.findOne({ owner: userId });
+    return Organization.findOne({ owner: userId });
 };
 
 
 
 export const deleteOrganization = async (organizationId) => {
-    return await Organization.findByIdAndDelete(organizationId);
+    return Organization.findByIdAndDelete(organizationId);
 };

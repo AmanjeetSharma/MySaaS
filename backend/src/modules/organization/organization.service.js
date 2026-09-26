@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import crypto from "crypto";
 import { ApiError } from "../../utils/ApiError.js";
 import { organizationNameValidator } from "./organization.validator.js";
 import {
@@ -16,9 +15,7 @@ import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
 import { checkOrganizationAccess } from "./organization.access.js";
 import logger from "#/config/logger.js";
-import { buildNotification, createNotification } from "../notification/notification.utils.js";
-import { NOTIFICATION_TYPES } from "../notification/notification.constants.js";
-
+import { invalidateUserProfileCache } from "../user/user.cache.js";
 
 
 
@@ -55,6 +52,8 @@ export const createOrganizationService = async (userId, orgName) => {
         if (!setActiveResult) {
             throw new ApiError(500, "Organization created but failed to set as active - please try switching to it manually");
         }
+
+        await invalidateUserProfileCache(userId);
 
         await session.commitTransaction();
 
@@ -266,6 +265,8 @@ export const deleteOrganizationService = async (userId, orgId) => {
 
         await deleteOrganizationById(orgId, session);
 
+        await invalidateUserProfileCache(userId);
+
         await session.commitTransaction();
 
         logger.info(
@@ -330,21 +331,7 @@ export const switchOrganizationService = async (userId, orgId) => {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
 
-    const notification = buildNotification({
-        type: NOTIFICATION_TYPES.ORGANIZATION_SWITCHED,
-        title: "Organization Switched",
-        message: `You switched to ${org.name}`,
-        data: {
-            organizationId: org._id,
-            organizationName: org.name,
-        },
-    });
-
-    await createNotification({
-        userId: user._id,
-        organizationId: org._id,
-        notification,
-    });
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

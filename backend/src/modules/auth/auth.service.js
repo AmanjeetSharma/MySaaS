@@ -168,22 +168,33 @@ export const registerService = async (body, avatarFile) => {
         }
 
         if (env.EMAIL_ENABLED) {
-            const emailHTML = welcomeEmailTemplate(user.name);
+            try {
+                const emailHTML = welcomeEmailTemplate(user.name);
 
-            await sendEmail(
-                user.email,
-                "Welcome to MySaaS!",
-                emailHTML,
-                true
-            );
+                await sendEmail(
+                    user.email,
+                    "Welcome to MySaaS!",
+                    emailHTML,
+                    true
+                );
 
-            logger.info(
-                {
-                    email: user.email,
-                    emailVerificationBypass: true,
-                },
-                "auth.welcome_email.sent"
-            );
+                logger.info(
+                    {
+                        email: user.email,
+                        emailVerificationBypass: true,
+                    },
+                    "auth.welcome_email.sent"
+                );
+            } catch (err) {
+                logger.error(
+                    {
+                        email: user.email,
+                        error: err.message,
+                        emailVerificationBypass: true,
+                    },
+                    "auth.welcome_email.failed"
+                );
+            }
         } else {
             logger.info(
                 {

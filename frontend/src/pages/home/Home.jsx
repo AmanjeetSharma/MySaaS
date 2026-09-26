@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, ArrowUp } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-
+import ScrollToTop from "./components/ScrollToTop";
 import { HomeBackground } from './HomeBackground';
 import { HeroIntro } from './components/HeroIntro';
 import { UnifiedOperatingEngine } from './components/UnifiedOperatingEngine';
 import { ScrollStoryShowcase } from './components/ScrollStoryShowcase';
 import { CrmCapabilitiesDeck } from './components/CrmCapabilitiesDeck';
+import { HomeFooter } from './components/HomeFooter';
 import './Home.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -56,7 +57,6 @@ const Home = () => {
   const navigate = useNavigate();
   const [activeCrmLayer, setActiveCrmLayer] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState('14:00');
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const lenisRef = useRef(null);
 
   const handleAnchorClick = (e, targetId) => {
@@ -69,27 +69,6 @@ const Home = () => {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  const scrollToTop = () => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { duration: 1.2 });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  useEffect(() => {
-    let prevScrolled = false;
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 450;
-      if (isScrolled !== prevScrolled) {
-        prevScrolled = isScrolled;
-        setShowScrollTop(isScrolled);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -104,7 +83,6 @@ const Home = () => {
       lenis.on('scroll', ScrollTrigger.update);
       gsap.ticker.add((time) => lenis.raf(time * 1000));
 
-      // Accurate ScrollTrigger refresh after initial render & layout settle
       requestAnimationFrame(() => {
         ScrollTrigger.refresh();
       });
@@ -242,21 +220,17 @@ const Home = () => {
 
       {/* Main Experience Flow */}
       <main className="relative z-10 flex-1 flex flex-col items-center w-full">
-        {/* 1. Full Viewport App Introduction */}
         <HeroIntro
           onSimulatorClick={(e) => handleAnchorClick(e, '#engine')}
         />
 
-        {/* 2. Unified Operating Engine (Cockpit Simulator - 2nd Section) */}
         <UnifiedOperatingEngine
           selectedSlot={selectedSlot}
           setSelectedSlot={setSelectedSlot}
         />
 
-        {/* 3. Google Calendar Integration with 3D Flip to Arrow & Smooth Exit */}
         <ScrollStoryShowcase />
 
-        {/* 4. Core CRM & Operations Suite (3D Stacking Deck) & Capabilities */}
         <CrmCapabilitiesDeck
           activeLayer={activeCrmLayer}
           setActiveLayer={setActiveCrmLayer}
@@ -282,39 +256,11 @@ const Home = () => {
         </section>
       </main>
 
-      {/* Minimal Footer */}
-      <footer className="w-full py-10 px-4 sm:px-6 md:px-12 border-t border-border bg-background/95 backdrop-blur-md relative z-20 text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-            <span>&copy; {new Date().getFullYear()} miniCRM. All rights reserved.</span>
-          </div>
-          <div className="flex items-center gap-5 text-xs text-muted-foreground">
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className="hover:text-foreground transition-colors cursor-pointer"
-            >
-              Back to top ↑
-            </button>
-            <span className="text-border">•</span>
-            <Link to="/signin" className="hover:text-foreground transition-colors">Sign In</Link>
-            <span className="text-border">•</span>
-            <Link to="/signup" className="hover:text-foreground transition-colors">Sign Up</Link>
-          </div>
-        </div>
-      </footer>
+      {/* Minimal Footer Component */}
+      <HomeFooter />
 
-      {/* Floating Scroll to Top Button */}
-      {showScrollTop && (
-        <button
-          type="button"
-          onClick={scrollToTop}
-          aria-label="Scroll to top"
-          className="fixed bottom-6 right-6 z-50 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-surface-elevated/90 hover:bg-surface-elevated text-foreground border border-border/80 hover:border-primary/50 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
-        >
-          <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-        </button>
-      )}
+      {/* Floating Scroll to Top */}
+      <ScrollToTop />
 
     </div>
   );
