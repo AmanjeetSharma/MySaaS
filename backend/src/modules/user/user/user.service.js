@@ -5,9 +5,12 @@ import { getUserById, getOrganizationByUserId, deleteOrganization } from "../use
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../../integrations/cloudinary.integration.js";
 import { buildUserProfile } from "../user.helper.js";
 import { cleanupAvatar } from "../../auth/auth.helper.js";
-import redis from "#/infrastructure/redis/redis.client.js";
-import redisKeys from "#/infrastructure/redis/redis.keys.js";
-import redisTtl from "#/infrastructure/redis/redis.ttl.js";
+import {
+    getUserProfileCache,
+    setUserProfileCache,
+    invalidateUserProfileCache
+} from "../user.cache.js";
+
 
 
 
@@ -16,32 +19,18 @@ import redisTtl from "#/infrastructure/redis/redis.ttl.js";
 
 
 export const getUserService = async (userId) => {
-    const cachedKey = redisKeys.user.profile(userId);
+    const cachedProfile = await getUserProfileCache(userId);
 
-    let cachedUser;
-
-    try {
-        cachedUser = await redis.get(cachedKey);
-    } catch (err) {
-        logger.warn(
-            { err },
-            "user.profile_cache.read_failed"
-        );
-    }
-
-    if (cachedUser) {
-        const profile = JSON.parse(cachedUser);
-
+    if (cachedProfile) {
         logger.info(
             {
                 source: "cache",
-                email: profile.email,
+                email: cachedProfile.email,
             },
             "user.retrieved"
         );
 
-        return profile;
-
+        return cachedProfile;
     }
 
     const user = await getUserById(userId);
@@ -51,14 +40,7 @@ export const getUserService = async (userId) => {
 
     const profile = buildUserProfile(user);
 
-    try {
-        await redis.set(cachedKey, JSON.stringify(profile), "EX", redisTtl.user.profile);
-    } catch (err) {
-        logger.warn(
-            { err },
-            "user.profile_cache.write_failed"
-        );
-    }
+    await setUserProfileCache(userId, profile);
 
     logger.info(
         {
@@ -96,14 +78,7 @@ export const updateUserService = async (userId, payload) => {
 
     await user.save();
 
-    try {
-        await redis.del(redisKeys.user.profile(userId));
-    } catch (err) {
-        logger.warn(
-            { err },
-            "user.profile_cache.invalidation_failed"
-        );
-    }
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {
@@ -178,14 +153,7 @@ export const updateUserAvatarService = async (userId, avatarFile) => {
         throw new ApiError(500, "Failed to update user avatar");
     }
 
-    try {
-        await redis.del(redisKeys.user.profile(userId));
-    } catch (err) {
-        logger.warn(
-            { err, },
-            "user.profile_cache.invalidation_failed"
-        );
-    }
+    await invalidateUserProfileCache(userId);
 
     if (oldAvatarPublicId) {
         await deleteFromCloudinary(oldAvatarPublicId);
@@ -238,14 +206,7 @@ export const deleteUserAvatarService = async (userId) => {
         throw new ApiError(500, "Failed to delete user avatar");
     }
 
-    try {
-        await redis.del(redisKeys.user.profile(userId));
-    } catch (err) {
-        logger.warn(
-            { err, },
-            "user.profile_cache.invalidation_failed"
-        );
-    }
+    await invalidateUserProfileCache(userId);
 
     try {
         if (avatarPublicId) {
@@ -366,14 +327,7 @@ export const deleteUserService = async (userId) => {
         throw new ApiError(500, "Failed to delete user account");
     }
 
-    try {
-        await redis.del(redisKeys.user.profile(userId));
-    } catch (err) {
-        logger.warn(
-            { err, },
-            "user.profile_cache.invalidation_failed"
-        );
-    }
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

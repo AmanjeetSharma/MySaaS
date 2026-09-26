@@ -1,6 +1,6 @@
 const redisTtl = {
     user: {
-        profile: 30 ,
+        profile: 15 * 60,
     }
 };
 

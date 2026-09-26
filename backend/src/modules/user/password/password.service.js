@@ -8,7 +8,7 @@ import { getUserById, getUserByEmail, getUserByHashedToken } from "../user.repos
 import { generateToken } from "../../../utils/token.js";
 import env from "../../../config/env.config.js";
 import logger from "#/config/logger.js";
-
+import { invalidateUserProfileCache } from "../user.cache.js";
 
 
 
@@ -158,6 +158,8 @@ export const setupPasswordService = async (userId, { newPassword, confirmNewPass
         );
         throw new ApiError(500, "Error setting up password");
     }
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

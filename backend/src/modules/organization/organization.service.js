@@ -15,7 +15,7 @@ import { getOrganizationMeta } from "./organization.helper.js";
 import { generateOrgSlug } from "../auth/auth.helper.js";
 import { checkOrganizationAccess } from "./organization.access.js";
 import logger from "#/config/logger.js";
-
+import { invalidateUserProfileCache } from "../user/user.cache.js";
 
 
 
@@ -52,6 +52,8 @@ export const createOrganizationService = async (userId, orgName) => {
         if (!setActiveResult) {
             throw new ApiError(500, "Organization created but failed to set as active - please try switching to it manually");
         }
+
+        await invalidateUserProfileCache(userId);
 
         await session.commitTransaction();
 
@@ -263,6 +265,8 @@ export const deleteOrganizationService = async (userId, orgId) => {
 
         await deleteOrganizationById(orgId, session);
 
+        await invalidateUserProfileCache(userId);
+
         await session.commitTransaction();
 
         logger.info(
@@ -326,6 +330,8 @@ export const switchOrganizationService = async (userId, orgId) => {
     } catch (err) {
         throw new ApiError(500, "Failed to switch active organization - please try again");
     }
+
+    await invalidateUserProfileCache(userId);
 
     logger.info(
         {

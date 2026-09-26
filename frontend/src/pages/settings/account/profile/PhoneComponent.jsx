@@ -128,7 +128,7 @@ const PhoneComponent = () => {
         try {
             await addPhoneNumber(phone);
             setShowOtpSection(true);
-            setResendCooldown(30);
+            setResendCooldown(60);
             toast.success('OTP sent successfully');
         } catch (error) {
             // Keep OTP section open so user can enter code even if resend fails/rate-limited

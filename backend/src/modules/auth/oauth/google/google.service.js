@@ -101,8 +101,12 @@ export const googleLoginService = async (body) => {
         throw new ApiError(403, `Your account has been ${user.accountStatus}. Please contact support for assistance.`);
     }
 
+    let profileCacheInvalidationRequired = false;
+
     if (!user.providers?.google?.enabled) {
         user.providers.google = { enabled: true, googleId };
+
+        profileCacheInvalidationRequired = true;
     }
 
     const hasAvatar = user.avatar?.url && user.avatar?.url.trim() !== "";
@@ -111,6 +115,8 @@ export const googleLoginService = async (body) => {
             url: picture,
             publicId: `google-${googleId}`
         };
+
+        profileCacheInvalidationRequired = true;
     }
 
 
@@ -146,6 +152,10 @@ export const googleLoginService = async (body) => {
         await user.save();
     } catch (err) {
         throw new ApiError(500, "An error occurred while logging in with Google. Please try again.");
+    }
+
+    if (profileCacheInvalidationRequired) {
+        await invalidateUserProfileCache(user._id);
     }
 
     const accessToken = generateAccessToken(user, sessionId);
