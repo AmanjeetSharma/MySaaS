@@ -8,7 +8,7 @@ import {
     logoutController,
     refreshTokenController
 } from "./auth.controller.js";
-import { googleLoginController } from "./oauth/google/google.controller.js";
+import { googleLoginController, googleUnlinkController } from "./oauth/google/google.controller.js";
 import {
     loginRateLimiter,
     registerRateLimiter,
@@ -28,6 +28,8 @@ router.post("/verify-email/:token", verifyEmailRateLimiter, verifyEmailControlle
 router.post("/login", loginRateLimiter, loginAbuseProtection, loginController);
 
 router.post("/login/google", googleLoginRateLimiter, googleLoginController);
+
+router.post("/unlink/google", verifyToken, googleUnlinkController);
 
 router.post("/logout", verifyToken, logoutRateLimiter, logoutController);
 

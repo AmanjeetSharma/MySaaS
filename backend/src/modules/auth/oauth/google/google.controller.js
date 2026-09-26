@@ -1,7 +1,10 @@
 import { ApiResponse } from "../../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../../utils/asyncHandler.js";
 import { getCookieOptions } from "../../../../config/cookieOptions.js";
-import { googleLoginService } from "./google.service.js";
+import {
+    googleLoginService,
+    googleUnlinkService,
+} from "./google.service.js";
 
 export const googleLoginController = asyncHandler(async (req, res) => {
     const data = await googleLoginService(req.body);
@@ -17,5 +20,19 @@ export const googleLoginController = asyncHandler(async (req, res) => {
                 email: data.user.email,
                 message: data.message,
             },
+            data.message
+        ))
+});
+
+
+export const googleUnlinkController = asyncHandler(async (req, res) => {
+    const data = await googleUnlinkService(req.user._id);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "Google login has been unlinked successfully"
         ))
 });
