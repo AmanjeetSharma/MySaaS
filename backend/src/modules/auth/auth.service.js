@@ -662,7 +662,11 @@ export const refreshTokenService = async (refreshToken) => {
 
 
 export const localUnlinkService = async (userId) => {
-    const user = await findUserById(userId);
+
+    const user = await findUserById(
+        userId,
+        "providers.local.enabled providers.google.enabled +password +resetPasswordToken +resetPasswordExpiry"
+    );
 
     if (!user.providers?.local?.enabled) {
         throw new ApiError(400, "Password login is not enabled for your account");
@@ -673,6 +677,9 @@ export const localUnlinkService = async (userId) => {
     }
 
     user.providers.local.enabled = false;
+    user.password = null;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
 
     await user.save();
 
