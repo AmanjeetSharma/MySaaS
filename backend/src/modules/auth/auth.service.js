@@ -25,6 +25,7 @@ import {
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import { recordLoginFailure } from "../../infrastructure/security/abuseProtection/login.abuseProtection.js";
 import logger from "#/config/logger.js";
+import { invalidateUserProfileCache } from "../user/user.cache.js";
 
 
 
@@ -649,4 +650,35 @@ export const refreshTokenService = async (refreshToken) => {
         },
         newAccessToken
     };
+};
+
+
+
+
+
+
+
+
+
+
+export const localUnlinkService = async (userId) => {
+    const user = await findUserById(userId);
+
+    if (!user.providers?.local?.enabled) {
+        throw new ApiError(400, "Password login is not enabled for your account");
+    }
+
+    if (!user.providers?.google?.enabled) {
+        throw new ApiError(400, "This is your only login method. Please link your accout to Google before removing password login.");
+    }
+
+    user.providers.local.enabled = false;
+
+    await user.save();
+
+    invalidateUserProfileCache(user._id);
+
+    return {
+        email: user.email
+    }
 };

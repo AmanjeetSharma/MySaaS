@@ -6,7 +6,8 @@ import {
     verifyEmailController,
     loginController,
     logoutController,
-    refreshTokenController
+    refreshTokenController,
+    localUnlinkController,
 } from "./auth.controller.js";
 import { googleLoginController, googleUnlinkController } from "./oauth/google/google.controller.js";
 import {
@@ -30,6 +31,8 @@ router.post("/login", loginRateLimiter, loginAbuseProtection, loginController);
 router.post("/login/google", googleLoginRateLimiter, googleLoginController);
 
 router.post("/unlink/google", verifyToken, googleUnlinkController);
+
+router.post("/unlink/local", verifyToken, localUnlinkController);
 
 router.post("/logout", verifyToken, logoutRateLimiter, logoutController);
 

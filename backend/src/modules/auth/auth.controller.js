@@ -7,6 +7,7 @@ import {
     loginService,
     logoutService,
     refreshTokenService,
+    localUnlinkService,
 } from "./auth.service.js";
 
 
@@ -111,4 +112,17 @@ export const refreshTokenController = asyncHandler(async (req, res) => {
                 "Token refreshed"
             )
         )
+});
+
+
+export const localUnlinkController = asyncHandler(async (req, res) => {
+    const data = await localUnlinkService(req.user._id);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            data,
+            "Local login has been unlinked successfully"
+        ))
 });
