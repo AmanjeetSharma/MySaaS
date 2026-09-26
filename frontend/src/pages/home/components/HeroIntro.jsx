@@ -8,12 +8,7 @@ export const HeroIntro = ({ onSimulatorClick }) => {
     return (
         <section className="w-full min-h-[calc(100vh-64px)] px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto flex flex-col justify-between items-center text-center relative z-10">
 
-            {/* Top Eyebrow / Metrology Status Pill */}
-            <div className="pt-2 sm:pt-4 flex justify-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface-elevated/90 text-xs font-medium text-foreground backdrop-blur-md shadow-sm">
-                    <span className="font-semibold tracking-wide">miniCRM (v1.0.0)</span>
-                </div>
-            </div>
+         
 
             {/* Core Message & Action Center */}
             <div className="my-auto max-w-5xl flex flex-col items-center py-6 sm:py-8">

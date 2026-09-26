@@ -194,7 +194,7 @@ export const forgotPasswordService = async (email) => {
     const user = await getUserByEmail(normalizedEmail);
 
     if (!user) {
-        await delay(2300); // 2.3 second delay to mitigate user enumeration attacks
+        await delay(3000); // 3 second delay to mitigate user enumeration attacks
 
         logger.info(
             {
@@ -234,35 +234,51 @@ export const forgotPasswordService = async (email) => {
 
     const emailContent = resetEmailTemplate(user.name, resetLink);
 
-    if (env.EMAIL_ENABLED) { // Only send email if enabled
+    if (!env.EMAIL_ENABLED) {
+        logger.info(
+            {
+                email: user.email,
+            },
+            "auth.password_reset.email_service_disabled"
+        );
+
+        throw new ApiError(503, "Password reset emails are temporarily unavailable. Please try again later or contact support for assistance.");
+    }
+
+    try {
         await sendEmail(
             user.email,
             "Reset Your Password - MySaaS",
             emailContent,
             true
         );
+
+        logger.info(
+            {
+                email: user.email,
+            },
+            "auth.password_reset.email_sent"
+        );
+
+        return null;
+
+    } catch (err) {
+        logger.error(
+            {
+                userId: user._id,
+                email: user.email,
+                error: err.message,
+            },
+            "auth.password_reset.email_failed"
+        );
+
+        return {
+            emailSent: false,
+            message:
+                "We couldn't send the password reset email. Please try again later.",
+        };
     }
-
-    logger.info(
-        {
-            emailEnabled: env.EMAIL_ENABLED,
-        },
-        "email.password_reset_link.sent"
-    );
-
-    logger.debug(
-        {
-            email: user.email,
-            resetLink,
-        },
-        "auth.password_reset_link.generated"
-    );
-
-    return null;
 };
-
-
-
 
 
 
