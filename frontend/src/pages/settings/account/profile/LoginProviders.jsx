@@ -98,34 +98,32 @@ const LoginProviders = () => {
       <Separator className="bg-border-subtle" />
 
       {/* Grid of Login Providers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-1">
         {/* 1. Email & Password Provider Card */}
         <div
-          className={`flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 ease-out ${
-            localEnabled
-              ? 'border-border-subtle bg-surface-elevated hover:border-primary/40 hover:shadow-xs'
-              : 'border-dashed border-border bg-surface-sunken/40'
-          }`}
+          className={`flex flex-col justify-between rounded-xl sm:rounded-2xl border p-4 sm:p-5 transition-colors ${localEnabled
+            ? 'border-border-subtle bg-surface-elevated'
+            : 'border-dashed border-border bg-surface-sunken/40'
+            }`}
         >
-          <div className="space-y-3.5">
+          <div className="space-y-3 sm:space-y-3.5">
             {/* Top row: Icon + Status badge */}
             <div className="flex items-center justify-between gap-3">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
-                  localEnabled
-                    ? 'bg-primary/10 text-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}
+                className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl transition-colors ${localEnabled
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-muted text-muted-foreground'
+                  }`}
               >
-                <KeyRound className="h-5 w-5" />
+                <KeyRound className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               </div>
 
               {localEnabled ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success border border-success/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-success border border-success/20">
                   <CheckCircle2 className="h-3 w-3" /> Enabled
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border-subtle">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border-subtle">
                   Not Configured
                 </span>
               )}
@@ -136,7 +134,7 @@ const LoginProviders = () => {
               <h4 className="font-heading text-sm font-bold text-foreground">
                 Email &amp; Password
               </h4>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
                 {localEnabled
                   ? `Sign in with ${userProfile?.email || 'your email'} and password.`
                   : 'No password is set on this account. Set a password to log in without Google.'}
@@ -145,29 +143,26 @@ const LoginProviders = () => {
           </div>
 
           {/* Action Row */}
-          <div className="mt-5 pt-3 border-t border-border-subtle flex items-center gap-2">
+          <div className="mt-3.5 sm:mt-5 pt-2.5 sm:pt-3 border-t border-border-subtle flex items-center gap-2">
             {localEnabled ? (
               <>
                 <Button
-                  variant="outline"
-                  size="sm"
                   asChild
-                  className="h-8 flex-1 text-xs font-medium rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                  className="w-full flex-1 h-10 rounded-xl bg-accent text-accent-foreground font-semibold shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer text-xs sm:text-sm"
                 >
-                  <Link to="/settings/account/change-password">
+                  <Link to="/settings/account/change-password" className="flex items-center justify-center gap-1.5 w-full">
                     <span>Change Password</span>
-                    <ExternalLink className="h-3 w-3 ml-1 opacity-70" />
+                    <ExternalLink className="h-3.5 w-3.5 opacity-80" />
                   </Link>
                 </Button>
 
                 {canUnlink ? (
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
                     disabled={isProcessing || isUpdating}
                     onClick={() => setUnlinkConfirmTarget('local')}
-                    className="h-8 px-2.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                    className="h-10 px-3 text-xs font-semibold rounded-xl bg-secondary/80 text-secondary-foreground border border-border-strong shadow-xs hover:text-destructive hover:border-destructive/50 hover:bg-destructive/15 active:scale-95 transition-all cursor-pointer"
                   >
                     <Unlink className="h-3.5 w-3.5 mr-1" />
                     <span>Remove</span>
@@ -179,10 +174,9 @@ const LoginProviders = () => {
                         <span tabIndex={0} className="inline-block cursor-not-allowed">
                           <Button
                             type="button"
-                            variant="ghost"
-                            size="sm"
+                            variant="outline"
                             disabled
-                            className="h-8 px-2.5 text-xs font-medium rounded-lg opacity-40 pointer-events-none"
+                            className="h-10 px-3 text-xs font-semibold rounded-xl bg-secondary/30 text-muted-foreground/50 border border-border-subtle opacity-60 shadow-none pointer-events-none"
                           >
                             <Unlink className="h-3.5 w-3.5 mr-1" />
                             <span>Remove</span>
@@ -198,12 +192,11 @@ const LoginProviders = () => {
               </>
             ) : (
               <Button
-                size="sm"
                 asChild
-                className="h-8 w-full text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-2xs active:scale-[0.98] transition-all"
+                className="w-full h-10 rounded-xl bg-accent text-accent-foreground font-semibold shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer text-xs sm:text-sm"
               >
-                <Link to="/settings/account/set-password">
-                  <KeyRound className="h-3.5 w-3.5 mr-1.5" />
+                <Link to="/settings/account/set-password" className="flex items-center justify-center gap-1.5 w-full">
+                  <KeyRound className="h-4 w-4 mr-1.5" />
                   <span>Set Password</span>
                 </Link>
               </Button>
@@ -213,25 +206,24 @@ const LoginProviders = () => {
 
         {/* 2. Google OAuth Provider Card */}
         <div
-          className={`flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 ease-out ${
-            googleEnabled
-              ? 'border-border-subtle bg-surface-elevated hover:border-primary/40 hover:shadow-xs'
-              : 'border-dashed border-border bg-surface-sunken/40'
-          }`}
+          className={`flex flex-col justify-between rounded-xl sm:rounded-2xl border p-4 sm:p-5 transition-colors ${googleEnabled
+            ? 'border-border-subtle bg-surface-elevated'
+            : 'border-dashed border-border bg-surface-sunken/40'
+            }`}
         >
-          <div className="space-y-3.5">
+          <div className="space-y-3 sm:space-y-3.5">
             {/* Top row: Icon + Status badge */}
             <div className="flex items-center justify-between gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface border border-border-subtle shadow-2xs">
-                <GoogleIcon className="size-5" />
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-surface border border-border-subtle shadow-2xs">
+                <GoogleIcon className="size-4.5 sm:size-5" />
               </div>
 
               {googleEnabled ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success border border-success/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-success border border-success/20">
                   <CheckCircle2 className="h-3 w-3" /> Connected
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border-subtle">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border-subtle">
                   Not Connected
                 </span>
               )}
@@ -242,7 +234,7 @@ const LoginProviders = () => {
               <h4 className="font-heading text-sm font-bold text-foreground">
                 Google Account
               </h4>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
                 {googleEnabled
                   ? `Connected with Google account (${userProfile?.email || 'Google ID linked'}).`
                   : 'Single-click authentication via Google OAuth 2.0.'}
@@ -251,11 +243,11 @@ const LoginProviders = () => {
           </div>
 
           {/* Action Row */}
-          <div className="mt-5 pt-3 border-t border-border-subtle flex items-center justify-between gap-2">
+          <div className="mt-3.5 sm:mt-5 pt-2.5 sm:pt-3 border-t border-border-subtle flex items-center justify-between gap-2">
             {googleEnabled ? (
               <>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="text-[11px] font-mono text-muted-foreground/80 truncate max-w-[170px]">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                  <span className="text-[10px] sm:text-[11px] font-mono text-muted-foreground/80 truncate max-w-[130px] sm:max-w-[170px]">
                     ID: {userProfile?.providers?.google?.googleId || 'linked'}
                   </span>
                 </div>
@@ -263,11 +255,10 @@ const LoginProviders = () => {
                 {canUnlink ? (
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
                     disabled={isProcessing || isUpdating}
                     onClick={() => setUnlinkConfirmTarget('google')}
-                    className="h-8 px-2.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer ml-auto"
+                    className="h-10 px-3.5 text-xs font-semibold rounded-xl bg-secondary/80 text-secondary-foreground border border-border-strong shadow-xs hover:text-destructive hover:border-destructive/50 hover:bg-destructive/15 active:scale-95 transition-all cursor-pointer ml-auto shrink-0"
                   >
                     <Unlink className="h-3.5 w-3.5 mr-1" />
                     <span>Disconnect</span>
@@ -276,13 +267,12 @@ const LoginProviders = () => {
                   <TooltipProvider delayDuration={150}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span tabIndex={0} className="inline-block cursor-not-allowed ml-auto">
+                        <span tabIndex={0} className="inline-block cursor-not-allowed ml-auto shrink-0">
                           <Button
                             type="button"
-                            variant="ghost"
-                            size="sm"
+                            variant="outline"
                             disabled
-                            className="h-8 px-2.5 text-xs font-medium rounded-lg opacity-40 pointer-events-none"
+                            className="h-10 px-3.5 text-xs font-semibold rounded-xl bg-secondary/30 text-muted-foreground/50 border border-border-subtle opacity-60 shadow-none pointer-events-none"
                           >
                             <Unlink className="h-3.5 w-3.5 mr-1" />
                             <span>Disconnect</span>
@@ -297,9 +287,9 @@ const LoginProviders = () => {
                 )}
               </>
             ) : (
-              <div className="w-full rounded-xl bg-surface/70 p-3 border border-border-subtle flex items-start gap-2.5 text-xs text-muted-foreground">
+              <div className="w-full rounded-xl bg-surface/70 p-2.5 sm:p-3 border border-border-subtle flex items-start gap-2 text-xs text-muted-foreground">
                 <Info className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-                <p className="leading-relaxed text-[11px]">
+                <p className="leading-relaxed text-[10px] sm:text-[11px]">
                   To connect Google, sign out and sign in with Google using this account&apos;s email (<span className="text-foreground font-medium">{userProfile?.email}</span>).
                 </p>
               </div>
@@ -369,7 +359,7 @@ const LoginProviders = () => {
                 ) : unlinkConfirmTarget === 'local' ? (
                   'Remove Password'
                 ) : (
-                  'Unlink Google'
+                  'Unlink Google Account'
                 )}
               </Button>
             </div>
