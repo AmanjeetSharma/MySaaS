@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import {
   Loader2,
   Camera,
+  Upload,
   Trash2,
   Save,
   RotateCcw,
@@ -19,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AccountInfo from './AccountInfo';
 import PhoneComponent from './PhoneComponent';
 import AvatarCropModal from './AvatarCropModal';
+import LoginProviders from './LoginProviders';
 
 const Profile = () => {
   const {
@@ -293,8 +295,18 @@ const Profile = () => {
                 disabled={isAvatarUploading}
                 className="h-8 px-3 text-xs font-medium rounded-lg cursor-pointer"
               >
-                <Camera className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                <span>{isAvatarUploading ? 'Uploading...' : 'Change avatar'}</span>
+                {userProfile?.avatar?.url ? (
+                  <Camera className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                )}
+                <span>
+                  {isAvatarUploading
+                    ? 'Uploading...'
+                    : userProfile?.avatar?.url
+                    ? 'Change avatar'
+                    : 'Upload avatar'}
+                </span>
               </Button>
 
               {userProfile?.avatar?.url && (
@@ -432,12 +444,17 @@ const Profile = () => {
 
       <Separator className="bg-border-subtle" />
 
-      {/* Section 3: Phone & SMS Security */}
+      {/* Section 3: Authentication & Login Methods */}
+      <LoginProviders />
+
+      <Separator className="bg-border-subtle" />
+
+      {/* Section 4: Phone & SMS Security */}
       <PhoneComponent />
 
       <Separator className="bg-border-subtle" />
 
-      {/* Section 4: Account Metadata & Preferences */}
+      {/* Section 5: Account Metadata & Preferences */}
       <AccountInfo />
 
       {/* Hidden File Input for Avatar */}

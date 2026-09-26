@@ -25,9 +25,15 @@ export const addPhoneService = async (userId, phone) => {
     if (user.phone?.pendingNumber === phone &&
         user.phone?.otpResendAllowedAt > Date.now()
     ) {
-        const remainingSeconds = Math.ceil((user.phone.otpResendAllowedAt - Date.now()) / 1000);
 
-        throw new ApiError(409, `Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
+        return {
+            data: {
+                pendingNumber: phone,
+                otpSent: false,
+                resendAfter: user.phone.otpResendAllowedAt,
+            },
+            message: "Please wait a moment before requesting a new OTP."
+        };
     }
 
     const existingPhoneOwner = await getUserByPhone(userId, phone);
@@ -68,10 +74,13 @@ export const addPhoneService = async (userId, phone) => {
     );
 
     return {
-        pendingNumber: phone,
-        otpSent: true,
-        expiresIn: "5 minutes",
-        resendAfter: "1 minute"
+        data: {
+            pendingNumber: phone,
+            otpSent: true,
+            expiresAt: user.phone.otpExpiry,
+            resendAfter: user.phone.otpResendAllowedAt,
+        },
+        message: "OTP sent successfully. Please verify it to add your phone number."
     };
 }
 

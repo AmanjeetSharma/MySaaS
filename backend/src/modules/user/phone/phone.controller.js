@@ -10,8 +10,8 @@ export const addPhoneController = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(
             200,
-            data,
-            "OTP sent to the provided phone number if it exists. Please verify to complete the process."
+            data.data,
+            data.message
         ));
 });
 

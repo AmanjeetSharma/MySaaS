@@ -12,7 +12,10 @@ import {
     Smartphone,
     Unlink,
     KeyRound,
-    Send
+    Send,
+    CheckCircle2,
+    Clock,
+    AlertCircle
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -44,6 +47,7 @@ const PhoneComponent = () => {
     const [otp, setOtp] = useState('');
     const [showOtpSection, setShowOtpSection] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
+    const [otpFeedback, setOtpFeedback] = useState(null);
 
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -67,18 +71,23 @@ const PhoneComponent = () => {
         if (isVerified && verifiedPhone) {
             setPhone(verifiedPhone);
             setShowOtpSection(false);
+            setOtp('');
+            setOtpFeedback(null);
             return;
         }
 
         if (pendingPhone && !isVerified) {
+            // Pre-fill phone if available, but OTP section should ONLY appear when send OTP is clicked
             setPhone(pendingPhone);
-            setShowOtpSection(true);
             return;
         }
 
-        setPhone('');
-        setOtp('');
-        setShowOtpSection(false);
+        if (!verifiedPhone && !pendingPhone) {
+            setPhone('');
+            setOtp('');
+            setShowOtpSection(false);
+            setOtpFeedback(null);
+        }
     }, [verifiedPhone, pendingPhone, isVerified]);
 
     const statusConfig = useMemo(() => {
@@ -124,20 +133,42 @@ const PhoneComponent = () => {
         }
 
         setIsSendingOtp(true);
+        setOtpFeedback(null);
 
         try {
-            await addPhoneNumber(phone);
+            const result = await addPhoneNumber(phone);
+            // OTP section should only appear when send OTP is clicked
             setShowOtpSection(true);
-            setResendCooldown(60);
-            toast.success('OTP sent successfully');
+
+            // Compute cooldown from backend resendAfter
+            let cooldown = 60;
+            if (result?.resendAfter) {
+                const targetTime = typeof result.resendAfter === 'number'
+                    ? result.resendAfter
+                    : new Date(result.resendAfter).getTime();
+                const diffSeconds = Math.ceil((targetTime - Date.now()) / 1000);
+                if (diffSeconds > 0) {
+                    cooldown = diffSeconds;
+                }
+            }
+            setResendCooldown(cooldown);
+
+            // Handle the two distinct backend return cases
+            if (result?.otpSent === false) {
+                const infoMsg = result?.message || `Please wait ${cooldown} seconds before requesting a new OTP`;
+                setOtpFeedback({ type: 'info', message: infoMsg });
+            } else {
+                const successMsg = result?.message || 'OTP sent successfully. Please verify it to add your phone number.';
+                setOtpFeedback({ type: 'success', message: successMsg });
+            }
         } catch (error) {
-            // Keep OTP section open so user can enter code even if resend fails/rate-limited
             setShowOtpSection(true);
-            toast.error(
+            const errorMsg =
                 error?.response?.data?.message ||
                 error?.message ||
-                'Failed to send OTP'
-            );
+                'Failed to send OTP';
+            setOtpFeedback({ type: 'error', message: errorMsg });
+            toast.error(errorMsg);
         } finally {
             setIsSendingOtp(false);
         }
@@ -158,13 +189,15 @@ const PhoneComponent = () => {
             await verifyPhoneOtp(otp);
             setOtp('');
             setShowOtpSection(false);
+            setOtpFeedback(null);
             toast.success('Phone verified successfully');
         } catch (error) {
-            toast.error(
+            const errorMsg =
                 error?.response?.data?.message ||
                 error?.message ||
-                'Failed to verify OTP'
-            );
+                'Failed to verify OTP';
+            setOtpFeedback({ type: 'error', message: errorMsg });
+            toast.error(errorMsg);
         } finally {
             setIsVerifyingOtp(false);
         }
@@ -178,6 +211,7 @@ const PhoneComponent = () => {
             setPhone('');
             setOtp('');
             setShowOtpSection(false);
+            setOtpFeedback(null);
             toast.success(
                 isVerified
                     ? 'Phone unlinked successfully'
@@ -273,7 +307,7 @@ const PhoneComponent = () => {
                 {!isVerified && (
                     <div className="space-y-2 max-w-lg">
                         <Label htmlFor="phone" className="text-xs font-medium text-foreground">
-                            {pendingPhone ? 'Update Phone Number' : 'Enter Phone Number (India)'}
+                            {pendingPhone ? 'Phone Number' : 'Enter Phone Number (India)'}
                         </Label>
 
                         <div className="flex flex-col sm:flex-row gap-2.5">
@@ -314,17 +348,30 @@ const PhoneComponent = () => {
                                 ) : (
                                     <>
                                         <Send className="mr-1.5 h-3.5 w-3.5" />
-                                        Send OTP
+                                        {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Send OTP'}
                                     </>
                                 )}
                             </Button>
                         </div>
+
+                        {!showOtpSection && pendingPhone && (
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-0.5">
+                                <span>Have an unexpired verification code?</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOtpSection(true)}
+                                    className="text-primary hover:underline font-medium cursor-pointer"
+                                >
+                                    Enter OTP
+                                </button>
+                            </p>
+                        )}
                     </div>
                 )}
 
                 {/* OTP Verification Box */}
                 {showOtpSection && !isVerified && (
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 max-w-lg">
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3.5 max-w-lg">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <KeyRound className="h-4 w-4 text-primary" />
@@ -340,12 +387,30 @@ const PhoneComponent = () => {
                                 onClick={() => {
                                     setShowOtpSection(false);
                                     setOtp('');
+                                    setOtpFeedback(null);
                                 }}
                                 className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground cursor-pointer rounded"
                             >
                                 Change number
                             </Button>
                         </div>
+
+                        {otpFeedback && (
+                            <div
+                                className={`flex items-start gap-2 rounded-lg p-2.5 text-xs ${
+                                    otpFeedback.type === 'success'
+                                        ? 'bg-success/10 border border-success/20 text-success'
+                                        : otpFeedback.type === 'info'
+                                        ? 'bg-warning/10 border border-warning/20 text-warning'
+                                        : 'bg-destructive/10 border border-destructive/20 text-destructive'
+                                }`}
+                            >
+                                {otpFeedback.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />}
+                                {otpFeedback.type === 'info' && <Clock className="h-4 w-4 shrink-0 mt-0.5" />}
+                                {otpFeedback.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+                                <span className="leading-snug">{otpFeedback.message}</span>
+                            </div>
+                        )}
 
                         <p className="text-[11px] text-muted-foreground">
                             A 6-digit confirmation code was sent via SMS to <span className="font-medium text-foreground">+91 {phone}</span>.
