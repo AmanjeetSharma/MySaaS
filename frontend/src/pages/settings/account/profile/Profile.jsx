@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import {
   Loader2,
   Camera,
+  Upload,
   Trash2,
   Save,
   RotateCcw,
@@ -19,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AccountInfo from './AccountInfo';
 import PhoneComponent from './PhoneComponent';
 import AvatarCropModal from './AvatarCropModal';
+import LoginProviders from './LoginProviders';
 
 const Profile = () => {
   const {
@@ -189,7 +191,7 @@ const Profile = () => {
   };
 
   const cleanupCropState = () => {
-    if (selectedImageSrc) {
+    if (selectedImageSrc && selectedImageSrc.startsWith('blob:')) {
       URL.revokeObjectURL(selectedImageSrc);
     }
     setSelectedImageSrc(null);
@@ -197,6 +199,16 @@ const Profile = () => {
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (isAvatarUploading || isRemovingAvatar) return;
+    if (userProfile?.avatar?.url) {
+      setSelectedImageSrc(userProfile.avatar.url);
+      setIsCropModalOpen(true);
+    } else {
+      fileInputRef.current?.click();
     }
   };
 
@@ -264,24 +276,44 @@ const Profile = () => {
         <Separator className="bg-border-subtle" />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pt-1">
-          <Avatar className="h-20 w-20 ring-1 ring-border/80 shadow-xs bg-background shrink-0">
-            {previewAvatar ? (
-              <img
-                src={previewAvatar}
-                alt="Avatar preview"
-                className="h-full w-full object-cover rounded-full"
-              />
-            ) : userProfile?.avatar?.url ? (
-              <AvatarImage
-                src={userProfile.avatar.url}
-                alt={userProfile.name}
-                className="object-cover"
-              />
-            ) : null}
-            <AvatarFallback className="bg-muted text-lg font-bold text-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleAvatarClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleAvatarClick();
+              }
+            }}
+            className="group relative cursor-pointer rounded-full outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 shrink-0 select-none"
+            title={userProfile?.avatar?.url ? "Click to adjust avatar" : "Click to upload avatar"}
+          >
+            <Avatar className="h-20 w-20 ring-1 ring-border/80 shadow-xs bg-background transition-transform group-hover:scale-[1.02] group-active:scale-95">
+              {previewAvatar ? (
+                <img
+                  src={previewAvatar}
+                  alt="Avatar preview"
+                  className="h-full w-full object-cover rounded-full"
+                />
+              ) : userProfile?.avatar?.url ? (
+                <AvatarImage
+                  src={userProfile.avatar.url}
+                  alt={userProfile.name}
+                  className="object-cover"
+                />
+              ) : null}
+              <AvatarFallback className="bg-muted text-lg font-bold text-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100 text-white">
+              <Camera className="h-5 w-5 drop-shadow-md" />
+              <span className="text-[9px] font-medium mt-0.5 tracking-tight">
+                {userProfile?.avatar?.url ? 'Edit' : 'Upload'}
+              </span>
+            </div>
+          </div>
 
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -293,8 +325,18 @@ const Profile = () => {
                 disabled={isAvatarUploading}
                 className="h-8 px-3 text-xs font-medium rounded-lg cursor-pointer"
               >
-                <Camera className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                <span>{isAvatarUploading ? 'Uploading...' : 'Change avatar'}</span>
+                {userProfile?.avatar?.url ? (
+                  <Camera className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                )}
+                <span>
+                  {isAvatarUploading
+                    ? 'Uploading...'
+                    : userProfile?.avatar?.url
+                      ? 'Change avatar'
+                      : 'Upload avatar'}
+                </span>
               </Button>
 
               {userProfile?.avatar?.url && (
@@ -399,12 +441,11 @@ const Profile = () => {
           <Button
             type="submit"
             disabled={isSavingName || !isDirty}
-            size="sm"
-            className="h-9 px-4 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50"
+            className="h-10 px-5 rounded-xl bg-accent text-accent-foreground font-semibold shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50 text-xs sm:text-sm"
           >
             {isSavingName ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 Saving...
               </>
             ) : (
@@ -417,11 +458,10 @@ const Profile = () => {
           {isDirty && (
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
+              variant="outline"
               onClick={handleResetName}
               disabled={isSavingName}
-              className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+              className="h-10 px-3.5 text-xs sm:text-sm font-semibold rounded-xl bg-secondary/80 text-secondary-foreground border border-border-strong shadow-xs hover:text-destructive hover:border-destructive/50 hover:bg-destructive/15 active:scale-95 transition-all cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
               Discard
@@ -432,12 +472,17 @@ const Profile = () => {
 
       <Separator className="bg-border-subtle" />
 
-      {/* Section 3: Phone & SMS Security */}
+      {/* Section 3: Authentication & Login Methods */}
+      <LoginProviders />
+
+      <Separator className="bg-border-subtle" />
+
+      {/* Section 4: Phone & SMS Security */}
       <PhoneComponent />
 
       <Separator className="bg-border-subtle" />
 
-      {/* Section 4: Account Metadata & Preferences */}
+      {/* Section 5: Account Metadata & Preferences */}
       <AccountInfo />
 
       {/* Hidden File Input for Avatar */}
@@ -455,6 +500,7 @@ const Profile = () => {
         isOpen={isCropModalOpen}
         onClose={cleanupCropState}
         onCropComplete={handleCropAndUpload}
+        onPickNewImage={() => fileInputRef.current?.click()}
         isUploading={isAvatarUploading}
         fileType={selectedFileType}
       />

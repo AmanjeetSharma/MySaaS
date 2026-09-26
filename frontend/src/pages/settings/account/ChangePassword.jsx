@@ -72,8 +72,8 @@ function Alert({ type, message }) {
   return (
     <div
       className={`mb-6 flex items-start gap-3 rounded-xl border p-3 text-sm animate-in fade-in-50 slide-in-from-top-2 duration-200 ${isSuccess
-          ? "border-success/20 bg-success/10 text-success"
-          : "border-destructive/20 bg-destructive/10 text-destructive"
+        ? "border-success/20 bg-success/10 text-success"
+        : "border-destructive/20 bg-destructive/10 text-destructive"
         }`}
     >
       {isSuccess ? (

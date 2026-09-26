@@ -1,15 +1,28 @@
 import { ApiError } from "../../../../utils/ApiError.js";
 import { OAuth2Client } from 'google-auth-library';
 import env from "../../../../config/env.config.js";
-import { findUserByEmail, createUserByGoogle, createDefaultOrganization } from "../../auth.repository.js";
+import { findUserByEmail, createUserByGoogle, createDefaultOrganization, getUserById } from "../../auth.repository.js";
 import { generateSessionId, generateAccessToken, generateRefreshToken } from "../../../../utils/token.js";
 import { welcomeEmailTemplate } from "../../../../utils/email/welcomeEmailTemplate.js";
 import { sendEmail } from "../../../../integrations/email.integration.js";
 import { generateOrgSlug } from "../../auth.helper.js";
 import logger from "#/config/logger.js";
+import { invalidateUserProfileCache } from "#/modules/user/user.cache.js";
+
+
+
+
+
+
+
+
+
+
+
 
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
 
 
 export const googleLoginService = async (body) => {
@@ -195,5 +208,60 @@ export const googleLoginService = async (body) => {
         accessToken,
         refreshToken,
         message: isNewUser ? "Your account has been created" : `Welcome back!, ${user.name}`,
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+export const googleUnlinkService = async (userId) => {
+    const user = await getUserById(userId);
+
+    if (!user.providers?.google?.enabled) {
+        throw new ApiError(400, "Your account is not linked with Google");
+    }
+
+    if (!user.providers?.local?.enabled) {
+        throw new ApiError(400, "This is your only login method, Please set a password before unlinking Google");
+    }
+
+    user.providers.google = {
+        enabled: false,
+        googleId: null,
+    };
+
+    try {
+        await user.save();
+    } catch (err) {
+        logger.error(
+            {
+                userId,
+                err,
+            },
+            "auth.google_unlink.failed"
+        );
+
+        throw new ApiError(500, "Failed to unlink Google login, Please try again");
+    }
+
+    await invalidateUserProfileCache(userId);
+
+    logger.info(
+        {
+            userId,
+            email: user.email,
+        },
+        "auth.google_unlink.success"
+    );
+
+    return {
+        providers: user.providers,
     }
 };

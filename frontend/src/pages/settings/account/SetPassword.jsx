@@ -274,7 +274,7 @@ export default function SetPassword({ className = "" }) {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-10 rounded-xl font-semibold cursor-pointer"
+                className="w-full h-10 rounded-xl bg-accent text-accent-foreground font-semibold shadow-md shadow-accent/20 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
               >
                 {isLoading ? (
                   <>

@@ -65,3 +65,13 @@ export const findIfSlugExists = async (slug) => {
     let query = Organization.findOne({ slug });
     return await query;
 };
+
+
+
+export const getUserById=(userId, selectFields) => {
+    let query = User.findById(userId);
+    if (selectFields) {
+        query = query.select(selectFields);
+    }
+    return query;
+}

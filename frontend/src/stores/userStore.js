@@ -260,16 +260,16 @@ export const useUserStore = create((set, get) => ({
         set({ isUpdating: true, error: null });
         try {
             const response = await http.post('/users/phone', { phone });
-            const { data } = response.data;
+            const { data, message } = response.data;
 
             set({
-                phoneNumber: data.pendingNumber,
+                phoneNumber: data?.pendingNumber || phone,
                 isPhoneVerified: false,
                 userProfile: {
                     ...get().userProfile,
                     phone: {
                         ...get().userProfile?.phone,
-                        pendingNumber: data.pendingNumber,
+                        pendingNumber: data?.pendingNumber || phone,
                         isVerified: false
                     }
                 },
@@ -277,7 +277,10 @@ export const useUserStore = create((set, get) => ({
                 error: null
             });
 
-            return data;
+            return {
+                ...data,
+                message: message || response.data?.message
+            };
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to add phone number';
             set({ isUpdating: false, error: errorMessage });
@@ -340,11 +343,64 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
+    unlinkGoogle: async () => {
+        set({ isUpdating: true, error: null });
+        try {
+            const response = await http.post('/auth/unlink/google');
+            const { data } = response.data;
 
+            set((state) => ({
+                userProfile: {
+                    ...state.userProfile,
+                    providers: {
+                        ...state.userProfile?.providers,
+                        google: {
+                            enabled: false,
+                            googleId: null
+                        }
+                    },
+                    updatedAt: new Date().toISOString()
+                },
+                isUpdating: false,
+                error: null
+            }));
 
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to unlink Google account';
+            set({ isUpdating: false, error: errorMessage });
+            throw error;
+        }
+    },
 
+    unlinkLocal: async () => {
+        set({ isUpdating: true, error: null });
+        try {
+            const response = await http.post('/auth/unlink/local');
+            const { data } = response.data;
 
+            set((state) => ({
+                userProfile: {
+                    ...state.userProfile,
+                    providers: {
+                        ...state.userProfile?.providers,
+                        local: {
+                            enabled: false
+                        }
+                    },
+                    updatedAt: new Date().toISOString()
+                },
+                isUpdating: false,
+                error: null
+            }));
 
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to unlink password login';
+            set({ isUpdating: false, error: errorMessage });
+            throw error;
+        }
+    },
 
     clearError: () => set({ error: null }),
 

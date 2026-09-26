@@ -10,7 +10,7 @@ import {
     DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, RotateCw, RotateCcw, RefreshCw } from 'lucide-react';
+import { Loader2, RotateCw, RotateCcw, RefreshCw, Upload } from 'lucide-react';
 import { getCroppedImg } from '@/utils/cropImage';
 
 const AvatarCropModal = ({
@@ -18,6 +18,7 @@ const AvatarCropModal = ({
     isOpen,
     onClose,
     onCropComplete,
+    onPickNewImage,
     isUploading,
     fileType = 'image/jpeg'
 }) => {
@@ -65,7 +66,7 @@ const AvatarCropModal = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && !isBusy && onClose()}>
-            <DialogContent className="sm:max-w-lg bg-surface-elevated text-surface-elevated-foreground border-border-strong shadow-2xl p-5 sm:p-6 rounded-2xl [&>button]:cursor-pointer [&>button]:hover:bg-hover [&>button]:text-subtle-foreground [&>button]:hover:text-foreground">
+            <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full sm:max-w-lg max-h-[92vh] overflow-y-auto bg-surface-elevated text-surface-elevated-foreground border-border-strong shadow-2xl p-4 sm:p-6 rounded-2xl [&>button]:cursor-pointer [&>button]:hover:bg-hover [&>button]:text-subtle-foreground [&>button]:hover:text-foreground">
                 <DialogHeader className="space-y-1">
                     <DialogTitle className="font-heading text-base sm:text-xl font-semibold tracking-tight text-foreground">
                         Adjust Profile Picture
@@ -76,7 +77,7 @@ const AvatarCropModal = ({
                 </DialogHeader>
 
                 {/* Cropper Viewport Area */}
-                <div className="relative w-full h-64 sm:h-72 bg-neutral-950 rounded-xl overflow-hidden border border-border-subtle shadow-inner my-2 select-none">
+                <div className="relative w-full h-52 sm:h-72 bg-neutral-950 rounded-xl overflow-hidden border border-border-subtle shadow-inner my-1 select-none">
                     {imageSrc && (
                         <Cropper
                             image={imageSrc}
@@ -99,7 +100,7 @@ const AvatarCropModal = ({
                 </div>
 
                 {/* Rotation Control Slider & Quick Step Buttons */}
-                <div className="space-y-3 py-1">
+                <div className="space-y-2 py-1">
                     <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-subtle-foreground font-medium">
                             <span className="flex items-center gap-1.5">
@@ -143,28 +144,40 @@ const AvatarCropModal = ({
                 </div>
 
                 {/* Modal Actions */}
-                <DialogFooter className="flex flex-row items-center justify-between gap-3 pt-3 border-t border-border-subtle sm:justify-between">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleReset}
-                        disabled={isBusy || (zoom === 1 && rotation === 0 && crop.x === 0 && crop.y === 0)}
-                        className="text-xs gap-1.5 text-subtle-foreground hover:text-foreground hover:bg-hover rounded-xl cursor-pointer transition-all active:scale-95 px-3 py-2"
-                    >
-                        <RefreshCw className="h-3.5 w-3.5" /> Reset
-                    </Button>
+                <DialogFooter className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-border-subtle sm:justify-between">
+                    <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleReset}
+                            disabled={isBusy || (zoom === 1 && rotation === 0 && crop.x === 0 && crop.y === 0)}
+                            className="h-8 text-xs gap-1.5 text-subtle-foreground hover:text-foreground hover:bg-hover rounded-xl cursor-pointer transition-all active:scale-95 px-2.5 sm:px-3"
+                        >
+                            <RefreshCw className="h-3.5 w-3.5" /> Reset
+                        </Button>
 
-                    <div className="flex gap-2.5">
+                        {onPickNewImage && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={onPickNewImage}
+                                disabled={isBusy}
+                                className="h-8 text-xs gap-1.5 text-subtle-foreground hover:text-foreground hover:bg-hover rounded-xl cursor-pointer transition-all active:scale-95 px-2.5 sm:px-3"
+                            >
+                                <Upload className="h-3.5 w-3.5 text-primary" /> New Photo
+                            </Button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
                             disabled={isBusy}
-                            className="
-                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-95
-                bg-surface text-subtle-foreground border-border hover:bg-surface-sunken hover:text-foreground hover:border-border-strong
-              "
+                            className="flex-1 sm:flex-initial h-8.5 px-4 rounded-xl text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-95 bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border-strong shadow-xs"
                         >
                             Cancel
                         </Button>
@@ -173,10 +186,7 @@ const AvatarCropModal = ({
                             type="button"
                             onClick={handleSave}
                             disabled={isBusy}
-                            className="
-                h-8 px-4 py-2.5 rounded-xl text-xs sm:text-sm gap-2 font-bold cursor-pointer transition-all active:scale-95
-                bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:opacity-90
-              "
+                            className="flex-1 sm:flex-initial h-8.5 px-4 rounded-xl text-xs sm:text-sm gap-2 font-bold cursor-pointer transition-all active:scale-95 bg-accent hover:bg-accent/90 text-accent-foreground hover:text-accent-foreground shadow-md shadow-accent/20"
                         >
                             {isBusy ? (
                                 <>
