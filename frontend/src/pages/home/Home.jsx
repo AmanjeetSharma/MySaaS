@@ -116,7 +116,6 @@ const Home = () => {
             to="/"
             className="flex items-center gap-2 text-lg sm:text-xl font-bold tracking-tight text-foreground hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
           >
-            <span className="h-2 w-2 rounded-full moon-dot text-primary" />
             <span>miniCRM</span>
           </Link>
 
@@ -160,58 +159,40 @@ const Home = () => {
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-background/95 backdrop-blur-2xl border-l border-border w-72">
+              <SheetContent side="right" className="bg-background/95 backdrop-blur-2xl border-l border-border w-72 flex flex-col p-6">
                 <VisuallyHidden>
-                  <SheetTitle>Navigation Menu</SheetTitle>
-                  <SheetDescription>Main application navigation links</SheetDescription>
+                  <SheetTitle>Account Navigation</SheetTitle>
+                  <SheetDescription>Sign in or register for miniCRM</SheetDescription>
                 </VisuallyHidden>
-                <nav className="flex flex-col gap-4 text-sm mt-10">
+                <div className="flex items-center gap-2 pt-1 pb-5 border-b border-border">
+                  <span className="text-base font-bold tracking-tight text-foreground">miniCRM</span>
+                </div>
+                <div className="flex flex-col gap-3 pt-6">
                   <SheetClose asChild>
-                    <a
-                      href="#engine"
-                      onClick={(e) => handleAnchorClick(e, '#engine')}
-                      className="text-foreground hover:text-primary transition-colors py-1"
+                    <Link
+                      to="/signin"
+                      className="flex items-center justify-center w-full h-10 rounded-lg border border-border bg-card/60 hover:bg-muted/70 text-sm font-medium text-foreground transition-colors"
                     >
-                      Engine
-                    </a>
+                      Sign In
+                    </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <a
-                      href="#crm"
-                      onClick={(e) => handleAnchorClick(e, '#crm')}
-                      className="text-foreground hover:text-primary transition-colors py-1"
+                    <Link
+                      to="/signup"
+                      className="flex items-center justify-center w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-xs"
                     >
-                      CRM Suite
-                    </a>
+                      Start Free Trial
+                    </Link>
                   </SheetClose>
-                  <SheetClose asChild>
-                    <a
-                      href="#capabilities"
-                      onClick={(e) => handleAnchorClick(e, '#capabilities')}
-                      className="text-foreground hover:text-primary transition-colors py-1"
-                    >
-                      Capabilities
-                    </a>
-                  </SheetClose>
-                  <div className="pt-4 border-t border-border flex flex-col gap-2">
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    Don&apos;t have an account?{" "}
                     <SheetClose asChild>
-                      <Link
-                        to="/signin"
-                        className="text-center py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg"
-                      >
-                        Sign In
+                      <Link to="/signup" className="text-primary font-medium hover:underline underline-offset-4">
+                        Sign up
                       </Link>
                     </SheetClose>
-                    <SheetClose asChild>
-                      <Button
-                        className="w-full h-9 rounded-lg bg-primary text-primary-foreground font-semibold cursor-pointer"
-                        onClick={() => navigate("/signup")}
-                      >
-                        Start Free Trial
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </nav>
+                  </p>
+                </div>
               </SheetContent>
             </Sheet>
           </div>
