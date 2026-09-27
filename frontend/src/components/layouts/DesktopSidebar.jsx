@@ -157,7 +157,7 @@ export function DesktopSidebar() {
             <SidebarHeader
                 className={cn(
                     "flex flex-row items-center border-b border-border-subtle h-16 w-full",
-                    isCollapsed ? "justify-center px-0" : "justify-end px-4"
+                    isCollapsed ? "justify-center p-0" : "justify-end px-4"
                 )}
             >
                 <TooltipProvider>
@@ -168,13 +168,13 @@ export function DesktopSidebar() {
                                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                                 className={cn(
                                     "flex items-center justify-center rounded-md hover:bg-hover hover:text-hover-foreground active:bg-active transition-all duration-200 cursor-pointer text-sidebar-foreground",
-                                    isCollapsed ? "h-8 w-8" : "h-9 w-9 ml-auto"
+                                    isCollapsed ? "h-8 w-8 mx-auto" : "h-9 w-9 ml-auto"
                                 )}
                             >
                                 {isCollapsed ? (
-                                    <PanelRightClose className="h-4 w-4" />
+                                    <PanelRightClose className="h-4 w-4 shrink-0" />
                                 ) : (
-                                    <PanelLeftClose className="h-5 w-5" />
+                                    <PanelLeftClose className="h-5 w-5 shrink-0" />
                                 )}
                             </button>
                         </TooltipTrigger>
@@ -191,8 +191,8 @@ export function DesktopSidebar() {
                     <SidebarGroup
                         key={group.id}
                         className={cn(
-                            "py-0",
-                            isCollapsed ? "px-0 items-center" : "px-2.5",
+                            "w-full",
+                            isCollapsed ? "p-0 items-center" : "py-0 px-2.5",
                             groupIdx > 0 && "mt-3.5"
                         )}
                     >
@@ -201,59 +201,58 @@ export function DesktopSidebar() {
                                 {group.label}
                             </SidebarGroupLabel>
                         )}
-                        <SidebarGroupContent className={cn(isCollapsed && "flex justify-center")}>
-                            <SidebarMenu className={cn("gap-0.5", isCollapsed && "items-center")}>
+                        <SidebarGroupContent className={cn("w-full", isCollapsed && "flex flex-col items-center justify-center")}>
+                            <SidebarMenu className={cn("w-full gap-0.5", isCollapsed && "items-center")}>
                                 {group.navItems.map((item) => (
                                     <SidebarMenuItem
                                         key={item.title}
-                                        className={cn(isCollapsed && "flex justify-center w-full")}
+                                        className={cn("w-full", isCollapsed && "flex justify-center items-center")}
                                     >
                                         {item.items && item.items.length > 0 ? (
-                                            <Collapsible
-                                                open={!isCollapsed && (openMenus[item.title] ?? isChildActive(item))}
-                                                onOpenChange={(isOpen) => setMenuOpen(item.title, isOpen)}
-                                                className="w-full"
-                                            >
-                                                <CollapsibleTrigger
-                                                    asChild
-                                                    className={cn(isCollapsed && "flex justify-center w-full")}
+                                            isCollapsed ? (
+                                                <SidebarMenuButton
+                                                    tooltip={item.title}
+                                                    onClick={handleNavClick}
+                                                    className={cn(
+                                                        "cursor-pointer rounded-lg text-xs font-medium transition-all duration-150 h-8 w-8 justify-center p-0! mx-auto",
+                                                        isChildActive(item)
+                                                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-2xs"
+                                                            : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
+                                                    )}
                                                 >
-                                                    <SidebarMenuButton
-                                                        tooltip={item.title}
-                                                        onClick={handleNavClick}
-                                                        className={cn(
-                                                            "cursor-pointer rounded-lg text-xs font-medium transition-all duration-150",
-                                                            isCollapsed
-                                                                ? "h-8 w-8 justify-center p-0!"
-                                                                : "h-8.5 w-full justify-between px-2.5",
-                                                            isChildActive(item)
-                                                                ? "text-foreground font-semibold bg-sidebar-accent/50"
-                                                                : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
-                                                        )}
-                                                    >
-                                                        <div className={cn(
-                                                            "flex items-center",
-                                                            isCollapsed ? "justify-center" : "gap-2.5"
-                                                        )}>
-                                                            {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
-                                                            <span className={cn(
-                                                                "truncate",
-                                                                isCollapsed && "hidden"
-                                                            )}>
-                                                                {item.title}
-                                                            </span>
-                                                        </div>
-                                                        {!isCollapsed && (
+                                                    <div className="flex items-center justify-center w-full">
+                                                        {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
+                                                    </div>
+                                                </SidebarMenuButton>
+                                            ) : (
+                                                <Collapsible
+                                                    open={openMenus[item.title] ?? isChildActive(item)}
+                                                    onOpenChange={(isOpen) => setMenuOpen(item.title, isOpen)}
+                                                    className="w-full"
+                                                >
+                                                    <CollapsibleTrigger asChild>
+                                                        <SidebarMenuButton
+                                                            tooltip={item.title}
+                                                            onClick={handleNavClick}
+                                                            className={cn(
+                                                                "cursor-pointer rounded-lg text-xs font-medium transition-all duration-150 h-8.5 w-full justify-between px-2.5",
+                                                                isChildActive(item)
+                                                                    ? "text-foreground font-semibold bg-sidebar-accent/50"
+                                                                    : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
+                                                            )}
+                                                        >
+                                                            <div className="flex items-center gap-2.5">
+                                                                {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
+                                                                <span className="truncate">{item.title}</span>
+                                                            </div>
                                                             <ChevronRight
                                                                 className={cn(
                                                                     "h-3.5 w-3.5 shrink-0 transition-transform duration-200 text-muted-foreground/70",
                                                                     (openMenus[item.title] ?? isChildActive(item)) && "rotate-90 text-foreground"
                                                                 )}
                                                             />
-                                                        )}
-                                                    </SidebarMenuButton>
-                                                </CollapsibleTrigger>
-                                                {!isCollapsed && (
+                                                        </SidebarMenuButton>
+                                                    </CollapsibleTrigger>
                                                     <CollapsibleContent>
                                                         <SidebarMenu className="ml-3.5 mt-0.5 border-l border-border-subtle/80 pl-2.5 space-y-0.5">
                                                             {item.items.map((subItem) => (
@@ -278,14 +277,14 @@ export function DesktopSidebar() {
                                                             ))}
                                                         </SidebarMenu>
                                                     </CollapsibleContent>
-                                                )}
-                                            </Collapsible>
+                                                </Collapsible>
+                                            )
                                         ) : (
                                             <NavLink
                                                 to={item.href}
                                                 className={cn(
                                                     "cursor-pointer",
-                                                    isCollapsed ? "flex justify-center w-full" : "block"
+                                                    isCollapsed ? "flex justify-center items-center w-full" : "block"
                                                 )}
                                             >
                                                 <SidebarMenuButton
@@ -294,7 +293,7 @@ export function DesktopSidebar() {
                                                     className={cn(
                                                         "cursor-pointer rounded-lg text-xs font-medium transition-all duration-150",
                                                         isCollapsed
-                                                            ? "h-8 w-8 justify-center p-0!"
+                                                            ? "h-8 w-8 justify-center p-0! mx-auto"
                                                             : "h-8.5 w-full justify-start px-2.5",
                                                         isActive(item)
                                                             ? (isCollapsed
@@ -306,7 +305,7 @@ export function DesktopSidebar() {
                                                 >
                                                     <div className={cn(
                                                         "flex items-center",
-                                                        isCollapsed ? "justify-center" : "gap-2.5"
+                                                        isCollapsed ? "justify-center w-full" : "gap-2.5"
                                                     )}>
                                                         {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
                                                         <span className={cn(
