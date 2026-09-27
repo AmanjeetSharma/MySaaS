@@ -42,7 +42,7 @@ export const updateNotificationsController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(
             200,
             data,
-            "Notification preferences updated successfully."
+            data.message
         ))
 });
 
