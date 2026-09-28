@@ -15,14 +15,43 @@ import {
 import { Button } from '@/components/ui/button';
 import {
     ChevronRight,
-    ChevronDown,
-    ArrowLeftToLine,
+    PanelLeftClose,
     Menu
 } from 'lucide-react';
 import { useNavigationConfig } from '@/config/navigation.config';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { SidebarFooter } from '@/components/ui/sidebar';
+
+const NAV_GROUPS = [
+    {
+        id: 'core',
+        label: 'Overview',
+        items: ['Dashboard']
+    },
+    {
+        id: 'crm',
+        label: 'CRM',
+        items: ['Customers', 'Deals']
+    },
+    {
+        id: 'bookings',
+        label: 'Bookings',
+        items: ['Services', 'Bookings']
+    },
+    {
+        id: 'workspace',
+        label: 'Workspace',
+        items: ['Organization', 'Integrations']
+    },
+    {
+        id: 'system',
+        label: 'System',
+        items: ['Notifications', 'Settings', 'Support']
+    }
+];
+
+const ALL_GROUPED_TITLES = new Set(NAV_GROUPS.flatMap(g => g.items));
+const CURRENT_YEAR = new Date().getFullYear();
 
 export function MobileDrawer({ children }) {
     const [open, setOpen] = useState(false);
@@ -30,67 +59,94 @@ export function MobileDrawer({ children }) {
     const location = useLocation();
     const navigationConfig = useNavigationConfig();
 
-    // Close drawer on route change
-    useEffect(() => {
+    const closeDrawer = useCallback(() => {
         setOpen(false);
-    }, [location.pathname]);
+    }, []);
 
-    // Auto-open parent menu if child is active
-    useEffect(() => {
-        navigationConfig.mainNav.forEach((item) => {
-            if (item.items && item.items.some(subItem => isActive(subItem))) {
-                setOpenMenus(prev => ({ ...prev, [item.title]: true }));
-            }
-        });
-    }, [location.pathname]);
+    const setMenuOpen = useCallback((title, isOpen) => {
+        setOpenMenus(prev => ({
+            ...prev,
+            [title]: isOpen
+        }));
+    }, []);
 
-    const isActive = useCallback((item) => {
-        if (!item.href) return false;
-
-        // Exact match for dashboard or items with exactMatch flag
-        if (item.exactMatch || item.href === '/dashboard') {
-            return location.pathname === item.href;
-        }
-
-        // Pattern-based matching for nested org routes
-        if (item.pattern) {
-            const patternParts = item.pattern.split('/');
-            const pathParts = location.pathname.split('/');
-
-            if (patternParts.length !== pathParts.length) return false;
-
-            return patternParts.every((part, i) => {
-                if (part.startsWith(':')) return true; // Dynamic segment
-                return part === pathParts[i];
-            });
-        }
-
-        // For non-organization nested routes (services, deals, settings)
-        if (location.pathname === item.href) return true;
-
-        // Check if current path is a direct child of this item's href
-        const childPatterns = navigationConfig.mainNav
+    const activeStatusMap = useMemo(() => {
+        const pathname = location.pathname;
+        const mainNav = navigationConfig.mainNav || [];
+        const allChildHrefs = mainNav
             .flatMap(nav => nav.items || [])
-            .filter(sub => sub.href && sub.href.startsWith(item.href + '/'))
-            .map(sub => sub.href);
+            .map(sub => sub.href)
+            .filter(Boolean);
 
-        // If there are child routes, don't mark parent as active when child is active
-        if (childPatterns.length > 0) {
-            return location.pathname === item.href;
+        const checkItemActive = (item) => {
+            if (!item.href) return false;
+
+            if (item.exactMatch || item.href === '/dashboard') {
+                return pathname === item.href;
+            }
+
+            if (item.pattern) {
+                const patternParts = item.pattern.split('/');
+                const pathParts = pathname.split('/');
+
+                if (patternParts.length !== pathParts.length) return false;
+
+                return patternParts.every((part, i) => {
+                    if (part.startsWith(':')) return true;
+                    return part === pathParts[i];
+                });
+            }
+
+            if (pathname === item.href) return true;
+
+            const hasChildrenStartingWithHref = allChildHrefs.some(h => h.startsWith(item.href + '/'));
+            if (hasChildrenStartingWithHref) {
+                return pathname === item.href;
+            }
+
+            return pathname.startsWith(item.href);
+        };
+
+        const map = {};
+        for (const item of mainNav) {
+            const isItemActive = checkItemActive(item);
+            let hasActiveChild = false;
+            const subMap = {};
+            if (item.items && item.items.length > 0) {
+                for (const sub of item.items) {
+                    const isSubActive = checkItemActive(sub);
+                    subMap[sub.title] = isSubActive;
+                    if (isSubActive) hasActiveChild = true;
+                }
+            }
+            map[item.title] = {
+                isActive: isItemActive,
+                isChildActive: hasActiveChild,
+                subItems: subMap
+            };
         }
-
-        return location.pathname.startsWith(item.href);
+        return map;
     }, [location.pathname, navigationConfig.mainNav]);
 
-    const isItemActive = useCallback((item) => {
-        if (item.href) {
-            return isActive(item);
+    const groupedNav = useMemo(() => {
+        const mainNav = navigationConfig.mainNav || [];
+        const result = NAV_GROUPS.map(group => ({
+            ...group,
+            navItems: group.items
+                .map(title => mainNav.find(item => item.title === title))
+                .filter(Boolean)
+        })).filter(group => group.navItems.length > 0);
+
+        const remaining = mainNav.filter(item => !ALL_GROUPED_TITLES.has(item.title));
+        if (remaining.length > 0) {
+            result.push({
+                id: 'other',
+                label: 'More',
+                navItems: remaining
+            });
         }
-        if (item.items) {
-            return item.items.some((subItem) => isActive(subItem));
-        }
-        return false;
-    }, [isActive]);
+        return result;
+    }, [navigationConfig.mainNav]);
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -99,7 +155,7 @@ export function MobileDrawer({ children }) {
                     <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-9 w-9 hover:bg-hover hover:text-hover-foreground active:bg-active"
+                        className="h-9 w-9 hover:bg-hover hover:text-hover-foreground active:bg-active touch-manipulation"
                     >
                         <Menu className="h-5 w-5" />
                     </Button>
@@ -107,110 +163,132 @@ export function MobileDrawer({ children }) {
             </SheetTrigger>
             <SheetContent 
                 side="left" 
-                className="w-[85%] sm:w-87.5 p-0 [&>button]:hidden bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
+                showCloseButton={false}
+                className="w-72 sm:w-80 max-w-[85vw] p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col justify-between"
             >
                 {/* Header */}
-                <SheetHeader className="border-b border-border-subtle p-4">
-                    <div className="flex items-center justify-between">
-                        <SheetTitle className="font-heading text-xl font-bold tracking-tight text-sidebar-foreground">
-                            MySaaS
-                        </SheetTitle>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setOpen(false)}
-                            className="h-8 w-8 shrink-0 hover:bg-hover hover:text-hover-foreground active:bg-active text-subtle-foreground hover:text-sidebar-foreground"
-                        >
-                            <ArrowLeftToLine className="h-4 w-4" />
-                        </Button>
-                    </div>
+                <SheetHeader className="h-16 border-b border-border-subtle px-4 flex flex-row items-center justify-between shrink-0">
+                    <SheetTitle className="font-heading text-lg font-bold tracking-tight text-sidebar-foreground select-none">
+                        miniCRM
+                    </SheetTitle>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={closeDrawer}
+                        className="h-8 w-8 rounded-md hover:bg-hover hover:text-hover-foreground active:bg-active text-muted-foreground hover:text-foreground cursor-pointer transition-colors touch-manipulation"
+                        aria-label="Close navigation"
+                    >
+                        <PanelLeftClose className="h-5 w-5" />
+                    </Button>
                     <SheetDescription className="sr-only">
                         Mobile navigation menu
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="flex h-full flex-col justify-between">
-                    {/* Navigation */}
-                    <div className="flex-1 overflow-y-auto py-4">
-                        <div className="space-y-1.5 px-3">
-                            {navigationConfig.mainNav.map((item) => (
-                                <div key={item.title} className="space-y-1">
-                                    {item.items && item.items.length > 0 ? (
-                                        <Collapsible
-                                            open={openMenus[item.title] ?? false}
-                                            onOpenChange={(isOpen) =>
-                                                setOpenMenus((prev) => ({
-                                                    ...prev,
-                                                    [item.title]: isOpen,
-                                                }))
-                                            }
-                                        >
-                                            <CollapsibleTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className={cn(
-                                                        'w-full justify-between px-3 py-2.5 h-11 rounded-lg font-medium text-[15px] transition-all duration-150 hover:bg-accent/80 hover:text-accent-foreground text-sidebar-foreground',
-                                                        isItemActive(item) &&
-                                                        'bg-accent text-accent-foreground font-semibold shadow-sm'
-                                                    )}
+                {/* Content: Grouped Navigation matching DesktopSidebar */}
+                <nav aria-label="Mobile Navigation" className="flex-1 overflow-y-auto overscroll-y-contain py-2.5 px-2.5">
+                    {groupedNav.map((group, groupIdx) => (
+                        <div
+                            key={group.id}
+                            className={cn(
+                                "w-full",
+                                groupIdx > 0 && "mt-3.5"
+                            )}
+                        >
+                            {group.label && (
+                                <div className="h-5 px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 select-none">
+                                    {group.label}
+                                </div>
+                            )}
+                            <div className="w-full space-y-0.5">
+                                {group.navItems.map((item) => {
+                                    const activeState = activeStatusMap[item.title] || {};
+                                    const isActive = Boolean(activeState.isActive);
+                                    const isChildActive = Boolean(activeState.isChildActive);
+
+                                    return (
+                                        <div key={item.title} className="w-full">
+                                            {item.items && item.items.length > 0 ? (
+                                                <Collapsible
+                                                    open={Boolean(openMenus[item.title] ?? isChildActive)}
+                                                    onOpenChange={(isOpen) => setMenuOpen(item.title, isOpen)}
+                                                    className="w-full"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
-                                                        <span>{item.title}</span>
-                                                    </div>
-                                                    {openMenus[item.title] ? (
-                                                        <ChevronDown className="h-4 w-4 opacity-80" />
-                                                    ) : (
-                                                        <ChevronRight className="h-4 w-4 opacity-80" />
-                                                    )}
-                                                </Button>
-                                            </CollapsibleTrigger>
-                                            <CollapsibleContent>
-                                                <div className="ml-5 mt-1 space-y-1 border-l border-border-subtle pl-3">
-                                                    {item.items.map((subItem) => (
-                                                        <NavLink
-                                                            key={subItem.title}
-                                                            to={subItem.href}
-                                                            onClick={() => setOpen(false)}
+                                                    <CollapsibleTrigger asChild>
+                                                        <button
+                                                            type="button"
                                                             className={cn(
-                                                                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150 hover:bg-accent/70 hover:text-accent-foreground text-subtle-foreground',
-                                                                isActive(subItem) &&
-                                                                'bg-accent text-accent-foreground font-semibold shadow-xs'
+                                                                "flex items-center justify-between w-full h-8.5 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer select-none touch-manipulation active:scale-[0.99]",
+                                                                isChildActive
+                                                                    ? "text-foreground font-semibold bg-sidebar-accent/50"
+                                                                    : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
                                                             )}
                                                         >
-                                                            {subItem.icon && <subItem.icon className="h-4 w-4 shrink-0" />}
-                                                            <span>{subItem.title}</span>
-                                                        </NavLink>
-                                                    ))}
-                                                </div>
-                                            </CollapsibleContent>
-                                        </Collapsible>
-                                    ) : (
-                                        <NavLink
-                                            to={item.href}
-                                            onClick={() => setOpen(false)}
-                                            className={cn(
-                                                'flex items-center gap-3 rounded-lg px-3 py-2.5 h-11 font-medium text-[15px] transition-all duration-150 hover:bg-accent/80 hover:text-accent-foreground text-sidebar-foreground',
-                                                isActive(item) &&
-                                                'bg-accent text-accent-foreground font-semibold shadow-sm'
-                                            )}
-                                        >
-                                            {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
-                                            <span>{item.title}</span>
-                                        </NavLink>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                                                            <div className="flex items-center gap-2.5">
+                                                                {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
+                                                                <span className="truncate">{item.title}</span>
+                                                            </div>
+                                                            <ChevronRight
+                                                                className={cn(
+                                                                    "h-3.5 w-3.5 shrink-0 transition-transform duration-200 text-muted-foreground/70",
+                                                                    (openMenus[item.title] ?? isChildActive) && "rotate-90 text-foreground"
+                                                                )}
+                                                            />
+                                                        </button>
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent>
+                                                        <div className="ml-3.5 mt-0.5 border-l border-border-subtle/80 pl-2.5 space-y-0.5">
+                                                            {item.items.map((subItem) => {
+                                                                const isSubActive = activeState.subItems?.[subItem.title] ?? false;
 
-                    {/* Footer */}
-                    <SidebarFooter className="border-t border-border-subtle p-4 bg-sidebar">
-                        <div className="space-y-0.5 text-center">
-                            <p className="text-sm font-medium text-sidebar-foreground">MySaaS</p>
-                            <p className="text-xs text-subtle-foreground">Version 1.0.0</p>
+                                                                return (
+                                                                    <NavLink
+                                                                        key={subItem.title}
+                                                                        to={subItem.href}
+                                                                        onClick={closeDrawer}
+                                                                        className={cn(
+                                                                            "flex items-center gap-2.5 h-8 w-full cursor-pointer rounded-lg text-xs transition-all duration-150 px-2 select-none touch-manipulation active:scale-[0.99]",
+                                                                            isSubActive
+                                                                                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-2xs relative before:absolute before:-left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:rounded-full before:bg-primary"
+                                                                                : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground"
+                                                                        )}
+                                                                    >
+                                                                        {subItem.icon && <subItem.icon className="h-3.5 w-3.5 shrink-0" />}
+                                                                        <span className="truncate">{subItem.title}</span>
+                                                                    </NavLink>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Collapsible>
+                                            ) : (
+                                                <NavLink
+                                                    to={item.href}
+                                                    onClick={closeDrawer}
+                                                    className={cn(
+                                                        "flex items-center gap-2.5 w-full h-8.5 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer select-none touch-manipulation active:scale-[0.99]",
+                                                        isActive
+                                                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-2xs relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r before:bg-primary"
+                                                            : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground"
+                                                    )}
+                                                >
+                                                    {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
+                                                    <span className="truncate">{item.title}</span>
+                                                </NavLink>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </SidebarFooter>
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div className="border-t border-border-subtle p-3 px-4 shrink-0">
+                    <p className="text-xs text-subtle-foreground">
+                        © {CURRENT_YEAR} miniCRM
+                    </p>
                 </div>
             </SheetContent>
         </Sheet>
