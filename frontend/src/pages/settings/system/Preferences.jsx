@@ -83,8 +83,7 @@ const Preferences = () => {
 
         try {
             await updateTimezone(newTimezone);
-            toast.success('Timezone updated successfully');
-        } catch {
+         } catch {
             setLocalTimezone(timezone);
             toast.error('Failed to update timezone');
         } finally {
@@ -104,8 +103,7 @@ const Preferences = () => {
 
         try {
             await updateNotifications(updated);
-            toast.success(checked ? 'Email notifications enabled' : 'Email notifications disabled');
-        } catch {
+         } catch {
             setLocalNotifications(notifications);
             toast.error('Failed to update email notification preferences');
         } finally {
@@ -125,8 +123,7 @@ const Preferences = () => {
 
         try {
             await updateNotifications(updated);
-            toast.success(checked ? 'In-app alerts enabled' : 'In-app alerts disabled');
-        } catch {
+         } catch {
             setLocalNotifications(notifications);
             toast.error('Failed to update in-app alert preferences');
         } finally {
