@@ -14,8 +14,31 @@ export const findOrganizationByZoomAccountId = (zoomAccountId) => {
         "integrations.zoom.zoomAccountId": zoomAccountId,
         "integrations.zoom.isConnected": true,
     })
-        .select("_id owner")
+        .select(
+            "_id owner " +
+            "integrations.zoom.isConnected " +
+            "integrations.zoom.email " +
+            "integrations.zoom.zoomAccountId " +
+            "integrations.zoom.connectedAt " +
+            "+integrations.zoom.refreshToken.encryptedData " +
+            "+integrations.zoom.refreshToken.iv " +
+            "+integrations.zoom.refreshToken.authTag"
+        )
         .lean();
+};
+
+
+export const updateZoomRefreshToken = (orgId, refreshToken) => {
+    return Organization.findByIdAndUpdate(
+        orgId,
+        {
+            $set: {
+                "integrations.zoom.refreshToken": refreshToken,
+                "integrations.zoom.connectedAt": new Date(),
+            },
+        },
+        { returnDocument: "after" }
+    );
 };
 
 
