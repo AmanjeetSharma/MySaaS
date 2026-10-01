@@ -9,6 +9,16 @@ export const getOrganizationOwner = (orgId) => {
 };
 
 
+export const findOrganizationByZoomAccountId = (zoomAccountId) => {
+    return Organization.findOne({
+        "integrations.zoom.zoomAccountId": zoomAccountId,
+        "integrations.zoom.isConnected": true,
+    })
+        .select("_id owner")
+        .lean();
+};
+
+
 export const updateZoomIntegration = (orgId, integration) => {
     return Organization.findByIdAndUpdate(
         orgId,

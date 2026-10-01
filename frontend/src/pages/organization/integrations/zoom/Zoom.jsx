@@ -11,7 +11,8 @@ import {
   X,
   Clock,
   ExternalLink,
-  Info
+  Info,
+  ShieldAlert
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -25,10 +26,11 @@ import {
 import { useZoomStore, useUserStore, useOrganizationStore } from '@/stores';
 import {
   getEntityId,
+  isSameId,
+  checkIsOwner,
   formatConnectedDate,
   parseZoomCallbackParams
 } from './zoom.helper';
-
 
 const Zoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,16 +53,49 @@ const Zoom = () => {
   } = useZoomStore();
 
   const { userProfile, getUserProfile } = useUserStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { currentOrganization, ownedOrganization, getOrganizations } = useOrganizationStore();
 
   const activeOrg = userProfile?.activeOrganization;
   const organizationId = useMemo(() => getEntityId(activeOrg), [activeOrg]);
-  const activeOrgName = currentOrganization?.name || activeOrg?.name || null;
+  const activeOrgName = currentOrganization?.name || (typeof activeOrg === 'object' ? activeOrg?.name : null);
 
   const isStatusForActiveOrg = statusOrgId === organizationId;
   const isConnected = isStatusForActiveOrg && Boolean(status?.isConnected);
   const isBusy = isLoading || isConnecting || isDisconnecting;
   const isConnectingOrRedirecting = isConnecting || isRedirecting;
+
+  // Determine if the current user is the owner of the active organization
+  const isOwner = useMemo(() => {
+    if (!userProfile || !organizationId) return false;
+    const currentUserId = getEntityId(userProfile);
+    if (!currentUserId) return false;
+
+    // 1. If ownedOrganization in orgStore matches active organizationId
+    if (ownedOrganization && isSameId(ownedOrganization._id, organizationId)) {
+      return true;
+    }
+
+    // 2. If currentOrganization in orgStore has owner matching currentUserId
+    if (currentOrganization && isSameId(currentOrganization._id, organizationId)) {
+      if (checkIsOwner(currentOrganization, userProfile)) return true;
+    }
+
+    // 3. If activeOrganization object on userProfile has owner matching currentUserId
+    if (typeof activeOrg === 'object' && activeOrg !== null) {
+      if (checkIsOwner(activeOrg, userProfile)) return true;
+    }
+
+    return false;
+  }, [userProfile, organizationId, ownedOrganization, currentOrganization, activeOrg]);
+
+  // Ensure organization details are fetched when activeOrg exists
+  useEffect(() => {
+    if (userProfile && organizationId) {
+      if (!currentOrganization || !isSameId(currentOrganization._id, organizationId)) {
+        getOrganizations(organizationId);
+      }
+    }
+  }, [userProfile, organizationId, currentOrganization, getOrganizations]);
 
   // Unfreeze redirect state if user navigates back from Zoom via Back button or tab refocus
   useEffect(() => {
@@ -113,7 +148,9 @@ const Zoom = () => {
     if (isError) {
       useZoomStore.setState({ isConnecting: false });
       setSearchParams({}, { replace: true });
-      toast.error(message);
+      toast.error(message, {
+        duration: 10000,
+      });
       return;
     }
 
@@ -286,21 +323,30 @@ const Zoom = () => {
                 Automatically generate meeting rooms and secure video links for bookings.
               </p>
 
-              <div className="mt-6 flex justify-center">
-                <Button
-                  size="default"
-                  onClick={handleConnect}
-                  disabled={isBusy || !organizationId || isConnectingOrRedirecting}
-                  className="cursor-pointer w-full sm:w-auto px-7 h-10 gap-2 bg-[#0B5CFF] hover:bg-[#094ecf] text-white font-semibold shadow-md shadow-[#0B5CFF]/20 transition-all active:scale-[0.98] text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isConnectingOrRedirecting ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Video className="size-4" />
-                  )}
-                  <span>{isConnectingOrRedirecting ? 'Redirecting...' : 'Connect Account'}</span>
-                </Button>
-              </div>
+              {isOwner ? (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    size="default"
+                    onClick={handleConnect}
+                    disabled={isBusy || !organizationId || isConnectingOrRedirecting}
+                    className="cursor-pointer w-full sm:w-auto px-7 h-10 gap-2 bg-[#0B5CFF] hover:bg-[#094ecf] text-white font-semibold shadow-md shadow-[#0B5CFF]/20 transition-all active:scale-[0.98] text-xs sm:text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isConnectingOrRedirecting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Video className="size-4" />
+                    )}
+                    <span>{isConnectingOrRedirecting ? 'Redirecting...' : 'Connect Account'}</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-6 flex justify-center">
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-surface border border-border-subtle px-3.5 py-2 text-xs text-muted-foreground shadow-2xs">
+                    <ShieldAlert className="size-4 text-warning shrink-0" />
+                    <span>Only the organization owner can connect Zoom.</span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Connected: Huge CheckCircle with Green on Blue Theme */
@@ -358,21 +404,23 @@ const Zoom = () => {
                   <TooltipContent>Open Zoom web portal in a new tab</TooltipContent>
                 </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      onClick={() => setIsDisconnectModalOpen(true)}
-                      disabled={isDisconnecting}
-                      className="cursor-pointer text-xs gap-1.5 h-9 px-4.5 bg-destructive/10 text-destructive border border-destructive/35 shadow-xs hover:bg-destructive/20 hover:border-destructive/60 hover:shadow-sm transition-all active:scale-[0.98]"
-                      aria-label="Disconnect Zoom integration"
-                    >
-                      <Unplug className="size-3.5" />
-                      <span>Disconnect</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Disconnect Zoom from this organization</TooltipContent>
-                </Tooltip>
+                {isOwner && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsDisconnectModalOpen(true)}
+                        disabled={isDisconnecting}
+                        className="cursor-pointer text-xs gap-1.5 h-9 px-4.5 bg-destructive/10 text-destructive border border-destructive/35 shadow-xs hover:bg-destructive/20 hover:border-destructive/60 hover:shadow-sm transition-all active:scale-[0.98]"
+                        aria-label="Disconnect Zoom integration"
+                      >
+                        <Unplug className="size-3.5" />
+                        <span>Disconnect</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Disconnect Zoom from this organization</TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </div>
           )}

@@ -16,6 +16,7 @@ import {
 } from "./zoom.utils.js";
 import {
     getOrganizationOwner,
+    findOrganizationByZoomAccountId,
     updateZoomIntegration,
     getOrganizationZoomIntegration,
     getOrganizationZoomCredentials,
@@ -192,6 +193,21 @@ export const zoomOAuthCallbackService = async ({
 
     if (!zoomUser?.id || !zoomUser?.email) {
         throw new ApiError(400, "Invalid Zoom account information.");
+    }
+
+    const existingOrganization = await findOrganizationByZoomAccountId(zoomUser.id);
+
+    if (existingOrganization && existingOrganization._id.toString() !== orgId.toString()) {
+        logger.warn(
+            {
+                orgId,
+                existingOrgId: existingOrganization._id,
+                zoomAccountId: zoomUser.id,
+            },
+            "integration.zoom.account_already_connected"
+        );
+
+        throw new ApiError(400,  "Your active Zoom account is already connected to another organization. Please switch to a different Zoom accounts and try again.");
     }
 
     const encryptedRefreshToken = encryptRefreshToken(refreshToken);

@@ -43,9 +43,10 @@ export const zoomOAuthCallbackController = asyncHandler(async (req, res) => {
             `${redirectBaseUrl}?connected=true&email=${encodeURIComponent(email)}`
         );
     } catch (error) {
+        const errorMessage = error?.message || "An error occurred, please try again later.";
         return res.redirect(
             302,
-            `${redirectBaseUrl}?connected=false&error=oauth_failed`
+            `${redirectBaseUrl}?connected=false&error=oauth_failed&message=${encodeURIComponent(errorMessage)}`
         );
     }
 });

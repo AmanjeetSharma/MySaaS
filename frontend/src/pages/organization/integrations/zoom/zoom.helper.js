@@ -8,6 +8,25 @@ export const getEntityId = (entity) => {
 };
 
 /**
+ * Compare two entity IDs for equality
+ */
+export const isSameId = (left, right) => {
+  const leftId = getEntityId(left);
+  const rightId = getEntityId(right);
+  return Boolean(leftId && rightId && leftId.toString() === rightId.toString());
+};
+
+/**
+ * Check if the user is the owner of the organization
+ */
+export const checkIsOwner = (org, user) => {
+  if (!org || !user) return false;
+  const ownerId = getEntityId(org.owner) || getEntityId(org.ownerId);
+  const currentUserId = getEntityId(user);
+  return isSameId(ownerId, currentUserId);
+};
+
+/**
  * Format connected timestamp with date and time
  */
 export const formatConnectedDate = (dateString) => {
@@ -41,16 +60,24 @@ export const parseZoomCallbackParams = (searchParams) => {
   const connected = searchParams.get('connected');
   const email = searchParams.get('email');
   const errorParam = searchParams.get('error');
+  const messageParam = searchParams.get('message');
 
-  if (errorParam) {
-    let message = 'Failed to connect Zoom account.';
-    if (errorParam === 'oauth_failed') {
-      message = 'Zoom authorization failed or was rejected.';
-    } else if (errorParam === 'access_denied') {
-      message = 'Zoom authorization was cancelled.';
+  if (errorParam || connected === 'false') {
+    let message = messageParam;
+    if (!message) {
+      if (errorParam === 'oauth_failed') {
+        message = 'Zoom authorization failed or was rejected.';
+      } else if (errorParam === 'access_denied') {
+        message = 'Zoom authorization was cancelled.';
+      } else if (errorParam) {
+        message = decodeURIComponent(errorParam);
+      } else {
+        message = 'Failed to connect Zoom account.';
+      }
     } else {
-      message = `Zoom connection error: ${errorParam}`;
+      message = decodeURIComponent(message);
     }
+
     return { isSuccess: false, isError: true, message, email: null };
   }
 
@@ -58,7 +85,7 @@ export const parseZoomCallbackParams = (searchParams) => {
     return {
       isSuccess: true,
       isError: false,
-      message: 'Zoom connected successfully.',
+      message: messageParam ? decodeURIComponent(messageParam) : 'Zoom connected successfully.',
       email: email ? decodeURIComponent(email) : null
     };
   }
