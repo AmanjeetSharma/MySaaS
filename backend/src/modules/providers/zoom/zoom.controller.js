@@ -63,7 +63,7 @@ export const getZoomIntegrationStatusController = asyncHandler(async (req, res) 
         new ApiResponse(
             200,
             data,
-            "Zoom integration status retrieved successfully."
+            "Zoom Status refreshed."
         )
     );
 });
@@ -81,7 +81,7 @@ export const disconnectZoomController = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             data,
-            "Zoom integration disconnected successfully."
+            "Zoom Account disconnected successfully."
         )
     );
 });

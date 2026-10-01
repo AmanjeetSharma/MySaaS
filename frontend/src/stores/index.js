@@ -13,6 +13,7 @@ export { useBookingStore } from './bookingStore';
 export { usePaymentStore } from './paymentStore';
 export { useNotificationStore } from './notificationStore';
 export { useMemberStore } from './memberStore';
+export { useZoomStore } from './zoomStore';
 
 
 

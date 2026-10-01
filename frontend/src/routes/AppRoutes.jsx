@@ -61,7 +61,7 @@ import SetPassword from '@/pages/settings/account/SetPassword';
 
 // Integrations imports
 import ConnectGoogle from '@/pages/organization/integrations/google/ConnectGoogle';
-import Zoom from '@/pages/organization/integrations/Zoom';
+import Zoom from '@/pages/organization/integrations/zoom/Zoom';
 import MicrosoftTeams from '@/pages/organization/integrations/MicrosoftTeams';
 
 // Notifications imports
