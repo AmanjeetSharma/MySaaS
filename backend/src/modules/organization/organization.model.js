@@ -114,6 +114,42 @@ const zoomIntegrationSchema = new Schema({
         type: Boolean,
         default: false,
     },
+
+    refreshToken: {
+        encryptedData: {
+            type: String,
+            default: null,
+            select: false,
+        },
+        iv: {
+            type: String,
+            default: null,
+            select: false,
+        },
+        authTag: {
+            type: String,
+            default: null,
+            select: false,
+        },
+    },
+
+    email: {
+        type: String,
+        default: null,
+        lowercase: true,
+        trim: true,
+    },
+
+    zoomAccountId: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
+    connectedAt: {
+        type: Date,
+        default: null,
+    },
 }, { _id: false });
 
 const microsoftIntegrationSchema = new Schema({

@@ -31,7 +31,7 @@ export const connectGoogleController = asyncHandler(async (req, res) => {
 export const googleOAuthCallbackController = asyncHandler(async (req, res) => {
     const { code, state } = req.query;
 
-    const redirectBaseUrl = `${env.CLIENT_URL}/integrations/connect-google`;
+    const redirectBaseUrl = `${env.CLIENT_URL}/integrations/google-calendar`;
 
     try {
         const { email } = await googleOAuthCallbackService({
