@@ -11,15 +11,7 @@ export const INTEGRATION_CONFIG = {
         name: "Google Meet",
         description: "Sync calendar & call links",
         icon: CalendarDays,
-        path: "/integrations/connect-google",
-    },
-
-    ZOOM: {
-        integrationKey: "zoom",
-        name: "Zoom",
-        description: "Connect Zoom meetings",
-        icon: Video,
-        path: "/integrations/connect-zoom",
+        path: "/integrations/google-calendar",
     },
 
     MICROSOFT_TEAMS: {
@@ -27,15 +19,15 @@ export const INTEGRATION_CONFIG = {
         name: "Microsoft Teams",
         description: "Schedule Teams calls",
         icon: Users,
-        path: "/integrations/connect-microsoft-teams",
+        path: "/integrations/microsoft-teams",
     },
 
-    WHATSAPP: {
-        integrationKey: "whatsapp",
-        name: "WhatsApp",
-        description: "Send automated messages",
-        icon: MessageCircle,
-        path: "/integrations/connect-whatsapp",
+    ZOOM: {
+        integrationKey: "zoom",
+        name: "Zoom",
+        description: "Connect Zoom meetings",
+        icon: Video,
+        path: "/integrations/zoom",
     },
 };
 
@@ -43,7 +35,7 @@ export const INTEGRATION_CONFIG = {
 export const INTEGRATION_LIST = Object.values(INTEGRATION_CONFIG);
 
 
-// Utility function to find configuration by key (e.g. "google", "whatsapp")
+// Utility function to find configuration by key (e.g. "google", "zoom", "microsoft")
 export const getIntegrationByKey = (key) => {
     return INTEGRATION_LIST.find((item) => item.integrationKey === key) || null;
 };

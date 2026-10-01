@@ -69,7 +69,7 @@ const serviceSnapshotSchema = new Schema({
 
     meetingProvider: {
         type: String,
-        enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS",],
+        enum: ["GOOGLE_MEET", "ZOOM", "MICROSOFT_TEAMS",],
         default: null,
     },
 
@@ -88,7 +88,7 @@ const serviceSnapshotSchema = new Schema({
 const meetingSchema = new Schema({
     provider: {
         type: String,
-        enum: ["GOOGLE_MEET", "WHATSAPP", "ZOOM", "MICROSOFT_TEAMS",],
+        enum: ["GOOGLE_MEET", "ZOOM", "MICROSOFT_TEAMS",],
         default: null,
     },
 
@@ -202,7 +202,7 @@ const bookingSchema = new Schema({
         default: "PENDING_PAYMENT",
         index: true,
     },
-    
+
     paymentExpiresAt: {
         type: Date,
         default: null,

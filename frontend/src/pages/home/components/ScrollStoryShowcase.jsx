@@ -336,7 +336,7 @@ export const ScrollStoryShowcase = () => {
                                 Sync Calendars
                             </h2>
                             <p className="text-[10px] xs:text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none max-w-md">
-                                Personal appointments and team holidays automatically block booking availability. Video bridges and WhatsApp reminder alerts sync in realtime.
+                                Personal appointments and team holidays automatically block booking availability. Video bridges and reminder alerts sync in realtime.
                             </p>
                         </div>
 

@@ -54,6 +54,7 @@ import googleRoutes from "./modules/providers/google/google.routes.js";
 import paymentRoutes from "./modules/payment/payment.routes.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
 import memberRoutes from "./modules/organization/member/member.routes.js";
+import zoomRoutes from "./modules/providers/zoom/zoom.routes.js";
 
 // Use routes
 app.use("/api/v1/auth", authRoutes);
@@ -69,6 +70,7 @@ app.use("/api/v1/providers/google", googleRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/members", memberRoutes);
+app.use("/api/v1/providers/zoom", zoomRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
