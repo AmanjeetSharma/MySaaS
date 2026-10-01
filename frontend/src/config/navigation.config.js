@@ -120,24 +120,19 @@ export const useNavigationConfig = () => {
                 items: [
                     {
                         title: "Google Calendar",
-                        href: "/integrations/connect-google",
+                        href: "/integrations/google-calendar",
                         icon: CalendarDays
                     },
                     {
-                        title: "WhatsApp",
-                        href: "/integrations/connect-whatsapp",
-                        icon: MessageCircle
+                        title: "Microsoft Teams",
+                        href: "/integrations/microsoft-teams",
+                        icon: Users
                     },
                     {
                         title: "Zoom",
-                        href: "/integrations/connect-zoom",
+                        href: "/integrations/zoom",
                         icon: Video
                     },
-                    {
-                        title: "Microsoft Teams",
-                        href: "/integrations/connect-microsoft-teams",
-                        icon: Users
-                    }
                 ]
             },
             {

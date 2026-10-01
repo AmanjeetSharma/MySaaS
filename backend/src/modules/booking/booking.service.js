@@ -88,10 +88,7 @@ const tryCreateGoogleEvent = async ({
     timezone,
     manageBookingUrl,
 }) => {
-    console.log(
-        "tryCreateGoogleEvent called with:",
-        JSON.stringify(organization, null, 2)
-    );
+     
     if (!shouldCreateGoogleCalendarEvent(organization)) {
         console.log("Google Calendar integration is not connected or not enabled for this organization.");
         return {

@@ -17,10 +17,4 @@ export const INTEGRATION_CONFIG = {
         available: false,
         name: "Microsoft Teams",
     },
-    
-    WHATSAPP: {
-        integrationKey: "whatsapp",
-        available: false,
-        name: "WhatsApp",
-    },
 };

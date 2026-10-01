@@ -61,7 +61,6 @@ import SetPassword from '@/pages/settings/account/SetPassword';
 
 // Integrations imports
 import ConnectGoogle from '@/pages/organization/integrations/google/ConnectGoogle';
-import WhatsApp from '@/pages/organization/integrations/WhatsApp';
 import Zoom from '@/pages/organization/integrations/Zoom';
 import MicrosoftTeams from '@/pages/organization/integrations/MicrosoftTeams';
 
@@ -121,10 +120,9 @@ export const AppRoutes = () => {
                     <Route path="/bookings/:bookingId" element={<BookingDetails />} />
 
                     {/* Integrations Routes */}
-                    <Route path="/integrations/connect-google" element={<ConnectGoogle />} />
-                    <Route path="/integrations/connect-whatsapp" element={<WhatsApp />} />
-                    <Route path="/integrations/connect-zoom" element={<Zoom />} />
-                    <Route path="/integrations/connect-microsoft-teams" element={<MicrosoftTeams />} />
+                    <Route path="/integrations/google-calendar" element={<ConnectGoogle />} />
+                    <Route path="/integrations/microsoft-teams" element={<MicrosoftTeams />} />
+                    <Route path="/integrations/zoom" element={<Zoom />} />
 
                     {/* Reminder Route */}
                     <Route path="/reminders" element={<Reminder />} />

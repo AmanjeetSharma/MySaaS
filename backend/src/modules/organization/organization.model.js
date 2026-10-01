@@ -109,13 +109,6 @@ const googleIntegrationSchema = new Schema({
 }, { _id: false });
 
 // future implementation
-const whatsappIntegrationSchema = new Schema({
-    isConnected: {
-        type: Boolean,
-        default: false,
-    },
-}, { _id: false });
-
 const zoomIntegrationSchema = new Schema({
     isConnected: {
         type: Boolean,
@@ -134,10 +127,6 @@ const microsoftIntegrationSchema = new Schema({
 const integrationsSchema = new Schema({
     google: {
         type: googleIntegrationSchema,
-        default: {}
-    },
-    whatsapp: {
-        type: whatsappIntegrationSchema,
         default: {}
     },
     microsoft: {
