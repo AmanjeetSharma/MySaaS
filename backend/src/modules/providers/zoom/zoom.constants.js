@@ -10,3 +10,5 @@ export const ZOOM_SCOPES = [
     "meeting:write:meeting",
     "user:read:user",
 ];
+
+// docker run --rm --name mysaas-cloudflare-backend cloudflare/cloudflared:latest tunnel --no-autoupdate --url http://host.docker.internal:3000
