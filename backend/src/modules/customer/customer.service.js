@@ -21,7 +21,7 @@ import {
 } from './customer.repository.js'
 import { nameValidator, emailValidator, phoneNumberValidator } from '../../validations/auth.validators.js';
 import { ACTIVITY_TYPES } from '../../constants/activityTypes.constants.js';
-
+import logger from '#/config/logger.js';
 
 
 
@@ -95,7 +95,14 @@ export const createCustomerService = async (userId, payload) => {
         await updateCustomerUsageStats(orgId, 1);
 
     } catch (err) {
-        console.error("Customer creation failed:", err);
+        logger.error(
+            {
+                error: err.message,
+                stack: err.stack,
+            },
+            "customer.create_failed"
+        );
+
         if (err.code === 11000) {
             const field = Object.keys(err.keyPattern || {})[1];// keyPattern has format { organization: 1, email: 1 } or { organization: 1, phone: 1 }
             throw new ApiError(409, `Customer with the same ${field} already exists`);
@@ -103,7 +110,14 @@ export const createCustomerService = async (userId, payload) => {
         throw new ApiError(500, "Failed to create customer, please try again");
     }
 
-    console.log(`Customer created | ID: ${customer._id} | Name: ${customer.name} | Source: ${customer.source} | Organization: ${orgId} | CreatedBy: ${userId}`);
+    logger.info(
+        {
+            customerId: customer._id,
+            name: customer.name,
+            source: customer.source,
+        },
+        "customer.created"
+    );
 
     return {
         customer,
@@ -210,14 +224,26 @@ export const updateCustomerService = async (userId, customerId, payload) => {
             throw new ApiError(409, "Customer already exists");
         }
 
-        console.error("Customer update failed:", err);
+        logger.error(
+            {
+                error: err.message,
+                stack: err.stack,
+            },
+            "customer.update_failed"
+        );
 
         throw new ApiError(500, "Failed to update customer, please try again");
     }
 
     const { updatedBy, ...sanitizedUpdates } = updates;
-    console.log(`Customer updated | ID: ${customer._id} | UpdatedBy: ${userId} | Updates: ${JSON.stringify(sanitizedUpdates)}`);
 
+    logger.info(
+        {
+            customerId: customer._id,
+            updates: sanitizedUpdates,
+        },
+        "customer.updated"
+    );
     return {
         customer,
         message: `Customer has been updated`
@@ -251,7 +277,14 @@ export const getCustomerService = async (userId, customerId) => {
         throw new ApiError(403, "Access denied: You are not a member of this organization");
     }
 
-    console.log(`Customer retrieved | ID: ${customer._id} | Name: ${customer.name} | Organization: ${customer.organization}`);
+    logger.info(
+        {
+            customerId: customer._id,
+            name: customer.name,
+            organization: customer.organization,
+        },
+        "customer.retrieved"
+    );
 
     return customer;
 };
@@ -287,13 +320,27 @@ export const deleteCustomerService = async (userId, customerId) => {
     try {
         await customer.save();
     } catch (err) {
-        console.error("Customer deletion failed:", err);
+        logger.error(
+            {
+                error: err.message,
+                stack: err.stack,
+            },
+            "customer.delete_failed"
+        );
+
         throw new ApiError(500, "Failed to delete customer, please try again");
     }
 
     await updateCustomerUsageStats(customer.organization, -1);
 
-    console.log(`Customer deleted | ID: ${customer._id} | UpdatedBy: ${userId}`);
+    logger.info(
+        {
+            customerId: customer._id,
+            name: customer.name,
+            organization: customer.organization,
+        },
+        "customer.deleted"
+    );
 
     return {
         customerId: customer._id,
@@ -364,7 +411,14 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
     limitNum = Math.min(100, Math.max(1, limitNum));
     const skip = (pageNum - 1) * limitNum;
 
-    console.log(`--------\npage: ${pageNum} | limit: ${limitNum} | skip: ${skip}`); // debug log 
+    logger.debug(
+        {
+            page: pageNum,
+            limit: limitNum,
+            skip,
+        },
+        "customer.list.pagination"
+    );
 
     // sorting
     const allowedSortFields = [
@@ -393,7 +447,16 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
             countCustomers(basefilter)
         ]);
 
-        console.log(`Customers retrieved | Organization: ${orgId} | RequestedBy: ${userId} \nCount: ${customers.length} | Total: ${total} | Search: ${search || "N/A"} | Sort: ${finalSortField} ${sortOrder}`);
+        logger.info(
+            {
+                organization: orgId,
+                count: customers.length,
+                total,
+                search: search || "N/A",
+                sort: `${finalSortField} ${sortOrder}`
+            },
+            "customer.list.retrieved"
+        );
 
         return {
             customers,
@@ -407,7 +470,13 @@ export const getAllCustomersOfOrganizationService = async (userId, orgId, query)
             }
         };
     } catch (error) {
-        console.error("Failed to fetch customers:", error);
+        logger.error(
+            {
+                organization: orgId,
+                stack: error.stack
+            },
+            "customer.list.fetch_failed"
+        );
         throw new ApiError(500, "Failed to retrieve customers, please try again.");
     }
 };
@@ -505,7 +574,14 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
         const total = await countActivities(filter);
         const summary = await getActivitySummary(filter);
 
-        console.log(`Customer timeline retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${activities.length} | Total: ${total}`);
+        logger.info(
+            {
+                customerId,
+                count: activities.length,
+                total
+            },
+            "customer.timeline.retrieved"
+        );
 
         return {
             customer: {
@@ -528,7 +604,13 @@ export const getCustomerTimelineService = async (userId, customerId, query) => {
             }
         };
     } catch (err) {
-        console.error("Failed to fetch customer timeline:", err);
+        logger.error(
+            {
+                customerId,
+                stack: err.stack,
+            },
+            "customer.timeline.fetch_failed"
+        );
         throw new ApiError(500, "Failed to retrieve customer timeline, please try again");
     }
 };
@@ -624,7 +706,17 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
     const sort = {};
     sort[finalSortField] = sortOrder === "desc" ? -1 : 1;
 
-    console.log(`--------\nPage: ${pageNum} | limit: ${limitNum} | skip: ${skip} | sort: ${finalSortField || "createdAt"} ${sortOrder || "asc"}\nSearch: ${search || "N/A"}`); // debug log
+    logger.debug(
+        {
+            page: pageNum,
+            limit: limitNum,
+            skip,
+            sortField: finalSortField || "createdAt",
+            sortOrder: sortOrder || "asc",
+            search: search || "N/A",
+        },
+        "customer.list.query"
+    );
 
     try {
         // running these in parallel to optimize performance
@@ -654,7 +746,14 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
 
         statsMap.total = statsMap.active + statsMap.won + statsMap.lost;
 
-        console.log(`Customer deals retrieved | CustomerID: ${customerId} | RequestedBy: ${userId} | Count: ${deals.length} | Total: ${statsMap.total}`);
+        logger.info(
+            {
+                customerId,
+                count: deals.length,
+                total: statsMap.total
+            },
+            "customer.deals.retrieved"
+        );
 
         return {
             customer: {
@@ -677,7 +776,13 @@ export const getCustomerDealsService = async (userId, customerId, query) => {
             }
         };
     } catch (error) {
-        console.error("Failed to fetch customer deals:", error);
+        logger.error(
+            {
+                customerId,
+                stack: error.stack,
+            },
+            "customer.deals.fetch_failed"
+        );
         throw new ApiError(500, error.message || "Failed to retrieve customer deals, please try again");
     }
 };

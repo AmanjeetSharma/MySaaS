@@ -11,7 +11,7 @@ import {
     getActivityFeed,
 } from "./activity.repository.js";
 import { ACTIVITY_TYPES } from "../../constants/activityTypes.constants.js";
-
+import logger from "#/config/logger.js";
 
 
 
@@ -63,11 +63,25 @@ export const createActivityService = async (
     try {
         activity = await createActivity(userId, payload);
     } catch (error) {
-        console.error("Activity creation failed:", error);
+        logger.error(
+            {
+                error: error.message,
+                stack: error.stack,
+            },
+            "activity.create_failed"
+        );
+
         throw new ApiError(500, "An error occurred while creating the activity, please try again");
     }
 
-    console.log(`Activity created | Type: '${type}' | Event: '${event}' | Deal: '${deal.title.substring(0, 20)}...'`);
+    logger.info(
+        {
+            type,
+            event,
+            dealTitle: deal.title.substring(0, 20) + "...",
+        },
+        "activity.created"
+    );
 
     return {
         activity,
@@ -166,11 +180,25 @@ export const updateActivityService = async (
             }
         ]);
     } catch (error) {
-        console.error("Activity update failed:", error);
+        logger.error(
+            {
+                error: error.message,
+                stack: error.stack,
+            },
+            "activity.update_failed"
+        );
+
         throw new ApiError(500, "Failed to update activity");
     }
 
-    console.log(`Activity updated | Type: '${activity.type}' | Event: '${activity.event}' | ID: '${activity._id}'`);
+    logger.info(
+        {
+            type: activity.type,
+            event: activity.event,
+            activityId: activity._id,
+        },
+        "activity.updated"
+    );
 
     return {
         activity,
@@ -204,11 +232,25 @@ export const deleteActivityService = async (userId, activityId) => {
     try {
         await deleteActivity(activityId);
     } catch (error) {
-        console.error("Activity deletion failed:", error);
+        logger.error(
+            {
+                error: error.message,
+                stack: error.stack,
+            },
+            "activity.delete_failed"
+        );
+
         throw new ApiError(500, "An error occurred while deleting the activity, please try again");
     }
 
-    console.log(`Activity deleted | Type: '${activity.type}' | Event: '${activity.event}' | ID: '${activity._id}'`);
+    logger.info(
+        {
+            type: activity.type,
+            event: activity.event,
+            activityId: activity._id,
+        },
+        "activity.deleted"
+    );
 
     return {
         message: `Activity deleted | Type: '${activity.type}' | Event: '${activity.event}'`
@@ -238,6 +280,15 @@ export const getActivityByIdService = async (userId, activityId) => {
     if (!isMember) {
         throw new ApiError(403, "Access denied: You do not belong to the organization");
     }
+
+    logger.info(
+        {
+            type: activity.type,
+            event: activity.event,
+            activityId: activity._id,
+        },
+        "activity.retrieved"
+    );
 
     return {
         activity,
@@ -270,7 +321,13 @@ export const getAllActivitiesService = async (userId, { cursor = null }) => {
 
     const nextCursor = activities.length > 0 ? activities[activities.length - 1].createdAt : null;
 
-    console.log(`Fetched ${activities.length} activities for user ${user.email} with cursor ${cursor}`);
+    logger.info(
+        {
+            count: activities.length,
+            cursor,
+        },
+        "activity.list.retrieved"
+    );
 
     return {
         activities,
